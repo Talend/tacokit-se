@@ -56,7 +56,7 @@
     <module>fileio</module>
     <module>bigquery</module>
     <module>elasticsearch</module>
-    <module>processing</module>
+    <!--<module>processing</module>-->
     <module>jdbc</module>
     <module>salesforce</module>
   </modules>
