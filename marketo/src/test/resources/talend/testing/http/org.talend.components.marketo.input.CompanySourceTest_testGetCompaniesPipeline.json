@@ -1,0 +1,47 @@
+[
+  {
+    "request":{
+      "headers":{
+        "content-length":"0",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Connection":"keep-alive"
+      },
+      "method":"GET",
+      "uri":"https://586-UXQ-391.mktorest.com/identity/oauth/token?grant_type=client_credentials&client_secret=t2a67VUioKCU1uZxp4IhXvm8OpYbLYGQ&client_id=736ec2cf-4038-4eb2-bcc6-8b4ef331f4b5"
+    },
+    "response":{
+      "headers":{
+        "Transfer-Encoding":"chunked",
+        "Server":"nginx",
+        "Cache-Control":"no-store",
+        "Connection":"keep-alive",
+        "Pragma":"no-cache",
+        "Content-Type":"application/json;charset=UTF-8"
+      },
+      "payload":"{\"access_token\":\"a52d32ed-1d7d-4d40-84c2-d436da8f8ff4:sj\",\"token_type\":\"bearer\",\"expires_in\":248,\"scope\":\"undx@talend.com\"}",
+      "status":200
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "content-length":"0",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Connection":"keep-alive"
+      },
+      "method":"GET",
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?filterValues=google01,google02,google03,google04,google05,google06&access_token=a52d32ed-1d7d-4d40-84c2-d436da8f8ff4%3Asj&fields=createdAt,externalCompanyId,id,updatedAt,annualRevenue,billingCity,billingCountry,billingPostalCode,billingState,billingStreet,company,companyNotes,externalSalesPersonId,industry,mainPhone,numberOfEmployees,sicCode,site,website&filterType=externalCompanyId"
+    },
+    "response":{
+      "headers":{
+        "Server":"nginx",
+        "Connection":"keep-alive",
+        "Vary":"Accept-Encoding",
+        "Content-Length":"2054",
+        "Content-Type":"application/json;charset=UTF-8"
+      },
+      "payload":"{\"requestId\":\"15cc0#164702ea8c5\",\"result\":[{\"seq\":0,\"id\":52,\"billingCountry\":null,\"billingPostalCode\":null,\"website\":\"g.plus\",\"companyNotes\":null,\"updatedAt\":\"2018-06-25T11:33:17Z\",\"industry\":null,\"company\":\"Google\",\"annualRevenue\":null,\"numberOfEmployees\":null,\"site\":null,\"externalCompanyId\":\"google01\",\"mainPhone\":\"33688828052\",\"billingCity\":null,\"sicCode\":null,\"billingState\":null,\"createdAt\":\"2018-06-25T11:33:17Z\",\"billingStreet\":null},{\"seq\":1,\"id\":53,\"billingCountry\":null,\"billingPostalCode\":null,\"website\":\"g.plus\",\"companyNotes\":null,\"updatedAt\":\"2018-06-25T11:35:44Z\",\"industry\":null,\"company\":\"Google\",\"annualRevenue\":null,\"numberOfEmployees\":null,\"site\":null,\"externalCompanyId\":\"google02\",\"mainPhone\":\"33688828052\",\"billingCity\":null,\"sicCode\":null,\"billingState\":null,\"createdAt\":\"2018-06-25T11:35:44Z\",\"billingStreet\":null},{\"seq\":2,\"id\":54,\"billingCountry\":null,\"billingPostalCode\":null,\"website\":\"g.plus\",\"companyNotes\":null,\"updatedAt\":\"2018-06-25T11:35:55Z\",\"industry\":null,\"company\":\"Google\",\"annualRevenue\":null,\"numberOfEmployees\":null,\"site\":null,\"externalCompanyId\":\"google03\",\"mainPhone\":\"33688828052\",\"billingCity\":null,\"sicCode\":null,\"billingState\":null,\"createdAt\":\"2018-06-25T11:35:55Z\",\"billingStreet\":null},{\"seq\":3,\"id\":55,\"billingCountry\":null,\"billingPostalCode\":null,\"website\":\"g.plus\",\"companyNotes\":null,\"updatedAt\":\"2018-06-25T11:36:09Z\",\"industry\":null,\"company\":\"Google\",\"annualRevenue\":null,\"numberOfEmployees\":null,\"site\":null,\"externalCompanyId\":\"google04\",\"mainPhone\":\"33688828052\",\"billingCity\":null,\"sicCode\":null,\"billingState\":null,\"createdAt\":\"2018-06-25T11:36:09Z\",\"billingStreet\":null},{\"seq\":4,\"id\":56,\"billingCountry\":null,\"billingPostalCode\":null,\"website\":\"g.plus\",\"companyNotes\":null,\"updatedAt\":\"2018-06-25T11:36:22Z\",\"industry\":null,\"company\":\"Google\",\"annualRevenue\":null,\"numberOfEmployees\":null,\"site\":null,\"externalCompanyId\":\"google05\",\"mainPhone\":\"33688828052\",\"billingCity\":null,\"sicCode\":null,\"billingState\":null,\"createdAt\":\"2018-06-25T11:36:22Z\",\"billingStreet\":null}],\"success\":true}",
+      "status":200
+    }
+  }
+]

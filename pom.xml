@@ -62,6 +62,7 @@
     <module>processing-tck</module>
     <module>jdbc</module>
     <module>salesforce</module>
+    <module>marketo</module>
   </modules>
 
   <profiles>
