@@ -42,10 +42,6 @@ public class ListProcessorTest extends MarketoProcessorBaseTest {
 
     private JsonObject dataAddRemove;
 
-    static {
-        System.setProperty("talend.junit.http.capture", "true");
-    }
-
     @Override
     @BeforeEach
     protected void setUp() {
