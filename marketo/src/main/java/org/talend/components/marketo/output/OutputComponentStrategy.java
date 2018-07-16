@@ -25,20 +25,11 @@ public abstract class OutputComponentStrategy extends MarketoSourceOrProcessor i
 
     protected final MarketoOutputDataSet dataSet;
 
-    protected final JsonBuilderFactory jsonFactory;
-
-    protected final JsonReaderFactory jsonReader;
-
-    protected final JsonWriterFactory jsonWriter;
-
     public OutputComponentStrategy(final MarketoOutputDataSet dataSet, final I18nMessage i18n,
             final AuthorizationClient authorizationClient, final JsonBuilderFactory jsonFactory,
             final JsonReaderFactory jsonReader, JsonWriterFactory jsonWriter) {
-        super(dataSet, i18n, authorizationClient);
+        super(dataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient);
         this.dataSet = dataSet;
-        this.jsonFactory = jsonFactory;
-        this.jsonReader = jsonReader;
-        this.jsonWriter = jsonWriter;
     }
 
     @Override

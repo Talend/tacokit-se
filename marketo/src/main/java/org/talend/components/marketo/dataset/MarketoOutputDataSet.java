@@ -14,10 +14,12 @@ package org.talend.components.marketo.dataset;
 
 import lombok.Data;
 
+import org.apache.avro.Schema;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.meta.Documentation;
 
 @Data
@@ -53,6 +55,16 @@ public class MarketoOutputDataSet extends MarketoDataSet {
         dedupeFields,
         idField
     }
+
+    @Option
+    @Structure
+    @Documentation("Flow Schema")
+    private Schema flowSchema;
+
+    @Option
+    @Structure
+    @Documentation("Reject Schema")
+    private Schema rejectSchema;
 
     @Option
     @ActiveIf(target = "entity", value = { "Lead", "CustomObject", "Company", "Opportunity", "OpportunityRole" })

@@ -20,6 +20,7 @@ import javax.json.JsonObject;
 import javax.json.JsonReaderFactory;
 import javax.json.JsonWriterFactory;
 
+import org.apache.avro.generic.IndexedRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.marketo.MarketoSourceOrProcessor;
@@ -46,34 +47,24 @@ public class MarketoProcessor extends MarketoSourceOrProcessor {
 
     protected final MarketoOutputDataSet dataSet;
 
-    protected final JsonBuilderFactory jsonFactory;
-
-    protected final JsonReaderFactory jsonReader;
-
-    protected final JsonWriterFactory jsonWriter;
-
     private ProcessorStrategy strategy;
 
     private transient static final Logger LOG = LoggerFactory.getLogger(MarketoProcessor.class);
 
-    public MarketoProcessor( //
-            @Option("configuration") final MarketoOutputDataSet dataSet, //
+    public MarketoProcessor(@Option("configuration") final MarketoOutputDataSet dataSet, //
             final I18nMessage i18n, //
-            final AuthorizationClient authorizationClient, //
             final JsonBuilderFactory jsonFactory, //
             final JsonReaderFactory jsonReader, //
             final JsonWriterFactory jsonWriter, //
             // REST API Clients
+            final AuthorizationClient authorizationClient, //
             final LeadClient leadClient, //
             final ListClient listClient, //
             final CompanyClient companyClient
 
     ) {
-        super(dataSet, i18n, authorizationClient);
+        super(dataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient);
         this.dataSet = dataSet;
-        this.jsonFactory = jsonFactory;
-        this.jsonReader = jsonReader;
-        this.jsonWriter = jsonWriter;
 
         switch (dataSet.getEntity()) {
         case Lead:
@@ -116,4 +107,21 @@ public class MarketoProcessor extends MarketoSourceOrProcessor {
             }
         }
     }
+
+    public void mapWithIndexedRecord(final IndexedRecord data, @Output final OutputEmitter<IndexedRecord> main,
+            @Output("rejected") final OutputEmitter<IndexedRecord> rejected) {
+        LOG.debug("[map] received: {}.", data);
+        JsonObject payload = strategy.getPayload(toJson(data));
+        LOG.debug("[map] payload : {}.", payload);
+        JsonObject result = strategy.runAction(payload);
+        LOG.debug("[map] result  : {}.", result);
+        for (JsonObject status : result.getJsonArray(ATTR_RESULT).getValuesAs(JsonObject.class)) {
+            if (strategy.isRejected(status)) {
+                rejected.emit(toIndexedRecord(strategy.createRejectData(status), dataSet.getFlowSchema()));
+            } else {
+                main.emit(toIndexedRecord(strategy.createMainData(status), dataSet.getRejectSchema()));
+            }
+        }
+    }
+
 }

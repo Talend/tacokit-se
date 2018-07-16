@@ -14,13 +14,17 @@ package org.talend.components.marketo.input;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
+import javax.json.JsonReaderFactory;
+import javax.json.JsonWriterFactory;
 
 import org.slf4j.Logger;
 import org.talend.components.marketo.dataset.MarketoInputDataSet;
 import org.talend.components.marketo.service.AuthorizationClient;
 import org.talend.components.marketo.service.I18nMessage;
 import org.talend.components.marketo.service.ListClient;
+import org.talend.sdk.component.api.configuration.Option;
 
 public class ListSource extends MarketoSource {
 
@@ -28,9 +32,14 @@ public class ListSource extends MarketoSource {
 
     private transient static final Logger LOG = getLogger(ListClient.class);
 
-    public ListSource(MarketoInputDataSet dataSet, final I18nMessage i18n, AuthorizationClient authorizationClient,
+    public ListSource(@Option("configuration") final MarketoInputDataSet dataSet, //
+            final I18nMessage i18n, //
+            final JsonBuilderFactory jsonFactory, //
+            final JsonReaderFactory jsonReader, //
+            final JsonWriterFactory jsonWriter, //
+            final AuthorizationClient authorizationClient, //
             final ListClient listClient) {
-        super(dataSet, i18n, authorizationClient);
+        super(dataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient);
         this.listClient = listClient;
         this.listClient.base(this.dataSet.getDataStore().getEndpoint());
     }

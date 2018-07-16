@@ -21,22 +21,37 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_SUCCESS;
 import static org.talend.components.marketo.service.AuthorizationClient.CLIENT_CREDENTIALS;
 
 import java.io.Serializable;
+import java.io.StringReader;
+
 import javax.annotation.PostConstruct;
 import javax.json.JsonArray;
+import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.json.JsonReaderFactory;
+import javax.json.JsonWriterFactory;
 
+import org.apache.avro.Schema;
+import org.apache.avro.generic.IndexedRecord;
 import org.slf4j.Logger;
 import org.talend.components.marketo.dataset.MarketoDataSet;
 import org.talend.components.marketo.service.AuthorizationClient;
 import org.talend.components.marketo.service.I18nMessage;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.http.Response;
+import org.talend.sdk.component.runtime.beam.transform.avro.JsonIndexedRecord;
 
 public class MarketoSourceOrProcessor implements Serializable {
 
     protected final I18nMessage i18n;
 
     protected final AuthorizationClient authorizationClient;
+
+    protected final JsonBuilderFactory jsonFactory;
+
+    protected final JsonReaderFactory jsonReader;
+
+    protected final JsonWriterFactory jsonWriter;
 
     protected transient String nextPageToken;
 
@@ -47,9 +62,16 @@ public class MarketoSourceOrProcessor implements Serializable {
     private transient static final Logger LOG = getLogger(MarketoSourceOrProcessor.class);
 
     public MarketoSourceOrProcessor(@Option("configuration") final MarketoDataSet dataSet, final I18nMessage i18n,
+            final JsonBuilderFactory jsonFactory, //
+            final JsonReaderFactory jsonReader, //
+            final JsonWriterFactory jsonWriter, //
+            //
             final AuthorizationClient authorizationClient) {
         this.dataSet = dataSet;
         this.i18n = i18n;
+        this.jsonFactory = jsonFactory;
+        this.jsonReader = jsonReader;
+        this.jsonWriter = jsonWriter;
         this.authorizationClient = authorizationClient;
         this.authorizationClient.base(this.dataSet.getDataStore().getEndpoint());
     }
@@ -116,4 +138,32 @@ public class MarketoSourceOrProcessor implements Serializable {
         throw new RuntimeException(response.error(String.class));
     }
 
+    public JsonObject toJson(final IndexedRecord record) {
+        JsonReader reader = jsonReader.createReader(new StringReader(record.toString()));
+        Throwable throwable = null;
+        JsonObject json;
+        try {
+            json = reader.readObject();
+        } catch (Throwable throwable1) {
+            throwable = throwable1;
+            throw throwable1;
+        } finally {
+            if (reader != null) {
+                if (throwable != null) {
+                    try {
+                        reader.close();
+                    } catch (Throwable throwable2) {
+                        throwable.addSuppressed(throwable2);
+                    }
+                } else {
+                    reader.close();
+                }
+            }
+        }
+        return json;
+    }
+
+    public IndexedRecord toIndexedRecord(final JsonObject json, final Schema schema) {
+        return new JsonIndexedRecord(json, schema);
+    }
 }

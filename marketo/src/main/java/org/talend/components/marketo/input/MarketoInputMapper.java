@@ -17,6 +17,9 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
+import javax.json.JsonBuilderFactory;
+import javax.json.JsonReaderFactory;
+import javax.json.JsonWriterFactory;
 
 import org.talend.components.marketo.dataset.MarketoInputDataSet;
 import org.talend.components.marketo.service.AuthorizationClient;
@@ -47,6 +50,12 @@ public class MarketoInputMapper implements Serializable {
 
     private final MarketoInputDataSet dataset;
 
+    private final JsonBuilderFactory jsonFactory;
+
+    private final JsonReaderFactory jsonReader;
+
+    private final JsonWriterFactory jsonWriter;
+
     private final AuthorizationClient authorizationClient;
 
     private final LeadClient leadClient;
@@ -61,7 +70,11 @@ public class MarketoInputMapper implements Serializable {
 
     private final CompanyClient companyClient;
 
-    public MarketoInputMapper(@Option("configuration") final MarketoInputDataSet dataset, final I18nMessage i18n, //
+    public MarketoInputMapper(@Option("configuration") final MarketoInputDataSet dataset, //
+            final I18nMessage i18n, //
+            final JsonBuilderFactory jsonFactory, //
+            final JsonReaderFactory jsonReader, //
+            final JsonWriterFactory jsonWriter, //
             final AuthorizationClient authorizationClient, //
             final LeadClient leadClient, //
             final ListClient listClient, //
@@ -72,6 +85,10 @@ public class MarketoInputMapper implements Serializable {
     ) {
         this.dataset = dataset;
         this.i18n = i18n;
+        this.jsonFactory = jsonFactory;
+        this.jsonReader = jsonReader;
+        this.jsonWriter = jsonWriter;
+
         this.authorizationClient = authorizationClient;
         this.leadClient = leadClient;
         this.customObjectClient = customObjectClient;
@@ -100,16 +117,18 @@ public class MarketoInputMapper implements Serializable {
     public MarketoSource createWorker() {
         switch (dataset.getEntity()) {
         case Lead:
-            return new LeadSource(dataset, i18n, authorizationClient, leadClient);
+            return new LeadSource(dataset, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, leadClient);
         case List:
-            return new ListSource(dataset, i18n, authorizationClient, listClient);
+            return new ListSource(dataset, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, listClient);
         case CustomObject:
-            return new CustomObjectSource(dataset, i18n, authorizationClient, customObjectClient);
+            return new CustomObjectSource(dataset, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient,
+                    customObjectClient);
         case Company:
-            return new CompanySource(dataset, i18n, authorizationClient, companyClient);
+            return new CompanySource(dataset, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, companyClient);
         case Opportunity:
         case OpportunityRole:
-            return new OpportunitySource(dataset, i18n, authorizationClient, opportunityClient);
+            return new OpportunitySource(dataset, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient,
+                    opportunityClient);
         }
         throw new IllegalArgumentException(i18n.invalidOperation());
     }

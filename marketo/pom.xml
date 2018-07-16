@@ -19,5 +19,14 @@
             <version>${component-runtime.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.talend.sdk.component</groupId>
+            <artifactId>component-runtime-beam</artifactId>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 </project>

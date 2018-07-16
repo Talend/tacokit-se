@@ -21,9 +21,13 @@ import java.util.Iterator;
 
 import javax.annotation.PostConstruct;
 import javax.json.JsonArray;
+import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
+import javax.json.JsonReaderFactory;
 import javax.json.JsonValue;
+import javax.json.JsonWriterFactory;
 
+import org.apache.avro.generic.IndexedRecord;
 import org.slf4j.Logger;
 import org.talend.components.marketo.MarketoSourceOrProcessor;
 import org.talend.components.marketo.dataset.MarketoInputDataSet;
@@ -46,9 +50,13 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
 
     private transient static final Logger LOG = getLogger(MarketoSource.class);
 
-    public MarketoSource(@Option("configuration") final MarketoInputDataSet dataSet, final I18nMessage i18n,
+    public MarketoSource(@Option("configuration") final MarketoInputDataSet dataSet, //
+            final I18nMessage i18n, //
+            final JsonBuilderFactory jsonFactory, //
+            final JsonReaderFactory jsonReader, //
+            final JsonWriterFactory jsonWriter, //
             final AuthorizationClient authorizationClient) {
-        super(dataSet, i18n, authorizationClient);
+        super(dataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient);
         this.dataSet = dataSet;
     }
 
@@ -73,6 +81,11 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
             next = resultIterator.hasNext() ? resultIterator.next() : null;
         }
         return next == null ? null : next.asJsonObject();
+    }
+
+    public IndexedRecord nextIndexedRecord() {
+        JsonObject nextIR = next();
+        return nextIR == null ? null : toIndexedRecord(nextIR, dataSet.getSchema());
     }
 
     public void processBatch() {
