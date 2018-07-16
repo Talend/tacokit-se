@@ -23,7 +23,10 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_NEXT_PAGE_T
 import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED;
 import static org.talend.components.marketo.MarketoApiConstants.REQUEST_PARAM_QUERY_METHOD_GET;
 
+import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
+import javax.json.JsonReaderFactory;
+import javax.json.JsonWriterFactory;
 
 import org.slf4j.Logger;
 import org.talend.components.marketo.dataset.MarketoInputDataSet;
@@ -39,9 +42,14 @@ public class LeadSource extends MarketoSource {
 
     private transient static final Logger LOG = getLogger(LeadSource.class);
 
-    public LeadSource(@Option("configuration") MarketoInputDataSet dataset, final I18nMessage i18n,
-            AuthorizationClient authorizationClient, final LeadClient leadClient) {
-        super(dataset, i18n, authorizationClient);
+    public LeadSource(@Option("configuration") final MarketoInputDataSet dataSet, //
+            final I18nMessage i18n, //
+            final JsonBuilderFactory jsonFactory, //
+            final JsonReaderFactory jsonReader, //
+            final JsonWriterFactory jsonWriter, //
+            final AuthorizationClient authorizationClient, //
+            final LeadClient leadClient) {
+        super(dataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient);
         this.leadClient = leadClient;
         this.leadClient.base(this.dataSet.getDataStore().getEndpoint());
     }

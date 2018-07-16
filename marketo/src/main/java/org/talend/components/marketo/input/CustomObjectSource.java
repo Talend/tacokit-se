@@ -12,21 +12,28 @@
 // ============================================================================
 package org.talend.components.marketo.input;
 
+import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
+import javax.json.JsonReaderFactory;
+import javax.json.JsonWriterFactory;
 
 import org.talend.components.marketo.dataset.MarketoInputDataSet;
 import org.talend.components.marketo.service.AuthorizationClient;
 import org.talend.components.marketo.service.CustomObjectClient;
 import org.talend.components.marketo.service.I18nMessage;
-import org.talend.sdk.component.api.configuration.Option;
 
 public class CustomObjectSource extends MarketoSource {
 
     private final CustomObjectClient customObjectClient;
 
-    public CustomObjectSource(@Option("configuration") MarketoInputDataSet dataset, final I18nMessage i18n,
-            final AuthorizationClient authorizationClient, final CustomObjectClient customObjectClient) {
-        super(dataset, i18n, authorizationClient);
+    public CustomObjectSource(MarketoInputDataSet dataSet, //
+            final I18nMessage i18n, //
+            final JsonBuilderFactory jsonFactory, //
+            final JsonReaderFactory jsonReader, //
+            final JsonWriterFactory jsonWriter, //
+            final AuthorizationClient authorizationClient, //
+            final CustomObjectClient customObjectClient) {
+        super(dataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient);
         this.customObjectClient = customObjectClient;
         this.customObjectClient.base(this.dataSet.getDataStore().getEndpoint());
     }

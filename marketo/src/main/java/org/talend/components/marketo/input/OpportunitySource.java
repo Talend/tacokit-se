@@ -12,7 +12,10 @@
 // ============================================================================
 package org.talend.components.marketo.input;
 
+import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
+import javax.json.JsonReaderFactory;
+import javax.json.JsonWriterFactory;
 
 import org.talend.components.marketo.dataset.MarketoInputDataSet;
 import org.talend.components.marketo.service.AuthorizationClient;
@@ -24,9 +27,14 @@ public class OpportunitySource extends MarketoSource {
 
     private final OpportunityClient opportunityClient;
 
-    public OpportunitySource(@Option("configuration") MarketoInputDataSet dataset, final I18nMessage i18n,
-            final AuthorizationClient authorizationClient, final OpportunityClient opportunityClient) {
-        super(dataset, i18n, authorizationClient);
+    public OpportunitySource(@Option("configuration") final MarketoInputDataSet dataSet, //
+            final I18nMessage i18n, //
+            final JsonBuilderFactory jsonFactory, //
+            final JsonReaderFactory jsonReader, //
+            final JsonWriterFactory jsonWriter, //
+            final AuthorizationClient authorizationClient, //
+            final OpportunityClient opportunityClient) {
+        super(dataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient);
         this.opportunityClient = opportunityClient;
         this.opportunityClient.base(this.dataSet.getDataStore().getEndpoint());
     }

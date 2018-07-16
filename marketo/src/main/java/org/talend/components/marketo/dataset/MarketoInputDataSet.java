@@ -12,12 +12,11 @@
 // ============================================================================
 package org.talend.components.marketo.dataset;
 
-import lombok.Data;
-
 import static org.talend.components.marketo.service.MarketoService.ACTIVITIES_LIST;
 
 import java.util.List;
 
+import org.apache.avro.Schema;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -27,6 +26,8 @@ import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.meta.Documentation;
+
+import lombok.Data;
 
 @Data
 @DataSet(MarketoInputDataSet.NAME)
@@ -74,6 +75,11 @@ public class MarketoInputDataSet extends MarketoDataSet {
         list,
         get
     }
+
+    @Option
+    @Structure
+    @Documentation("Main output schema")
+    private Schema schema;
 
     /*
      * Lead DataSet parameters

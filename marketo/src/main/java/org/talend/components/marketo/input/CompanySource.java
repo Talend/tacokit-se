@@ -14,7 +14,10 @@ package org.talend.components.marketo.input;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
+import javax.json.JsonReaderFactory;
+import javax.json.JsonWriterFactory;
 
 import org.slf4j.Logger;
 import org.talend.components.marketo.dataset.MarketoInputDataSet;
@@ -27,9 +30,14 @@ public class CompanySource extends MarketoSource {
 
     private final CompanyClient companyClient;
 
-    public CompanySource(@Option("configuration") final MarketoInputDataSet dataset, final I18nMessage i18n,
-            final AuthorizationClient authorizationClient, final CompanyClient companyClient) {
-        super(dataset, i18n, authorizationClient);
+    public CompanySource(@Option("configuration") MarketoInputDataSet dataSet, //
+            final I18nMessage i18n, //
+            final JsonBuilderFactory jsonFactory, //
+            final JsonReaderFactory jsonReader, //
+            final JsonWriterFactory jsonWriter, //
+            final AuthorizationClient authorizationClient, //
+            final CompanyClient companyClient) {
+        super(dataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient);
         this.companyClient = companyClient;
         this.companyClient.base(this.dataSet.getDataStore().getEndpoint());
     }
