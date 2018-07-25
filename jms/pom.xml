@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="
+          http://maven.apache.org/POM/4.0.0
+          http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.talend.components</groupId>
+    <artifactId>connectors-se</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+  </parent>
+
+  <groupId>org.talend.components</groupId>
+  <artifactId>jms</artifactId>
+  <packaging>jar</packaging>
+
+  <name>A Component Family</name>
+  <description>A generated component project</description>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <!--
+    Set it to true if you want the documentation to be rendered as HTML and PDF
+
+    You can also use it on the command line: -Dtalend.documentation.htmlAndPdf=true
+    -->
+    <talend.documentation.htmlAndPdf>false</talend.documentation.htmlAndPdf>
+
+    <!--
+    if you want to deploy into the studio you can use the related goal:
+
+    mvn package talend-component:deploy-in-studio -Dtalend.component.studioHome=/path/to/studio
+
+    TIP: it is recommended to set this property into your settings.xml in an active by default profile.
+    -->
+    <talend.component.studioHome />
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-all</artifactId>
+      <version>5.7.0</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.jms</groupId>
+      <artifactId>javax.jms-api</artifactId>
+      <version>2.0.1</version>
+    </dependency>
+  </dependencies>
+
+</project>
