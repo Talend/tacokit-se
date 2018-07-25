@@ -33,6 +33,7 @@ import lombok.Data;
 @DataSet(MarketoInputDataSet.NAME)
 @GridLayout({ //
         @GridLayout.Row({ "dataStore" }), //
+        /* @GridLayout.Row({ "schema" }), // */
         @GridLayout.Row({ "entity", "leadAction", "otherAction" }), //
         @GridLayout.Row({ "leadSelector", "leadKeyName", "leadKeyValues" }), //
         @GridLayout.Row({ "leadListIdOrName" }), //
@@ -42,6 +43,8 @@ import lombok.Data;
         @GridLayout.Row({ "filterType", "filterValues" }), //
         @GridLayout.Row({ "useCompoundKey", "compoundKey" }), //
         @GridLayout.Row({ "sinceDateTime" }), //
+        @GridLayout.Row({ "listAction", "listIds" }), //
+        @GridLayout.Row({ "name", "programName", "workspaceName" }), //
         @GridLayout.Row({ "fields" }), //
         @GridLayout.Row({ "batchSize" }) //
 })
@@ -76,10 +79,10 @@ public class MarketoInputDataSet extends MarketoDataSet {
         get
     }
 
-    @Option
-    @Structure
-    @Documentation("Main output schema")
-    private Schema schema;
+    // @Option
+    // @Structure
+    // @Documentation("Main output schema")
+    // private List<String> schema;
 
     /*
      * Lead DataSet parameters
@@ -232,5 +235,9 @@ public class MarketoInputDataSet extends MarketoDataSet {
     @Option
     @Documentation("Fields")
     private String fields;
+
+    public Schema getAvroSchema() { //
+        return null;
+    }
 
 }

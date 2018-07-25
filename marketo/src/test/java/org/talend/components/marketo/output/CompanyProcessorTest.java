@@ -53,7 +53,7 @@ class CompanyProcessorTest extends MarketoProcessorBaseTest {
     }
 
     private void initProcessor() {
-        processor = new MarketoProcessor(outputDataSet, i18n, authorizationClient, jsonFactory, jsonReader, jsonWriter,
+        processor = new MarketoProcessor(outputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient,
                 leadClient, listClient, companyClient);
         processor.init();
     }

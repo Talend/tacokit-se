@@ -59,7 +59,7 @@ public class LeadSourceTest extends SourceBaseTest {
     @Test
     void testDescribeLead() {
         inputDataSet.setLeadAction(LeadAction.describeLead);
-        source = new LeadSource(inputDataSet, i18n, authorizationClient, leadClient);
+        source = new LeadSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, leadClient);
         source.init();
         while ((result = source.next()) != null) {
             assertNotNull(result);
@@ -73,7 +73,7 @@ public class LeadSourceTest extends SourceBaseTest {
     void testGetLead() {
         inputDataSet.setLeadAction(LeadAction.getLead);
         inputDataSet.setLeadId(LEAD_ID);
-        source = new LeadSource(inputDataSet, i18n, authorizationClient, leadClient);
+        source = new LeadSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, leadClient);
         source.init();
         result = source.next();
         assertNotNull(result);
@@ -85,7 +85,7 @@ public class LeadSourceTest extends SourceBaseTest {
     void testGetLeadNotFound() {
         inputDataSet.setLeadAction(LeadAction.getLead);
         inputDataSet.setLeadId(INVALID_LEAD_ID);
-        source = new LeadSource(inputDataSet, i18n, authorizationClient, leadClient);
+        source = new LeadSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, leadClient);
         source.init();
         assertNull(source.next());
     }
@@ -94,7 +94,7 @@ public class LeadSourceTest extends SourceBaseTest {
     void testGetMultipleLeads() {
         setMultipleLeadsDefault();
         inputDataSet.setBatchSize(2);
-        source = new LeadSource(inputDataSet, i18n, authorizationClient, leadClient);
+        source = new LeadSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, leadClient);
         source.init();
         while ((result = source.next()) != null) {
             assertNotNull(result);
@@ -102,7 +102,7 @@ public class LeadSourceTest extends SourceBaseTest {
         // will all fields
         inputDataSet.setFields(fields);
         inputDataSet.setBatchSize(2);
-        source = new LeadSource(inputDataSet, i18n, authorizationClient, leadClient);
+        source = new LeadSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, leadClient);
         source.init();
         while ((result = source.next()) != null) {
             assertNotNull(result);
@@ -113,7 +113,7 @@ public class LeadSourceTest extends SourceBaseTest {
     void testGetMultipleLeadsWithAllFields() {
         setMultipleLeadsDefault();
         inputDataSet.setFields(fields);
-        source = new LeadSource(inputDataSet, i18n, authorizationClient, leadClient);
+        source = new LeadSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, leadClient);
         source.init();
         while ((result = source.next()) != null) {
             assertNotNull(result);
@@ -124,7 +124,7 @@ public class LeadSourceTest extends SourceBaseTest {
     void testGetMultipleLeadsWithUnknownField() {
         setMultipleLeadsDefault();
         inputDataSet.setFields("unknownField");
-        source = new LeadSource(inputDataSet, i18n, authorizationClient, leadClient);
+        source = new LeadSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, leadClient);
         try {
             source.init();
             fail("[1006] Field 'unknownField' not found -> should have been raised");
@@ -136,7 +136,7 @@ public class LeadSourceTest extends SourceBaseTest {
     void testGetMultipleLeadsWithPager() {
         setMultipleLeadsDefault();
         inputDataSet.setBatchSize(1);
-        source = new LeadSource(inputDataSet, i18n, authorizationClient, leadClient);
+        source = new LeadSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, leadClient);
         source.init();
         while ((result = source.next()) != null) {
             assertNotNull(result);
@@ -154,7 +154,7 @@ public class LeadSourceTest extends SourceBaseTest {
         inputDataSet.setLeadAction(LeadAction.getLeadChanges);
         inputDataSet.setSinceDateTime("2018-01-01 00:00:01 Z");
         inputDataSet.setFields(fields);
-        source = new LeadSource(inputDataSet, i18n, authorizationClient, leadClient);
+        source = new LeadSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, leadClient);
         source.init();
         while ((result = source.next()) != null) {
             assertNotNull(result);
@@ -167,7 +167,7 @@ public class LeadSourceTest extends SourceBaseTest {
         inputDataSet.setSinceDateTime("2018-01-01 00:00:01 Z");
         inputDataSet.setFields(fields);
         inputDataSet.setBatchSize(5);
-        source = new LeadSource(inputDataSet, i18n, authorizationClient, leadClient);
+        source = new LeadSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, leadClient);
         source.init();
         while ((result = source.next()) != null) {
             assertNotNull(result);

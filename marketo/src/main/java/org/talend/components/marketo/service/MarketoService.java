@@ -35,7 +35,6 @@ import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.asyncvalidation.AsyncValidation;
 import org.talend.sdk.component.api.service.asyncvalidation.ValidationResult;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
-import org.talend.sdk.component.api.service.completion.Suggestions;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.http.Response;
@@ -94,7 +93,7 @@ public class MarketoService {
                 "sfdcLeadId", "sfdcLeadOwnerId", "sfdcOpptyId", "Custom");
     }
 
-    @Suggestions(ACTIVITIES_LIST)
+    // @Suggestions(ACTIVITIES_LIST)
     public SuggestionValues getActivities(@Option final MarketoInputDataSet dataSet) {
         String aToken = authorizationClient.getAccessToken(dataSet.getDataStore());
         leadClient.base(dataSet.getDataStore().getEndpoint());

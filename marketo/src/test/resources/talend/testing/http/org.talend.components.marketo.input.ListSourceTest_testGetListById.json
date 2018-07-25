@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"4d2ac5b0-766a-4df0-a1de-f1fe0dd8dcf0:sj\",\"token_type\":\"bearer\",\"expires_in\":346,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"758baeca-a503-4a59-bb95-17a5c52c57c9:sj\",\"token_type\":\"bearer\",\"expires_in\":299,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -30,7 +30,7 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/lists/1001.json?access_token=4d2ac5b0-766a-4df0-a1de-f1fe0dd8dcf0%3Asj"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/lists/1001.json?access_token=758baeca-a503-4a59-bb95-17a5c52c57c9%3Asj"
     },
     "response":{
       "headers":{
@@ -39,7 +39,7 @@
         "Content-Length":"188",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"1c8e#1648a032c7b\",\"result\":[{\"id\":1001,\"name\":\"GroupList000\",\"workspaceName\":\"Default\",\"createdAt\":\"2018-07-11T14:53:31Z\",\"updatedAt\":\"2018-07-11T14:53:32Z\"}],\"success\":true}",
+      "payload":"{\"requestId\":\"77e6#164cbe30a6d\",\"result\":[{\"id\":1001,\"name\":\"GroupList000\",\"workspaceName\":\"Default\",\"createdAt\":\"2018-07-11T14:53:31Z\",\"updatedAt\":\"2018-07-11T14:53:32Z\"}],\"success\":true}",
       "status":200
     }
   }

@@ -23,10 +23,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.marketo.dataset.MarketoDataSet.MarketoEntity;
 import org.talend.components.marketo.dataset.MarketoInputDataSet.OtherEntityAction;
-import org.talend.sdk.component.junit.SimpleFactory;
 import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.junit5.WithComponents;
-import org.talend.sdk.component.runtime.manager.chain.Job;
+import org.talend.sdk.component.runtime.input.Mapper;
 
 @HttpApi(useSsl = true)
 @WithComponents("org.talend.components.marketo")
@@ -48,7 +47,7 @@ class CompanySourceTest extends SourceBaseTest {
     @Test
     void testDescribeCompanies() {
         inputDataSet.setOtherAction(OtherEntityAction.describe);
-        source = new CompanySource(inputDataSet, i18n, authorizationClient, companyClient);
+        source = new CompanySource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, companyClient);
         source.init();
         JsonObject result = source.next();
         assertNotNull(result);
@@ -64,7 +63,7 @@ class CompanySourceTest extends SourceBaseTest {
         inputDataSet.setFilterValues("google01,google02,google03,google04,google05,google06");
         inputDataSet.setFields("mainPhone,company,website");
         inputDataSet.setBatchSize(10);
-        source = new CompanySource(inputDataSet, i18n, authorizationClient, companyClient);
+        source = new CompanySource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, companyClient);
         source.init();
         JsonObject json;
         while ((json = source.next()) != null) {
@@ -80,7 +79,7 @@ class CompanySourceTest extends SourceBaseTest {
         inputDataSet.setFilterValues("France");
         inputDataSet.setFields("mainPhone,company,website");
         inputDataSet.setBatchSize(10);
-        source = new CompanySource(inputDataSet, i18n, authorizationClient, companyClient);
+        source = new CompanySource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, companyClient);
         try {
             source.init();
         } catch (RuntimeException e) {
@@ -89,46 +88,25 @@ class CompanySourceTest extends SourceBaseTest {
     }
 
     @Test
-    public void testDescribeCompaniesPipeline() {
+    public void testDescribeCompaniesWithCreateMapper() {
         inputDataSet.setOtherAction(OtherEntityAction.describe);
-        // We convert our configuration instance to URI configuration
-        final String uriConfig = SimpleFactory.configurationByExample().forInstance(inputDataSet).configured().toQueryString();
-        // We create our job test pipeline
-        Job.components() //
-                .component("company", "Marketo://Input?" + uriConfig) //
-                .component("collector", "test://collector") //
-                .connections() //
-                .from("company") //
-                .to("collector") //
-                .build() //
-                .run();
-        //
-        final List<JsonObject> res = component.getCollectedData(JsonObject.class);
+        final Mapper mapper = component.createMapper(MarketoInputMapper.class, inputDataSet);
+        List<JsonObject> res = component.collectAsList(JsonObject.class, mapper);
         assertEquals(1, res.size());
+        JsonObject record2 = res.get(0).asJsonObject();
     }
 
     @Test
-    void testGetCompaniesPipeline() {
+    void testGetCompaniesWithCreateMapper() {
         inputDataSet.setOtherAction(OtherEntityAction.get);
         inputDataSet.setFilterType("externalCompanyId");
         inputDataSet.setFilterValues("google01,google02,google03,google04,google05,google06");
         inputDataSet.setFields(fields);
-        // We convert our configuration instance to URI configuration
-        final String uriConfig = SimpleFactory.configurationByExample().forInstance(inputDataSet).configured().toQueryString();
-        // We create our job test pipeline
-        Job.components() //
-                .component("company", "Marketo://Input?" + uriConfig) //
-                .component("collector", "test://collector") //
-                .connections() //
-                .from("company") //
-                .to("collector") //
-                .build() //
-                .run();
-        //
-        final List<JsonObject> res = component.getCollectedData(JsonObject.class);
-        assertEquals(5, res.size());
+        final Mapper mapper = component.createMapper(MarketoInputMapper.class, inputDataSet);
+        List<JsonObject> res = component.collectAsList(JsonObject.class, mapper);
+        assertEquals(4, res.size());
         JsonObject record = res.get(0).asJsonObject();
-        assertEquals("google01", record.getString("externalCompanyId"));
+        assertThat(record.getString("externalCompanyId"), CoreMatchers.containsString("google0"));
         assertEquals(JSON_VALUE_XUNDEFINED_X, record.getString("industry", JSON_VALUE_XUNDEFINED_X));
     }
 
@@ -138,7 +116,7 @@ class CompanySourceTest extends SourceBaseTest {
         inputDataSet.setFilterType("");
         inputDataSet.setFilterValues("google01,google02,google03,google04,google05,google06");
         inputDataSet.setFields(fields);
-        source = new CompanySource(inputDataSet, i18n, authorizationClient, companyClient);
+        source = new CompanySource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, companyClient);
         try {
             source.init();
         } catch (RuntimeException e) {
@@ -149,7 +127,7 @@ class CompanySourceTest extends SourceBaseTest {
     @Test
     void testInvalidAccessToken() {
         inputDataSet.getDataStore().setEndpoint(MARKETO_ENDPOINT + "/bzh");
-        source = new CompanySource(inputDataSet, i18n, authorizationClient, companyClient);
+        source = new CompanySource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, companyClient);
         try {
             source.init();
             fail("Should have a 403 error. Should not be here");
