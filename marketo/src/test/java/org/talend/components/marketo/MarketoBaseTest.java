@@ -123,7 +123,9 @@ public class MarketoBaseTest {
             final Server serverWithNoCrm = new MavenDecrypter().find("marketo-nocrm");
             MARKETO_CLIENT_ID = serverWithNoCrm.getUsername();
             MARKETO_CLIENT_SECRET = serverWithNoCrm.getPassword();
-            System.setProperty("talend.junit.http.capture", "true");
+            if (!"username".equals(MARKETO_CLIENT_ID)) {
+                System.setProperty("talend.junit.http.capture", "true");
+            }
         } catch (Exception e) {
             System.setProperty("talend.junit.http.capture", "false");
         }
