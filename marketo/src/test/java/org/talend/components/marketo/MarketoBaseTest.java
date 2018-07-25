@@ -115,7 +115,7 @@ public class MarketoBaseTest {
 
     protected MarketoOutputDataSet outputDataSet = new MarketoOutputDataSet();
 
-    private transient static final Logger LOG = LoggerFactory.getLogger(MarketoBaseTest.class);
+    protected transient static final Logger LOG = LoggerFactory.getLogger(MarketoBaseTest.class);
 
     static {
         try {

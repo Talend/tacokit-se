@@ -14,6 +14,8 @@ package org.talend.components.marketo.dataset;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 import org.talend.components.marketo.datastore.MarketoDataStore;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.constraint.Max;
@@ -25,7 +27,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 @Data
 @DataSet
 @Documentation("Marketo Base Dataset")
-public abstract class MarketoDataSet {
+public abstract class MarketoDataSet implements Serializable {
 
     public enum MarketoEntity {
         Lead,

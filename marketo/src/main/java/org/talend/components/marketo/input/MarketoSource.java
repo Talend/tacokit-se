@@ -80,12 +80,13 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
             processBatch();
             next = resultIterator.hasNext() ? resultIterator.next() : null;
         }
+        LOG.error("[next] is {}.", next);
         return next == null ? null : next.asJsonObject();
     }
 
     public IndexedRecord nextIndexedRecord() {
         JsonObject nextIR = next();
-        return nextIR == null ? null : toIndexedRecord(nextIR, dataSet.getSchema());
+        return nextIR == null ? null : toIndexedRecord(nextIR, dataSet.getAvroSchema());
     }
 
     public void processBatch() {

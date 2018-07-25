@@ -14,18 +14,14 @@ package org.talend.components.marketo.input;
 
 import static org.junit.Assert.*;
 
-import java.util.List;
 import javax.json.JsonObject;
 
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.marketo.dataset.MarketoDataSet.MarketoEntity;
 import org.talend.components.marketo.dataset.MarketoInputDataSet.OtherEntityAction;
-import org.talend.sdk.component.junit.SimpleFactory;
 import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.junit5.WithComponents;
-import org.talend.sdk.component.runtime.manager.chain.Job;
 
 @HttpApi(useSsl = true)
 @WithComponents("org.talend.components.marketo")
@@ -47,7 +43,8 @@ public class CustomObjectsSourceTest extends SourceBaseTest {
     }
 
     private void initSource() {
-        source = new CustomObjectSource(inputDataSet, i18n, authorizationClient, customObjectClient);
+        source = new CustomObjectSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient,
+                customObjectClient);
         source.init();
     }
 
@@ -101,57 +98,13 @@ public class CustomObjectsSourceTest extends SourceBaseTest {
         inputDataSet.setFilterValues("France");
         inputDataSet.setFields("mainPhone,company,website");
         inputDataSet.setBatchSize(10);
-        source = new CustomObjectSource(inputDataSet, i18n, authorizationClient, customObjectClient);
+        source = new CustomObjectSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient,
+                customObjectClient);
         try {
             source.init();
         } catch (RuntimeException e) {
             assertEquals("[1003] Invalid filterType 'billingCountry'", e.getMessage());
         }
-    }
-
-    @Test
-    public void testDescribeCustomObjectsPipeline() {
-        inputDataSet.setOtherAction(OtherEntityAction.describe);
-        inputDataSet.setCustomObjectName(CUSTOM_OBJECT_NAME);
-        // We convert our configuration instance to URI configuration
-        final String uriConfig = SimpleFactory.configurationByExample().forInstance(inputDataSet).configured().toQueryString();
-        // We create our job test pipeline
-        Job.components() //
-                .component("co", "Marketo://Input?" + uriConfig) //
-                .component("collector", "test://collector") //
-                .connections() //
-                .from("co") //
-                .to("collector") //
-                .build() //
-                .run();
-        //
-        final List<JsonObject> res = component.getCollectedData(JsonObject.class);
-        assertEquals(1, res.size());
-    }
-
-    @Ignore
-    @Test
-    void testGetCustomObjectsPipeline() {
-        inputDataSet.setOtherAction(OtherEntityAction.get);
-        inputDataSet.setFilterType("externalCompanyId");
-        inputDataSet.setFilterValues("google01,google02,google03,google04,google05,google06");
-        inputDataSet.setFields(fields);
-        // We convert our configuration instance to URI configuration
-        final String uriConfig = SimpleFactory.configurationByExample().forInstance(inputDataSet).configured().toQueryString();
-        // We create our job test pipeline
-        // Job.components() //
-        // .component("company", "Marketo://Input?" + uriConfig) //
-        // .component("collector", "test://collector") //
-        // .connections() //
-        // .from("company") //
-        // .to("collector") //
-        // .build() //
-        // .run();
-        // final List<JsonObject> res = component.getCollectedData(JsonObject.class);
-        // assertEquals(5, res.size());
-        // JsonObject record = res.get(0).asJsonObject();
-        // assertEquals("google01", record.getString("externalCompanyId"));
-        // assertEquals(JSON_VALUE_XUNDEFINED_X, record.getString("industry", JSON_VALUE_XUNDEFINED_X));
     }
 
 }

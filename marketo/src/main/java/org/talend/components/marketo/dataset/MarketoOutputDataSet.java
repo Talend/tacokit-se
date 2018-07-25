@@ -19,13 +19,14 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
-import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.meta.Documentation;
 
 @Data
 @DataSet(MarketoOutputDataSet.NAME)
 @GridLayout({ //
         @GridLayout.Row({ "dataStore" }), //
+        // @GridLayout.Row({ "flowSchema" }), //
+        // @GridLayout.Row({ "rejectSchema" }), //
         @GridLayout.Row({ "entity", "action", "listAction", "syncMethod", "lookupField", "dedupeBy", "deleteBy" }), //
         @GridLayout.Row({ "batchSize" }) })
 @Documentation("Marketo Processor DataSet")
@@ -56,15 +57,15 @@ public class MarketoOutputDataSet extends MarketoDataSet {
         idField
     }
 
-    @Option
-    @Structure
-    @Documentation("Flow Schema")
-    private Schema flowSchema;
-
-    @Option
-    @Structure
-    @Documentation("Reject Schema")
-    private Schema rejectSchema;
+    // @Option
+    // @Structure
+    // @Documentation("Flow Schema")
+    // private List<String> flowSchema;
+    //
+    // @Option
+    // @Structure(value = "Reject")
+    // @Documentation("Reject Schema")
+    // private List<String> rejectSchema;
 
     @Option
     @ActiveIf(target = "entity", value = { "Lead", "CustomObject", "Company", "Opportunity", "OpportunityRole" })
@@ -102,5 +103,13 @@ public class MarketoOutputDataSet extends MarketoDataSet {
     @ActiveIf(target = "action", value = { "delete" })
     @Documentation("Field to delete company records by. Key may be dedupeFields or idField")
     private DeleteBy deleteBy;
+
+    public Schema getFlowAvroSchema() {
+        return null;
+    }
+
+    public Schema getRejectAvroSchema() {
+        return null;
+    }
 
 }

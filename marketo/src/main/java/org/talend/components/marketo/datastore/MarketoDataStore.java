@@ -14,6 +14,8 @@ package org.talend.components.marketo.datastore;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.action.Validable;
@@ -31,7 +33,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 })
 @Checkable("marketo_healthcheck")
 @Documentation(MarketoDataStore.NAME)
-public class MarketoDataStore {
+public class MarketoDataStore implements Serializable {
 
     public static final String NAME = "MarketoDataStore";
 

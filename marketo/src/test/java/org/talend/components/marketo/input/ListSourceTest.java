@@ -58,7 +58,7 @@ class ListSourceTest extends SourceBaseTest {
         inputDataSet.setProgramName("");
         inputDataSet.setWorkspaceName("");
         inputDataSet.setBatchSize(3);
-        source = new ListSource(inputDataSet, i18n, authorizationClient, listClient);
+        source = new ListSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, listClient);
         source.init();
         while ((result = source.next()) != null) {
             assertNotNull(result);
@@ -71,7 +71,7 @@ class ListSourceTest extends SourceBaseTest {
     void testGetListById() {
         inputDataSet.setListAction(ListAction.get);
         inputDataSet.setListId(LIST_ID);
-        source = new ListSource(inputDataSet, i18n, authorizationClient, listClient);
+        source = new ListSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, listClient);
         source.init();
         result = source.next();
         assertNotNull(result);
@@ -87,7 +87,7 @@ class ListSourceTest extends SourceBaseTest {
         inputDataSet.setLeadIds(LEAD_IDS);
         inputDataSet.setBatchSize(2);
         inputDataSet.setFields(fields);
-        source = new ListSource(inputDataSet, i18n, authorizationClient, listClient);
+        source = new ListSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, listClient);
         source.init();
         while ((result = source.next()) != null) {
             assertNotNull(result);
@@ -100,7 +100,7 @@ class ListSourceTest extends SourceBaseTest {
         inputDataSet.setListAction(ListAction.isMemberOf);
         inputDataSet.setListId(LIST_ID);
         inputDataSet.setLeadIds(LEAD_IDS);
-        source = new ListSource(inputDataSet, i18n, authorizationClient, listClient);
+        source = new ListSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, listClient);
         source.init();
         while ((result = source.next()) != null) {
             assertNotNull(result);
