@@ -1,0 +1,12 @@
+[
+  {
+    "id": "ACTIVEMQ",
+    "class": "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
+    "url": "tcp://localhost:61616",
+    "paths": [
+      {
+        "path": "org.apache.activemq:activemq-all:5.7.0"
+      }
+    ]
+  }
+]
