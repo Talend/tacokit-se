@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.json.JsonObject;
 
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -16,22 +17,24 @@ import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.processor.Processor;
 
 import org.talend.components.jms.service.JmsService;
+import org.talend.sdk.component.api.service.Service;
 
 @Version(1)
 // default version is 1, if some configuration changes happen between 2 versions you can add a migrationHandler
 @Icon(value = Icon.IconType.CUSTOM, custom = "tJMSOutput")
-// you can use a custom one using @Icon(value=CUSTOM, custom="filename") and adding icons/filename_icon32.png in resources
 @Processor(name = "Output")
 @Documentation("TODO fill the documentation for this processor")
-public class OutputOutput implements Serializable {
+public class Output implements Serializable {
 
-    private final OutputOutputConfiguration configuration;
+    private final OutputConfiguration configuration;
 
+    @Service
     private final JmsService service;
 
-    public OutputOutput(@Option("configuration") final OutputOutputConfiguration configuration, final JmsService service) {
+    public Output(@Option("configuration") final OutputConfiguration configuration, final JmsService service) {
         this.configuration = configuration;
         this.service = service;
+        service.setConfiguration(configuration);
     }
 
     @PostConstruct
@@ -49,10 +52,14 @@ public class OutputOutput implements Serializable {
     }
 
     @ElementListener
-    public void onNext(@Input final OutputDefaultInput defaultInput) {
+    public void onNext(@Input final JsonObject record) {
         // this is the method allowing you to handle the input(s) and emit the output(s)
         // after some custom logic you put here, to send a value to next element you can use an
         // output parameter and call emit(value).
+/*        if (ProcessingMode.MESSAGE_CONTENT == configuration.getProcessingMode()) {
+
+        }*/
+        service.sendMessage(record);
     }
 
     @AfterGroup
