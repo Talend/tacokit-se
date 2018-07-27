@@ -16,7 +16,7 @@
   <artifactId>jms</artifactId>
   <packaging>jar</packaging>
 
-  <name>A Component Family</name>
+  <name>JMS</name>
   <description>A generated component project</description>
 
   <properties>
