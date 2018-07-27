@@ -25,14 +25,12 @@ import static org.talend.components.jms.service.ActionService.ACTION_LIST_SUPPOR
         @GridLayout.Row({"processingMode"})},
         names = GridLayout.FormType.MAIN)
 @GridLayout(value = {
-        @GridLayout.Row({"contextProvider"}),
-        @GridLayout.Row({"connectionFactory"}),
         @GridLayout.Row({"deliveryMode"}),
         @GridLayout.Row({"properties"})},
         names = GridLayout.FormType.ADVANCED)
 @Documentation("TODO fill the documentation for this configuration")
 @Data
-public class OutputOutputConfiguration implements Serializable {
+public class OutputConfiguration implements Serializable {
 
     @Option
     @Required
@@ -41,16 +39,8 @@ public class OutputOutputConfiguration implements Serializable {
     private String moduleList;
 
     @Option
-    @Documentation("Input for Context Provider")
-    private String contextProvider;
-
-    @Option
     @Documentation("Input for server URL")
     private String url = "tcp://host:port";
-
-    @Option
-    @Documentation("Input for Connection Factory Name")
-    private String connectionFactory = "ConnectionFactory";
 
     @Option
     @Documentation("Checkbox for User Identity Checking")
@@ -63,7 +53,6 @@ public class OutputOutputConfiguration implements Serializable {
 
     @Option
     @Credential
-    @Required
     @Documentation("Input for password")
     @ActiveIf(target = "userIdentity", value = "true")
     private String password;
@@ -95,11 +84,6 @@ public class OutputOutputConfiguration implements Serializable {
     public static enum MessageType {
         QUEUE,
         TOPIC
-    }
-
-    public static enum ProcessingMode {
-        RAW_MESSAGE,
-        MESSAGE_CONTENT
     }
 
     public static enum DeliveryMode {

@@ -25,8 +25,7 @@ import javax.naming.NamingException;
 import javax.naming.spi.InitialContextFactory;
 
 import org.talend.components.jms.ProviderInfo;
-import org.talend.components.jms.output.OutputOutputConfiguration;
-import org.talend.sdk.component.api.configuration.Option;
+import org.talend.components.jms.output.OutputConfiguration;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.dependency.Resolver;
@@ -39,6 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 public class JmsService {
 
     private final static String CONFIG_FILE_lOCATION_KEY = "org.talend.component.jms.config.file";
+
+    private final static String CONNECTION_FACTORY = "ConnectionFactory";
 
     private final ParameterizedType providersType = new ParameterizedType() {
 
@@ -74,8 +75,8 @@ public class JmsService {
      * private I18nMessage i18n;
      */
 
-    @Option
-    private OutputOutputConfiguration configuration;
+    @Service
+    private OutputConfiguration configuration;
 
     @Service
     private Resolver resolver;
@@ -145,7 +146,7 @@ public class JmsService {
         }
 
         // create ConnectionFactory from JNDI
-        ConnectionFactory connectionFactory = (ConnectionFactory) getJNDIContext().lookup(configuration.getConnectionFactory());
+        ConnectionFactory connectionFactory = (ConnectionFactory) getJNDIContext().lookup(CONNECTION_FACTORY);
         connection = configuration.isUserIdentity()
                 ? connectionFactory.createConnection(configuration.getUserName(), configuration.getPassword())
                 : connectionFactory.createConnection();
@@ -174,7 +175,6 @@ public class JmsService {
         MessageProducer producer = null;
         try {
             producer = getSession().createProducer(getDestination());
-            producer.setDeliveryMode(configuration.getDeliveryMode().getIntValue());
         } catch (JMSException e) {
             e.printStackTrace();
         } catch (InstantiationException e) {
@@ -189,10 +189,10 @@ public class JmsService {
         return producer;
     }
 
-    public Message createTextMessage(String text) {
-        Message message = null;
+    public MessageConsumer createConsumer() {
+        MessageConsumer consumer = null;
         try {
-            message = getSession().createTextMessage(text);
+            consumer = getSession().createConsumer(getDestination());
         } catch (JMSException e) {
             e.printStackTrace();
         } catch (InstantiationException e) {
@@ -204,6 +204,37 @@ public class JmsService {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
+        return consumer;
+    }
+
+    private Message createTextMessage(String text)
+            throws ClassNotFoundException, NamingException, InstantiationException, IllegalAccessException, JMSException {
+        return getSession().createTextMessage(text);
+    }
+
+    public void sendMessage(Object messageObj) {
+        try {
+            createProducer().send(messageObj instanceof String ? createTextMessage(messageObj.toString()) : (Message) messageObj);
+        } catch (JMSException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (NamingException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Message receiveMessage() {
+        Message message = null;
+        try {
+            message = createConsumer().receive();
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
         return message;
     }
 
@@ -213,8 +244,7 @@ public class JmsService {
     }
 
     private String getContextProvider() {
-        return configuration.getContextProvider() == null ? getProviders().get(configuration.getModuleList()).getClazz()
-                : configuration.getContextProvider();
+        return getProviders().get(configuration.getModuleList()).getClazz();
     }
 
     private Destination getDestination()
@@ -223,7 +253,8 @@ public class JmsService {
                 : getSession().createQueue(configuration.getTo());
     }
 
-    public void setConfiguration(OutputOutputConfiguration configuration) {
+    public void setConfiguration(OutputConfiguration configuration) {
         this.configuration = configuration;
     }
+
 }
