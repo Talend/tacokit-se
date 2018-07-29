@@ -45,7 +45,6 @@ public class LeadStrategy extends OutputComponentStrategy implements ProcessorSt
         super(dataSet, i18n, authorizationClient, jsonFactory, jsonReader, jsonWriter);
         this.leadClient = leadClient;
         this.leadClient.base(this.dataSet.getDataStore().getEndpoint());
-
     }
 
     @Override

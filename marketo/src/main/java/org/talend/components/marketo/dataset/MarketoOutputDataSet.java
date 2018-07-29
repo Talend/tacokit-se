@@ -19,16 +19,21 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.meta.Documentation;
 
 @Data
 @DataSet(MarketoOutputDataSet.NAME)
-@GridLayout({ //
-        @GridLayout.Row({ "dataStore" }), //
-        // @GridLayout.Row({ "flowSchema" }), //
-        // @GridLayout.Row({ "rejectSchema" }), //
-        @GridLayout.Row({ "entity", "action", "listAction", "syncMethod", "lookupField", "dedupeBy", "deleteBy" }), //
-        @GridLayout.Row({ "batchSize" }) })
+@GridLayouts({ //
+        @GridLayout({ //
+                @GridLayout.Row({ "dataStore" }), //
+                // @GridLayout.Row({ "flowSchema" }), //
+                // @GridLayout.Row({ "rejectSchema" }), //
+                @GridLayout.Row({ "entity", "action", "listAction", "syncMethod", "lookupField", "dedupeBy", "deleteBy" }), //
+                @GridLayout.Row({ "customObjectName" }), //
+                @GridLayout.Row({ "batchSize" }) //
+        }) //
+})
 @Documentation("Marketo Processor DataSet")
 public class MarketoOutputDataSet extends MarketoDataSet {
 
@@ -71,6 +76,11 @@ public class MarketoOutputDataSet extends MarketoDataSet {
     @ActiveIf(target = "entity", value = { "Lead", "CustomObject", "Company", "Opportunity", "OpportunityRole" })
     @Documentation("Action")
     private OutputAction action;
+
+    @Option
+    @ActiveIf(target = "entity", value = { "CustomObject" })
+    @Documentation("Custom Object Name")
+    private String customObjectName;
 
     /*
      * List Entity

@@ -32,6 +32,7 @@ import org.talend.components.marketo.service.I18nMessage;
 import org.talend.components.marketo.service.LeadClient;
 import org.talend.components.marketo.service.ListClient;
 import org.talend.components.marketo.service.MarketoService;
+import org.talend.components.marketo.service.UIActionService;
 import org.talend.sdk.component.api.DecryptedServer;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.ComponentsHandler;
@@ -88,6 +89,9 @@ public class MarketoBaseTest {
 
     @Service
     protected MarketoService marketoService;
+
+    @Service
+    protected UIActionService uiActionService;
 
     @Service
     protected I18nMessage i18n;

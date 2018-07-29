@@ -27,6 +27,7 @@ import org.talend.components.marketo.MarketoSourceOrProcessor;
 import org.talend.components.marketo.dataset.MarketoOutputDataSet;
 import org.talend.components.marketo.service.AuthorizationClient;
 import org.talend.components.marketo.service.CompanyClient;
+import org.talend.components.marketo.service.CustomObjectClient;
 import org.talend.components.marketo.service.I18nMessage;
 import org.talend.components.marketo.service.LeadClient;
 import org.talend.components.marketo.service.ListClient;
@@ -60,9 +61,8 @@ public class MarketoProcessor extends MarketoSourceOrProcessor {
             final AuthorizationClient authorizationClient, //
             final LeadClient leadClient, //
             final ListClient listClient, //
-            final CompanyClient companyClient
-
-    ) {
+            final CompanyClient companyClient, //
+            final CustomObjectClient customObjectClient) {
         super(dataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient);
         this.dataSet = dataSet;
 
@@ -74,6 +74,8 @@ public class MarketoProcessor extends MarketoSourceOrProcessor {
             strategy = new ListStrategy(dataSet, i18n, authorizationClient, jsonFactory, jsonReader, jsonWriter, listClient);
             break;
         case CustomObject:
+            strategy = new CustomObjectStrategy(dataSet, i18n, authorizationClient, jsonFactory, jsonReader, jsonWriter,
+                    customObjectClient);
             break;
         case Company:
             strategy = new CompanyStrategy(dataSet, i18n, authorizationClient, jsonFactory, jsonReader, jsonWriter,

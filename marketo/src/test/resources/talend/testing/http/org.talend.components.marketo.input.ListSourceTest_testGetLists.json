@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"758baeca-a503-4a59-bb95-17a5c52c57c9:sj\",\"token_type\":\"bearer\",\"expires_in\":301,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"8959ad66-fc5f-4f61-9a3f-a5f47d2e7063:sj\",\"token_type\":\"bearer\",\"expires_in\":3192,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -30,7 +30,7 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/lists.json?access_token=758baeca-a503-4a59-bb95-17a5c52c57c9%3Asj&programName=&name=&workspaceName=&batchSize=3"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/lists.json?access_token=8959ad66-fc5f-4f61-9a3f-a5f47d2e7063%3Asj&programName=&name=&workspaceName=&batchSize=3"
     },
     "response":{
       "headers":{
@@ -39,7 +39,7 @@
         "Content-Length":"500",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"1105b#164cbe301df\",\"result\":[{\"id\":1001,\"name\":\"GroupList000\",\"workspaceName\":\"Default\",\"createdAt\":\"2018-07-11T14:53:31Z\",\"updatedAt\":\"2018-07-11T14:53:32Z\"},{\"id\":1006,\"name\":\"GroupList001\",\"workspaceName\":\"Default\",\"createdAt\":\"2018-07-11T15:00:22Z\",\"updatedAt\":\"2018-07-11T15:00:23Z\"},{\"id\":1007,\"name\":\"GroupList002\",\"workspaceName\":\"Default\",\"createdAt\":\"2018-07-11T15:00:29Z\",\"updatedAt\":\"2018-07-11T15:00:30Z\"}],\"success\":true,\"nextPageToken\":\"6XRZQAPJO25B6HVGJ26VMYASDU======\"}",
+      "payload":"{\"requestId\":\"13188#164db6e8bb0\",\"result\":[{\"id\":1001,\"name\":\"GroupList000\",\"workspaceName\":\"Default\",\"createdAt\":\"2018-07-11T14:53:31Z\",\"updatedAt\":\"2018-07-11T14:53:32Z\"},{\"id\":1006,\"name\":\"GroupList001\",\"workspaceName\":\"Default\",\"createdAt\":\"2018-07-11T15:00:22Z\",\"updatedAt\":\"2018-07-11T15:00:23Z\"},{\"id\":1007,\"name\":\"GroupList002\",\"workspaceName\":\"Default\",\"createdAt\":\"2018-07-11T15:00:29Z\",\"updatedAt\":\"2018-07-11T15:00:30Z\"}],\"success\":true,\"nextPageToken\":\"6XRZQAPJO25B6HVGJ26VMYASDU======\"}",
       "status":200
     }
   },
@@ -51,7 +51,7 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/lists.json?access_token=758baeca-a503-4a59-bb95-17a5c52c57c9%3Asj&programName=&nextPageToken=6XRZQAPJO25B6HVGJ26VMYASDU%3D%3D%3D%3D%3D%3D&name=&workspaceName=&batchSize=3"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/lists.json?access_token=8959ad66-fc5f-4f61-9a3f-a5f47d2e7063%3Asj&programName=&nextPageToken=6XRZQAPJO25B6HVGJ26VMYASDU%3D%3D%3D%3D%3D%3D&name=&workspaceName=&batchSize=3"
     },
     "response":{
       "headers":{
@@ -60,7 +60,7 @@
         "Content-Length":"318",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"a10d#164cbe304b2\",\"result\":[{\"id\":1008,\"name\":\"GroupList003\",\"workspaceName\":\"Default\",\"createdAt\":\"2018-07-11T15:00:35Z\",\"updatedAt\":\"2018-07-11T15:00:37Z\"},{\"id\":1009,\"name\":\"GroupList004\",\"workspaceName\":\"Default\",\"createdAt\":\"2018-07-11T15:00:41Z\",\"updatedAt\":\"2018-07-11T15:00:43Z\"}],\"success\":true}",
+      "payload":"{\"requestId\":\"b92e#164db6e8e84\",\"result\":[{\"id\":1008,\"name\":\"GroupList003\",\"workspaceName\":\"Default\",\"createdAt\":\"2018-07-11T15:00:35Z\",\"updatedAt\":\"2018-07-11T15:00:37Z\"},{\"id\":1009,\"name\":\"GroupList004\",\"workspaceName\":\"Default\",\"createdAt\":\"2018-07-11T15:00:41Z\",\"updatedAt\":\"2018-07-11T15:00:43Z\"}],\"success\":true}",
       "status":200
     }
   }

@@ -128,7 +128,12 @@ public class LeadSource extends MarketoSource {
 
     private JsonObject getLeadActivities() {
         String sinceDateTime = getPagingToken(dataSet.getSinceDateTime());
-        String activityTypeIds = dataSet.getActivityTypeIds().stream().collect(joining(","));
+        String activityTypeIds = "";
+        if (dataSet.getActivityTypeIds().isEmpty()) {
+
+        } else {
+            activityTypeIds = dataSet.getActivityTypeIds().stream().collect(joining(","));
+        }
         String assetIds = dataSet.getAssetIds();
         Integer listId = dataSet.getListId();
         String leadIds = dataSet.getLeadIds();
