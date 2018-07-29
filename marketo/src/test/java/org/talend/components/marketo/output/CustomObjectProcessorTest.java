@@ -16,6 +16,7 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 
 import java.util.List;
+
 import javax.json.JsonObject;
 
 import org.junit.jupiter.api.AfterEach;
@@ -33,17 +34,26 @@ import org.talend.sdk.component.runtime.output.Processor;
 
 @HttpApi(useSsl = true)
 @WithComponents("org.talend.components.marketo")
-class CompanyProcessorTest extends MarketoProcessorBaseTest {
+public class CustomObjectProcessorTest extends MarketoProcessorBaseTest {
+
+    private static final String CUSTOMOBJECT_NAME = "car_c";
 
     @Override
     @BeforeEach
     protected void setUp() {
         super.setUp();
-        outputDataSet.setEntity(MarketoEntity.Company);
+        outputDataSet.setEntity(MarketoEntity.CustomObject);
+        outputDataSet.setCustomObjectName(CUSTOMOBJECT_NAME);
         outputDataSet.setDedupeBy("dedupeFields");
         //
-        data = jsonFactory.createObjectBuilder().add("externalCompanyId", "google666").build();
-        dataNotExist = jsonFactory.createObjectBuilder().add("externalCompanyId", "UnbelievableGoogleXYZ").build();
+        data = jsonFactory.createObjectBuilder()//
+                .add("customerid", "5") //
+                .add("VIN", "ABC-DEF-12345-GIN") //
+                .build();
+        dataNotExist = jsonFactory.createObjectBuilder() //
+                .add("customerId", "0") //
+                .add("VIN", "ABC-DEF-12345-GIN") //
+                .build();
         // we create a record
         outputDataSet.setAction(OutputAction.sync);
         outputDataSet.setSyncMethod(SyncMethod.createOrUpdate);
@@ -69,7 +79,7 @@ class CompanyProcessorTest extends MarketoProcessorBaseTest {
     }
 
     @Test
-    void testSyncCompanies() {
+    void testSyncCustomObject() {
         outputDataSet.setAction(OutputAction.sync);
         outputDataSet.setSyncMethod(SyncMethod.createOrUpdate);
         initProcessor();
@@ -77,7 +87,7 @@ class CompanyProcessorTest extends MarketoProcessorBaseTest {
     }
 
     @Test
-    void testDeleteCompanies() {
+    void testDeleteCustomObject() {
         outputDataSet.setAction(OutputAction.delete);
         outputDataSet.setDeleteBy(DeleteBy.dedupeFields);
         initProcessor();
@@ -85,7 +95,7 @@ class CompanyProcessorTest extends MarketoProcessorBaseTest {
     }
 
     @Test
-    void testDeleteCompaniesFail() {
+    void testDeleteCustomObjectFail() {
         outputDataSet.setAction(OutputAction.delete);
         outputDataSet.setDeleteBy(DeleteBy.dedupeFields);
         initProcessor();
@@ -94,7 +104,7 @@ class CompanyProcessorTest extends MarketoProcessorBaseTest {
     }
 
     @Test
-    void testSyncCompaniesFail() {
+    void testSyncCustomObjectFail() {
         outputDataSet.setAction(OutputAction.sync);
         outputDataSet.setSyncMethod(SyncMethod.updateOnly);
         initProcessor();
@@ -103,7 +113,7 @@ class CompanyProcessorTest extends MarketoProcessorBaseTest {
     }
 
     @Test
-    public void testSyncCompaniesProcessor() {
+    public void testSyncCustomObjectProcessor() {
         outputDataSet.setSyncMethod(SyncMethod.updateOnly);
         final Processor processor = component.createProcessor(MarketoProcessor.class, outputDataSet);
         final SimpleComponentRule.Outputs outputs = component.collect(processor,

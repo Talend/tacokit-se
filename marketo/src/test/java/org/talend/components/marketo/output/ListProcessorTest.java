@@ -54,7 +54,7 @@ public class ListProcessorTest extends MarketoProcessorBaseTest {
 
     private void initProcessor() {
         processor = new MarketoProcessor(outputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient,
-                leadClient, listClient, companyClient);
+                leadClient, listClient, companyClient, customObjectClient);
         processor.init();
     }
 

@@ -12,11 +12,13 @@
 // ============================================================================
 package org.talend.components.marketo.input;
 
+import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.*;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_EMAIL;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ID;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_RESULT;
 
+import java.util.List;
 import javax.json.JsonObject;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -177,7 +179,24 @@ public class LeadSourceTest extends SourceBaseTest {
     @Test
     void testGetActivities() {
         leadClient.base(inputDataSet.getDataStore().getEndpoint());
-        SuggestionValues activities = marketoService.getActivities(inputDataSet);
+        SuggestionValues activities = uiActionService.getActivities(inputDataSet);
         LOG.warn("[testGetActivities] {}", activities);
+    }
+
+    @Test
+    void testGetLeadActivities() {
+        inputDataSet.setLeadAction(LeadAction.getLeadActivity);
+        inputDataSet.setSinceDateTime("2018-01-01 00:00:01 Z");
+        SuggestionValues acts = uiActionService.getActivities(inputDataSet);
+        List<String> activities = activities = acts.getItems().stream().limit(10).map(item -> item.getId()).collect(toList());
+        LOG.warn("[testGetLeadActivities] activities: {}", activities);
+        inputDataSet.setActivityTypeIds(activities);
+        inputDataSet.setFields(fields);
+        inputDataSet.setBatchSize(300);
+        source = new LeadSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, leadClient);
+        source.init();
+        while ((result = source.next()) != null) {
+            assertNotNull(result);
+        }
     }
 }

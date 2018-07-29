@@ -80,7 +80,6 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
             processBatch();
             next = resultIterator.hasNext() ? resultIterator.next() : null;
         }
-        LOG.error("[next] is {}.", next);
         return next == null ? null : next.asJsonObject();
     }
 
@@ -91,7 +90,6 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
 
     public void processBatch() {
         JsonObject result = runAction();
-        LOG.warn("[processBatch] {} {}", accessToken, result);
         nextPageToken = result.getString(ATTR_NEXT_PAGE_TOKEN, null);
         JsonArray requestResult = result.getJsonArray(ATTR_RESULT);
         Boolean hasMore = result.getBoolean(ATTR_MORE_RESULT, true);
@@ -110,7 +108,6 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
         if (requestResult != null) {
             resultIterator = requestResult.iterator();
         }
-        // nextPageToken = result.getString(ATTR_NEXT_PAGE_TOKEN, null);
     }
 
     public abstract JsonObject runAction();

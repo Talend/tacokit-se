@@ -14,6 +14,9 @@ package org.talend.components.marketo.datastore;
 
 import lombok.Data;
 
+import static org.talend.components.marketo.service.UIActionService.HEALTH_CHECK;
+import static org.talend.components.marketo.service.UIActionService.URL_CHECK;
+
 import java.io.Serializable;
 
 import org.talend.sdk.component.api.configuration.Option;
@@ -22,16 +25,19 @@ import org.talend.sdk.component.api.configuration.action.Validable;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataStore;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
 
 @Data
 @DataStore(MarketoDataStore.NAME)
-@GridLayout({ //
-        @GridLayout.Row({ "endpoint" }), //
-        @GridLayout.Row({ "clientId", "clientSecret" }) //
+@GridLayouts({ //
+        @GridLayout({ //
+                @GridLayout.Row({ "endpoint" }), //
+                @GridLayout.Row({ "clientId", "clientSecret" }) //
+        }) //
 })
-@Checkable("marketo_healthcheck")
+@Checkable(HEALTH_CHECK)
 @Documentation(MarketoDataStore.NAME)
 public class MarketoDataStore implements Serializable {
 
@@ -39,7 +45,7 @@ public class MarketoDataStore implements Serializable {
 
     @Option
     @Required
-    @Validable("urlValidation")
+    @Validable(URL_CHECK)
     @Documentation("Marketo Endpoint (host only, ie: https://123-ABC-456.mktorest.com)")
     private String endpoint;
 

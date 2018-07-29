@@ -12,7 +12,11 @@
 // ============================================================================
 package org.talend.components.marketo.dataset;
 
-import static org.talend.components.marketo.service.MarketoService.ACTIVITIES_LIST;
+import lombok.Data;
+
+import static org.talend.components.marketo.service.UIActionService.ACTIVITIES_LIST;
+import static org.talend.components.marketo.service.UIActionService.GUESS_ENTITY_SCHEMA_INPUT;
+import static org.talend.components.marketo.service.UIActionService.LEAD_KEY_NAME_LIST;
 
 import java.util.List;
 
@@ -24,30 +28,31 @@ import org.talend.sdk.component.api.configuration.constraint.Pattern;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure;
+import org.talend.sdk.component.api.configuration.ui.widget.Structure.Type;
 import org.talend.sdk.component.api.meta.Documentation;
-
-import lombok.Data;
 
 @Data
 @DataSet(MarketoInputDataSet.NAME)
-@GridLayout({ //
-        @GridLayout.Row({ "dataStore" }), //
-        /* @GridLayout.Row({ "schema" }), // */
-        @GridLayout.Row({ "entity", "leadAction", "otherAction" }), //
-        @GridLayout.Row({ "leadSelector", "leadKeyName", "leadKeyValues" }), //
-        @GridLayout.Row({ "leadListIdOrName" }), //
-        @GridLayout.Row({ "leadId", "leadIds", "assetIds", "listId" }), //
-        @GridLayout.Row({ "customObjectName" }), //
-        @GridLayout.Row({ "activityTypeIds" }), //
-        @GridLayout.Row({ "filterType", "filterValues" }), //
-        @GridLayout.Row({ "useCompoundKey", "compoundKey" }), //
-        @GridLayout.Row({ "sinceDateTime" }), //
-        @GridLayout.Row({ "listAction", "listIds" }), //
-        @GridLayout.Row({ "name", "programName", "workspaceName" }), //
-        @GridLayout.Row({ "fields" }), //
-        @GridLayout.Row({ "batchSize" }) //
-})
+@GridLayouts({ //
+        @GridLayout({ //
+                @GridLayout.Row({ "dataStore" }),
+                // @GridLayout.Row({ "schema" }), //
+                @GridLayout.Row({ "entity", "leadAction", "otherAction", "listAction" }), //
+                @GridLayout.Row({ "leadSelector", "leadKeyName", "leadKeyValues" }), //
+                @GridLayout.Row({ "leadListIdOrName" }), //
+                @GridLayout.Row({ "leadId", "leadIds", "assetIds", "listId" }), //
+                @GridLayout.Row({ "customObjectName" }), //
+                @GridLayout.Row({ "activityTypeIds" }), //
+                @GridLayout.Row({ "filterType", "filterValues" }), //
+                @GridLayout.Row({ "useCompoundKey", "compoundKey" }), //
+                @GridLayout.Row({ "sinceDateTime" }), //
+                @GridLayout.Row({ "listIds", "name", "programName", "workspaceName" }), //
+                @GridLayout.Row({ "fields" }), //
+                @GridLayout.Row({ "batchSize" }), //
+        }), //
+        @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "schema" }) }) })
 @Documentation("Marketo Source DataSet")
 public class MarketoInputDataSet extends MarketoDataSet {
 
@@ -79,10 +84,10 @@ public class MarketoInputDataSet extends MarketoDataSet {
         get
     }
 
-    // @Option
-    // @Structure
-    // @Documentation("Main output schema")
-    // private List<String> schema;
+    @Option
+    @Structure(discoverSchema = GUESS_ENTITY_SCHEMA_INPUT, type = Type.OUT)
+    @Documentation("Main output schema")
+    private List<String> schema;
 
     /*
      * Lead DataSet parameters
@@ -109,6 +114,7 @@ public class MarketoInputDataSet extends MarketoDataSet {
     @ActiveIf(target = "entity", value = { "Lead" })
     @ActiveIf(target = "leadAction", value = "getMultipleLeads")
     @ActiveIf(target = "leadSelector", value = "key")
+    @Suggestable(LEAD_KEY_NAME_LIST)
     @Documentation("Key Name")
     private String leadKeyName;
 
@@ -159,9 +165,9 @@ public class MarketoInputDataSet extends MarketoDataSet {
 
     // Changes & Activities
     @Option
-    @Pattern("/^[a-zA-Z\\-]+$/")
     @ActiveIf(target = "entity", value = { "Lead" })
     @ActiveIf(target = "leadAction", value = { "getLeadChanges", "getLeadActivity" })
+    @Pattern("/^[0-9]{4}\\-[0-9]{2}\\-[0-9]{2}\\s[0-9]{2}:[0-9]{2}:[0-9]{2}$/")
     @Documentation("Since Date Time")
     private String sinceDateTime;
 
@@ -180,15 +186,15 @@ public class MarketoInputDataSet extends MarketoDataSet {
     @Option
     @ActiveIf(target = "entity", value = { "Lead" })
     @ActiveIf(target = "leadAction", value = { "getLeadChanges", "getLeadActivity" })
-    @Documentation("Asset Ids")
+    @Documentation("Asset Ids (comma separated)")
     private String assetIds;
 
     @Option
     @ActiveIf(target = "entity", value = { "Lead" })
     @ActiveIf(target = "leadAction", value = "getLeadActivity")
     @Suggestable(ACTIVITIES_LIST)
-    @Structure
-    @Documentation("Activity Type Ids")
+    // @Structure
+    @Documentation("Activity Type Ids (10 max supported")
     private List<String> activityTypeIds;
 
     /*

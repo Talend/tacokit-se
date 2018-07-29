@@ -27,7 +27,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 @Data
 @DataSet
 @Documentation("Marketo Base Dataset")
-public abstract class MarketoDataSet implements Serializable {
+public class MarketoDataSet implements Serializable {
 
     public enum MarketoEntity {
         Lead,
