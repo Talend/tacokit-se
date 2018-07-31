@@ -6,7 +6,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.json.JsonObject;
 
-import org.talend.components.jms.configuration.ProcessingMode;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -62,9 +61,8 @@ public class Output implements Serializable {
         service.sendTextMessage(getMessage(record));
     }
 
-    private String getMessage(@Input JsonObject record) {
-        return record.entrySet().stream().filter(m -> MESSAGE_CONTENT.equals(m.getKey())).findFirst()
-                .orElseThrow(() -> new RuntimeException("Message was not found")).getValue().toString();
+    private String getMessage(JsonObject record) {
+        return record.get(MESSAGE_CONTENT).toString();
     }
 
     @AfterGroup
