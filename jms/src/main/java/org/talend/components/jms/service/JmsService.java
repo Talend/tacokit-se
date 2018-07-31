@@ -17,15 +17,29 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
-import javax.jms.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
+import javax.jms.TextMessage;
 import javax.json.bind.Jsonb;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.spi.InitialContextFactory;
 
 import org.talend.components.jms.ProviderInfo;
-import org.talend.components.jms.output.OutputConfiguration;
+import org.talend.components.jms.configuration.Configuration;
+import org.talend.components.jms.configuration.MessageType;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.dependency.Resolver;
@@ -76,7 +90,7 @@ public class JmsService {
      */
 
     @Service
-    private OutputConfiguration configuration;
+    private Configuration configuration;
 
     @Service
     private Resolver resolver;
@@ -171,10 +185,10 @@ public class JmsService {
         return jndiContext;
     }
 
-    public MessageProducer createProducer() {
+    private MessageProducer createProducer() {
         MessageProducer producer = null;
         try {
-            producer = getSession().createProducer(getDestination());
+            producer = getSession().createProducer(createDestination());
         } catch (JMSException e) {
             e.printStackTrace();
         } catch (InstantiationException e) {
@@ -189,10 +203,10 @@ public class JmsService {
         return producer;
     }
 
-    public MessageConsumer createConsumer() {
+    private MessageConsumer createConsumer() {
         MessageConsumer consumer = null;
         try {
-            consumer = getSession().createConsumer(getDestination());
+            consumer = createConsumer(createDestination());
         } catch (JMSException e) {
             e.printStackTrace();
         } catch (InstantiationException e) {
@@ -207,14 +221,25 @@ public class JmsService {
         return consumer;
     }
 
+    private MessageConsumer createConsumer(Destination destination)
+            throws ClassNotFoundException, NamingException, InstantiationException, IllegalAccessException, JMSException {
+        /*
+         * if (MessageType.QUEUE == configuration.getMessageType()) {
+         * //getSession().createConsumer()
+         * }
+         */
+
+        return getSession().createConsumer(destination);
+    }
+
     private Message createTextMessage(String text)
             throws ClassNotFoundException, NamingException, InstantiationException, IllegalAccessException, JMSException {
         return getSession().createTextMessage(text);
     }
 
-    public void sendMessage(Object messageObj) {
+    public void sendTextMessage(String text) {
         try {
-            createProducer().send(messageObj instanceof String ? createTextMessage(messageObj.toString()) : (Message) messageObj);
+            createProducer().send(createTextMessage(text));
         } catch (JMSException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
@@ -228,14 +253,17 @@ public class JmsService {
         }
     }
 
-    public Message receiveMessage() {
-        Message message = null;
+    public String receiveTextMessage() {
+        String text = null;
         try {
-            message = createConsumer().receive();
+            Message message = createConsumer().receive();
+            if (message != null) {
+                text = ((TextMessage) message).getText();
+            }
         } catch (JMSException e) {
             e.printStackTrace();
         }
-        return message;
+        return text;
     }
 
     private Session getSession()
@@ -247,13 +275,19 @@ public class JmsService {
         return getProviders().get(configuration.getModuleList()).getClazz();
     }
 
-    private Destination getDestination()
-            throws NamingException, JMSException, InstantiationException, ClassNotFoundException, IllegalAccessException {
-        return configuration.isUserJNDILookup() ? (javax.jms.Destination) getJNDIContext().lookup(configuration.getTo())
-                : getSession().createQueue(configuration.getTo());
+    private Destination createDestination(String destinationName)
+            throws ClassNotFoundException, NamingException, InstantiationException, IllegalAccessException, JMSException {
+        return MessageType.QUEUE == configuration.getMessageType() ? getSession().createQueue(destinationName)
+                : getSession().createTopic(destinationName);
     }
 
-    public void setConfiguration(OutputConfiguration configuration) {
+    private Destination createDestination()
+            throws NamingException, JMSException, InstantiationException, ClassNotFoundException, IllegalAccessException {
+        return configuration.isUserJNDILookup() ? (javax.jms.Destination) getJNDIContext().lookup(configuration.getDestination())
+                : createDestination(configuration.getDestination());
+    }
+
+    public void setConfiguration(Configuration configuration) {
         this.configuration = configuration;
     }
 

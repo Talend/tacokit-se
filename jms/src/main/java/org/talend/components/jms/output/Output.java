@@ -6,6 +6,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.json.JsonObject;
 
+import org.talend.components.jms.configuration.ProcessingMode;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -25,6 +26,8 @@ import org.talend.sdk.component.api.service.Service;
 @Processor(name = "Output")
 @Documentation("TODO fill the documentation for this processor")
 public class Output implements Serializable {
+
+    public static final String MESSAGE_CONTENT = "messageContent";
 
     private final OutputConfiguration configuration;
 
@@ -56,10 +59,12 @@ public class Output implements Serializable {
         // this is the method allowing you to handle the input(s) and emit the output(s)
         // after some custom logic you put here, to send a value to next element you can use an
         // output parameter and call emit(value).
-/*        if (ProcessingMode.MESSAGE_CONTENT == configuration.getProcessingMode()) {
+        service.sendTextMessage(getMessage(record));
+    }
 
-        }*/
-        service.sendMessage(record);
+    private String getMessage(@Input JsonObject record) {
+        return record.entrySet().stream().filter(m -> MESSAGE_CONTENT.equals(m.getKey())).findFirst()
+                .orElseThrow(() -> new RuntimeException("Message was not found")).getValue().toString();
     }
 
     @AfterGroup
