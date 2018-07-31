@@ -174,13 +174,6 @@ public class LeadSourceTest extends SourceBaseTest {
     }
 
     @Test
-    void testGetActivities() {
-        leadClient.base(inputDataSet.getDataStore().getEndpoint());
-        SuggestionValues activities = uiActionService.getActivities(inputDataSet);
-        LOG.warn("[testGetActivities] {}", activities);
-    }
-
-    @Test
     void testGetLeadActivities() {
         inputDataSet.setLeadAction(LeadAction.getLeadActivity);
         inputDataSet.setSinceDateTime("2018-01-01 00:00:01 Z");

@@ -37,7 +37,7 @@ import org.talend.sdk.component.junit5.WithComponents;
 @WithComponents("org.talend.components.marketo")
 class OpportunityProcessorTest extends MarketoProcessorBaseTest {
 
-    public static final String OPPORTUNITY_101 = "opportunity101";
+    public static final String OPPORTUNITY_101 = "opportunity102";
 
     private JsonObject dataOR;
 

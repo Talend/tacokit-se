@@ -120,9 +120,9 @@ public class MarketoProcessor extends MarketoSourceOrProcessor {
         JsonObject result = strategy.runAction(payload);
         for (JsonObject status : result.getJsonArray(ATTR_RESULT).getValuesAs(JsonObject.class)) {
             if (strategy.isRejected(status)) {
-                rejected.emit(toIndexedRecord(strategy.createRejectData(status), dataSet.getFlowAvroSchema()));
+                rejected.emit(toIndexedRecord(strategy.createRejectData(status), null));
             } else {
-                main.emit(toIndexedRecord(strategy.createMainData(status), dataSet.getRejectAvroSchema()));
+                main.emit(toIndexedRecord(strategy.createMainData(status), null));
             }
         }
     }

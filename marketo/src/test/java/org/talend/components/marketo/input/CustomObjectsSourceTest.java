@@ -16,6 +16,10 @@ import static org.junit.Assert.*;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_FIELDS;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_NAME;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.beam.sdk.repackaged.org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.marketo.dataset.MarketoDataSet.MarketoEntity;
@@ -38,9 +42,12 @@ public class CustomObjectsSourceTest extends SourceBaseTest {
     protected void setUp() {
         super.setUp();
         inputDataSet.setEntity(MarketoEntity.CustomObject);
+        inputDataSet.setBatchSize(10);
+        inputDataSet.setFields(fields);
+        inputDataSet.setUseCompoundKey(false);
     }
 
-    private void initSource() {
+    void initSource() {
         source = new CustomObjectSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient,
                 customObjectClient);
         source.init();
@@ -73,9 +80,7 @@ public class CustomObjectsSourceTest extends SourceBaseTest {
         inputDataSet.setOtherAction(OtherEntityAction.get);
         inputDataSet.setCustomObjectName(CUSTOM_OBJECT_NAME);
         inputDataSet.setFilterType("marketoGUID");
-        inputDataSet.setFilterValues("google01,google02,google03,google04,google05,google06");
-        inputDataSet.setFields("year,model,VIN");
-        inputDataSet.setBatchSize(10);
+        inputDataSet.setFilterValues("a215bdf6-3fed-42e5-9042-3c4258768afb");
         initSource();
         while ((result = source.next()) != null) {
             assertNotNull(result);
@@ -86,13 +91,13 @@ public class CustomObjectsSourceTest extends SourceBaseTest {
     void testGetCustomObjectsWithCompoundKey() {
         inputDataSet.setOtherAction(OtherEntityAction.get);
         inputDataSet.setCustomObjectName(CUSTOM_OBJECT_NAME);
+        inputDataSet.setFilterType("dedupeFields");
         inputDataSet.setUseCompoundKey(true);
-        // inputDataSet.setc
-        inputDataSet.setFilterType("VIN");
-        inputDataSet.setFilterValues("google01,google02,google03,google04,google05,google06");
-        inputDataSet.setFields("mainPhone,company,website");
-        inputDataSet.setBatchSize(10);
-        source.init();
+        List<Pair> compoundKey = new ArrayList<>();
+        compoundKey.add(Pair.of("customerId", "5"));
+        compoundKey.add(Pair.of("VIN", "ABC-DEF-12345-GIN"));
+        inputDataSet.setCompoundKey(compoundKey);
+        initSource();
         while ((result = source.next()) != null) {
             assertNotNull(result);
         }
@@ -104,12 +109,8 @@ public class CustomObjectsSourceTest extends SourceBaseTest {
         inputDataSet.setCustomObjectName(CUSTOM_OBJECT_NAME);
         inputDataSet.setFilterType("billingCountry");
         inputDataSet.setFilterValues("France");
-        inputDataSet.setFields("mainPhone,company,website");
-        inputDataSet.setBatchSize(10);
-        source = new CustomObjectSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient,
-                customObjectClient);
         try {
-            source.init();
+            initSource();
         } catch (RuntimeException e) {
             assertEquals("[1003] Invalid filterType 'billingCountry'", e.getMessage());
         }

@@ -12,7 +12,7 @@
 // ============================================================================
 package org.talend.components.marketo;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import javax.json.JsonObject;
 
@@ -44,7 +44,6 @@ class MarketoSourceOrProcessorTest extends MarketoBaseTest {
     @BeforeEach
     protected void setUp() {
         super.setUp();
-
         sop = new LeadSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, leadClient);
         schema = SchemaBuilder.record("record").fields().name("id").type().nullable().intType().noDefault().endRecord();
         record = new Record(schema);

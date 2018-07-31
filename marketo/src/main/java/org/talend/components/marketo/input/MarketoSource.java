@@ -13,11 +13,17 @@
 package org.talend.components.marketo.input;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FIELDS;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FILTER_TYPE;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_INPUT;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_MORE_RESULT;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_NEXT_PAGE_TOKEN;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_RESULT;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.json.JsonArray;
@@ -28,6 +34,7 @@ import javax.json.JsonValue;
 import javax.json.JsonWriterFactory;
 
 import org.apache.avro.generic.IndexedRecord;
+import org.apache.beam.sdk.repackaged.org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.talend.components.marketo.MarketoSourceOrProcessor;
 import org.talend.components.marketo.dataset.MarketoInputDataSet;
@@ -87,7 +94,7 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
 
     public IndexedRecord nextIndexedRecord() {
         JsonObject nextIR = next();
-        return nextIR == null ? null : toIndexedRecord(nextIR, dataSet.getAvroSchema());
+        return nextIR == null ? null : toIndexedRecord(nextIR, null);
     }
 
     public void processBatch() {
@@ -113,4 +120,21 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
     }
 
     public abstract JsonObject runAction();
+
+    protected JsonObject generateCompoundKeyPayload(String filterType, String fields) {
+        Map<String, Object> ck = new HashMap<>();
+        for (Pair<String, String> p : dataSet.getCompoundKey()) {
+            ck.put(p.getLeft(), p.getRight());
+        }
+        JsonArray input = jsonFactory.createArrayBuilder().add(jsonFactory.createObjectBuilder(ck).build()).build();
+        JsonArray jfields = jsonFactory.createArrayBuilder(Arrays.asList(fields.split(","))).build();
+        JsonObject payload = jsonFactory.createObjectBuilder()//
+                .add(ATTR_FILTER_TYPE, filterType) //
+                .add(ATTR_FIELDS, jfields) //
+                .add(ATTR_INPUT, input) //
+                .build();
+        LOG.warn("[generateCompoundKeyPayload] payload: {}.", payload);
+        return payload;
+    }
+
 }

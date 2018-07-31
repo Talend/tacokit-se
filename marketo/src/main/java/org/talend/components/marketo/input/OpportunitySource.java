@@ -12,11 +12,25 @@
 // ============================================================================
 package org.talend.components.marketo.input;
 
+import static org.slf4j.LoggerFactory.getLogger;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FIELDS;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FILTER_TYPE;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_INPUT;
+import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE_APPLICATION_JSON;
+import static org.talend.components.marketo.MarketoApiConstants.REQUEST_PARAM_QUERY_METHOD_GET;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.json.JsonArray;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonReaderFactory;
 import javax.json.JsonWriterFactory;
 
+import org.apache.beam.sdk.repackaged.org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
 import org.talend.components.marketo.dataset.MarketoDataSet.MarketoEntity;
 import org.talend.components.marketo.dataset.MarketoInputDataSet;
 import org.talend.components.marketo.service.AuthorizationClient;
@@ -56,14 +70,24 @@ public class OpportunitySource extends MarketoSource {
         throw new RuntimeException(i18n.invalidOperation());
     }
 
+    private transient static final Logger LOG = getLogger(OpportunitySource.class);
+
     private JsonObject getOpportunity() {
         String filterType = dataSet.getFilterType();
         String filterValues = dataSet.getFilterValues();
         String fields = dataSet.getFields();
         int batchSize = dataSet.getBatchSize();
         if (isOpportunityRole) {
-            return handleResponse(opportunityClient.getOpportunityRoles(accessToken, filterType, filterValues, fields, batchSize,
-                    nextPageToken));
+            if (dataSet.getUseCompoundKey()) {
+
+                JsonObject payload = generateCompoundKeyPayload(filterType, fields);
+
+                return handleResponse(opportunityClient.getOpportunityRolesWithCompoundKey(HEADER_CONTENT_TYPE_APPLICATION_JSON,
+                        REQUEST_PARAM_QUERY_METHOD_GET, accessToken, payload));
+            } else {
+                return handleResponse(opportunityClient.getOpportunityRoles(accessToken, filterType, filterValues, fields,
+                        batchSize, nextPageToken));
+            }
         } else {
             return handleResponse(
                     opportunityClient.getOpportunities(accessToken, filterType, filterValues, fields, batchSize, nextPageToken));

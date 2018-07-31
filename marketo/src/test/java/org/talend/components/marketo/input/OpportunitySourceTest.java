@@ -19,7 +19,12 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_LEAD_ID;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_NAME;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ROLE;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.beam.sdk.repackaged.org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.talend.components.marketo.dataset.MarketoDataSet.MarketoEntity;
@@ -40,6 +45,7 @@ class OpportunitySourceTest extends SourceBaseTest {
         super.setUp();
         inputDataSet.setEntity(MarketoEntity.Opportunity);
         inputDataSet.setBatchSize(3);
+        inputDataSet.setUseCompoundKey(false);
     }
 
     private void initSource() {
@@ -76,6 +82,27 @@ class OpportunitySourceTest extends SourceBaseTest {
                 assertNotNull(result.getInt(ATTR_LEAD_ID));
                 assertNotNull(result.getString(ATTR_ROLE));
             }
+        }
+    }
+
+    @Test
+    void testGetOpportunityRolesWithCompoundKey() {
+        inputDataSet.setEntity(MarketoEntity.OpportunityRole);
+        inputDataSet.setOtherAction(OtherEntityAction.get);
+        inputDataSet.setFields("marketoGuid,externalOpportunityId,leadId,role");
+        inputDataSet.setFilterType("dedupeFields");
+        inputDataSet.setUseCompoundKey(true);
+        List<Pair> compoundKey = new ArrayList<>();
+        compoundKey.add(Pair.of(ATTR_EXTERNAL_OPPORTUNITY_ID, "opportunity102"));
+        compoundKey.add(Pair.of(ATTR_LEAD_ID, "4"));
+        compoundKey.add(Pair.of(ATTR_ROLE, "newCust"));
+        inputDataSet.setCompoundKey(compoundKey);
+        initSource();
+        while ((result = source.next()) != null) {
+            assertNotNull(result);
+            assertNotNull(result.getString(ATTR_EXTERNAL_OPPORTUNITY_ID));
+            assertNotNull(result.getInt(ATTR_LEAD_ID));
+            assertNotNull(result.getString(ATTR_ROLE));
         }
     }
 }

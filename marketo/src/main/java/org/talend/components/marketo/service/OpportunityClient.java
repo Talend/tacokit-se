@@ -20,6 +20,7 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_FILTER_VALU
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_NEXT_PAGE_TOKEN;
 import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE;
 import static org.talend.components.marketo.MarketoApiConstants.METHOD_POST;
+import static org.talend.components.marketo.MarketoApiConstants.REQUEST_PARAM_QUERY_METHOD;
 
 import javax.json.JsonObject;
 
@@ -145,12 +146,21 @@ public interface OpportunityClient extends HttpClient {
      * @return opportunity records
      */
     @Request(path = "/rest/v1/opportunities/roles.json")
-    Response<JsonObject> getOpportunityRoles(@Query(ATTR_ACCESS_TOKEN) String accessToken, //
+    Response<JsonObject> getOpportunityRoles( //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
             @Query(ATTR_FILTER_TYPE) String filterType, //
             @Query(ATTR_FILTER_VALUES) String filterValues, //
             @Query(ATTR_FIELDS) String fields, //
             @Query(ATTR_BATCH_SIZE) Integer batchSize, //
             @Query(ATTR_NEXT_PAGE_TOKEN) String nextPageToken //
+    );
+
+    @Request(path = "/rest/v1/opportunities/roles.json", method = METHOD_POST)
+    Response<JsonObject> getOpportunityRolesWithCompoundKey( //
+            @Header(HEADER_CONTENT_TYPE) String contentType, //
+            @Query(REQUEST_PARAM_QUERY_METHOD) String queryMethod, //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            JsonObject payload //
     );
 
     /**
