@@ -31,6 +31,7 @@ import org.talend.components.marketo.service.CustomObjectClient;
 import org.talend.components.marketo.service.I18nMessage;
 import org.talend.components.marketo.service.LeadClient;
 import org.talend.components.marketo.service.ListClient;
+import org.talend.components.marketo.service.OpportunityClient;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -62,7 +63,8 @@ public class MarketoProcessor extends MarketoSourceOrProcessor {
             final LeadClient leadClient, //
             final ListClient listClient, //
             final CompanyClient companyClient, //
-            final CustomObjectClient customObjectClient) {
+            final CustomObjectClient customObjectClient, //
+            final OpportunityClient opportunityClient) {
         super(dataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient);
         this.dataSet = dataSet;
 
@@ -83,6 +85,8 @@ public class MarketoProcessor extends MarketoSourceOrProcessor {
             break;
         case Opportunity:
         case OpportunityRole:
+            strategy = new OpportunityStrategy(dataSet, i18n, authorizationClient, jsonFactory, jsonReader, jsonWriter,
+                    opportunityClient);
             break;
         }
     }
@@ -112,11 +116,8 @@ public class MarketoProcessor extends MarketoSourceOrProcessor {
 
     public void mapWithIndexedRecord(final IndexedRecord data, @Output final OutputEmitter<IndexedRecord> main,
             @Output("rejected") final OutputEmitter<IndexedRecord> rejected) {
-        LOG.debug("[map] received: {}.", data);
         JsonObject payload = strategy.getPayload(toJson(data));
-        LOG.debug("[map] payload : {}.", payload);
         JsonObject result = strategy.runAction(payload);
-        LOG.debug("[map] result  : {}.", result);
         for (JsonObject status : result.getJsonArray(ATTR_RESULT).getValuesAs(JsonObject.class)) {
             if (strategy.isRejected(status)) {
                 rejected.emit(toIndexedRecord(strategy.createRejectData(status), dataSet.getFlowAvroSchema()));

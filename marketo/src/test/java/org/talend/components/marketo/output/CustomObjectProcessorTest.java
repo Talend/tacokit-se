@@ -64,7 +64,7 @@ public class CustomObjectProcessorTest extends MarketoProcessorBaseTest {
 
     private void initProcessor() {
         processor = new MarketoProcessor(outputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient,
-                leadClient, listClient, companyClient, customObjectClient);
+                leadClient, listClient, companyClient, customObjectClient, opportunityClient);
         processor.init();
     }
 
@@ -83,7 +83,7 @@ public class CustomObjectProcessorTest extends MarketoProcessorBaseTest {
         outputDataSet.setAction(OutputAction.sync);
         outputDataSet.setSyncMethod(SyncMethod.createOrUpdate);
         initProcessor();
-        processor.map(data, main -> assertEquals(0, main.getInt("seq")), reject -> fail("Should not have a reject"));
+        processor.map(data, main -> assertEquals(0, main.getInt("seq")), reject -> fail(FAIL_REJECT));
     }
 
     @Test
@@ -91,7 +91,7 @@ public class CustomObjectProcessorTest extends MarketoProcessorBaseTest {
         outputDataSet.setAction(OutputAction.delete);
         outputDataSet.setDeleteBy(DeleteBy.dedupeFields);
         initProcessor();
-        processor.map(data, main -> assertEquals(0, main.getInt("seq")), reject -> fail("Should not have a reject"));
+        processor.map(data, main -> assertEquals(0, main.getInt("seq")), reject -> fail(FAIL_REJECT));
     }
 
     @Test
@@ -99,7 +99,7 @@ public class CustomObjectProcessorTest extends MarketoProcessorBaseTest {
         outputDataSet.setAction(OutputAction.delete);
         outputDataSet.setDeleteBy(DeleteBy.dedupeFields);
         initProcessor();
-        processor.map(dataNotExist, main -> fail("Should not have a main"),
+        processor.map(dataNotExist, main -> fail(FAIL_MAIN),
                 reject -> assertEquals("1013", reject.getJsonArray("reasons").get(0).asJsonObject().getString("code")));
     }
 
@@ -108,7 +108,7 @@ public class CustomObjectProcessorTest extends MarketoProcessorBaseTest {
         outputDataSet.setAction(OutputAction.sync);
         outputDataSet.setSyncMethod(SyncMethod.updateOnly);
         initProcessor();
-        processor.map(dataNotExist, main -> fail("Should not have a main"),
+        processor.map(dataNotExist, main -> fail(FAIL_MAIN),
                 reject -> assertEquals("1013", reject.getJsonArray("reasons").get(0).asJsonObject().getString("code")));
     }
 

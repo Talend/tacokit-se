@@ -12,7 +12,16 @@
 // ============================================================================
 package org.talend.components.marketo.service;
 
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_ACCESS_TOKEN;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_BATCH_SIZE;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_CUSTOM_OBJECT_NAME;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FIELDS;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FILTER_TYPE;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FILTER_VALUES;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_NAMES;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_NEXT_PAGE_TOKEN;
 import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE;
+import static org.talend.components.marketo.MarketoApiConstants.METHOD_POST;
 
 import javax.json.JsonObject;
 
@@ -41,10 +50,10 @@ public interface CustomObjectClient extends HttpClient {
      * @param names Comma-separated list of names to filter types on.
      * @return
      */
-    @Request(path = "/rest/v1/customobjects.json", method = "GET")
+    @Request(path = "/rest/v1/customobjects.json")
     Response<JsonObject> listCustomObjects( //
-            @Query("access_token") String accessToken, //
-            @Query("names") String names //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Query(ATTR_NAMES) String names //
     );
 
     /**
@@ -54,10 +63,10 @@ public interface CustomObjectClient extends HttpClient {
      * @param customObjectName custom Object Name.
      * @return
      */
-    @Request(path = "/rest/v1/customobjects/{customObjectName}/describe.json", method = "GET")
+    @Request(path = "/rest/v1/customobjects/{customObjectName}/describe.json")
     Response<JsonObject> describeCustomObjects( //
-            @Query("access_token") String accessToken, //
-            @Path("customObjectName") String customObjectName //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Path(ATTR_CUSTOM_OBJECT_NAME) String customObjectName //
     );
 
     // TODO should normally execute a fake get request when using Compound Key
@@ -76,15 +85,15 @@ public interface CustomObjectClient extends HttpClient {
      * can be passed in a subsequent call through this parameter.
      * @return
      */
-    @Request(path = "/rest/v1/customobjects/{customObjectName}.json", method = "GET")
+    @Request(path = "/rest/v1/customobjects/{customObjectName}.json")
     Response<JsonObject> getCustomObjects( //
-            @Query("access_token") String accessToken, //
-            @Path("customObjectName") String customObjectName, //
-            @Query("filterType") String filterType, //
-            @Query("filterValues") String filterValues, //
-            @Query("fields") String fields, //
-            @Query("batchSize") Integer batchSize, //
-            @Query("nextPageToken") String nextPageToken //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Path(ATTR_CUSTOM_OBJECT_NAME) String customObjectName, //
+            @Query(ATTR_FILTER_TYPE) String filterType, //
+            @Query(ATTR_FILTER_VALUES) String filterValues, //
+            @Query(ATTR_FIELDS) String fields, //
+            @Query(ATTR_BATCH_SIZE) Integer batchSize, //
+            @Query(ATTR_NEXT_PAGE_TOKEN) String nextPageToken //
     );
 
     /**
@@ -101,11 +110,11 @@ public interface CustomObjectClient extends HttpClient {
      * </ul>
      * @return
      */
-    @Request(path = "/rest/v1/customobjects/{customObjectName}.json", method = "POST")
+    @Request(path = "/rest/v1/customobjects/{customObjectName}.json", method = METHOD_POST)
     Response<JsonObject> syncCustomObjects( //
             @Header(HEADER_CONTENT_TYPE) String contentType, //
-            @Query("access_token") String accessToken, //
-            @Path("customObjectName") String customObjectName, //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Path(ATTR_CUSTOM_OBJECT_NAME) String customObjectName, //
             JsonObject payload//
     );
 
@@ -122,11 +131,11 @@ public interface CustomObjectClient extends HttpClient {
      * </ul>
      * @return
      */
-    @Request(path = "/rest/v1/customobjects/{customObjectName}/delete.json", method = "POST")
+    @Request(path = "/rest/v1/customobjects/{customObjectName}/delete.json", method = METHOD_POST)
     Response<JsonObject> deleteCustomObjects( //
             @Header(HEADER_CONTENT_TYPE) String contentType, //
-            @Query("access_token") String accessToken, //
-            @Path("customObjectName") String customObjectName, //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Path(ATTR_CUSTOM_OBJECT_NAME) String customObjectName, //
             JsonObject payload //
     );
 

@@ -15,6 +15,8 @@ package org.talend.components.marketo.output;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ID;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_INPUT;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_LEAD_ID;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_LIST_ID;
 import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE_APPLICATION_JSON;
 
 import javax.json.JsonArray;
@@ -50,8 +52,8 @@ public class ListStrategy extends OutputComponentStrategy implements ProcessorSt
 
     @Override
     public JsonObject getPayload(JsonObject incomingData) {
-        listId = incomingData.getInt("listId");
-        leadId = incomingData.getInt("leadId");
+        listId = incomingData.getInt(ATTR_LIST_ID);
+        leadId = incomingData.getInt(ATTR_LEAD_ID);
         JsonObject leadRecord = jsonFactory.createObjectBuilder().add(ATTR_ID, leadId).build();
         JsonArray input = jsonFactory.createArrayBuilder().add(leadRecord).build();
         LOG.warn("[getPayload] data: {}; input: {}.", incomingData, input);

@@ -13,7 +13,10 @@
 package org.talend.components.marketo.service;
 
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ACCESS_TOKEN;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_CLIENT_ID;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_CLIENT_SECRET;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_CODE;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_GRANT_TYPE;
 
 import java.util.regex.Pattern;
 
@@ -42,11 +45,11 @@ public interface AuthorizationClient extends HttpClient {
      * @param clientSecret Client secret code
      * @return Marketo authorization token for API
      */
-    @Request(path = "/identity/oauth/token", method = "GET")
+    @Request(path = "/identity/oauth/token")
     Response<JsonObject> getAuthorizationToken( //
-            @Query("grant_type") String grantType, //
-            @Query("client_id") String clientId, //
-            @Query("client_secret") String clientSecret//
+            @Query(ATTR_GRANT_TYPE) String grantType, //
+            @Query(ATTR_CLIENT_ID) String clientId, //
+            @Query(ATTR_CLIENT_SECRET) String clientSecret//
     );
 
     default String getAccessToken(MarketoDataStore dataStore) {

@@ -12,7 +12,18 @@
 // ============================================================================
 package org.talend.components.marketo.service;
 
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_ACCESS_TOKEN;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_BATCH_SIZE;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FIELDS;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_ID;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_LIST_ID;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_NAME;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_NEXT_PAGE_TOKEN;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_PROGRAM_NAME;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_WORKSPACE_NAME;
 import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE;
+import static org.talend.components.marketo.MarketoApiConstants.METHOD_DELETE;
+import static org.talend.components.marketo.MarketoApiConstants.METHOD_POST;
 
 import javax.json.JsonObject;
 
@@ -33,11 +44,11 @@ public interface ListClient extends HttpClient {
      * @param leadIds Comma-separated list of lead ids to check
      * @return
      */
-    @Request(path = "/rest/v1/lists/{listId}/leads/ismember.json", method = "GET")
+    @Request(path = "/rest/v1/lists/{listId}/leads/ismember.json")
     Response<JsonObject> isMemberOfList( //
-            @Query("access_token") String accessToken, //
-            @Path("listId") Integer listId, //
-            @Query("id") String leadIds //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Path(ATTR_LIST_ID) Integer listId, //
+            @Query(ATTR_ID) String leadIds //
     );
 
     /**
@@ -52,13 +63,13 @@ public interface ListClient extends HttpClient {
      * @param batchSize The batch size to return. The max and default value is 300.
      * @return
      */
-    @Request(path = "/rest/v1/lists/{listId}/leads.json", method = "GET")
+    @Request(path = "/rest/v1/lists/{listId}/leads.json")
     Response<JsonObject> getLeadsByListId( //
-            @Query("access_token") String accessToken, //
-            @Query("nextPageToken") String nextPageToken, //
-            @Path("listId") Integer listId, //
-            @Query("fields") String fields, //
-            @Query("batchSize") Integer batchSize //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Query(ATTR_NEXT_PAGE_TOKEN) String nextPageToken, //
+            @Path(ATTR_LIST_ID) Integer listId, //
+            @Query(ATTR_FIELDS) String fields, //
+            @Query(ATTR_BATCH_SIZE) Integer batchSize //
     );
 
     /**
@@ -68,10 +79,10 @@ public interface ListClient extends HttpClient {
      * @param listId Id of the static list to retrieve records from
      * @return
      */
-    @Request(path = "/rest/v1/lists/{listId}.json", method = "GET")
+    @Request(path = "/rest/v1/lists/{listId}.json")
     Response<JsonObject> getListbyId( //
-            @Query("access_token") String accessToken, //
-            @Path("listId") Integer listId //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Path(ATTR_LIST_ID) Integer listId //
     );
 
     /**
@@ -89,15 +100,15 @@ public interface ListClient extends HttpClient {
      * @param batchSize The batch size to return. The max and default value is 300.
      * @return
      */
-    @Request(path = "/rest/v1/lists.json", method = "GET")
+    @Request(path = "/rest/v1/lists.json")
     Response<JsonObject> getLists( //
-            @Query("access_token") String accessToken, //
-            @Query("nextPageToken") String nextPageToken, //
-            @Query("id") Integer id, //
-            @Query("name") String name, //
-            @Query("programName") String programName, //
-            @Query("workspaceName") String workspaceName, //
-            @Query("batchSize") Integer batchSize //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Query(ATTR_NEXT_PAGE_TOKEN) String nextPageToken, //
+            @Query(ATTR_ID) Integer id, //
+            @Query(ATTR_NAME) String name, //
+            @Query(ATTR_PROGRAM_NAME) String programName, //
+            @Query(ATTR_WORKSPACE_NAME) String workspaceName, //
+            @Query(ATTR_BATCH_SIZE) Integer batchSize //
     );
 
     /**
@@ -108,11 +119,11 @@ public interface ListClient extends HttpClient {
      * @param payload contains leadIds Comma-separated list of lead ids to add to the list.
      * @return
      */
-    @Request(path = "/rest/v1/lists/{listId}/leads.json", method = "POST")
+    @Request(path = "/rest/v1/lists/{listId}/leads.json", method = METHOD_POST)
     Response<JsonObject> addToList( //
             @Header(HEADER_CONTENT_TYPE) String contentType, //
-            @Query("access_token") String accessToken, //
-            @Path("listId") Integer listId, //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Path(ATTR_LIST_ID) Integer listId, //
             JsonObject payload //
     );
 
@@ -124,11 +135,11 @@ public interface ListClient extends HttpClient {
      * @param payload contains leadIds Comma-separated list of lead ids to remove from the list.
      * @return
      */
-    @Request(path = "/rest/v1/lists/{listId}/leads.json", method = "DELETE")
+    @Request(path = "/rest/v1/lists/{listId}/leads.json", method = METHOD_DELETE)
     Response<JsonObject> removeFromList( //
             @Header(HEADER_CONTENT_TYPE) String contentType, //
-            @Query("access_token") String accessToken, //
-            @Path("listId") Integer listId, //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Path(ATTR_LIST_ID) Integer listId, //
             JsonObject payload //
     );
 

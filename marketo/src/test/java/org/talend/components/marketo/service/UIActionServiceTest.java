@@ -26,7 +26,11 @@ import org.talend.sdk.component.api.service.asyncvalidation.ValidationResult;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status;
 import org.talend.sdk.component.api.service.schema.Schema;
+import org.talend.sdk.component.junit.http.junit5.HttpApi;
+import org.talend.sdk.component.junit5.WithComponents;
 
+@HttpApi(useSsl = true)
+@WithComponents("org.talend.components.marketo")
 class UIActionServiceTest extends MarketoBaseTest {
 
     @BeforeEach
@@ -92,12 +96,12 @@ class UIActionServiceTest extends MarketoBaseTest {
     @Test
     void testGuessEntitySchema() {
         inputDataSet.setEntity(MarketoEntity.Lead);
-        Schema schema = uiActionService.guessEntitySchema(inputDataSet);
+        Schema schema = uiActionService.guessEntitySchemaForInput(inputDataSet);
         LOG.warn("[testGuessEntitySchema] sc: {}", schema);
         //
         inputDataSet.setEntity(MarketoEntity.CustomObject);
         inputDataSet.setCustomObjectName("car_c");
-        schema = uiActionService.guessEntitySchema(inputDataSet);
+        schema = uiActionService.guessEntitySchemaForInput(inputDataSet);
         LOG.warn("[testGuessEntitySchema] sc: {}", schema);
     }
 

@@ -12,7 +12,14 @@
 // ============================================================================
 package org.talend.components.marketo.service;
 
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_ACCESS_TOKEN;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_BATCH_SIZE;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FIELDS;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FILTER_TYPE;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FILTER_VALUES;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_NEXT_PAGE_TOKEN;
 import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE;
+import static org.talend.components.marketo.MarketoApiConstants.METHOD_POST;
 
 import javax.json.JsonObject;
 
@@ -46,8 +53,8 @@ public interface OpportunityClient extends HttpClient {
      * @param accessToken Marketo authorization token for API
      * @return metadata about opportunities
      */
-    @Request(path = "/rest/v1/opportunities/describe.json", method = "GET")
-    Response<JsonObject> describeOpportunity(@Query("access_token") String accessToken);
+    @Request(path = "/rest/v1/opportunities/describe.json")
+    Response<JsonObject> describeOpportunity(@Query(ATTR_ACCESS_TOKEN) String accessToken);
 
     /**
      * Retrieves opportunity records from the destination instance based on the submitted filter.
@@ -61,13 +68,13 @@ public interface OpportunityClient extends HttpClient {
      * can be passed in a subsequent call through this parameter
      * @return opportunity records
      */
-    @Request(path = "/rest/v1/opportunities.json", method = "GET")
-    Response<JsonObject> getOpportunities(@Query("access_token") String accessToken, //
-            @Query("filterType") String filterType, //
-            @Query("filterValues") String filterValues, //
-            @Query("fields") String fields, //
-            @Query("batchSize") Integer batchSize, //
-            @Query("nextPageToken") String nextPageToken //
+    @Request(path = "/rest/v1/opportunities.json")
+    Response<JsonObject> getOpportunities(@Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Query(ATTR_FILTER_TYPE) String filterType, //
+            @Query(ATTR_FILTER_VALUES) String filterValues, //
+            @Query(ATTR_FIELDS) String fields, //
+            @Query(ATTR_BATCH_SIZE) Integer batchSize, //
+            @Query(ATTR_NEXT_PAGE_TOKEN) String nextPageToken //
     );
 
     /**
@@ -83,11 +90,11 @@ public interface OpportunityClient extends HttpClient {
      * </ul>
      * @return
      */
-    @Request(path = "/rest/v1/opportunities.json", method = "POST")
+    @Request(path = "/rest/v1/opportunities.json", method = METHOD_POST)
     Response<JsonObject> syncOpportunities( //
             @Header(HEADER_CONTENT_TYPE) String contentType, //
-            @Query("access_token") String accessToken, //
-            @Query("input") JsonObject payload //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            JsonObject payload //
     );
 
     /**
@@ -103,10 +110,10 @@ public interface OpportunityClient extends HttpClient {
      * </ul>
      * @return
      */
-    @Request(path = "/rest/v1/opportunities/delete.json", method = "POST")
+    @Request(path = "/rest/v1/opportunities/delete.json", method = METHOD_POST)
     Response<JsonObject> deleteOpportunities( //
             @Header(HEADER_CONTENT_TYPE) String contentType, //
-            @Query("access_token") String accessToken, //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
             JsonObject payload //
     );
 
@@ -122,8 +129,8 @@ public interface OpportunityClient extends HttpClient {
      * @param accessToken Marketo authorization token for API
      * @return metadata about opportunity roles
      */
-    @Request(path = "/rest/v1/opportunities/roles/describe.json", method = "GET")
-    Response<JsonObject> describeOpportunityRole(@Query("access_token") String accessToken);
+    @Request(path = "/rest/v1/opportunities/roles/describe.json")
+    Response<JsonObject> describeOpportunityRole(@Query(ATTR_ACCESS_TOKEN) String accessToken);
 
     /**
      * Returns a list of opportunity roles based on a filter and set of values.
@@ -137,13 +144,13 @@ public interface OpportunityClient extends HttpClient {
      * can be passed in a subsequent call through this parameter
      * @return opportunity records
      */
-    @Request(path = "/rest/v1/opportunities/roles.json", method = "GET")
-    Response<JsonObject> getOpportunityRoles(@Query("access_token") String accessToken, //
-            @Query("filterType") String filterType, //
-            @Query("filterValues") String filterValues, //
-            @Query("fields") String fields, //
-            @Query("batchSize") Integer batchSize, //
-            @Query("nextPageToken") String nextPageToken //
+    @Request(path = "/rest/v1/opportunities/roles.json")
+    Response<JsonObject> getOpportunityRoles(@Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Query(ATTR_FILTER_TYPE) String filterType, //
+            @Query(ATTR_FILTER_VALUES) String filterValues, //
+            @Query(ATTR_FIELDS) String fields, //
+            @Query(ATTR_BATCH_SIZE) Integer batchSize, //
+            @Query(ATTR_NEXT_PAGE_TOKEN) String nextPageToken //
     );
 
     /**
@@ -159,10 +166,10 @@ public interface OpportunityClient extends HttpClient {
      * </ul>
      * @return
      */
-    @Request(path = "/rest/v1/opportunities/roles.json", method = "POST")
+    @Request(path = "/rest/v1/opportunities/roles.json", method = METHOD_POST)
     Response<JsonObject> syncOpportunityRoles( //
             @Header(HEADER_CONTENT_TYPE) String contentType, //
-            @Query("access_token") String accessToken, //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
             JsonObject payload //
     );
 
@@ -178,10 +185,10 @@ public interface OpportunityClient extends HttpClient {
      * </ul>
      * @return
      */
-    @Request(path = "/rest/v1/opportunities/roles/delete.json", method = "POST")
+    @Request(path = "/rest/v1/opportunities/roles/delete.json", method = METHOD_POST)
     Response<JsonObject> deleteOpportunityRoles( //
             @Header(HEADER_CONTENT_TYPE) String contentType, //
-            @Query("access_token") String accessToken, //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
             JsonObject payload //
     );
 

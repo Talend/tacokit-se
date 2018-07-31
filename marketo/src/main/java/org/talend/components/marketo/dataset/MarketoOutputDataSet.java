@@ -14,12 +14,18 @@ package org.talend.components.marketo.dataset;
 
 import lombok.Data;
 
+import static org.talend.components.marketo.service.UIActionService.GUESS_ENTITY_SCHEMA_OUTPUT;
+
+import java.util.List;
+
 import org.apache.avro.Schema;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
+import org.talend.sdk.component.api.configuration.ui.widget.Structure;
+import org.talend.sdk.component.api.configuration.ui.widget.Structure.Type;
 import org.talend.sdk.component.api.meta.Documentation;
 
 @Data
@@ -27,12 +33,13 @@ import org.talend.sdk.component.api.meta.Documentation;
 @GridLayouts({ //
         @GridLayout({ //
                 @GridLayout.Row({ "dataStore" }), //
-                // @GridLayout.Row({ "flowSchema" }), //
-                // @GridLayout.Row({ "rejectSchema" }), //
                 @GridLayout.Row({ "entity", "action", "listAction", "syncMethod", "lookupField", "dedupeBy", "deleteBy" }), //
                 @GridLayout.Row({ "customObjectName" }), //
                 @GridLayout.Row({ "batchSize" }) //
-        }) //
+        }), //
+        @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "schema" }),
+                @GridLayout.Row({ "rejectSchema" }), //
+        })//
 })
 @Documentation("Marketo Processor DataSet")
 public class MarketoOutputDataSet extends MarketoDataSet {
@@ -62,15 +69,15 @@ public class MarketoOutputDataSet extends MarketoDataSet {
         idField
     }
 
-    // @Option
-    // @Structure
-    // @Documentation("Flow Schema")
-    // private List<String> flowSchema;
-    //
-    // @Option
-    // @Structure(value = "Reject")
-    // @Documentation("Reject Schema")
-    // private List<String> rejectSchema;
+    @Option
+    @Structure(discoverSchema = GUESS_ENTITY_SCHEMA_OUTPUT, type = Type.OUT)
+    @Documentation("Flow Schema")
+    private List<String> schema;
+
+    @Option
+    @Structure(value = "Reject", discoverSchema = GUESS_ENTITY_SCHEMA_OUTPUT, type = Type.OUT)
+    @Documentation("Reject Schema")
+    private List<String> rejectSchema;
 
     @Option
     @ActiveIf(target = "entity", value = { "Lead", "CustomObject", "Company", "Opportunity", "OpportunityRole" })

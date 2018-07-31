@@ -13,8 +13,8 @@
 package org.talend.components.marketo.input;
 
 import static org.junit.Assert.*;
-
-import javax.json.JsonObject;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FIELDS;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_NAME;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,8 +32,6 @@ public class CustomObjectsSourceTest extends SourceBaseTest {
     String fields = "createdAt,marketoGUID,updatedAt,VIN,customerId,model,year";
 
     String CUSTOM_OBJECT_NAME = "car_c";
-
-    JsonObject result;
 
     @Override
     @BeforeEach
@@ -54,7 +52,7 @@ public class CustomObjectsSourceTest extends SourceBaseTest {
         initSource();
         while ((result = source.next()) != null) {
             assertNotNull(result);
-            assertNotNull(result.getString("name"));
+            assertNotNull(result.getString(ATTR_NAME));
         }
     }
 
@@ -63,9 +61,9 @@ public class CustomObjectsSourceTest extends SourceBaseTest {
         inputDataSet.setOtherAction(OtherEntityAction.describe);
         inputDataSet.setCustomObjectName(CUSTOM_OBJECT_NAME);
         initSource();
-        JsonObject result = source.next();
+        result = source.next();
         assertNotNull(result);
-        assertEquals(fields, marketoService.getFieldsFromDescribeFormatedForApi(result.getJsonArray("fields")));
+        assertEquals(fields, marketoService.getFieldsFromDescribeFormatedForApi(result.getJsonArray(ATTR_FIELDS)));
         result = source.next();
         assertNull(result);
     }
@@ -74,20 +72,30 @@ public class CustomObjectsSourceTest extends SourceBaseTest {
     void testGetCustomObjects() {
         inputDataSet.setOtherAction(OtherEntityAction.get);
         inputDataSet.setCustomObjectName(CUSTOM_OBJECT_NAME);
-        inputDataSet.setFilterType("VIN");
+        inputDataSet.setFilterType("marketoGUID");
         inputDataSet.setFilterValues("google01,google02,google03,google04,google05,google06");
-        inputDataSet.setFields("mainPhone,company,website");
+        inputDataSet.setFields("year,model,VIN");
         inputDataSet.setBatchSize(10);
+        initSource();
+        while ((result = source.next()) != null) {
+            assertNotNull(result);
+        }
     }
 
     @Test
     void testGetCustomObjectsWithCompoundKey() {
         inputDataSet.setOtherAction(OtherEntityAction.get);
         inputDataSet.setCustomObjectName(CUSTOM_OBJECT_NAME);
+        inputDataSet.setUseCompoundKey(true);
+        // inputDataSet.setc
         inputDataSet.setFilterType("VIN");
         inputDataSet.setFilterValues("google01,google02,google03,google04,google05,google06");
         inputDataSet.setFields("mainPhone,company,website");
         inputDataSet.setBatchSize(10);
+        source.init();
+        while ((result = source.next()) != null) {
+            assertNotNull(result);
+        }
     }
 
     @Test

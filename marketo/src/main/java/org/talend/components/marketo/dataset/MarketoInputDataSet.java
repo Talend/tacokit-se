@@ -14,15 +14,13 @@ package org.talend.components.marketo.dataset;
 
 import lombok.Data;
 
-import static org.talend.components.marketo.service.UIActionService.ACTIVITIES_LIST;
 import static org.talend.components.marketo.service.UIActionService.GUESS_ENTITY_SCHEMA_INPUT;
-import static org.talend.components.marketo.service.UIActionService.LEAD_KEY_NAME_LIST;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.avro.Schema;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Pattern;
 import org.talend.sdk.component.api.configuration.type.DataSet;
@@ -37,8 +35,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 @DataSet(MarketoInputDataSet.NAME)
 @GridLayouts({ //
         @GridLayout({ //
-                @GridLayout.Row({ "dataStore" }),
-                // @GridLayout.Row({ "schema" }), //
+                @GridLayout.Row({ "dataStore" }), //
                 @GridLayout.Row({ "entity", "leadAction", "otherAction", "listAction" }), //
                 @GridLayout.Row({ "leadSelector", "leadKeyName", "leadKeyValues" }), //
                 @GridLayout.Row({ "leadListIdOrName" }), //
@@ -52,7 +49,8 @@ import org.talend.sdk.component.api.meta.Documentation;
                 @GridLayout.Row({ "fields" }), //
                 @GridLayout.Row({ "batchSize" }), //
         }), //
-        @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "schema" }) }) })
+        @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "schema" }) })//
+})
 @Documentation("Marketo Source DataSet")
 public class MarketoInputDataSet extends MarketoDataSet {
 
@@ -114,7 +112,7 @@ public class MarketoInputDataSet extends MarketoDataSet {
     @ActiveIf(target = "entity", value = { "Lead" })
     @ActiveIf(target = "leadAction", value = "getMultipleLeads")
     @ActiveIf(target = "leadSelector", value = "key")
-    @Suggestable(LEAD_KEY_NAME_LIST)
+    // @Suggestable(LEAD_KEY_NAME_LIST)
     @Documentation("Key Name")
     private String leadKeyName;
 
@@ -192,8 +190,7 @@ public class MarketoInputDataSet extends MarketoDataSet {
     @Option
     @ActiveIf(target = "entity", value = { "Lead" })
     @ActiveIf(target = "leadAction", value = "getLeadActivity")
-    @Suggestable(ACTIVITIES_LIST)
-    // @Structure
+    // @Suggestable(ACTIVITIES_LIST)
     @Documentation("Activity Type Ids (10 max supported")
     private List<String> activityTypeIds;
 
@@ -236,9 +233,10 @@ public class MarketoInputDataSet extends MarketoDataSet {
     @ActiveIf(target = "otherAction", value = { "get" })
     @Documentation("Compound Key")
     // private Map<String, String> compoundKey;
-    private Object compoundKey;
+    private Map<String, String> compoundKey;
 
     @Option
+    @ActiveIf(target = "entity", value = { "Lead", "CustomObject", "Company", "Opportunity", "OpportunityRole" })
     @Documentation("Fields")
     private String fields;
 
