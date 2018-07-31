@@ -23,7 +23,7 @@ import org.talend.components.jms.service.JmsService;
 // this class role is to enable the work to be distributed in environments supporting it.
 //
 @Version(1)
-// default version is 1, if some configuration changes happen between 2 versions you can add a migrationHandler
+// default version is 1, if some configuration1 changes happen between 2 versions you can add a migrationHandler
 @Icon(value = Icon.IconType.CUSTOM, custom = "tJMSInput")
 @PartitionMapper(name = "Input")
 @Documentation("TODO fill the documentation for this mapper")
@@ -52,7 +52,7 @@ public class InputMapper implements Serializable {
 
     @Split
     public List<InputMapper> split(@PartitionSize final long bundles) {
-        // overall idea here is to split the work related to configuration in bundles of size "bundles"
+        // overall idea here is to split the work related to configuration1 in bundles of size "bundles"
         //
         // for instance if your estimateSize() returned 1000 and you can run on 10 nodes
         // then the environment can decide to run it concurrently (10 * 100).
@@ -65,7 +65,7 @@ public class InputMapper implements Serializable {
     @Emitter
     public InputSource createWorker() {
         // here we create an actual worker,
-        // you are free to rework the configuration etc but our default generated implementation
+        // you are free to rework the configuration1 etc but our default generated implementation
         // propagates the partition mapper entries.
         return new InputSource(configuration, service, jsonBuilderFactory);
     }
