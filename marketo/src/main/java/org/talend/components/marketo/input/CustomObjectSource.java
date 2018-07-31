@@ -12,11 +12,16 @@
 // ============================================================================
 package org.talend.components.marketo.input;
 
+import static org.slf4j.LoggerFactory.getLogger;
+import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE_APPLICATION_JSON;
+import static org.talend.components.marketo.MarketoApiConstants.REQUEST_PARAM_QUERY_METHOD_GET;
+
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonReaderFactory;
 import javax.json.JsonWriterFactory;
 
+import org.slf4j.Logger;
 import org.talend.components.marketo.dataset.MarketoInputDataSet;
 import org.talend.components.marketo.service.AuthorizationClient;
 import org.talend.components.marketo.service.CustomObjectClient;
@@ -61,13 +66,23 @@ public class CustomObjectSource extends MarketoSource {
         return handleResponse(customObjectClient.describeCustomObjects(accessToken, name));
     }
 
+    private transient static final Logger LOG = getLogger(CustomObjectSource.class);
+
     private JsonObject getCustomObjects() {
         String name = dataSet.getCustomObjectName();
         String filterType = dataSet.getFilterType();
         String filterValues = dataSet.getFilterValues();
         String fields = dataSet.getFields();
         Integer batchSize = dataSet.getBatchSize();
-        return handleResponse(customObjectClient.getCustomObjects(accessToken, name, filterType, filterValues, fields, batchSize,
-                nextPageToken));
+        if (dataSet.getUseCompoundKey()) {
+            JsonObject payload = generateCompoundKeyPayload(filterType, fields);
+            return handleResponse(customObjectClient.getCustomObjectsWithCompoundKey(HEADER_CONTENT_TYPE_APPLICATION_JSON, name,
+                    REQUEST_PARAM_QUERY_METHOD_GET, accessToken, nextPageToken, payload));
+
+        } else {
+
+            return handleResponse(customObjectClient.getCustomObjects(accessToken, name, filterType, filterValues, fields,
+                    batchSize, nextPageToken));
+        }
     }
 }

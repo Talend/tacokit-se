@@ -12,17 +12,23 @@
 // ============================================================================
 package org.talend.components.marketo.service;
 
+import static org.junit.Assert.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.talend.components.marketo.MarketoBaseTest;
 import org.talend.components.marketo.dataset.MarketoDataSet.MarketoEntity;
+import org.talend.components.marketo.dataset.MarketoInputDataSet.ListAction;
 import org.talend.sdk.component.api.service.asyncvalidation.ValidationResult;
+import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status;
 import org.talend.sdk.component.api.service.schema.Schema;
@@ -36,6 +42,9 @@ class UIActionServiceTest extends MarketoBaseTest {
     @BeforeEach
     protected void setUp() {
         super.setUp();
+        inputDataSet.setCustomObjectName("car_c");
+        inputDataSet.setListAction(ListAction.getLeads);
+        outputDataSet.setEntity(MarketoEntity.CustomObject);
     }
 
     @Test
@@ -94,15 +103,27 @@ class UIActionServiceTest extends MarketoBaseTest {
     }
 
     @Test
-    void testGuessEntitySchema() {
-        inputDataSet.setEntity(MarketoEntity.Lead);
-        Schema schema = uiActionService.guessEntitySchemaForInput(inputDataSet);
-        LOG.warn("[testGuessEntitySchema] sc: {}", schema);
-        //
-        inputDataSet.setEntity(MarketoEntity.CustomObject);
-        inputDataSet.setCustomObjectName("car_c");
-        schema = uiActionService.guessEntitySchemaForInput(inputDataSet);
-        LOG.warn("[testGuessEntitySchema] sc: {}", schema);
+    void testGetActivities() {
+        SuggestionValues activities = uiActionService.getActivities(inputDataSet);
+        assertNotNull(activities);
+        assertTrue(activities.getItems().size() > 20);
+        inputDataSet.getDataStore().setEndpoint(null);
+        activities = uiActionService.getActivities(inputDataSet);
+        assertNotNull(activities);
+        assertEquals(60, activities.getItems().size());
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = { "Lead", "List", "Company", "CustomObject", "Opportunity", "OpportunityRole" })
+    void testGuessEntitySchema(String entity) {
+        inputDataSet.setEntity(MarketoEntity.valueOf(entity));
+        Schema schema = uiActionService.guessEntitySchemaForInput(inputDataSet);
+        Assert.assertNotNull(schema);
+        assertFalse(schema.getEntries().isEmpty());
+    }
+
+    @Test
+    void guessEntitySchemaForOutput() {
+        assertNotNull(uiActionService.guessEntitySchemaForOutput(outputDataSet));
+    }
 }

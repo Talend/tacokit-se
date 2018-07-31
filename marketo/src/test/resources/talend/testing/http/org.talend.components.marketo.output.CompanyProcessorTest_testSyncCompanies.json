@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"3bdc6d27-8642-41e9-b698-23309770b001:sj\",\"token_type\":\"bearer\",\"expires_in\":3470,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"7d3c584b-16f5-4ed6-a1b9-4c7950c4011e:sj\",\"token_type\":\"bearer\",\"expires_in\":2209,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -31,52 +31,7 @@
         "Content-Length":"97"
       },
       "method":"POST",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?access_token=3bdc6d27-8642-41e9-b698-23309770b001%3Asj"
-    },
-    "response":{
-      "headers":{
-        "Server":"nginx",
-        "Connection":"keep-alive",
-        "Content-Length":"98",
-        "Content-Type":"application/json;charset=UTF-8"
-      },
-      "payload":"{\"requestId\":\"16042#164eb6678d9\",\"result\":[{\"seq\":0,\"id\":1836,\"status\":\"created\"}],\"success\":true}",
-      "status":200
-    }
-  },
-  {
-    "request":{
-      "headers":{
-        "content-length":"0",
-        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
-        "Connection":"keep-alive"
-      },
-      "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/identity/oauth/token?grant_type=client_credentials&client_secret=t2a67VUioKCU1uZxp4IhXvm8OpYbLYGQ&client_id=736ec2cf-4038-4eb2-bcc6-8b4ef331f4b5"
-    },
-    "response":{
-      "headers":{
-        "Transfer-Encoding":"chunked",
-        "Server":"nginx",
-        "Cache-Control":"no-store",
-        "Connection":"keep-alive",
-        "Pragma":"no-cache",
-        "Content-Type":"application/json;charset=UTF-8"
-      },
-      "payload":"{\"access_token\":\"3bdc6d27-8642-41e9-b698-23309770b001:sj\",\"token_type\":\"bearer\",\"expires_in\":3468,\"scope\":\"undx@talend.com\"}",
-      "status":200
-    }
-  },
-  {
-    "request":{
-      "headers":{
-        "Content-type":"application/json",
-        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
-        "Connection":"keep-alive",
-        "Content-Length":"97"
-      },
-      "method":"POST",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?access_token=3bdc6d27-8642-41e9-b698-23309770b001%3Asj"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?access_token=7d3c584b-16f5-4ed6-a1b9-4c7950c4011e%3Asj"
     },
     "response":{
       "headers":{
@@ -85,7 +40,7 @@
         "Content-Length":"97",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"2b5b#164eb667f3f\",\"result\":[{\"seq\":0,\"id\":1836,\"status\":\"updated\"}],\"success\":true}",
+      "payload":"{\"requestId\":\"6604#164f0c1cc31\",\"result\":[{\"seq\":0,\"id\":1902,\"status\":\"created\"}],\"success\":true}",
       "status":200
     }
   },
@@ -108,7 +63,52 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"3bdc6d27-8642-41e9-b698-23309770b001:sj\",\"token_type\":\"bearer\",\"expires_in\":3467,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"7d3c584b-16f5-4ed6-a1b9-4c7950c4011e:sj\",\"token_type\":\"bearer\",\"expires_in\":2208,\"scope\":\"undx@talend.com\"}",
+      "status":200
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "Content-type":"application/json",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Connection":"keep-alive",
+        "Content-Length":"97"
+      },
+      "method":"POST",
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?access_token=7d3c584b-16f5-4ed6-a1b9-4c7950c4011e%3Asj"
+    },
+    "response":{
+      "headers":{
+        "Server":"nginx",
+        "Connection":"keep-alive",
+        "Content-Length":"98",
+        "Content-Type":"application/json;charset=UTF-8"
+      },
+      "payload":"{\"requestId\":\"13fb0#164f0c1d2df\",\"result\":[{\"seq\":0,\"id\":1902,\"status\":\"updated\"}],\"success\":true}",
+      "status":200
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "content-length":"0",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Connection":"keep-alive"
+      },
+      "method":"GET",
+      "uri":"https://586-UXQ-391.mktorest.com/identity/oauth/token?grant_type=client_credentials&client_secret=t2a67VUioKCU1uZxp4IhXvm8OpYbLYGQ&client_id=736ec2cf-4038-4eb2-bcc6-8b4ef331f4b5"
+    },
+    "response":{
+      "headers":{
+        "Transfer-Encoding":"chunked",
+        "Server":"nginx",
+        "Cache-Control":"no-store",
+        "Connection":"keep-alive",
+        "Pragma":"no-cache",
+        "Content-Type":"application/json;charset=UTF-8"
+      },
+      "payload":"{\"access_token\":\"7d3c584b-16f5-4ed6-a1b9-4c7950c4011e:sj\",\"token_type\":\"bearer\",\"expires_in\":2206,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -121,16 +121,16 @@
         "Content-Length":"71"
       },
       "method":"POST",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies/delete.json?access_token=3bdc6d27-8642-41e9-b698-23309770b001%3Asj"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies/delete.json?access_token=7d3c584b-16f5-4ed6-a1b9-4c7950c4011e%3Asj"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
-        "Content-Length":"98",
+        "Content-Length":"97",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"14956#164eb6685b5\",\"result\":[{\"seq\":0,\"id\":1836,\"status\":\"deleted\"}],\"success\":true}",
+      "payload":"{\"requestId\":\"b255#164f0c1d950\",\"result\":[{\"seq\":0,\"id\":1902,\"status\":\"deleted\"}],\"success\":true}",
       "status":200
     }
   }

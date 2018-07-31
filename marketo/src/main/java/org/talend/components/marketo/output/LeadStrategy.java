@@ -25,7 +25,6 @@ import javax.json.JsonWriterFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.talend.components.marketo.dataset.MarketoDataSet.MarketoEntity;
 import org.talend.components.marketo.dataset.MarketoOutputDataSet;
 import org.talend.components.marketo.dataset.MarketoOutputDataSet.OutputAction;
 import org.talend.components.marketo.service.AuthorizationClient;
@@ -68,22 +67,11 @@ public class LeadStrategy extends OutputComponentStrategy implements ProcessorSt
 
     @Override
     public JsonObject runAction(JsonObject payload) {
-        if (MarketoEntity.Lead.equals(dataSet.getEntity())) {
-            switch (dataSet.getAction()) {
-            case sync:
-                return syncLeads(payload);
-            case delete:
-                return deleteLeads(payload);
-            }
-        } else if (MarketoEntity.List.equals(dataSet.getEntity())) {
-            switch (dataSet.getListAction()) {
-            case addTo:
-                return addToList(payload);
-            case isMemberOf:
-                return isMemberOf(payload);
-            case removeFrom:
-                return removeFrom(payload);
-            }
+        switch (dataSet.getAction()) {
+        case sync:
+            return syncLeads(payload);
+        case delete:
+            return deleteLeads(payload);
         }
         throw new UnsupportedOperationException(i18n.invalidOperation());
     }
@@ -96,15 +84,4 @@ public class LeadStrategy extends OutputComponentStrategy implements ProcessorSt
         return handleResponse(leadClient.syncLeads(HEADER_CONTENT_TYPE_APPLICATION_JSON, accessToken, payload));
     }
 
-    private JsonObject addToList(JsonObject payload) {
-        return handleResponse(leadClient.syncLeads(HEADER_CONTENT_TYPE_APPLICATION_JSON, accessToken, payload));
-    }
-
-    private JsonObject isMemberOf(JsonObject payload) {
-        return handleResponse(leadClient.syncLeads(HEADER_CONTENT_TYPE_APPLICATION_JSON, accessToken, payload));
-    }
-
-    private JsonObject removeFrom(JsonObject payload) {
-        return handleResponse(leadClient.syncLeads(HEADER_CONTENT_TYPE_APPLICATION_JSON, accessToken, payload));
-    }
 }

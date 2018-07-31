@@ -14,6 +14,9 @@ package org.talend.components.marketo.output;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_CODE;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_REASONS;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_SEQ;
 
 import java.util.List;
 
@@ -47,7 +50,7 @@ public class CustomObjectProcessorTest extends MarketoProcessorBaseTest {
         outputDataSet.setDedupeBy("dedupeFields");
         //
         data = jsonFactory.createObjectBuilder()//
-                .add("customerid", "5") //
+                .add("customerid", "3") //
                 .add("VIN", "ABC-DEF-12345-GIN") //
                 .build();
         dataNotExist = jsonFactory.createObjectBuilder() //
@@ -62,12 +65,6 @@ public class CustomObjectProcessorTest extends MarketoProcessorBaseTest {
         }, reject -> fail("Should not fail as createOrUpdate"));
     }
 
-    private void initProcessor() {
-        processor = new MarketoProcessor(outputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient,
-                leadClient, listClient, companyClient, customObjectClient, opportunityClient);
-        processor.init();
-    }
-
     @AfterEach
     void tearDown() {
         outputDataSet.setAction(OutputAction.delete);
@@ -78,12 +75,18 @@ public class CustomObjectProcessorTest extends MarketoProcessorBaseTest {
         });
     }
 
+    private void initProcessor() {
+        processor = new MarketoProcessor(outputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient,
+                leadClient, listClient, companyClient, customObjectClient, opportunityClient);
+        processor.init();
+    }
+
     @Test
     void testSyncCustomObject() {
         outputDataSet.setAction(OutputAction.sync);
         outputDataSet.setSyncMethod(SyncMethod.createOrUpdate);
         initProcessor();
-        processor.map(data, main -> assertEquals(0, main.getInt("seq")), reject -> fail(FAIL_REJECT));
+        processor.map(data, main -> assertEquals(0, main.getInt(ATTR_SEQ)), reject -> fail(FAIL_REJECT));
     }
 
     @Test
@@ -91,7 +94,7 @@ public class CustomObjectProcessorTest extends MarketoProcessorBaseTest {
         outputDataSet.setAction(OutputAction.delete);
         outputDataSet.setDeleteBy(DeleteBy.dedupeFields);
         initProcessor();
-        processor.map(data, main -> assertEquals(0, main.getInt("seq")), reject -> fail(FAIL_REJECT));
+        processor.map(data, main -> assertEquals(0, main.getInt(ATTR_SEQ)), reject -> fail(FAIL_REJECT));
     }
 
     @Test
@@ -100,7 +103,7 @@ public class CustomObjectProcessorTest extends MarketoProcessorBaseTest {
         outputDataSet.setDeleteBy(DeleteBy.dedupeFields);
         initProcessor();
         processor.map(dataNotExist, main -> fail(FAIL_MAIN),
-                reject -> assertEquals("1013", reject.getJsonArray("reasons").get(0).asJsonObject().getString("code")));
+                reject -> assertEquals("1013", reject.getJsonArray(ATTR_REASONS).get(0).asJsonObject().getString(ATTR_CODE)));
     }
 
     @Test
@@ -109,7 +112,7 @@ public class CustomObjectProcessorTest extends MarketoProcessorBaseTest {
         outputDataSet.setSyncMethod(SyncMethod.updateOnly);
         initProcessor();
         processor.map(dataNotExist, main -> fail(FAIL_MAIN),
-                reject -> assertEquals("1013", reject.getJsonArray("reasons").get(0).asJsonObject().getString("code")));
+                reject -> assertEquals("1013", reject.getJsonArray(ATTR_REASONS).get(0).asJsonObject().getString(ATTR_CODE)));
     }
 
     @Test
@@ -121,11 +124,11 @@ public class CustomObjectProcessorTest extends MarketoProcessorBaseTest {
         assertEquals(2, outputs.size());
         List<JsonObject> mains = outputs.get(JsonObject.class, "__default__");
         assertEquals(2, mains.size());
-        assertEquals(0, mains.get(0).getInt("seq"));
+        assertEquals(0, mains.get(0).getInt(ATTR_SEQ));
         List<JsonObject> rejects = outputs.get(JsonObject.class, "rejected");
         assertEquals(1, rejects.size());
-        assertEquals(0, rejects.get(0).getInt("seq"));
-        assertEquals("1013", rejects.get(0).getJsonArray("reasons").get(0).asJsonObject().getString("code"));
+        assertEquals(0, rejects.get(0).getInt(ATTR_SEQ));
+        assertEquals("1013", rejects.get(0).getJsonArray(ATTR_REASONS).get(0).asJsonObject().getString(ATTR_CODE));
     }
 
 }

@@ -132,17 +132,7 @@ public class MarketoService {
         return s;
     }
 
-    /**
-     * Leads: id, status, reasons
-     *
-     * Lists : id, status, reasons
-     *
-     * CustomObjects: seq, marketoGUID, status, reasons
-     *
-     * Companies: seq, id, status, reasons
-     */
-
-    protected Schema getOutputSchema(MarketoEntity entity) {
+    public Schema getOutputSchema(MarketoEntity entity) {
         Schema schema = new Schema();
         Collection<Entry> entries = new ArrayList<>();
         switch (entity) {
@@ -171,12 +161,12 @@ public class MarketoService {
         return schema;
     }
 
-    protected Schema getInputSchema(MarketoEntity entity, String action) {
+    // TODO this is not the correct defaults schemas!!!
+    public Schema getInputSchema(MarketoEntity entity, String action) {
         Schema schema = new Schema();
         Collection<Entry> entries = new ArrayList<>();
         switch (entity) {
         case Lead:
-
         case List:
             switch (action) {
             case "isMemberOfList":
@@ -199,11 +189,6 @@ public class MarketoService {
             }
             break;
         case CustomObject:
-            entries.add(new Entry(ATTR_SEQ, Type.INT));
-            entries.add(new Entry(ATTR_MARKETO_GUID, Type.INT));
-            entries.add(new Entry(ATTR_STATUS, Type.STRING));
-            entries.add(new Entry(ATTR_REASONS, Type.STRING));
-            break;
         case Company:
         case Opportunity:
         case OpportunityRole:

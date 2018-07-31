@@ -12,14 +12,11 @@
 // ============================================================================
 package org.talend.components.marketo.dataset;
 
-import lombok.Data;
-
 import static org.talend.components.marketo.service.UIActionService.GUESS_ENTITY_SCHEMA_INPUT;
 
 import java.util.List;
-import java.util.Map;
 
-import org.apache.avro.Schema;
+import org.apache.beam.sdk.repackaged.org.apache.commons.lang3.tuple.Pair;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Pattern;
@@ -30,6 +27,8 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure.Type;
 import org.talend.sdk.component.api.meta.Documentation;
+
+import lombok.Data;
 
 @Data
 @DataSet(MarketoInputDataSet.NAME)
@@ -226,22 +225,18 @@ public class MarketoInputDataSet extends MarketoDataSet {
     @ActiveIf(target = "entity", value = { "CustomObject" })
     @ActiveIf(target = "otherAction", value = { "get" })
     @Documentation("Use Compound Key")
-    private Boolean useCompoundKey;
+    private Boolean useCompoundKey = Boolean.FALSE;
 
     @Option
-    @ActiveIf(target = "entity", value = { "CustomObject" })
+    @ActiveIf(target = "entity", value = { "CustomObject", "OpportunityRole" })
     @ActiveIf(target = "otherAction", value = { "get" })
     @Documentation("Compound Key")
     // private Map<String, String> compoundKey;
-    private Map<String, String> compoundKey;
+    private List<Pair> compoundKey;
 
     @Option
     @ActiveIf(target = "entity", value = { "Lead", "CustomObject", "Company", "Opportunity", "OpportunityRole" })
     @Documentation("Fields")
     private String fields;
-
-    public Schema getAvroSchema() { //
-        return null;
-    }
 
 }

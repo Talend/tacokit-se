@@ -12,13 +12,10 @@
 // ============================================================================
 package org.talend.components.marketo.dataset;
 
-import lombok.Data;
-
 import static org.talend.components.marketo.service.UIActionService.GUESS_ENTITY_SCHEMA_OUTPUT;
 
 import java.util.List;
 
-import org.apache.avro.Schema;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.type.DataSet;
@@ -27,6 +24,8 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure.Type;
 import org.talend.sdk.component.api.meta.Documentation;
+
+import lombok.Data;
 
 @Data
 @DataSet(MarketoOutputDataSet.NAME)
@@ -120,13 +119,5 @@ public class MarketoOutputDataSet extends MarketoDataSet {
     @ActiveIf(target = "action", value = { "delete" })
     @Documentation("Field to delete company records by. Key may be dedupeFields or idField")
     private DeleteBy deleteBy;
-
-    public Schema getFlowAvroSchema() {
-        return null;
-    }
-
-    public Schema getRejectAvroSchema() {
-        return null;
-    }
 
 }

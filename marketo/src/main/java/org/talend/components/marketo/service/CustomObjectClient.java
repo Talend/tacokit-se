@@ -22,6 +22,7 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_NAMES;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_NEXT_PAGE_TOKEN;
 import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE;
 import static org.talend.components.marketo.MarketoApiConstants.METHOD_POST;
+import static org.talend.components.marketo.MarketoApiConstants.REQUEST_PARAM_QUERY_METHOD;
 
 import javax.json.JsonObject;
 
@@ -94,6 +95,16 @@ public interface CustomObjectClient extends HttpClient {
             @Query(ATTR_FIELDS) String fields, //
             @Query(ATTR_BATCH_SIZE) Integer batchSize, //
             @Query(ATTR_NEXT_PAGE_TOKEN) String nextPageToken //
+    );
+
+    @Request(path = "/rest/v1/customobjects/{customObjectName}.json", method = METHOD_POST)
+    Response<JsonObject> getCustomObjectsWithCompoundKey( //
+            @Header(HEADER_CONTENT_TYPE) String contentType, //
+            @Path(ATTR_CUSTOM_OBJECT_NAME) String customObjectName, //
+            @Query(REQUEST_PARAM_QUERY_METHOD) String queryMethod, //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Query(ATTR_NEXT_PAGE_TOKEN) String nextPageToken, //
+            JsonObject payload //
     );
 
     /**

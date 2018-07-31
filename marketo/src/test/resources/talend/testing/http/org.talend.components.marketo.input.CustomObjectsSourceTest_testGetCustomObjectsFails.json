@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"1b896d8c-3933-4ef7-92ee-be2b450b2c6d:sj\",\"token_type\":\"bearer\",\"expires_in\":862,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"7d3c584b-16f5-4ed6-a1b9-4c7950c4011e:sj\",\"token_type\":\"bearer\",\"expires_in\":2343,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -30,16 +30,16 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/customobjects/car_c.json?filterValues=France&access_token=1b896d8c-3933-4ef7-92ee-be2b450b2c6d%3Asj&batchSize=10&fields=mainPhone,company,website&filterType=billingCountry"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/customobjects/car_c.json?filterValues=France&access_token=7d3c584b-16f5-4ed6-a1b9-4c7950c4011e%3Asj&batchSize=10&fields=createdAt,marketoGUID,updatedAt,VIN,customerId,model,year&filterType=billingCountry"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
-        "Content-Length":"124",
+        "Content-Length":"123",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"133bd#164ef2ed945\",\"success\":false,\"errors\":[{\"code\":\"1003\",\"message\":\"Invalid filterType 'billingCountry'\"}]}",
+      "payload":"{\"requestId\":\"3d91#164f0bfc354\",\"success\":false,\"errors\":[{\"code\":\"1003\",\"message\":\"Invalid filterType 'billingCountry'\"}]}",
       "status":200
     }
   }
