@@ -63,6 +63,8 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
     @PostConstruct
     public void init() {
         super.init();
+        LOG.warn("[init] dataSet schema: {}.", dataSet.getSchema());
+        // TODO in some cases we need to fill fields property
         processBatch();
     }
 

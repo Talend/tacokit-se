@@ -13,8 +13,10 @@
 package org.talend.components.marketo.input;
 
 import static org.junit.Assert.*;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FIELDS;
 
 import java.util.List;
+
 import javax.json.JsonObject;
 
 import org.hamcrest.CoreMatchers;
@@ -51,7 +53,7 @@ class CompanySourceTest extends SourceBaseTest {
         source.init();
         JsonObject result = source.next();
         assertNotNull(result);
-        assertEquals(fields, marketoService.getFieldsFromDescribeFormatedForApi(result.getJsonArray("fields")));
+        assertEquals(fields, marketoService.getFieldsFromDescribeFormatedForApi(result.getJsonArray(ATTR_FIELDS)));
         result = source.next();
         assertNull(result);
     }

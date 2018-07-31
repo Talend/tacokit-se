@@ -13,6 +13,8 @@
 package org.talend.components.marketo.service;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_ACCESS_TOKEN;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FIELDS;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ID;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_NAME;
 import static org.talend.components.marketo.service.AuthorizationClient.CLIENT_CREDENTIALS;
@@ -21,14 +23,16 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
+
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 
 import org.slf4j.Logger;
 import org.talend.components.marketo.dataset.MarketoDataSet.MarketoEntity;
 import org.talend.components.marketo.dataset.MarketoInputDataSet;
+import org.talend.components.marketo.dataset.MarketoInputDataSet.ListAction;
+import org.talend.components.marketo.dataset.MarketoOutputDataSet;
 import org.talend.components.marketo.datastore.MarketoDataStore;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
@@ -42,8 +46,6 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.schema.DiscoverSchema;
 import org.talend.sdk.component.api.service.schema.Schema;
-import org.talend.sdk.component.api.service.schema.Schema.Entry;
-import org.talend.sdk.component.api.service.schema.Type;
 
 @Service
 public class UIActionService extends MarketoService {
@@ -56,7 +58,9 @@ public class UIActionService extends MarketoService {
 
     public static final String URL_CHECK = "MARKETO_URL_CHECK";
 
-    public static final String GUESS_ENTITY_SCHEMA_INPUT = "guessEntitySchema";
+    public static final String GUESS_ENTITY_SCHEMA_INPUT = "guessEntitySchemaForInput";
+
+    public static final String GUESS_ENTITY_SCHEMA_OUTPUT = "guessEntitySchemaForOutput";
 
     private transient static final Logger LOG = getLogger(UIActionService.class);
 
@@ -65,7 +69,7 @@ public class UIActionService extends MarketoService {
         authorizationClient.base(dataStore.getEndpoint());
         Response<JsonObject> result = authorizationClient.getAuthorizationToken(CLIENT_CREDENTIALS, dataStore.getClientId(),
                 dataStore.getClientSecret());
-        if (result.status() == 200 && result.body().getString("access_token", null) != null) {
+        if (result.status() == 200 && result.body().getString(ATTR_ACCESS_TOKEN, null) != null) {
             return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18n.connectionSuccessful());
         } else {
             return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.accessTokenRetrievalError(result.status(), ""));
@@ -178,11 +182,8 @@ public class UIActionService extends MarketoService {
     }
 
     @DiscoverSchema(GUESS_ENTITY_SCHEMA_INPUT)
-    public Schema guessEntitySchema(@Option final MarketoInputDataSet dataSet) {
-        LOG.warn("[guessEntitySchema] {}.", dataSet);
+    public Schema guessEntitySchemaForInput(@Option final MarketoInputDataSet dataSet) {
         MarketoEntity entity = dataSet.getEntity();
-        Schema s = new Schema();
-        Collection<Entry> entries = new ArrayList<>();
         try {
             JsonArray entitySchema = null;
             String accessToken = authorizationClient.getAccessToken(dataSet.getDataStore());
@@ -193,76 +194,46 @@ public class UIActionService extends MarketoService {
                 entitySchema = parseResultFromResponse(leadClient.describeLead(accessToken));
                 break;
             case List:
-                listClient.base(endpoint);
-                //
+                if (ListAction.getLeads.equals(dataSet.getListAction())) {
+                    leadClient.base(endpoint);
+                    entitySchema = parseResultFromResponse(leadClient.describeLead(accessToken));
+                } else {
+                    return getInputSchema(MarketoEntity.List, dataSet.getListAction().name());
+                }
                 break;
             case CustomObject:
                 customObjectClient.base(endpoint);
                 entitySchema = parseResultFromResponse(
                         customObjectClient.describeCustomObjects(accessToken, dataSet.getCustomObjectName())).get(0)
-                                .asJsonObject().getJsonArray("fields");
+                                .asJsonObject().getJsonArray(ATTR_FIELDS);
                 break;
             case Company:
                 companyClient.base(endpoint);
-                entitySchema = parseResultFromResponse(companyClient.describeCompanies(accessToken));
+                entitySchema = parseResultFromResponse(companyClient.describeCompanies(accessToken)).get(0).asJsonObject()
+                        .getJsonArray(ATTR_FIELDS);
                 break;
             case Opportunity:
                 opportunityClient.base(endpoint);
-                entitySchema = parseResultFromResponse(opportunityClient.describeOpportunity(accessToken));
+                entitySchema = parseResultFromResponse(opportunityClient.describeOpportunity(accessToken)).get(0).asJsonObject()
+                        .getJsonArray(ATTR_FIELDS);
                 break;
             case OpportunityRole:
                 opportunityClient.base(endpoint);
-                entitySchema = parseResultFromResponse(opportunityClient.describeOpportunityRole(accessToken));
+                entitySchema = parseResultFromResponse(opportunityClient.describeOpportunityRole(accessToken)).get(0)
+                        .asJsonObject().getJsonArray(ATTR_FIELDS);
                 break;
             }
-
             LOG.warn("[guessEntitySchema]entitySchema: {}.", entitySchema);
-
-            for (JsonObject field : entitySchema.getValuesAs(JsonObject.class)) {
-                Entry entry = new Entry();
-                if (field.getJsonObject("rest") != null) {
-                    entry.setName(field.getJsonObject("rest").getString("name"));
-                } else {
-                    entry.setName(field.getString("name"));
-                }
-                String dataType = field.getString("dataType", "string");
-                switch (dataType) {
-                case ("string"):
-                case ("text"):
-                case ("phone"):
-                case ("email"):
-                case ("url"):
-                case ("lead_function"):
-                case ("reference"):
-                    entry.setType(Type.STRING);
-                    break;
-                case ("integer"):
-                    entry.setType(Type.INT);
-                    break;
-                case ("boolean"):
-                    entry.setType(Type.BOOLEAN);
-                    break;
-                case ("float"):
-                case ("currency"):
-                    entry.setType(Type.DOUBLE);
-                    break;
-                case ("date"):
-                case ("datetime"):
-                    entry.setType(Type.STRING);
-                    break;
-                default:
-                    LOG.warn("Non managed type : {}. for {}. Defaulting to String.", dataType, this);
-                    entry.setType(Type.STRING);
-                }
-                entries.add(entry);
-            }
+            return getSchemaForEntity(entitySchema);
         } catch (Exception e) {
-            LOG.error("Exception c=uaght : {}.", e.getCause().toString());
-            entries.add(new Entry("Exception", Type.STRING));
+            LOG.error("Exception caught : {}.", e.getMessage());
         }
-        s.setEntries(entries);
-        LOG.warn("[guessEntitySchema] returning schema : {}.", s);
-        return s;
+        return null;
+    }
+
+    @DiscoverSchema(GUESS_ENTITY_SCHEMA_OUTPUT)
+    public Schema guessEntitySchemaForOutput(@Option final MarketoOutputDataSet dataSet) {
+        return getOutputSchema(dataSet.getEntity());
     }
 
 }

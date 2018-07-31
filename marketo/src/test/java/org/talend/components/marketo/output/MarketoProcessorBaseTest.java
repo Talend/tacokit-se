@@ -20,6 +20,10 @@ import org.talend.components.marketo.MarketoBaseTest;
 
 public class MarketoProcessorBaseTest extends MarketoBaseTest {
 
+    protected static final String FAIL_REJECT = "Should not have a reject";
+
+    protected static final String FAIL_MAIN = "Should not have a main";
+
     MarketoProcessor processor;
 
     JsonObject data, dataNotExist;

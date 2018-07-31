@@ -13,6 +13,7 @@
 package org.talend.components.marketo.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FIELDS;
 
 import javax.json.JsonObject;
 import javax.json.JsonReader;
@@ -35,7 +36,7 @@ class MarketoServiceTest extends MarketoBaseTest {
         JsonReader reader = jsonReader.createReader(getClass().getClassLoader().getResourceAsStream("describe_company.json"));
         JsonObject v = reader.readObject();
         String f = marketoService
-                .getFieldsFromDescribeFormatedForApi(v.getJsonArray("result").get(0).asJsonObject().getJsonArray("fields"));
+                .getFieldsFromDescribeFormatedForApi(v.getJsonArray("result").get(0).asJsonObject().getJsonArray(ATTR_FIELDS));
         assertEquals(fields, f);
     }
 

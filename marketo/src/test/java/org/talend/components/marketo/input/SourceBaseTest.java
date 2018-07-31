@@ -12,6 +12,8 @@
 // ============================================================================
 package org.talend.components.marketo.input;
 
+import javax.json.JsonObject;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.talend.components.marketo.MarketoBaseTest;
 import org.talend.components.marketo.dataset.MarketoInputDataSet;
@@ -21,6 +23,8 @@ import org.talend.sdk.component.junit5.WithComponents;
 public class SourceBaseTest extends MarketoBaseTest {
 
     MarketoInputDataSet dataset;
+
+    protected JsonObject result;
 
     @Override
     @BeforeEach

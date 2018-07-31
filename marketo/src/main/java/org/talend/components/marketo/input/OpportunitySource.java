@@ -17,6 +17,7 @@ import javax.json.JsonObject;
 import javax.json.JsonReaderFactory;
 import javax.json.JsonWriterFactory;
 
+import org.talend.components.marketo.dataset.MarketoDataSet.MarketoEntity;
 import org.talend.components.marketo.dataset.MarketoInputDataSet;
 import org.talend.components.marketo.service.AuthorizationClient;
 import org.talend.components.marketo.service.I18nMessage;
@@ -26,6 +27,8 @@ import org.talend.sdk.component.api.configuration.Option;
 public class OpportunitySource extends MarketoSource {
 
     private final OpportunityClient opportunityClient;
+
+    private boolean isOpportunityRole;
 
     public OpportunitySource(@Option("configuration") final MarketoInputDataSet dataSet, //
             final I18nMessage i18n, //
@@ -37,10 +40,41 @@ public class OpportunitySource extends MarketoSource {
         super(dataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient);
         this.opportunityClient = opportunityClient;
         this.opportunityClient.base(this.dataSet.getDataStore().getEndpoint());
+        isOpportunityRole = MarketoEntity.OpportunityRole.equals(dataSet.getEntity());
     }
 
     @Override
     public JsonObject runAction() {
+        switch (dataSet.getOtherAction()) {
+        case describe:
+            return describeOpportunity();
+        case list:
+        case get:
+            return getOpportunity();
+        }
+
         throw new RuntimeException(i18n.invalidOperation());
+    }
+
+    private JsonObject getOpportunity() {
+        String filterType = dataSet.getFilterType();
+        String filterValues = dataSet.getFilterValues();
+        String fields = dataSet.getFields();
+        int batchSize = dataSet.getBatchSize();
+        if (isOpportunityRole) {
+            return handleResponse(opportunityClient.getOpportunityRoles(accessToken, filterType, filterValues, fields, batchSize,
+                    nextPageToken));
+        } else {
+            return handleResponse(
+                    opportunityClient.getOpportunities(accessToken, filterType, filterValues, fields, batchSize, nextPageToken));
+        }
+    }
+
+    private JsonObject describeOpportunity() {
+        if (isOpportunityRole) {
+            return handleResponse(opportunityClient.describeOpportunityRole(accessToken));
+        } else {
+            return handleResponse(opportunityClient.describeOpportunity(accessToken));
+        }
     }
 }

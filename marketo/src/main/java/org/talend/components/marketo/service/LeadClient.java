@@ -12,7 +12,16 @@
 // ============================================================================
 package org.talend.components.marketo.service;
 
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_ACCESS_TOKEN;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_BATCH_SIZE;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FIELDS;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FILTER_TYPE;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FILTER_VALUES;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_LEAD_ID;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_LIST_ID;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_NEXT_PAGE_TOKEN;
 import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE;
+import static org.talend.components.marketo.MarketoApiConstants.METHOD_POST;
 import static org.talend.components.marketo.MarketoApiConstants.REQUEST_PARAM_QUERY_METHOD;
 
 import javax.json.JsonObject;
@@ -38,8 +47,8 @@ public interface LeadClient extends HttpClient {
      * @param accessToken Marketo authorization token for API
      * @return
      */
-    @Request(path = "/rest/v1/leads/describe.json", method = "GET")
-    Response<JsonObject> describeLead(@Query("access_token") String accessToken);
+    @Request(path = "/rest/v1/leads/describe.json")
+    Response<JsonObject> describeLead(@Query(ATTR_ACCESS_TOKEN) String accessToken);
 
     /**
      * Retrieves a single lead record through it's Marketo id.
@@ -47,11 +56,11 @@ public interface LeadClient extends HttpClient {
      * @param accessToken
      * @return
      */
-    @Request(path = "/rest/v1/lead/{leadId}.json", method = "GET")
+    @Request(path = "/rest/v1/lead/{leadId}.json")
     Response<JsonObject> getLeadById( //
-            @Query("access_token") String accessToken, //
-            @Path("leadId") Integer leadId, //
-            @Query("fields") String fields//
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Path(ATTR_LEAD_ID) Integer leadId, //
+            @Query(ATTR_FIELDS) String fields//
     );
 
     // TODO should normally execute a fake get request
@@ -72,12 +81,12 @@ public interface LeadClient extends HttpClient {
      * can be passed in a subsequent call through this parameter
      * @return
      */
-    @Request(path = "/rest/v1/leads.json", method = "POST")
+    @Request(path = "/rest/v1/leads.json", method = METHOD_POST)
     Response<JsonObject> getLeadByFilterType( //
             @Header(HEADER_CONTENT_TYPE) String contentType, //
             @Query(REQUEST_PARAM_QUERY_METHOD) String queryMethod, //
-            @Query("access_token") String accessToken, //
-            @Query("nextPageToken") String nextPageToken, //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Query(ATTR_NEXT_PAGE_TOKEN) String nextPageToken, //
             String payload //
     );
 
@@ -95,14 +104,14 @@ public interface LeadClient extends HttpClient {
      * can be passed in a subsequent call through this parameter
      * @return
      */
-    @Request(path = "/rest/v1/leads.json", method = "GET")
+    @Request(path = "/rest/v1/leads.json")
     Response<JsonObject> getLeadByFilterTypeByQueryString( //
-            @Query("access_token") String accessToken, //
-            @Query("filterType") String filterType, //
-            @Query("filterValues") String filterValues, //
-            @Query("fields") String fields, //
-            @Query("batchSize") Integer batchSize, //
-            @Query("nextPageToken") String nextPageToken// .
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Query(ATTR_FILTER_TYPE) String filterType, //
+            @Query(ATTR_FILTER_VALUES) String filterValues, //
+            @Query(ATTR_FIELDS) String fields, //
+            @Query(ATTR_BATCH_SIZE) Integer batchSize, //
+            @Query(ATTR_NEXT_PAGE_TOKEN) String nextPageToken// .
     );
 
     /**
@@ -119,10 +128,10 @@ public interface LeadClient extends HttpClient {
      * </ul>
      * @return
      */
-    @Request(path = "/rest/v1/leads.json", method = "POST")
+    @Request(path = "/rest/v1/leads.json", method = METHOD_POST)
     Response<JsonObject> syncLeads( //
             @Header(HEADER_CONTENT_TYPE) String contentType, //
-            @Query("access_token") String accessToken, //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
             JsonObject payload //
     );
 
@@ -133,10 +142,10 @@ public interface LeadClient extends HttpClient {
      * @param input List of leads for input
      * @return
      */
-    @Request(path = "/rest/v1/leads/delete.json", method = "POST")
+    @Request(path = "/rest/v1/leads/delete.json", method = METHOD_POST)
     Response<JsonObject> deleteLeads( //
             @Header(HEADER_CONTENT_TYPE) String contentType, //
-            @Query("access_token") String accessToken, //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
             JsonObject input //
     );
 
@@ -147,9 +156,9 @@ public interface LeadClient extends HttpClient {
      * @param sinceDatetime Earliest datetime to retrieve activities from
      * @return
      */
-    @Request(path = "/rest/v1/activities/pagingtoken.json", method = "GET")
+    @Request(path = "/rest/v1/activities/pagingtoken.json")
     Response<JsonObject> getPagingToken( //
-            @Query("access_token") String accessToken, //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
             @Query("sinceDatetime") String sinceDatetime //
     );
 
@@ -167,14 +176,14 @@ public interface LeadClient extends HttpClient {
      * @param batchSize Maximum number of records to return. Maximum and default is 300.
      * @return
      */
-    @Request(path = "/rest/v1/activities/leadchanges.json", method = "GET")
+    @Request(path = "/rest/v1/activities/leadchanges.json")
     Response<JsonObject> getLeadChanges( //
-            @Query("access_token") String accessToken, //
-            @Query("nextPageToken") String nextPageToken, //
-            @Query("listId") Integer listId, //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Query(ATTR_NEXT_PAGE_TOKEN) String nextPageToken, //
+            @Query(ATTR_LIST_ID) Integer listId, //
             @Query("leadIds") String leadIds, //
-            @Query("fields") String fields, //
-            @Query("batchSize") Integer batchSize //
+            @Query(ATTR_FIELDS) String fields, //
+            @Query(ATTR_BATCH_SIZE) Integer batchSize //
     );
 
     /**
@@ -184,9 +193,9 @@ public interface LeadClient extends HttpClient {
      *
      * @return
      */
-    @Request(path = "/rest/v1/activities/types.json", method = "GET")
+    @Request(path = "/rest/v1/activities/types.json")
     Response<JsonObject> getActivities( //
-            @Query("access_token") String accessToken //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken //
     );
 
     /**
@@ -206,15 +215,15 @@ public interface LeadClient extends HttpClient {
      * @param batchSize
      * @return
      */
-    @Request(path = "/rest/v1/activities.json", method = "GET")
+    @Request(path = "/rest/v1/activities.json")
     Response<JsonObject> getLeadActivities( //
-            @Query("access_token") String accessToken, //
-            @Query("nextPageToken") String nextPageToken, //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Query(ATTR_NEXT_PAGE_TOKEN) String nextPageToken, //
             @Query("activityTypeIds") String activityTypeIds, //
             @Query("assetIds") String assetIds, //
-            @Query("listId") Integer listId, //
+            @Query(ATTR_LIST_ID) Integer listId, //
             @Query("leadIds") String leadIds, //
-            @Query("batchSize") Integer batchSize //
+            @Query(ATTR_BATCH_SIZE) Integer batchSize //
     );
 
 }

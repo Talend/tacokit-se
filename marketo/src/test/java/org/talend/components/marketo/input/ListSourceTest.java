@@ -15,8 +15,6 @@ package org.talend.components.marketo.input;
 import static org.junit.Assert.*;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_NAME;
 
-import javax.json.JsonObject;
-
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,8 +30,6 @@ import org.talend.sdk.component.junit5.WithComponents;
 class ListSourceTest extends SourceBaseTest {
 
     private ListSource source;
-
-    private JsonObject result;
 
     private Integer LIST_ID = 1001;
 
@@ -63,7 +59,6 @@ class ListSourceTest extends SourceBaseTest {
         while ((result = source.next()) != null) {
             assertNotNull(result);
             assertThat(result.getString(ATTR_NAME), CoreMatchers.containsString("List00"));
-            LOG.warn("[testgetLists] {}", result);
         }
     }
 
@@ -91,7 +86,6 @@ class ListSourceTest extends SourceBaseTest {
         source.init();
         while ((result = source.next()) != null) {
             assertNotNull(result);
-            LOG.warn("[testGetLeadsByListId] {}", result);
         }
     }
 
@@ -104,7 +98,6 @@ class ListSourceTest extends SourceBaseTest {
         source.init();
         while ((result = source.next()) != null) {
             assertNotNull(result);
-            LOG.warn("[testIsMemberOfList] {}", result);
         }
     }
 }

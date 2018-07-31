@@ -44,7 +44,7 @@ public class LeadProcessorTest extends MarketoProcessorBaseTest {
 
     private void initProcessor() {
         processor = new MarketoProcessor(outputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient,
-                leadClient, listClient, companyClient, customObjectClient);
+                leadClient, listClient, companyClient, customObjectClient, opportunityClient);
         processor.init();
     }
 
@@ -54,7 +54,7 @@ public class LeadProcessorTest extends MarketoProcessorBaseTest {
         outputDataSet.setSyncMethod(SyncMethod.createOrUpdate);
         outputDataSet.setLookupField(ATTR_EMAIL);
         initProcessor();
-        processor.map(data, main -> assertTrue(main.getInt(ATTR_ID) > 0), reject -> fail("Should not have a reject"));
+        processor.map(data, main -> assertTrue(main.getInt(ATTR_ID) > 0), reject -> fail(FAIL_REJECT));
     }
 
     @Test
@@ -83,7 +83,7 @@ public class LeadProcessorTest extends MarketoProcessorBaseTest {
                 createdLead[0] = main.getInt(ATTR_ID);
             }
         };
-        processor.map(data, main, reject -> fail("Should not have a reject"));
+        processor.map(data, main, reject -> fail(FAIL_REJECT));
         // delete
         outputDataSet.setAction(OutputAction.delete);
         initProcessor();

@@ -19,7 +19,6 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_ID;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_RESULT;
 
 import java.util.List;
-import javax.json.JsonObject;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,8 +41,6 @@ public class LeadSourceTest extends SourceBaseTest {
     private Integer LEAD_ID = 5;
 
     private Integer INVALID_LEAD_ID = -5;
-
-    private JsonObject result;
 
     private LeadSource source;
 

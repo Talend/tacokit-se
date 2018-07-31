@@ -54,7 +54,7 @@ public class ListProcessorTest extends MarketoProcessorBaseTest {
 
     private void initProcessor() {
         processor = new MarketoProcessor(outputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient,
-                leadClient, listClient, companyClient, customObjectClient);
+                leadClient, listClient, companyClient, customObjectClient, opportunityClient);
         processor.init();
     }
 
@@ -65,7 +65,7 @@ public class ListProcessorTest extends MarketoProcessorBaseTest {
         processor.map(data, main -> {
             assertEquals("memberof", main.getString(ATTR_STATUS));
         }, reject -> {
-            fail("Should not have a reject");
+            fail(FAIL_REJECT);
         });
     }
 
@@ -76,7 +76,7 @@ public class ListProcessorTest extends MarketoProcessorBaseTest {
         processor.map(dataAddRemove, main -> {
             assertEquals("notmemberof", main.getString(ATTR_STATUS));
         }, reject -> {
-            fail("Should not have a reject");
+            fail(FAIL_REJECT);
         });
     }
 
@@ -106,7 +106,7 @@ public class ListProcessorTest extends MarketoProcessorBaseTest {
         processor.map(dataAddRemove, main -> {
             assertEquals("added", main.getString(ATTR_STATUS));
         }, reject -> {
-            fail("Should not have a reject");
+            fail(FAIL_REJECT);
         });
     }
 
@@ -124,7 +124,7 @@ public class ListProcessorTest extends MarketoProcessorBaseTest {
         processor.map(dataAddRemove, main -> {
             assertEquals("removed", main.getString(ATTR_STATUS));
         }, reject -> {
-            fail("Should not have a reject");
+            fail(FAIL_REJECT);
         });
     }
 

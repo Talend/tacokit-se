@@ -12,7 +12,16 @@
 // ============================================================================
 package org.talend.components.marketo.service;
 
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_ACCESS_TOKEN;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_BATCH_SIZE;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_CAMPAIGN_ID;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_ID;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_IS_TRIGGERABLE;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_NAME;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_PROGRAM_NAME;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_WORKSPACE_NAME;
 import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE;
+import static org.talend.components.marketo.MarketoApiConstants.METHOD_POST;
 
 import javax.json.JsonObject;
 
@@ -40,14 +49,15 @@ public interface CampaignClient extends HttpClient {
      * Web Service API
      * @return
      */
-    @Request(path = "/rest/v1/campaigns.json", method = "GET")
-    Response<JsonObject> getCampaigns(@Query("access_token") String accessToken, //
-            @Query("id") String id, //
-            @Query("name") String name, //
-            @Query("programName") String programName, //
-            @Query("workspaceName") String workspaceName, //
-            @Query("batchSize") Integer batchSize, //
-            @Query("isTriggerable") Boolean isTriggerable //
+    @Request(path = "/rest/v1/campaigns.json")
+    Response<JsonObject> getCampaigns( //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Query(ATTR_ID) String id, //
+            @Query(ATTR_NAME) String name, //
+            @Query(ATTR_PROGRAM_NAME) String programName, //
+            @Query(ATTR_WORKSPACE_NAME) String workspaceName, //
+            @Query(ATTR_BATCH_SIZE) Integer batchSize, //
+            @Query(ATTR_IS_TRIGGERABLE) Boolean isTriggerable //
     );
 
     /**
@@ -57,9 +67,10 @@ public interface CampaignClient extends HttpClient {
      * @param campaignId the Id of the campaign
      * @return
      */
-    @Request(path = "/rest/v1/campaigns/{campaignId}.json", method = "GET")
-    Response<JsonObject> getCampaignById(@Query("access_token") String accessToken, //
-            @Path("campaignId") Integer campaignId //
+    @Request(path = "/rest/v1/campaigns/{campaignId}.json")
+    Response<JsonObject> getCampaignById( //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Path(ATTR_CAMPAIGN_ID) Integer campaignId //
     );
 
     /**
@@ -83,11 +94,11 @@ public interface CampaignClient extends HttpClient {
      * </ul>
      * @return
      */
-    @Request(path = "/rest/v1/campaigns/{campaignId}/schedule.json", method = "POST")
+    @Request(path = "/rest/v1/campaigns/{campaignId}/schedule.json", method = METHOD_POST)
     Response<JsonObject> scheduleCampaign( //
             @Header(HEADER_CONTENT_TYPE) String contentType, //
-            @Query("access_token") String accessToken, //
-            @Path("campaignId") Integer campaignId, //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Path(ATTR_CAMPAIGN_ID) Integer campaignId, //
             JsonObject input//
     );
 
@@ -98,11 +109,11 @@ public interface CampaignClient extends HttpClient {
      * @param id Id of the smart campaign
      * @return
      */
-    @Request(path = "/rest/asset/v1/smartCampaign/{id}/activate.json", method = "POST")
+    @Request(path = "/rest/asset/v1/smartCampaign/{id}/activate.json", method = METHOD_POST)
     Response<JsonObject> activateSmartCampaign( //
             @Header(HEADER_CONTENT_TYPE) String contentType, //
-            @Query("access_token") String accessToken, //
-            @Path("id") Integer id //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Path(ATTR_ID) Integer id //
     );
 
     /**
@@ -112,11 +123,11 @@ public interface CampaignClient extends HttpClient {
      * @param id Id of the smart campaign
      * @return
      */
-    @Request(path = "/rest/asset/v1/smartCampaign/{id}/deactivate.json", method = "POST")
+    @Request(path = "/rest/asset/v1/smartCampaign/{id}/deactivate.json", method = METHOD_POST)
     Response<JsonObject> deactivateSmartCampaign( //
             @Header(HEADER_CONTENT_TYPE) String contentType, //
-            @Query("access_token") String accessToken, //
-            @Path("id") Integer id //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Path(ATTR_ID) Integer id //
     );
 
     /**
@@ -134,11 +145,11 @@ public interface CampaignClient extends HttpClient {
      * </ul>
      * @return
      */
-    @Request(path = "/rest/v1/campaigns/{campaignId}/trigger.json", method = "POST")
+    @Request(path = "/rest/v1/campaigns/{campaignId}/trigger.json", method = METHOD_POST)
     Response<JsonObject> requestCampaign( //
             @Header(HEADER_CONTENT_TYPE) String contentType, //
-            @Query("access_token") String accessToken, //
-            @Path("campaignId") Integer campaignId, //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Path(ATTR_CAMPAIGN_ID) Integer campaignId, //
             JsonObject input//
     );
 

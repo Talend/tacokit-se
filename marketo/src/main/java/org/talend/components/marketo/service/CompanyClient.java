@@ -12,7 +12,14 @@
 // ============================================================================
 package org.talend.components.marketo.service;
 
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_ACCESS_TOKEN;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_BATCH_SIZE;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FIELDS;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FILTER_TYPE;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FILTER_VALUES;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_NEXT_PAGE_TOKEN;
 import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE;
+import static org.talend.components.marketo.MarketoApiConstants.METHOD_POST;
 
 import javax.json.JsonObject;
 
@@ -39,9 +46,9 @@ public interface CompanyClient extends HttpClient {
      * @param accessToken Marketo authorization token for API
      * @return metadata about companies
      */
-    @Request(path = "/rest/v1/companies/describe.json", method = "GET")
+    @Request(path = "/rest/v1/companies/describe.json")
     Response<JsonObject> describeCompanies(//
-            @Query("access_token") String accessToken //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken //
     );
 
     /**
@@ -56,14 +63,14 @@ public interface CompanyClient extends HttpClient {
      * can be passed in a subsequent call through this parameter
      * @return company records
      */
-    @Request(path = "/rest/v1/companies.json", method = "GET")
+    @Request(path = "/rest/v1/companies.json")
     Response<JsonObject> getCompanies(//
-            @Query("access_token") String accessToken, //
-            @Query("filterType") String filterType, //
-            @Query("filterValues") String filterValues, //
-            @Query("fields") String fields, //
-            @Query("batchSize") Integer batchSize, //
-            @Query("nextPageToken") String nextPageToken //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Query(ATTR_FILTER_TYPE) String filterType, //
+            @Query(ATTR_FILTER_VALUES) String filterValues, //
+            @Query(ATTR_FIELDS) String fields, //
+            @Query(ATTR_BATCH_SIZE) Integer batchSize, //
+            @Query(ATTR_NEXT_PAGE_TOKEN) String nextPageToken //
     );
 
     /**
@@ -79,10 +86,10 @@ public interface CompanyClient extends HttpClient {
      * </ul>
      * @return
      */
-    @Request(path = "/rest/v1/companies.json", method = "POST")
+    @Request(path = "/rest/v1/companies.json", method = METHOD_POST)
     Response<JsonObject> syncCompanies(//
             @Header(HEADER_CONTENT_TYPE) String contentType, //
-            @Query("access_token") String accessToken, //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
             JsonObject payload //
     );
 
@@ -98,10 +105,10 @@ public interface CompanyClient extends HttpClient {
      * </ul>
      * @return
      */
-    @Request(path = "/rest/v1/companies/delete.json", method = "POST")
+    @Request(path = "/rest/v1/companies/delete.json", method = METHOD_POST)
     Response<JsonObject> deleteCompanies(//
             @Header(HEADER_CONTENT_TYPE) String contentType, //
-            @Query("access_token") String accessToken, //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
             JsonObject payload //
     );
 }
