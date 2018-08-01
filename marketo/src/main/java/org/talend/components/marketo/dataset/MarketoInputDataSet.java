@@ -12,6 +12,8 @@
 // ============================================================================
 package org.talend.components.marketo.dataset;
 
+import lombok.Data;
+
 import static org.talend.components.marketo.service.UIActionService.GUESS_ENTITY_SCHEMA_INPUT;
 
 import java.util.List;
@@ -28,8 +30,6 @@ import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure.Type;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import lombok.Data;
-
 @Data
 @DataSet(MarketoInputDataSet.NAME)
 @GridLayouts({ //
@@ -44,7 +44,7 @@ import lombok.Data;
                 @GridLayout.Row({ "filterType", "filterValues" }), //
                 @GridLayout.Row({ "useCompoundKey", "compoundKey" }), //
                 @GridLayout.Row({ "sinceDateTime" }), //
-                @GridLayout.Row({ "listIds", "name", "programName", "workspaceName" }), //
+                @GridLayout.Row({ "listIds", "listName", "programName", "workspaceName" }), //
                 @GridLayout.Row({ "fields" }), //
                 @GridLayout.Row({ "batchSize" }), //
         }), //
@@ -143,7 +143,7 @@ public class MarketoInputDataSet extends MarketoDataSet {
     @Option
     @ActiveIf(target = "entity", value = { "List" })
     @Documentation("List Name : Comma-separated list of static list names to return.")
-    private String name;
+    private String listName;
 
     @Option
     @ActiveIf(target = "entity", value = { "List" })
