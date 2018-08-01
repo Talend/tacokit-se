@@ -7,8 +7,7 @@ import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
-@GridLayout(value = {
-        @GridLayout.Row({"moduleList"}),
+@GridLayout(value = {@GridLayout.Row({"moduleList"}),
         @GridLayout.Row({"url"}),
         @GridLayout.Row({"userIdentity"}),
         @GridLayout.Row({"userName", "password"}),
@@ -17,8 +16,7 @@ import org.talend.sdk.component.api.meta.Documentation;
         @GridLayout.Row({"messageType"}),
         @GridLayout.Row({"destination"}),
         @GridLayout.Row({"timeout", "maximumMessages"}),
-        @GridLayout.Row({"messageSelector"}),
-        @GridLayout.Row({"processingMode"})},
+        @GridLayout.Row({"messageSelector"})},
         names = GridLayout.FormType.MAIN)
 @GridLayout(value = {
         @GridLayout.Row({"properties"})},
@@ -42,6 +40,6 @@ public class InputMapperConfiguration extends Configuration {
 
     @Option
     @Documentation("Message Selector Expression")
-    private Integer messageSelector;
+    private String messageSelector;
 
 }

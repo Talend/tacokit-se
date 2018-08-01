@@ -223,12 +223,6 @@ public class JmsService {
 
     private MessageConsumer createConsumer(Destination destination)
             throws ClassNotFoundException, NamingException, InstantiationException, IllegalAccessException, JMSException {
-        /*
-         * if (MessageType.QUEUE == configuration.getMessageType()) {
-         * //getSession().createConsumer()
-         * }
-         */
-
         return getSession().createConsumer(destination);
     }
 
@@ -253,10 +247,10 @@ public class JmsService {
         }
     }
 
-    public String receiveTextMessage() {
+    public String receiveTextMessage(Integer timeout) {
         String text = null;
         try {
-            Message message = createConsumer().receive();
+            Message message = createConsumer().receive(timeout);
             if (message != null) {
                 text = ((TextMessage) message).getText();
             }

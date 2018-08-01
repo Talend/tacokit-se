@@ -55,10 +55,6 @@ public class Configuration implements Serializable {
     private String destination;
 
     @Option
-    @Documentation("Drop down list for Processing Mode")
-    private ProcessingMode processingMode = ProcessingMode.TEXT_MESSAGE;
-
-    @Option
     @Documentation("Properties table")
     private List<JMSOutputAdvancedProperties> properties;
 
