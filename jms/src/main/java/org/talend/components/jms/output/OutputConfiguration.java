@@ -13,8 +13,7 @@ import org.talend.sdk.component.api.meta.Documentation;
         @GridLayout.Row({"userName", "password"}),
         @GridLayout.Row({"userJNDILookup"}),
         @GridLayout.Row({"messageType"}),
-        @GridLayout.Row({"destination"}),
-        @GridLayout.Row({"processingMode"})},
+        @GridLayout.Row({"destination"})},
         names = GridLayout.FormType.MAIN)
 @GridLayout(value = {
         @GridLayout.Row({"deliveryMode"}),
