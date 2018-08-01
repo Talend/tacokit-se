@@ -1,6 +1,9 @@
 package org.talend.components.jms.source;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -18,11 +21,16 @@ import org.talend.components.jms.service.JmsService;
 public class InputSource implements Serializable {
 
     public static final String MESSAGE_CONTENT = "messageContent";
+
     private final InputMapperConfiguration configuration;
 
     private final JmsService service;
 
     private final JsonBuilderFactory jsonBuilderFactory;
+
+    private int counter;
+
+    Iterator<String> messagesIterator;
 
     public InputSource(@Option("configuration1") final InputMapperConfiguration configuration, final JmsService service,
             final JsonBuilderFactory jsonBuilderFactory) {
@@ -36,6 +44,17 @@ public class InputSource implements Serializable {
     public void init() {
         // this method will be executed once for the whole component execution,
         // this is where you can establish a connection for instance
+
+        String message;
+        List<String> messages = new ArrayList<>();
+        while ((message = service.receiveTextMessage(configuration.getTimeout() * 1000)) != null) {
+            if (counter > configuration.getMaximumMessages()) {
+                break;
+            }
+            messages.add(message);
+            counter++;
+        }
+        messagesIterator = messages.iterator();
     }
 
     @Producer
@@ -45,7 +64,11 @@ public class InputSource implements Serializable {
         //
         // return null means the dataset has no more data to go through
         // you can use the jsonBuilderFactory to create new JsonObjects.
-        String message = service.receiveTextMessage();
+        String message = null;
+        while (messagesIterator.hasNext()) {
+            message = messagesIterator.next();
+        }
+
         return message != null ? buildJSON(message) : null;
     }
 

@@ -14,37 +14,66 @@ public class JMSServiceTest {
 
     public static final String URL = "tcp://localhost:61616";
 
-    public static final String QUEUE_TEST = "test";
+    public static final String DESTINATION = "test";
 
     public static final String TEST_MESSAGE = "hello world";
 
     public static final String ACTIVEMQ = "ACTIVEMQ";
 
+    public static final boolean USER_IDENTITY = true;
+
     @Service
     private JmsService jmsService;
 
     @Test
-    void sendAndReceiceJMSMessage() {
+    void sendAndReceiceJMSMessageQueue() {
         OutputConfiguration configuration = new OutputConfiguration();
         configuration.setModuleList(ACTIVEMQ);
         configuration.setUrl(URL);
-        configuration.setDestination(QUEUE_TEST);
+        configuration.setDestination(DESTINATION);
         configuration.setMessageType(MessageType.QUEUE);
         jmsService.setConfiguration(configuration);
         jmsService.sendTextMessage(TEST_MESSAGE);
 
-        assertEquals("Sent and received messages should be equal", TEST_MESSAGE, jmsService.receiveTextMessage());
+        assertEquals("Sent and received messages should be equal", TEST_MESSAGE, jmsService.receiveTextMessage(3000));
     }
 
     @Test
-    void receiveJMSMessage() {
+    void sendJMSMessageTopic() {
         InputMapperConfiguration configuration = new InputMapperConfiguration();
         configuration.setModuleList(ACTIVEMQ);
         configuration.setUrl(URL);
-        configuration.setDestination(QUEUE_TEST);
+        configuration.setDestination(DESTINATION);
+        configuration.setMessageType(MessageType.TOPIC);
+        jmsService.setConfiguration(configuration);
+        jmsService.sendTextMessage(TEST_MESSAGE);
+
+        // assertEquals("Sent and received messages should be equal", TEST_MESSAGE, jmsService.receiveTextMessage(3000));
+    }
+
+    @Test
+    void receiveJMSMessageTopic() {
+        InputMapperConfiguration configuration = new InputMapperConfiguration();
+        configuration.setModuleList(ACTIVEMQ);
+        configuration.setUrl(URL);
+        configuration.setDestination(DESTINATION);
+        configuration.setMessageType(MessageType.TOPIC);
+        jmsService.setConfiguration(configuration);
+        // jmsService.sendTextMessage(TEST_MESSAGE);
+
+        assertEquals("Sent and received messages should be equal", TEST_MESSAGE, jmsService.receiveTextMessage(3000));
+    }
+
+    @Test
+    void sendJMSMessageWithUserIdentity() {
+        InputMapperConfiguration configuration = new InputMapperConfiguration();
+        configuration.setModuleList(ACTIVEMQ);
+        configuration.setUserIdentity(true);
+        configuration.setUrl(URL);
+        configuration.setDestination(DESTINATION);
         configuration.setMessageType(MessageType.QUEUE);
         jmsService.setConfiguration(configuration);
-        String message = jmsService.receiveTextMessage();
+        jmsService.sendTextMessage(TEST_MESSAGE);
 
     }
 }
