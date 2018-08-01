@@ -4,7 +4,7 @@
     "class": "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
     "paths": [
       {
-        "path": "activemq:activemq-all:5.7.0"
+        "path": "org.apache.activemq:activemq-all:5.7.0"
       }
     ]
   }
