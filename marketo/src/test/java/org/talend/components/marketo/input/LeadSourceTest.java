@@ -18,7 +18,10 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_EMAIL;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ID;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_RESULT;
 
+import java.util.Collections;
 import java.util.List;
+
+import javax.json.JsonObject;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,6 +56,7 @@ public class LeadSourceTest extends SourceBaseTest {
     protected void setUp() {
         super.setUp();
         inputDataSet.setEntity(MarketoEntity.Lead);
+        inputDataSet.setBatchSize(200);
     }
 
     @Test
@@ -66,6 +70,14 @@ public class LeadSourceTest extends SourceBaseTest {
         result = source.runAction();
         assertNotNull(result);
         assertEquals(fields, marketoService.getFieldsFromDescribeFormatedForApi(result.getJsonArray(ATTR_RESULT)));
+    }
+
+    @Test
+    void testGetActivities() {
+        source = new LeadSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, leadClient);
+        source.getAccessToken();
+        JsonObject activities = source.getActivities();
+        assertTrue(activities.getJsonArray("result").size() > 30);
     }
 
     @Test
@@ -112,6 +124,17 @@ public class LeadSourceTest extends SourceBaseTest {
     void testGetMultipleLeadsWithAllFields() {
         setMultipleLeadsDefault();
         inputDataSet.setFields(fields);
+        source = new LeadSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, leadClient);
+        source.init();
+        while ((result = source.next()) != null) {
+            assertNotNull(result);
+        }
+    }
+
+    @Test
+    void testGetMultipleLeadsWithAllFieldsOver8k() {
+        setMultipleLeadsDefault();
+        inputDataSet.setFields(fields + String.join(" ", Collections.nCopies(5000, " ")));
         source = new LeadSource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, leadClient);
         source.init();
         while ((result = source.next()) != null) {

@@ -17,7 +17,6 @@
             <version>${component-runtime.version}</version>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>

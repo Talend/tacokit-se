@@ -50,7 +50,7 @@ class ListSourceTest extends SourceBaseTest {
     void testGetLists() {
         inputDataSet.setListAction(ListAction.list);
         inputDataSet.setLeadIds("");
-        inputDataSet.setName("");
+        inputDataSet.setListName("");
         inputDataSet.setProgramName("");
         inputDataSet.setWorkspaceName("");
         inputDataSet.setBatchSize(3);

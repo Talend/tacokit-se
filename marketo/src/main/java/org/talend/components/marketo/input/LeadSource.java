@@ -102,9 +102,12 @@ public class LeadSource extends MarketoSource {
 
     private String buildLeadForm(String filterType, String filterValues, String fields, Integer batchSize) {
         StringBuilder sb = new StringBuilder();
-        sb.append(ATTR_FILTER_TYPE + "=" + filterType);
-        sb.append(ATTR_FILTER_VALUES + "=" + filterValues);
-        sb.append(ATTR_FIELDS + "=" + fields);
+        sb.append(ATTR_FILTER_TYPE + "=" + filterType.trim());
+        sb.append("&");
+        sb.append(ATTR_FILTER_VALUES + "=" + filterValues.trim());
+        sb.append("&");
+        sb.append(ATTR_FIELDS + "=" + fields.trim());
+        sb.append("&");
         sb.append(ATTR_BATCH_SIZE + "=" + batchSize);
 
         return sb.toString();
@@ -116,7 +119,6 @@ public class LeadSource extends MarketoSource {
         String fields = dataSet.getFields();
         Integer batchSize = dataSet.getBatchSize();
         if (isLeadUrlSizeGreaterThan8k(filterType, filterValues, fields, batchSize)) {
-            LOG.warn("[getMultipleLeads] large url");
             return handleResponse(leadClient.getLeadByFilterType(HEADER_CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED,
                     REQUEST_PARAM_QUERY_METHOD_GET, accessToken, nextPageToken,
                     buildLeadForm(filterType, filterValues, fields, batchSize)));
@@ -153,11 +155,11 @@ public class LeadSource extends MarketoSource {
         return handleResponse(leadClient.getLeadChanges(accessToken, nextPageToken, listId, leadIds, fields, batchSize));
     }
 
-    private JsonObject getActivities() {
+    public JsonObject getActivities() {
         return handleResponse(leadClient.getActivities(accessToken));
     }
 
-    private String getPagingToken(String dateTime) {
+    public String getPagingToken(String dateTime) {
         Response<JsonObject> pt = leadClient.getPagingToken(accessToken, dateTime);
         return pt.body().getString(ATTR_NEXT_PAGE_TOKEN);
     }
