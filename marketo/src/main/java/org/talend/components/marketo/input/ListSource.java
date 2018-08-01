@@ -80,7 +80,7 @@ public class ListSource extends MarketoSource {
 
     private JsonObject getLists() {
         Integer id = dataSet.getListId();
-        String name = dataSet.getName();
+        String name = dataSet.getListName();
         String workspaceName = dataSet.getWorkspaceName();
         String programName = dataSet.getProgramName();
         Integer batchSize = dataSet.getBatchSize();
