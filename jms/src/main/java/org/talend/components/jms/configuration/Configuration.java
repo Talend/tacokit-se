@@ -7,6 +7,7 @@ import org.talend.sdk.component.api.configuration.action.Proposable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
+import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
@@ -58,4 +59,8 @@ public class Configuration implements Serializable {
     @Documentation("Properties table")
     private List<JMSOutputAdvancedProperties> properties;
 
+    @Option
+    @Structure(type = Structure.Type.OUT, discoverSchema = "discoverSchema")
+    @Documentation("Guess schema")
+    private List<String> schema;
 }
