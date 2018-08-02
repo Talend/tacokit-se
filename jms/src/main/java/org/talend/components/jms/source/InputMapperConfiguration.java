@@ -4,10 +4,13 @@ import lombok.Data;
 import org.talend.components.jms.configuration.Configuration;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
-@GridLayout(value = {@GridLayout.Row({"moduleList"}),
+@DataSet("JMSInputDataSet")
+@GridLayout(value = {
+        @GridLayout.Row({"moduleList"}),
         @GridLayout.Row({"url"}),
         @GridLayout.Row({"userIdentity"}),
         @GridLayout.Row({"userName", "password"}),
@@ -19,6 +22,7 @@ import org.talend.sdk.component.api.meta.Documentation;
         @GridLayout.Row({"messageSelector"})},
         names = GridLayout.FormType.MAIN)
 @GridLayout(value = {
+        @GridLayout.Row({"schema"}),
         @GridLayout.Row({"properties"})},
         names = GridLayout.FormType.ADVANCED)
 @Documentation("TODO fill the documentation for this configuration")
