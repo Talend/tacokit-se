@@ -26,7 +26,7 @@ public class JMSServiceTest {
     private JmsService jmsService;
 
     @Test
-    void sendAndReceiceJMSMessageQueue() {
+    void sendAndReceiveJMSMessageQueue() {
         OutputConfiguration configuration = new OutputConfiguration();
         configuration.setModuleList(ACTIVEMQ);
         configuration.setUrl(URL);
@@ -48,7 +48,7 @@ public class JMSServiceTest {
         jmsService.setConfiguration(configuration);
         jmsService.sendTextMessage(TEST_MESSAGE);
 
-        // assertEquals("Sent and received messages should be equal", TEST_MESSAGE, jmsService.receiveTextMessage(3000));
+         assertEquals("Sent and received messages should be equal", TEST_MESSAGE, jmsService.receiveTextMessage(3000));
     }
 
     @Test
@@ -75,5 +75,6 @@ public class JMSServiceTest {
         jmsService.setConfiguration(configuration);
         jmsService.sendTextMessage(TEST_MESSAGE);
 
+        assertEquals("Sent and received messages should be equal", TEST_MESSAGE, jmsService.receiveTextMessage(3000));
     }
 }

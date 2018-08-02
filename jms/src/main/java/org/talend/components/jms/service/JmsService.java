@@ -101,6 +101,8 @@ public class JmsService {
 
     private Session session;
 
+    private MessageConsumer consumer;
+
     private Map<String, ProviderInfo> loadProvidersFromConfigurationFile() {
         final Map<String, ProviderInfo> availableProviders = new HashMap<>();
         InputStream is = null;
@@ -203,19 +205,18 @@ public class JmsService {
         return producer;
     }
 
-    private MessageConsumer createConsumer() {
-        MessageConsumer consumer = null;
+    private MessageConsumer getConsumer() {
         try {
-            consumer = createConsumer(createDestination());
-        } catch (JMSException e) {
+            consumer = consumer == null ? createConsumer(createDestination()) : consumer;
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (NamingException e) {
             e.printStackTrace();
         } catch (InstantiationException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
             e.printStackTrace();
-        } catch (NamingException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
+        } catch (JMSException e) {
             e.printStackTrace();
         }
         return consumer;
@@ -250,9 +251,10 @@ public class JmsService {
     public String receiveTextMessage(Integer timeout) {
         String text = null;
         try {
-            Message message = createConsumer().receive(timeout);
+            Message message = getConsumer().receive(timeout);
             if (message != null) {
                 text = ((TextMessage) message).getText();
+                message.acknowledge();
             }
         } catch (JMSException e) {
             e.printStackTrace();
