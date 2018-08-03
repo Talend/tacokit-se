@@ -32,6 +32,7 @@ import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
+import javax.jms.Topic;
 import javax.json.bind.Jsonb;
 import javax.naming.Context;
 import javax.naming.NamingException;
@@ -40,6 +41,8 @@ import javax.naming.spi.InitialContextFactory;
 import org.talend.components.jms.ProviderInfo;
 import org.talend.components.jms.configuration.Configuration;
 import org.talend.components.jms.configuration.MessageType;
+import org.talend.components.jms.output.OutputConfiguration;
+import org.talend.components.jms.source.InputMapperConfiguration;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.dependency.Resolver;
@@ -166,6 +169,9 @@ public class JmsService {
         connection = configuration.isUserIdentity()
                 ? connectionFactory.createConnection(configuration.getUserName(), configuration.getPassword())
                 : connectionFactory.createConnection();
+        if (configuration instanceof InputMapperConfiguration) {
+            connection.setClientID(getClientId());
+        }
         connection.start();
 
         return connection;
@@ -187,44 +193,51 @@ public class JmsService {
         return jndiContext;
     }
 
-    private MessageProducer createProducer() {
+    private MessageProducer createProducer()
+            throws JMSException, ClassNotFoundException, NamingException, InstantiationException, IllegalAccessException {
         MessageProducer producer = null;
-        try {
-            producer = getSession().createProducer(createDestination());
-        } catch (JMSException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (NamingException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+        producer = getSession().createProducer(createDestination());
+        producer.setDeliveryMode(getDeliveryMode());
         return producer;
     }
 
-    private MessageConsumer getConsumer() {
-        try {
-            consumer = consumer == null ? createConsumer(createDestination()) : consumer;
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (NamingException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (JMSException e) {
-            e.printStackTrace();
+    private MessageConsumer getConsumer()
+            throws ClassNotFoundException, NamingException, InstantiationException, IllegalAccessException, JMSException {
+        if (consumer != null) {
+            return consumer;
+        }
+
+        if (isDurableSubscription()) {
+            consumer = getSession().createDurableSubscriber((Topic) createDestination(), getSubscriberName(), getMessageSelector(),
+                    false);
+        } else {
+            consumer = getSession().createConsumer(createDestination(), getMessageSelector());
         }
         return consumer;
     }
 
-    private MessageConsumer createConsumer(Destination destination)
-            throws ClassNotFoundException, NamingException, InstantiationException, IllegalAccessException, JMSException {
-        return getSession().createConsumer(destination);
+    private boolean isDurableSubscription() {
+        return ((InputMapperConfiguration) configuration).getSubscriptionConfig().isDurableSubscription();
+    }
+
+    private String getMessageSelector() {
+        return ((InputMapperConfiguration) configuration).getMessageSelector();
+    }
+
+    private String getSubscriberName() {
+        return ((InputMapperConfiguration) configuration).getSubscriptionConfig().getSubscriberName();
+    }
+
+    private String getClientId() {
+        return ((InputMapperConfiguration) configuration).getSubscriptionConfig().getClientId();
+    }
+
+    private int getTimeout() {
+        return ((InputMapperConfiguration) configuration).getTimeout();
+    }
+
+    private int getDeliveryMode() {
+        return ((OutputConfiguration) configuration).getDeliveryMode().getIntValue();
     }
 
     private Message createTextMessage(String text)
@@ -248,15 +261,23 @@ public class JmsService {
         }
     }
 
-    public String receiveTextMessage(Integer timeout) {
+    public String receiveTextMessage() {
         String text = null;
         try {
-            Message message = getConsumer().receive(timeout);
+            Message message = getConsumer().receive(getTimeout() * 1000);
             if (message != null) {
                 text = ((TextMessage) message).getText();
                 message.acknowledge();
             }
         } catch (JMSException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (NamingException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
         return text;
@@ -271,16 +292,17 @@ public class JmsService {
         return getProviders().get(configuration.getModuleList()).getClazz();
     }
 
-    private Destination createDestination(String destinationName)
-            throws ClassNotFoundException, NamingException, InstantiationException, IllegalAccessException, JMSException {
-        return MessageType.QUEUE == configuration.getMessageType() ? getSession().createQueue(destinationName)
-                : getSession().createTopic(destinationName);
-    }
-
     private Destination createDestination()
             throws NamingException, JMSException, InstantiationException, ClassNotFoundException, IllegalAccessException {
-        return configuration.isUserJNDILookup() ? (javax.jms.Destination) getJNDIContext().lookup(configuration.getDestination())
-                : createDestination(configuration.getDestination());
+        Destination destination;
+        if (configuration.isUserJNDILookup()) {
+            destination = (javax.jms.Destination) getJNDIContext().lookup(configuration.getDestination());
+        } else {
+            destination = MessageType.QUEUE == configuration.getMessageType()
+                    ? getSession().createQueue(configuration.getDestination())
+                    : getSession().createTopic(configuration.getDestination());
+        }
+        return destination;
     }
 
     public void setConfiguration(Configuration configuration) {
