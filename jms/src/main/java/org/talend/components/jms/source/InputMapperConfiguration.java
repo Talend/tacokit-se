@@ -32,7 +32,7 @@ public class InputMapperConfiguration extends Configuration {
     @Option
     @Documentation("Durable subscription configuration")
     @ActiveIf(target = "messageType", value = "TOPIC")
-    private DurableSubscriptionConfiguration subscriptionConfiguration;
+    private DurableSubscriptionConfiguration subscriptionConfig;
 
     @Option
     @Documentation("Timeout")
@@ -44,6 +44,6 @@ public class InputMapperConfiguration extends Configuration {
 
     @Option
     @Documentation("Message Selector Expression")
-    private String messageSelector;
+    private String messageSelector = "";
 
 }
