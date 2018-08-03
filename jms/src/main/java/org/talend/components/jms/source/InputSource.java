@@ -52,7 +52,7 @@ public class InputSource implements Serializable {
         if (counter >= configuration.getMaximumMessages()) {
             return null;
         } else {
-            message = service.receiveTextMessage(configuration.getTimeout() * 1000);
+            message = service.receiveTextMessage();
         }
         counter++;
         return message != null ? buildJSON(message) : null;
