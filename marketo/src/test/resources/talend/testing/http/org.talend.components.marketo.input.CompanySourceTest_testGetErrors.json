@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"c0c33cb3-4677-4062-9ea7-521c41595e9d:sj\",\"token_type\":\"bearer\",\"expires_in\":3438,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"7f3015ec-97ce-4e59-b5e4-6e53a6cd4d75:sj\",\"token_type\":\"bearer\",\"expires_in\":943,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -30,7 +30,7 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?filterValues=google01,google02,google03,google04,google05,google06&access_token=c0c33cb3-4677-4062-9ea7-521c41595e9d%3Asj&fields=createdAt,externalCompanyId,id,updatedAt,annualRevenue,billingCity,billingCountry,billingPostalCode,billingState,billingStreet,company,companyNotes,externalSalesPersonId,industry,mainPhone,numberOfEmployees,sicCode,site,website&filterType="
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?filterValues=google01,google02,google03,google04,google05,google06&access_token=7f3015ec-97ce-4e59-b5e4-6e53a6cd4d75%3Asj&fields=createdAt,externalCompanyId,id,updatedAt,annualRevenue,billingCity,billingCountry,billingPostalCode,billingState,billingStreet,company,companyNotes,externalSalesPersonId,industry,mainPhone,numberOfEmployees,sicCode,site,website&filterType="
     },
     "response":{
       "headers":{
@@ -39,7 +39,7 @@
         "Content-Length":"113",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"14da1#164f9717e55\",\"success\":false,\"errors\":[{\"code\":\"1003\",\"message\":\"filterType not specified\"}]}",
+      "payload":"{\"requestId\":\"16d1f#1650f9fdca0\",\"success\":false,\"errors\":[{\"code\":\"1003\",\"message\":\"filterType not specified\"}]}",
       "status":200
     }
   }

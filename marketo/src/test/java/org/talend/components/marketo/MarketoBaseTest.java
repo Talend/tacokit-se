@@ -132,7 +132,7 @@ public class MarketoBaseTest {
             MARKETO_CLIENT_ID = serverWithNoCrm.getUsername();
             MARKETO_CLIENT_SECRET = serverWithNoCrm.getPassword();
             if (!"username".equals(MARKETO_CLIENT_ID)) {
-                System.setProperty("talend.junit.http.capture", "true");
+                // System.setProperty("talend.junit.http.capture", "true");
             }
         } catch (Exception e) {
             System.setProperty("talend.junit.http.capture", "false");

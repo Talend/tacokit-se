@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"c0c33cb3-4677-4062-9ea7-521c41595e9d:sj\",\"token_type\":\"bearer\",\"expires_in\":3521,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"fba73be9-865e-4bbc-9195-92f34da56ae5:sj\",\"token_type\":\"bearer\",\"expires_in\":3590,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -28,109 +28,19 @@
         "Content-type":"application/json",
         "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
         "Connection":"keep-alive",
-        "Content-Length":"106"
+        "Content-Length":"84"
       },
       "method":"POST",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities.json?access_token=c0c33cb3-4677-4062-9ea7-521c41595e9d%3Asj"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities/delete.json?access_token=fba73be9-865e-4bbc-9195-92f34da56ae5%3Asj"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
-        "Content-Length":"141",
+        "Content-Length":"144",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"12d4a#164f9703a62\",\"result\":[{\"seq\":0,\"marketoGUID\":\"adbb5f10-2e62-4dcf-8de5-2d0105ac4599\",\"status\":\"updated\"}],\"success\":true}",
-      "status":200
-    }
-  },
-  {
-    "request":{
-      "headers":{
-        "content-length":"0",
-        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
-        "Connection":"keep-alive"
-      },
-      "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/identity/oauth/token?grant_type=client_credentials&client_secret=t2a67VUioKCU1uZxp4IhXvm8OpYbLYGQ&client_id=736ec2cf-4038-4eb2-bcc6-8b4ef331f4b5"
-    },
-    "response":{
-      "headers":{
-        "Transfer-Encoding":"chunked",
-        "Server":"nginx",
-        "Cache-Control":"no-store",
-        "Connection":"keep-alive",
-        "Pragma":"no-cache",
-        "Content-Type":"application/json;charset=UTF-8"
-      },
-      "payload":"{\"access_token\":\"c0c33cb3-4677-4062-9ea7-521c41595e9d:sj\",\"token_type\":\"bearer\",\"expires_in\":3519,\"scope\":\"undx@talend.com\"}",
-      "status":200
-    }
-  },
-  {
-    "request":{
-      "headers":{
-        "Content-type":"application/json",
-        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
-        "Connection":"keep-alive",
-        "Content-Length":"134"
-      },
-      "method":"POST",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities/roles.json?access_token=c0c33cb3-4677-4062-9ea7-521c41595e9d%3Asj"
-    },
-    "response":{
-      "headers":{
-        "Server":"nginx",
-        "Connection":"keep-alive",
-        "Content-Length":"141",
-        "Content-Type":"application/json;charset=UTF-8"
-      },
-      "payload":"{\"requestId\":\"180a8#164f9704097\",\"result\":[{\"seq\":0,\"marketoGUID\":\"30d720c8-2460-4375-91d9-5a4fa24661f8\",\"status\":\"updated\"}],\"success\":true}",
-      "status":200
-    }
-  },
-  {
-    "request":{
-      "headers":{
-        "content-length":"0",
-        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
-        "Connection":"keep-alive"
-      },
-      "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/identity/oauth/token?grant_type=client_credentials&client_secret=t2a67VUioKCU1uZxp4IhXvm8OpYbLYGQ&client_id=736ec2cf-4038-4eb2-bcc6-8b4ef331f4b5"
-    },
-    "response":{
-      "headers":{
-        "Transfer-Encoding":"chunked",
-        "Server":"nginx",
-        "Cache-Control":"no-store",
-        "Connection":"keep-alive",
-        "Pragma":"no-cache",
-        "Content-Type":"application/json;charset=UTF-8"
-      },
-      "payload":"{\"access_token\":\"c0c33cb3-4677-4062-9ea7-521c41595e9d:sj\",\"token_type\":\"bearer\",\"expires_in\":3517,\"scope\":\"undx@talend.com\"}",
-      "status":200
-    }
-  },
-  {
-    "request":{
-      "headers":{
-        "Content-type":"application/json",
-        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
-        "Connection":"keep-alive",
-        "Content-Length":"112"
-      },
-      "method":"POST",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities/roles/delete.json?access_token=c0c33cb3-4677-4062-9ea7-521c41595e9d%3Asj"
-    },
-    "response":{
-      "headers":{
-        "Server":"nginx",
-        "Connection":"keep-alive",
-        "Content-Length":"145",
-        "Content-Type":"application/json;charset=UTF-8"
-      },
-      "payload":"{\"requestId\":\"1529f#164f9704823\",\"result\":[{\"seq\":0,\"reasons\":[{\"code\":\"1013\",\"message\":\"Record not found\"}],\"status\":\"skipped\"}],\"success\":true}",
+      "payload":"{\"requestId\":\"de01#1650fb552ab\",\"result\":[{\"seq\":0,\"reasons\":[{\"code\":\"1013\",\"message\":\"Record not found\"}],\"status\":\"skipped\"}],\"success\":true}",
       "status":200
     }
   }

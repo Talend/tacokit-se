@@ -18,28 +18,29 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"fc8c2385-86f5-439b-98aa-959922a19824:sj\",\"token_type\":\"bearer\",\"expires_in\":1979,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"fba73be9-865e-4bbc-9195-92f34da56ae5:sj\",\"token_type\":\"bearer\",\"expires_in\":3596,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
   {
     "request":{
       "headers":{
-        "content-length":"0",
+        "Content-type":"application/json",
         "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
-        "Connection":"keep-alive"
+        "Connection":"keep-alive",
+        "Content-Length":"134"
       },
-      "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?filterValues=google01,google02,google03,google04,google05,google06&access_token=fc8c2385-86f5-439b-98aa-959922a19824%3Asj&fields=createdAt,externalCompanyId,id,updatedAt,annualRevenue,billingCity,billingCountry,billingPostalCode,billingState,billingStreet,company,companyNotes,externalSalesPersonId,industry,mainPhone,numberOfEmployees,sicCode,site,website&filterType="
+      "method":"POST",
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities/roles.json?access_token=fba73be9-865e-4bbc-9195-92f34da56ae5%3Asj"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
-        "Content-Length":"113",
+        "Content-Length":"140",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"10a23#16446e92168\",\"success\":false,\"errors\":[{\"code\":\"1003\",\"message\":\"filterType not specified\"}]}",
+      "payload":"{\"requestId\":\"24f6#1650fb53b04\",\"result\":[{\"seq\":0,\"marketoGUID\":\"3b94b4b4-4ad9-4cf3-9ca8-dfc32c8f29a3\",\"status\":\"updated\"}],\"success\":true}",
       "status":200
     }
   }

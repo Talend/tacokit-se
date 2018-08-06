@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"c0c33cb3-4677-4062-9ea7-521c41595e9d:sj\",\"token_type\":\"bearer\",\"expires_in\":3446,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"7f3015ec-97ce-4e59-b5e4-6e53a6cd4d75:sj\",\"token_type\":\"bearer\",\"expires_in\":950,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -30,16 +30,16 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?filterValues=google01,google02,google03,google04,google05,google06&access_token=c0c33cb3-4677-4062-9ea7-521c41595e9d%3Asj&batchSize=10&fields=mainPhone,company,website&filterType=externalCompanyId"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?filterValues=google01,google02,google03,google04,google05,google06&access_token=7f3015ec-97ce-4e59-b5e4-6e53a6cd4d75%3Asj&batchSize=10&fields=mainPhone,company,website&filterType=externalCompanyId"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
-        "Content-Length":"511",
+        "Content-Length":"510",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"1812a#164f9715fc4\",\"result\":[{\"seq\":0,\"id\":53,\"website\":\"g.plus\",\"externalCompanyId\":\"google02\",\"mainPhone\":\"33688828052\",\"company\":\"Google\"},{\"seq\":1,\"id\":54,\"website\":\"g.plus\",\"externalCompanyId\":\"google03\",\"mainPhone\":\"33688828052\",\"company\":\"Google\"},{\"seq\":2,\"id\":55,\"website\":\"g.plus\",\"externalCompanyId\":\"google04\",\"mainPhone\":\"33688828052\",\"company\":\"Google\"},{\"seq\":3,\"id\":56,\"website\":\"g.plus\",\"externalCompanyId\":\"google05\",\"mainPhone\":\"33688828052\",\"company\":\"Google\"}],\"success\":true}",
+      "payload":"{\"requestId\":\"ea62#1650f9fc0e2\",\"result\":[{\"seq\":0,\"id\":53,\"website\":\"g.plus\",\"externalCompanyId\":\"google02\",\"mainPhone\":\"33688828052\",\"company\":\"Google\"},{\"seq\":1,\"id\":54,\"website\":\"g.plus\",\"externalCompanyId\":\"google03\",\"mainPhone\":\"33688828052\",\"company\":\"Google\"},{\"seq\":2,\"id\":55,\"website\":\"g.plus\",\"externalCompanyId\":\"google04\",\"mainPhone\":\"33688828052\",\"company\":\"Google\"},{\"seq\":3,\"id\":56,\"website\":\"g.plus\",\"externalCompanyId\":\"google05\",\"mainPhone\":\"33688828052\",\"company\":\"Google\"}],\"success\":true}",
       "status":200
     }
   }
