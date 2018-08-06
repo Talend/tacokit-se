@@ -55,7 +55,7 @@ class OpportunitySourceTest extends SourceBaseTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "Opportunity", "OpportunityRole" })
+    @ValueSource(strings = { "Opportunity" })
     void testDescribeOpportunity(String entity) {
         inputDataSet.setEntity(MarketoEntity.valueOf(entity));
         inputDataSet.setOtherAction(OtherEntityAction.describe);
@@ -67,8 +67,20 @@ class OpportunitySourceTest extends SourceBaseTest {
         }
     }
 
+    @Test
+    void testDescribeOpportunityRole() {
+        inputDataSet.setEntity(MarketoEntity.OpportunityRole);
+        inputDataSet.setOtherAction(OtherEntityAction.describe);
+        initSource();
+        while ((result = source.next()) != null) {
+            assertNotNull(result);
+            assertNotNull(result.getString(ATTR_NAME));
+            assertNotNull(result.getJsonArray(ATTR_DEDUPE_FIELDS));
+        }
+    }
+
     @ParameterizedTest
-    @ValueSource(strings = { "Opportunity", "OpportunityRole" })
+    @ValueSource(strings = { "Opportunity" })
     void testGetOpportunities(String entity) {
         inputDataSet.setEntity(MarketoEntity.valueOf(entity));
         inputDataSet.setOtherAction(OtherEntityAction.get);
@@ -82,6 +94,21 @@ class OpportunitySourceTest extends SourceBaseTest {
                 assertNotNull(result.getInt(ATTR_LEAD_ID));
                 assertNotNull(result.getString(ATTR_ROLE));
             }
+        }
+    }
+
+    @Test
+    void testGetOpportunityRoles() {
+        inputDataSet.setEntity(MarketoEntity.OpportunityRole);
+        inputDataSet.setOtherAction(OtherEntityAction.get);
+        inputDataSet.setFilterType(ATTR_EXTERNAL_OPPORTUNITY_ID);
+        inputDataSet.setFilterValues(TEST_OPPORTUNITY_EXISTING);
+        initSource();
+        while ((result = source.next()) != null) {
+            assertNotNull(result);
+            assertNotNull(result.getString(ATTR_EXTERNAL_OPPORTUNITY_ID));
+            assertNotNull(result.getInt(ATTR_LEAD_ID));
+            assertNotNull(result.getString(ATTR_ROLE));
         }
     }
 

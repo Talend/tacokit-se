@@ -24,6 +24,7 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_SEQ;
 import javax.json.JsonObject;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.talend.components.marketo.dataset.MarketoDataSet.MarketoEntity;
@@ -53,25 +54,41 @@ class OpportunityProcessorTest extends MarketoProcessorBaseTest {
         outputDataSet.setDeleteBy(DeleteBy.dedupeFields);
         // create our opportunity
         data = jsonFactory.createObjectBuilder().add(ATTR_EXTERNAL_OPPORTUNITY_ID, OPPORTUNITY_101).build();
-        outputDataSet.setAction(OutputAction.sync);
-        initProcessor();
-        processor.map(data, main -> assertEquals(0, main.getInt(ATTR_SEQ)), reject -> fail(FAIL_REJECT));
         // create our opportunityRole
         dataOR = jsonFactory.createObjectBuilder() //
                 .add(ATTR_EXTERNAL_OPPORTUNITY_ID, OPPORTUNITY_101) //
                 .add(ATTR_ROLE, "newCust") //
                 .add(ATTR_LEAD_ID, 4) //
                 .build();
-        outputDataSet.setEntity(MarketoEntity.OpportunityRole);
-        outputDataSet.setAction(OutputAction.sync);
-        initProcessor();
-        processor.map(dataOR, main -> assertEquals(0, main.getInt(ATTR_SEQ)), reject -> fail(FAIL_REJECT));
-        //
+        // not existing opportunity
         dataNotExist = jsonFactory.createObjectBuilder().add(ATTR_EXTERNAL_OPPORTUNITY_ID, "XxXOppportunityXxX").build();
+        // not existing opportunityRole
         dataNotExistOR = jsonFactory.createObjectBuilder() //
-                .add(ATTR_EXTERNAL_OPPORTUNITY_ID, "XxXOppportunityXxX").add(ATTR_ROLE, "newCust") //
+                .add(ATTR_EXTERNAL_OPPORTUNITY_ID, "XxXOppportunityXxX") //
+                .add(ATTR_ROLE, "newCust") //
                 .add(ATTR_LEAD_ID, 4) //
                 .build();
+        //
+        // outputDataSet.setAction(OutputAction.sync);
+        // initProcessor();
+        // processor.map(data, main -> assertEquals(0, main.getInt(ATTR_SEQ)), reject -> fail(FAIL_REJECT));
+        // outputDataSet.setEntity(MarketoEntity.OpportunityRole);
+        // outputDataSet.setAction(OutputAction.sync);
+        // initProcessor();
+        // processor.map(dataOR, main -> assertEquals(0, main.getInt(ATTR_SEQ)), reject -> fail(FAIL_REJECT));
+        // // be sure that those one do not exist
+        // outputDataSet.setEntity(MarketoEntity.OpportunityRole);
+        // outputDataSet.setAction(OutputAction.delete);
+        // initProcessor();
+        // processor.map(dataNotExistOR, main -> {
+        // }, reject -> {
+        // });
+        // outputDataSet.setEntity(MarketoEntity.Opportunity);
+        // initProcessor();
+        // processor.map(dataNotExist, main -> {
+        // }, reject -> {
+        // });
+        //
         //
         outputDataSet.setEntity(MarketoEntity.Opportunity);
     }
@@ -83,7 +100,7 @@ class OpportunityProcessorTest extends MarketoProcessorBaseTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "Opportunity", "OpportunityRole" })
+    @ValueSource(strings = { "Opportunity" }) // , "OpportunityRole" })
     void testSyncOpportunity(String entity) {
         outputDataSet.setEntity(MarketoEntity.valueOf(entity));
         outputDataSet.setAction(OutputAction.sync);
@@ -92,19 +109,39 @@ class OpportunityProcessorTest extends MarketoProcessorBaseTest {
                 reject -> fail(FAIL_REJECT));
     }
 
+    @Test
+    void testSyncOpportunityRole() {
+        outputDataSet.setEntity(MarketoEntity.OpportunityRole);
+        outputDataSet.setAction(OutputAction.sync);
+        initProcessor();
+        processor.map(dataOR, main -> assertEquals(0, main.getInt(ATTR_SEQ)), reject -> fail(FAIL_REJECT));
+    }
+
     @ParameterizedTest
-    @ValueSource(strings = { "Opportunity", "OpportunityRole" })
+    @ValueSource(strings = { "Opportunity" }) // , "OpportunityRole" })
     void testSyncOpportunityFail(String entity) {
         outputDataSet.setEntity(MarketoEntity.valueOf(entity));
         outputDataSet.setAction(OutputAction.sync);
         outputDataSet.setSyncMethod(SyncMethod.updateOnly);
         initProcessor();
-        processor.map("Opportunity".equals(entity) ? dataNotExist : dataNotExistOR, main -> fail(FAIL_MAIN),
+        processor.map("Opportunity".equals(entity) ? dataNotExist : dataNotExistOR, main -> {
+            LOG.error("[testSyncOpportunityFail] receiving MAIN {}", main);
+            fail(FAIL_MAIN);
+        }, reject -> assertEquals("1013", reject.getJsonArray(ATTR_REASONS).get(0).asJsonObject().getString(ATTR_CODE)));
+    }
+
+    @Test
+    void testSyncOpportunityRoleFail() {
+        outputDataSet.setEntity(MarketoEntity.OpportunityRole);
+        outputDataSet.setAction(OutputAction.sync);
+        outputDataSet.setSyncMethod(SyncMethod.updateOnly);
+        initProcessor();
+        processor.map(dataNotExistOR, main -> fail(FAIL_MAIN),
                 reject -> assertEquals("1013", reject.getJsonArray(ATTR_REASONS).get(0).asJsonObject().getString(ATTR_CODE)));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "Opportunity", "OpportunityRole" })
+    @ValueSource(strings = { "Opportunity" }) // , "OpportunityRole" })
     void testDeleteOpportunity(String entity) {
         outputDataSet.setEntity(MarketoEntity.valueOf(entity));
         outputDataSet.setAction(OutputAction.delete);
@@ -113,13 +150,30 @@ class OpportunityProcessorTest extends MarketoProcessorBaseTest {
                 reject -> fail(FAIL_REJECT));
     }
 
+    @Test
+    void testDeleteOpportunityRole() {
+        outputDataSet.setEntity(MarketoEntity.OpportunityRole);
+        outputDataSet.setAction(OutputAction.delete);
+        initProcessor();
+        processor.map(dataOR, main -> assertEquals(0, main.getInt(ATTR_SEQ)), reject -> fail(FAIL_REJECT));
+    }
+
     @ParameterizedTest
-    @ValueSource(strings = { "Opportunity", "OpportunityRole" })
+    @ValueSource(strings = { "Opportunity" }) // , "OpportunityRole" })
     void testDeleteOpportunityFail(String entity) {
         outputDataSet.setEntity(MarketoEntity.valueOf(entity));
         outputDataSet.setAction(OutputAction.delete);
         initProcessor();
         processor.map("Opportunity".equals(entity) ? dataNotExist : dataNotExistOR, main -> fail(FAIL_MAIN),
+                reject -> assertEquals("1013", reject.getJsonArray(ATTR_REASONS).get(0).asJsonObject().getString(ATTR_CODE)));
+    }
+
+    @Test
+    void testDeleteOpportunityRoleFail() {
+        outputDataSet.setEntity(MarketoEntity.OpportunityRole);
+        outputDataSet.setAction(OutputAction.delete);
+        initProcessor();
+        processor.map(dataNotExistOR, main -> fail(FAIL_MAIN),
                 reject -> assertEquals("1013", reject.getJsonArray(ATTR_REASONS).get(0).asJsonObject().getString(ATTR_CODE)));
     }
 

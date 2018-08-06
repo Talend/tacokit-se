@@ -114,9 +114,49 @@ class UIActionServiceTest extends MarketoBaseTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "Lead", "List", "Company", "CustomObject", "Opportunity", "OpportunityRole" })
+    @ValueSource(strings = { "Lead" }) // , "List", "Company", "CustomObject", "Opportunity", "OpportunityRole" })
     void testGuessEntitySchema(String entity) {
         inputDataSet.setEntity(MarketoEntity.valueOf(entity));
+        Schema schema = uiActionService.guessEntitySchemaForInput(inputDataSet);
+        Assert.assertNotNull(schema);
+        assertFalse(schema.getEntries().isEmpty());
+    }
+
+    @Test
+    void testGuessListEntitySchema() {
+        inputDataSet.setEntity(MarketoEntity.List);
+        Schema schema = uiActionService.guessEntitySchemaForInput(inputDataSet);
+        Assert.assertNotNull(schema);
+        assertFalse(schema.getEntries().isEmpty());
+    }
+
+    @Test
+    void testGuessCompanyEntitySchema() {
+        inputDataSet.setEntity(MarketoEntity.Company);
+        Schema schema = uiActionService.guessEntitySchemaForInput(inputDataSet);
+        Assert.assertNotNull(schema);
+        assertFalse(schema.getEntries().isEmpty());
+    }
+
+    @Test
+    void testGuessCustomObjectEntitySchema() {
+        inputDataSet.setEntity(MarketoEntity.CustomObject);
+        Schema schema = uiActionService.guessEntitySchemaForInput(inputDataSet);
+        Assert.assertNotNull(schema);
+        assertFalse(schema.getEntries().isEmpty());
+    }
+
+    @Test
+    void testGuessOpportunityEntitySchema() {
+        inputDataSet.setEntity(MarketoEntity.Opportunity);
+        Schema schema = uiActionService.guessEntitySchemaForInput(inputDataSet);
+        Assert.assertNotNull(schema);
+        assertFalse(schema.getEntries().isEmpty());
+    }
+
+    @Test
+    void testGuessOpportunityRoleEntitySchema() {
+        inputDataSet.setEntity(MarketoEntity.OpportunityRole);
         Schema schema = uiActionService.guessEntitySchemaForInput(inputDataSet);
         Assert.assertNotNull(schema);
         assertFalse(schema.getEntries().isEmpty());

@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"c0c33cb3-4677-4062-9ea7-521c41595e9d:sj\",\"token_type\":\"bearer\",\"expires_in\":3398,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"7f3015ec-97ce-4e59-b5e4-6e53a6cd4d75:sj\",\"token_type\":\"bearer\",\"expires_in\":1018,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   }

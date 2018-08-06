@@ -18,28 +18,29 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"fb297e00-4977-41ba-ab73-d14db0493fb4:sj\",\"token_type\":\"bearer\",\"expires_in\":117,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"fba73be9-865e-4bbc-9195-92f34da56ae5:sj\",\"token_type\":\"bearer\",\"expires_in\":3588,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
   {
     "request":{
       "headers":{
-        "content-length":"0",
+        "Content-type":"application/json",
         "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
-        "Connection":"keep-alive"
+        "Connection":"keep-alive",
+        "Content-Length":"108"
       },
-      "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/leads.json?filterValues=1,2,3,4,5&access_token=fb297e00-4977-41ba-ab73-d14db0493fb4%3Asj&fields=unkknownField&filterType=id"
+      "method":"POST",
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities/roles/delete.json?access_token=fba73be9-865e-4bbc-9195-92f34da56ae5%3Asj"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
-        "Content-Length":"120",
+        "Content-Length":"140",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"11cf2#16465906cf3\",\"success\":false,\"errors\":[{\"code\":\"1006\",\"message\":\"Field 'unkknownField' not found\"}]}",
+      "payload":"{\"requestId\":\"2ab3#1650fb559b7\",\"result\":[{\"seq\":0,\"marketoGUID\":\"3b94b4b4-4ad9-4cf3-9ca8-dfc32c8f29a3\",\"status\":\"deleted\"}],\"success\":true}",
       "status":200
     }
   }

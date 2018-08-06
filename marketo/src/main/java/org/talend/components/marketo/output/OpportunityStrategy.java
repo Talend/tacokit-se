@@ -55,8 +55,6 @@ public class OpportunityStrategy extends OutputComponentStrategy {
     public JsonObject getPayload(JsonObject incomingData) {
         JsonObject data = incomingData;
         JsonArray input = jsonFactory.createArrayBuilder().add(data).build();
-        LOG.warn("[getPayload] data: {}; input: {}.", incomingData, input);
-
         if (OutputAction.sync.equals(dataSet.getAction())) {
             return jsonFactory.createObjectBuilder() //
                     .add(ATTR_ACTION, dataSet.getSyncMethod().name()) //
@@ -73,6 +71,7 @@ public class OpportunityStrategy extends OutputComponentStrategy {
 
     @Override
     public JsonObject runAction(JsonObject payload) {
+        LOG.warn("[runAction] payload: {}.", payload);
         switch (dataSet.getAction()) {
         case sync:
             return syncOpportunity(payload);
