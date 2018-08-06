@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"16f48384-6a67-4b28-92e2-cdc05df731d1:sj\",\"token_type\":\"bearer\",\"expires_in\":1562,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"c0c33cb3-4677-4062-9ea7-521c41595e9d:sj\",\"token_type\":\"bearer\",\"expires_in\":3444,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -30,17 +30,17 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?filterValues=google01,google02,google03,google04,google05,google06&access_token=16f48384-6a67-4b28-92e2-cdc05df731d1%3Asj&fields=createdAt,externalCompanyId,id,updatedAt,annualRevenue,billingCity,billingCountry,billingPostalCode,billingState,billingStreet,company,companyNotes,externalSalesPersonId,industry,mainPhone,numberOfEmployees,sicCode,site,website&filterType=externalCompanyId"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?filterValues=google01,google02,google03,google04,google05,google06&access_token=c0c33cb3-4677-4062-9ea7-521c41595e9d%3Asj&fields=createdAt,externalCompanyId,id,updatedAt,annualRevenue,billingCity,billingCountry,billingPostalCode,billingState,billingStreet,company,companyNotes,externalSalesPersonId,industry,mainPhone,numberOfEmployees,sicCode,site,website&filterType=externalCompanyId"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
         "Vary":"Accept-Encoding",
-        "Content-Length":"1655",
+        "Content-Length":"1654",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"164bb#164f4cf1de8\",\"result\":[{\"seq\":0,\"id\":53,\"billingCountry\":null,\"billingPostalCode\":null,\"website\":\"g.plus\",\"companyNotes\":null,\"updatedAt\":\"2018-06-25T11:35:44Z\",\"industry\":null,\"company\":\"Google\",\"annualRevenue\":null,\"numberOfEmployees\":null,\"site\":null,\"externalCompanyId\":\"google02\",\"mainPhone\":\"33688828052\",\"billingCity\":null,\"sicCode\":null,\"billingState\":null,\"createdAt\":\"2018-06-25T11:35:44Z\",\"billingStreet\":null},{\"seq\":1,\"id\":54,\"billingCountry\":null,\"billingPostalCode\":null,\"website\":\"g.plus\",\"companyNotes\":null,\"updatedAt\":\"2018-06-25T11:35:55Z\",\"industry\":null,\"company\":\"Google\",\"annualRevenue\":null,\"numberOfEmployees\":null,\"site\":null,\"externalCompanyId\":\"google03\",\"mainPhone\":\"33688828052\",\"billingCity\":null,\"sicCode\":null,\"billingState\":null,\"createdAt\":\"2018-06-25T11:35:55Z\",\"billingStreet\":null},{\"seq\":2,\"id\":55,\"billingCountry\":null,\"billingPostalCode\":null,\"website\":\"g.plus\",\"companyNotes\":null,\"updatedAt\":\"2018-06-25T11:36:09Z\",\"industry\":null,\"company\":\"Google\",\"annualRevenue\":null,\"numberOfEmployees\":null,\"site\":null,\"externalCompanyId\":\"google04\",\"mainPhone\":\"33688828052\",\"billingCity\":null,\"sicCode\":null,\"billingState\":null,\"createdAt\":\"2018-06-25T11:36:09Z\",\"billingStreet\":null},{\"seq\":3,\"id\":56,\"billingCountry\":null,\"billingPostalCode\":null,\"website\":\"g.plus\",\"companyNotes\":null,\"updatedAt\":\"2018-06-25T11:36:22Z\",\"industry\":null,\"company\":\"Google\",\"annualRevenue\":null,\"numberOfEmployees\":null,\"site\":null,\"externalCompanyId\":\"google05\",\"mainPhone\":\"33688828052\",\"billingCity\":null,\"sicCode\":null,\"billingState\":null,\"createdAt\":\"2018-06-25T11:36:22Z\",\"billingStreet\":null}],\"success\":true}",
+      "payload":"{\"requestId\":\"fbd1#164f97166ac\",\"result\":[{\"seq\":0,\"id\":53,\"billingCountry\":null,\"billingPostalCode\":null,\"website\":\"g.plus\",\"companyNotes\":null,\"updatedAt\":\"2018-06-25T11:35:44Z\",\"industry\":null,\"company\":\"Google\",\"annualRevenue\":null,\"numberOfEmployees\":null,\"site\":null,\"externalCompanyId\":\"google02\",\"mainPhone\":\"33688828052\",\"billingCity\":null,\"sicCode\":null,\"billingState\":null,\"createdAt\":\"2018-06-25T11:35:44Z\",\"billingStreet\":null},{\"seq\":1,\"id\":54,\"billingCountry\":null,\"billingPostalCode\":null,\"website\":\"g.plus\",\"companyNotes\":null,\"updatedAt\":\"2018-06-25T11:35:55Z\",\"industry\":null,\"company\":\"Google\",\"annualRevenue\":null,\"numberOfEmployees\":null,\"site\":null,\"externalCompanyId\":\"google03\",\"mainPhone\":\"33688828052\",\"billingCity\":null,\"sicCode\":null,\"billingState\":null,\"createdAt\":\"2018-06-25T11:35:55Z\",\"billingStreet\":null},{\"seq\":2,\"id\":55,\"billingCountry\":null,\"billingPostalCode\":null,\"website\":\"g.plus\",\"companyNotes\":null,\"updatedAt\":\"2018-06-25T11:36:09Z\",\"industry\":null,\"company\":\"Google\",\"annualRevenue\":null,\"numberOfEmployees\":null,\"site\":null,\"externalCompanyId\":\"google04\",\"mainPhone\":\"33688828052\",\"billingCity\":null,\"sicCode\":null,\"billingState\":null,\"createdAt\":\"2018-06-25T11:36:09Z\",\"billingStreet\":null},{\"seq\":3,\"id\":56,\"billingCountry\":null,\"billingPostalCode\":null,\"website\":\"g.plus\",\"companyNotes\":null,\"updatedAt\":\"2018-06-25T11:36:22Z\",\"industry\":null,\"company\":\"Google\",\"annualRevenue\":null,\"numberOfEmployees\":null,\"site\":null,\"externalCompanyId\":\"google05\",\"mainPhone\":\"33688828052\",\"billingCity\":null,\"sicCode\":null,\"billingState\":null,\"createdAt\":\"2018-06-25T11:36:22Z\",\"billingStreet\":null}],\"success\":true}",
       "status":200
     }
   }

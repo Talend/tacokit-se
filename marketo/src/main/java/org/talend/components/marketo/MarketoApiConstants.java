@@ -119,4 +119,6 @@ public class MarketoApiConstants {
     public static final String REQUEST_PARAM_QUERY_METHOD_DELETE = "DELETE";
 
     public static final String REQUEST_PARAM_QUERY_METHOD_GET = "GET";
+
+    public static final String ATTR_LEAD_IDS = "leadIds";
 }

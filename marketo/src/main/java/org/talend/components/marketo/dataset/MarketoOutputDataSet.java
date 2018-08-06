@@ -12,6 +12,8 @@
 // ============================================================================
 package org.talend.components.marketo.dataset;
 
+import lombok.Data;
+
 import static org.talend.components.marketo.service.UIActionService.GUESS_ENTITY_SCHEMA_OUTPUT;
 
 import java.util.List;
@@ -24,8 +26,6 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure.Type;
 import org.talend.sdk.component.api.meta.Documentation;
-
-import lombok.Data;
 
 @Data
 @DataSet(MarketoOutputDataSet.NAME)
@@ -83,6 +83,18 @@ public class MarketoOutputDataSet extends MarketoDataSet {
     @Documentation("Action")
     private OutputAction action;
 
+    /*
+     * Lead Entity
+     */
+    @Option
+    @ActiveIf(target = "entity", value = "Lead")
+    @ActiveIf(target = "action", value = "sync")
+    @Documentation("Lookup Field")
+    private String lookupField;
+
+    /*
+     * CustomObject Entity
+     */
     @Option
     @ActiveIf(target = "entity", value = { "CustomObject" })
     @Documentation("Custom Object Name")
@@ -91,22 +103,18 @@ public class MarketoOutputDataSet extends MarketoDataSet {
     /*
      * List Entity
      */
-
     @Option
     @ActiveIf(target = "entity", value = { "List" })
     @Documentation("List Action")
     private ListAction listAction;
 
+    /*
+     * All entities
+     */
     @Option
     @ActiveIf(target = "entity", value = { "Lead", "CustomObject", "Company", "Opportunity", "OpportunityRole" })
     @Documentation("Synchronization method")
     private SyncMethod syncMethod;
-
-    @Option
-    @ActiveIf(target = "entity", value = "Lead")
-    @ActiveIf(target = "action", value = "sync")
-    @Documentation("Lookup Field")
-    private String lookupField;
 
     @Option
     @ActiveIf(target = "action", value = { "sync" })
