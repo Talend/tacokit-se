@@ -18,10 +18,9 @@ import static org.talend.components.marketo.service.UIActionService.GUESS_ENTITY
 
 import java.util.List;
 
-import org.apache.beam.sdk.repackaged.org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
-import org.talend.sdk.component.api.configuration.constraint.Pattern;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -36,8 +35,7 @@ import org.talend.sdk.component.api.meta.Documentation;
         @GridLayout({ //
                 @GridLayout.Row({ "dataStore" }), //
                 @GridLayout.Row({ "entity", "leadAction", "otherAction", "listAction" }), //
-                @GridLayout.Row({ "leadSelector", "leadKeyName", "leadKeyValues" }), //
-                @GridLayout.Row({ "leadListIdOrName" }), //
+                @GridLayout.Row({ "leadKeyName", "leadKeyValues" }), //
                 @GridLayout.Row({ "leadId", "leadIds", "assetIds", "listId" }), //
                 @GridLayout.Row({ "customObjectName" }), //
                 @GridLayout.Row({ "activityTypeIds" }), //
@@ -61,11 +59,6 @@ public class MarketoInputDataSet extends MarketoDataSet {
         getLeadActivity,
         getLeadChanges,
         describeLead
-    }
-
-    public enum LeadSelector {
-        key,
-        list
     }
 
     public enum ListAction {
@@ -104,13 +97,6 @@ public class MarketoInputDataSet extends MarketoDataSet {
     @Option
     @ActiveIf(target = "entity", value = { "Lead" })
     @ActiveIf(target = "leadAction", value = "getMultipleLeads")
-    @Documentation("Lead Selector")
-    private LeadSelector leadSelector;
-
-    @Option
-    @ActiveIf(target = "entity", value = { "Lead" })
-    @ActiveIf(target = "leadAction", value = "getMultipleLeads")
-    @ActiveIf(target = "leadSelector", value = "key")
     // @Suggestable(LEAD_KEY_NAME_LIST)
     @Documentation("Key Name")
     private String leadKeyName;
@@ -118,17 +104,8 @@ public class MarketoInputDataSet extends MarketoDataSet {
     @Option
     @ActiveIf(target = "entity", value = { "Lead" })
     @ActiveIf(target = "leadAction", value = "getMultipleLeads")
-    @ActiveIf(target = "leadSelector", value = "key")
-    @Documentation("Values (comma separated)")
+    @Documentation("Values (Comma-separated)")
     private String leadKeyValues;
-
-    // List access
-    @Option
-    @ActiveIf(target = "entity", value = { "Lead" })
-    @ActiveIf(target = "leadAction", value = "getMultipleLeads")
-    @ActiveIf(target = "leadSelector", value = "list")
-    @Documentation("Lead List Id or Name")
-    private String leadListIdOrName;
 
     /*
      * List Entity DataSet Parameters
@@ -147,6 +124,7 @@ public class MarketoInputDataSet extends MarketoDataSet {
 
     @Option
     @ActiveIf(target = "entity", value = { "List" })
+    @ActiveIf(target = "listAction", value = { "list" })
     @Documentation("List ids : Comma-separated list of static list ids to return.")
     private String listIds;
 
@@ -160,30 +138,32 @@ public class MarketoInputDataSet extends MarketoDataSet {
     @Documentation("Workspace Name : Comma-separated list of workspace names.")
     private String workspaceName;
 
-    // Changes & Activities
+    @Option
+    @ActiveIf(target = "entity", value = { "Lead", "List" })
+    @ActiveIf(target = "leadAction", value = { "getLeadChanges", "getLeadActivity" })
+    @Documentation("Static List Id")
+    private Integer listId;
+
+    /*
+     * Changes & Activities
+     */
     @Option
     @ActiveIf(target = "entity", value = { "Lead" })
     @ActiveIf(target = "leadAction", value = { "getLeadChanges", "getLeadActivity" })
-    @Pattern("/^[0-9]{4}\\-[0-9]{2}\\-[0-9]{2}\\s[0-9]{2}:[0-9]{2}:[0-9]{2}$/")
+    // @Pattern("/^[0-9]{4}\\-[0-9]{2}\\-[0-9]{2}\\s[0-9]{2}:[0-9]{2}:[0-9]{2}$/")
     @Documentation("Since Date Time")
     private String sinceDateTime;
 
     @Option
     @ActiveIf(target = "entity", value = { "Lead" })
     @ActiveIf(target = "leadAction", value = { "getLeadChanges", "getLeadActivity" })
-    @Documentation("Lead Ids (comma separated list)")
+    @Documentation("Lead Ids (Comma-separated Lead Ids)")
     private String leadIds;
 
     @Option
     @ActiveIf(target = "entity", value = { "Lead" })
     @ActiveIf(target = "leadAction", value = { "getLeadChanges", "getLeadActivity" })
-    @Documentation("Static List Id")
-    private Integer listId;
-
-    @Option
-    @ActiveIf(target = "entity", value = { "Lead" })
-    @ActiveIf(target = "leadAction", value = { "getLeadChanges", "getLeadActivity" })
-    @Documentation("Asset Ids (comma separated)")
+    @Documentation("Asset Ids (Comma-separated Asset Ids)")
     private String assetIds;
 
     @Option
@@ -237,6 +217,9 @@ public class MarketoInputDataSet extends MarketoDataSet {
     @Option
     @ActiveIf(target = "entity", value = { "Lead", "CustomObject", "Company", "Opportunity", "OpportunityRole" })
     @Documentation("Fields")
+    // TODO as Lead may contain more than 1k fields, the guess schema may not be the solution. Instead using
+    // suggestion values may be the right solution (using the describe api call to provide field names). So changing
+    // this property to List<String> has to be done.
     private String fields;
 
 }

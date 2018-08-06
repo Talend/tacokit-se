@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"16f48384-6a67-4b28-92e2-cdc05df731d1:sj\",\"token_type\":\"bearer\",\"expires_in\":1560,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"c0c33cb3-4677-4062-9ea7-521c41595e9d:sj\",\"token_type\":\"bearer\",\"expires_in\":3442,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -30,16 +30,16 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?filterValues=France&access_token=16f48384-6a67-4b28-92e2-cdc05df731d1%3Asj&batchSize=10&fields=mainPhone,company,website&filterType=billingCountry"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?filterValues=France&access_token=c0c33cb3-4677-4062-9ea7-521c41595e9d%3Asj&batchSize=10&fields=mainPhone,company,website&filterType=billingCountry"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
-        "Content-Length":"123",
+        "Content-Length":"124",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"cf54#164f4cf24d2\",\"success\":false,\"errors\":[{\"code\":\"1003\",\"message\":\"Invalid filterType 'billingCountry'\"}]}",
+      "payload":"{\"requestId\":\"12b67#164f9716e5b\",\"success\":false,\"errors\":[{\"code\":\"1003\",\"message\":\"Invalid filterType 'billingCountry'\"}]}",
       "status":200
     }
   }

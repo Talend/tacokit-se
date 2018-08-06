@@ -22,7 +22,7 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_ROLE;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.beam.sdk.repackaged.org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

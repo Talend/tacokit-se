@@ -18,6 +18,7 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_FIELDS;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_FILTER_TYPE;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_FILTER_VALUES;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_LEAD_ID;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_LEAD_IDS;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_LIST_ID;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_NEXT_PAGE_TOKEN;
 import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE;
@@ -63,33 +64,6 @@ public interface LeadClient extends HttpClient {
             @Query(ATTR_FIELDS) String fields//
     );
 
-    // TODO should normally execute a fake get request
-    /**
-     * Returns a list of up to 300 leads based on a list of values in a particular field.
-     * 
-     * @param accessToken Marketo authorization token for API
-     * @param filterType The lead field to filter on. Custom fields (string, email, integer), and the following field types
-     * are supported: id, cookies, email, twitterId, facebookId, linkedInId, sfdcAccountId, sfdcContactId, sfdcLeadId,
-     * sfdcLeadOwnerId, sfdcOpptyId.
-     * @param payload is a string for application/x-www-form-urlencoded containing the following parameters
-     * <ul>
-     * <li>@param filterValues A comma-separated list of values to filter on in the specified fields.</li>
-     * <li>@param fields A comma-separated list of lead fields to return for each record</li>
-     * <li>@param batchSize The batch size to return. The max and default value is 300.</li>
-     * </ul>
-     * @param nextPageToken A token will be returned by this endpoint if the result set is greater than the batch size and
-     * can be passed in a subsequent call through this parameter
-     * @return
-     */
-    @Request(path = "/rest/v1/leads.json", method = METHOD_POST)
-    Response<JsonObject> getLeadByFilterType( //
-            @Header(HEADER_CONTENT_TYPE) String contentType, //
-            @Query(REQUEST_PARAM_QUERY_METHOD) String queryMethod, //
-            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
-            @Query(ATTR_NEXT_PAGE_TOKEN) String nextPageToken, //
-            String payload //
-    );
-
     /**
      * Returns a list of up to 300 leads based on a list of values in a particular field.
      *
@@ -112,6 +86,34 @@ public interface LeadClient extends HttpClient {
             @Query(ATTR_FIELDS) String fields, //
             @Query(ATTR_BATCH_SIZE) Integer batchSize, //
             @Query(ATTR_NEXT_PAGE_TOKEN) String nextPageToken// .
+    );
+
+    /**
+     * Returns a list of up to 300 leads based on a list of values in a particular field.
+     *
+     * This method is used when the query string size is over 8kb.
+     * 
+     * @param accessToken Marketo authorization token for API
+     * @param payload is a string for application/x-www-form-urlencoded containing the following parameters
+     * <ul>
+     * <li>@param filterType The lead field to filter on. Custom fields (string, email, integer), and the following field
+     * types are supported: id, cookies, email, twitterId, facebookId, linkedInId, sfdcAccountId, sfdcContactId, sfdcLeadId,
+     * sfdcLeadOwnerId, sfdcOpptyId.</li>
+     * <li>@param filterValues A comma-separated list of values to filter on in the specified fields.</li>
+     * <li>@param fields A comma-separated list of lead fields to return for each record</li>
+     * <li>@param batchSize The batch size to return. The max and default value is 300.</li>
+     * </ul>
+     * @param nextPageToken A token will be returned by this endpoint if the result set is greater than the batch size and
+     * can be passed in a subsequent call through this parameter
+     * @return
+     */
+    @Request(path = "/rest/v1/leads.json", method = METHOD_POST)
+    Response<JsonObject> getLeadByFilterType( //
+            @Header(HEADER_CONTENT_TYPE) String contentType, //
+            @Query(REQUEST_PARAM_QUERY_METHOD) String queryMethod, //
+            @Query(ATTR_ACCESS_TOKEN) String accessToken, //
+            @Query(ATTR_NEXT_PAGE_TOKEN) String nextPageToken, //
+            String payload //
     );
 
     /**
@@ -181,7 +183,7 @@ public interface LeadClient extends HttpClient {
             @Query(ATTR_ACCESS_TOKEN) String accessToken, //
             @Query(ATTR_NEXT_PAGE_TOKEN) String nextPageToken, //
             @Query(ATTR_LIST_ID) Integer listId, //
-            @Query("leadIds") String leadIds, //
+            @Query(ATTR_LEAD_IDS) String leadIds, //
             @Query(ATTR_FIELDS) String fields, //
             @Query(ATTR_BATCH_SIZE) Integer batchSize //
     );
@@ -222,7 +224,7 @@ public interface LeadClient extends HttpClient {
             @Query("activityTypeIds") String activityTypeIds, //
             @Query("assetIds") String assetIds, //
             @Query(ATTR_LIST_ID) Integer listId, //
-            @Query("leadIds") String leadIds, //
+            @Query(ATTR_LEAD_IDS) String leadIds, //
             @Query(ATTR_BATCH_SIZE) Integer batchSize //
     );
 

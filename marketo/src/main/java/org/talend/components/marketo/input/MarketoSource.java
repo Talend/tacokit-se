@@ -34,7 +34,7 @@ import javax.json.JsonValue;
 import javax.json.JsonWriterFactory;
 
 import org.apache.avro.generic.IndexedRecord;
-import org.apache.beam.sdk.repackaged.org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.talend.components.marketo.MarketoSourceOrProcessor;
 import org.talend.components.marketo.dataset.MarketoInputDataSet;
