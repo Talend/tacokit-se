@@ -27,22 +27,16 @@ import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSException;
-import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
-import javax.jms.TextMessage;
-import javax.jms.Topic;
 import javax.json.bind.Jsonb;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.spi.InitialContextFactory;
 
 import org.talend.components.jms.ProviderInfo;
-import org.talend.components.jms.configuration.Configuration;
 import org.talend.components.jms.configuration.MessageType;
-import org.talend.components.jms.output.OutputConfiguration;
-import org.talend.components.jms.source.InputMapperConfiguration;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.dependency.Resolver;
@@ -54,7 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class JmsService {
 
-    private final static String CONFIG_FILE_lOCATION_KEY = "org.talend.component.jms.config.file";
+    private final static String CONFIG_FILE_LOCATION_KEY = "org.talend.component.jms.config.file";
 
     private final static String CONNECTION_FACTORY = "ConnectionFactory";
 
@@ -62,7 +56,7 @@ public class JmsService {
 
         @Override
         public Type[] getActualTypeArguments() {
-            return new Type[] { ProviderInfo.class };
+            return new Type[]{ProviderInfo.class};
         }
 
         @Override
@@ -87,30 +81,17 @@ public class JmsService {
     @Service
     private LocalConfiguration localConfiguration;
 
-    /*
-     * @Service
-     * private I18nMessage i18n;
-     */
-
     @Service
-    private Configuration configuration;
+    private I18nMessage i18n;
 
     @Service
     private Resolver resolver;
-
-    private Connection connection;
-
-    private Context jndiContext;
-
-    private Session session;
-
-    private MessageConsumer consumer;
 
     private Map<String, ProviderInfo> loadProvidersFromConfigurationFile() {
         final Map<String, ProviderInfo> availableProviders = new HashMap<>();
         InputStream is = null;
         try {
-            final String configFile = localConfiguration.get(CONFIG_FILE_lOCATION_KEY);
+            final String configFile = localConfiguration.get(CONFIG_FILE_LOCATION_KEY);
             if (configFile != null) {// priority to the system property
                 try {
                     is = new FileInputStream(configFile);
@@ -135,18 +116,18 @@ public class JmsService {
         return availableProviders;
     }
 
-    private URLClassLoader getProviderClassLoader(final String prividerId) {
-        return providersClassLoaders.computeIfAbsent(prividerId, key -> {
-            final ProviderInfo providerInfo = getProviders().get(prividerId);
+    public URLClassLoader getProviderClassLoader(final String providerId) {
+        return providersClassLoaders.computeIfAbsent(providerId, key -> {
+            final ProviderInfo providerInfo = getProviders().get(providerId);
             final Collection<File> providerFiles = resolver.resolveFromDescriptor(new ByteArrayInputStream(
                     providerInfo.getPaths().stream().filter(p -> p.getPath() != null && !p.getPath().isEmpty())
                             .map(ProviderInfo.Path::getPath).collect(joining("\n")).getBytes(StandardCharsets.UTF_8)));
-            // final String missingJars = providerFiles.stream().filter(f -> !f.exists()).map(File::getAbsolutePath)
-            // .collect(joining("\n"));
-            // if (!missingJars.isEmpty()) {
-            // log.error(i18n.errorDriverLoad(driverId, missingJars));
-            // return null;
-            // }
+            final String missingJars = providerFiles.stream().filter(f -> !f.exists()).map(File::getAbsolutePath)
+                    .collect(joining("\n"));
+            if (!missingJars.isEmpty()) {
+                log.error(i18n.errorProviderLoad(providerId, missingJars));
+                return null;
+            }
             final URL[] urls = providerFiles.stream().filter(File::exists).map(f -> {
                 try {
                     return f.toURI().toURL();
@@ -158,155 +139,92 @@ public class JmsService {
         });
     }
 
-    private Connection getConnection()
-            throws InstantiationException, ClassNotFoundException, NamingException, IllegalAccessException, JMSException {
-        if (connection != null) {
-            return connection;
-        }
-
-        // create ConnectionFactory from JNDI
-        ConnectionFactory connectionFactory = (ConnectionFactory) getJNDIContext().lookup(CONNECTION_FACTORY);
-        connection = configuration.isUserIdentity()
-                ? connectionFactory.createConnection(configuration.getUserName(), configuration.getPassword())
-                : connectionFactory.createConnection();
-        if (configuration instanceof InputMapperConfiguration) {
-            connection.setClientID(getClientId());
-        }
-        connection.start();
-
-        return connection;
-    }
-
-    // create JNDI context
-    private Context getJNDIContext()
-            throws InstantiationException, IllegalAccessException, ClassNotFoundException, NamingException {
-        if (jndiContext != null) {
-            return jndiContext;
-        }
-
+    public Context getJNDIContext(String url, String moduleList) throws InstantiationException, IllegalAccessException, ClassNotFoundException, NamingException {
         Hashtable<String, String> properties = new Hashtable<>();
-        properties.put(Context.PROVIDER_URL, configuration.getUrl());
+        properties.put(Context.PROVIDER_URL, url);
 
-        InitialContextFactory contextFactory = (InitialContextFactory) (getProviderClassLoader(configuration.getModuleList())
-                .loadClass(getContextProvider()).newInstance());
-        jndiContext = contextFactory.getInitialContext(properties);
-        return jndiContext;
+        InitialContextFactory contextFactory = (InitialContextFactory) (getProviderClassLoader(moduleList)
+                .loadClass(getProviders().get(moduleList).getClazz()).newInstance());
+        return contextFactory.getInitialContext(properties);
     }
 
-    private MessageProducer createProducer()
-            throws JMSException, ClassNotFoundException, NamingException, InstantiationException, IllegalAccessException {
-        MessageProducer producer = null;
-        producer = getSession().createProducer(createDestination());
-        producer.setDeliveryMode(getDeliveryMode());
-        return producer;
-    }
-
-    private MessageConsumer getConsumer()
-            throws ClassNotFoundException, NamingException, InstantiationException, IllegalAccessException, JMSException {
-        if (consumer != null) {
-            return consumer;
-        }
-
-        if (isDurableSubscription()) {
-            consumer = getSession().createDurableSubscriber((Topic) createDestination(), getSubscriberName(), getMessageSelector(),
-                    false);
+    public Destination getDestination(Session session, Context context, String destination, MessageType messageType, boolean isUserJNDILookup) throws NamingException, JMSException {
+        Destination dest = null;
+        if (isUserJNDILookup) {
+            dest = (Destination) context.lookup(destination);
         } else {
-            consumer = getSession().createConsumer(createDestination(), getMessageSelector());
+            dest = (MessageType.QUEUE == messageType)
+                    ? session.createQueue(destination)
+                    : session.createTopic(destination);
         }
-        return consumer;
+        return dest;
     }
 
-    private boolean isDurableSubscription() {
-        return ((InputMapperConfiguration) configuration).getSubscriptionConfig().isDurableSubscription();
+    public Session getSession(Connection connection) throws JMSException {
+        return connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
     }
 
-    private String getMessageSelector() {
-        return ((InputMapperConfiguration) configuration).getMessageSelector();
+    public ConnectionFactory getConnectionFactory(Context context) throws NamingException {
+        return (ConnectionFactory) context.lookup(CONNECTION_FACTORY);
     }
 
-    private String getSubscriberName() {
-        return ((InputMapperConfiguration) configuration).getSubscriptionConfig().getSubscriberName();
+    public Connection getConnection(ConnectionFactory connectionFactory, boolean isUserIdentity, String userName, String password) throws JMSException {
+        return isUserIdentity
+                ? connectionFactory.createConnection(userName,
+                password)
+                : connectionFactory.createConnection();
     }
 
-    private String getClientId() {
-        return ((InputMapperConfiguration) configuration).getSubscriptionConfig().getClientId();
-    }
-
-    private int getTimeout() {
-        return ((InputMapperConfiguration) configuration).getTimeout();
-    }
-
-    private int getDeliveryMode() {
-        return ((OutputConfiguration) configuration).getDeliveryMode().getIntValue();
-    }
-
-    private Message createTextMessage(String text)
-            throws ClassNotFoundException, NamingException, InstantiationException, IllegalAccessException, JMSException {
-        return getSession().createTextMessage(text);
-    }
-
-    public void sendTextMessage(String text) {
-        try {
-            createProducer().send(createTextMessage(text));
-        } catch (JMSException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (NamingException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public String receiveTextMessage() {
-        String text = null;
-        try {
-            Message message = getConsumer().receive(getTimeout() * 1000);
-            if (message != null) {
-                text = ((TextMessage) message).getText();
-                message.acknowledge();
+    public void closeConnection(Connection connection){
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (JMSException e) {
+                log.warn(i18n.warnConnectionCantBeClosed(), e);
             }
-        } catch (JMSException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (NamingException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
         }
-        return text;
     }
 
-    private Session getSession()
-            throws JMSException, InstantiationException, IllegalAccessException, NamingException, ClassNotFoundException {
-        return session == null ? getConnection().createSession(false, Session.AUTO_ACKNOWLEDGE) : session;
-    }
-
-    private String getContextProvider() {
-        return getProviders().get(configuration.getModuleList()).getClazz();
-    }
-
-    private Destination createDestination()
-            throws NamingException, JMSException, InstantiationException, ClassNotFoundException, IllegalAccessException {
-        Destination destination;
-        if (configuration.isUserJNDILookup()) {
-            destination = (javax.jms.Destination) getJNDIContext().lookup(configuration.getDestination());
-        } else {
-            destination = MessageType.QUEUE == configuration.getMessageType()
-                    ? getSession().createQueue(configuration.getDestination())
-                    : getSession().createTopic(configuration.getDestination());
+    public void closeSession(Session session){
+        if (session != null) {
+            try {
+                session.close();
+            } catch (JMSException e) {
+                log.warn(i18n.warnSessionCantBeClosed(), e);
+            }
         }
-        return destination;
     }
 
-    public void setConfiguration(Configuration configuration) {
-        this.configuration = configuration;
+    public void closeProducer(MessageProducer producer){
+        if (producer != null) {
+            try {
+                producer.close();
+            } catch (JMSException e) {
+                log.warn(i18n.warnProducerCantBeClosed(), e);
+            }
+        }
     }
+
+    public void closeConsumer(MessageConsumer consumer){
+        if (consumer != null) {
+            try {
+                consumer.close();
+            } catch (JMSException e) {
+                log.warn(i18n.warnProducerCantBeClosed(), e);
+            }
+        }
+    }
+
+    public void closeContext(Context context){
+        if (context != null) {
+            try {
+                context.close();
+            } catch (NamingException e) {
+                log.warn(i18n.warnJNDIContextCantBeClosed(), e);
+            }
+        }
+    }
+
+
 
 }

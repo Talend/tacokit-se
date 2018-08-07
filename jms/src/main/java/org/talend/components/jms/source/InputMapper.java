@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.json.JsonBuilderFactory;
 
+import org.talend.components.jms.service.I18nMessage;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -23,8 +24,7 @@ import org.talend.components.jms.service.JmsService;
 // this class role is to enable the work to be distributed in environments supporting it.
 //
 @Version(1)
-// default version is 1, if some configuration1 changes happen between 2 versions you can add a migrationHandler
-@Icon(value = Icon.IconType.CUSTOM, custom = "tJMSInput")
+@Icon(value = Icon.IconType.CUSTOM, custom = "JMSInput")
 @PartitionMapper(name = "Input")
 @Documentation("TODO fill the documentation for this mapper")
 public class InputMapper implements Serializable {
@@ -35,7 +35,9 @@ public class InputMapper implements Serializable {
 
     private final JsonBuilderFactory jsonBuilderFactory;
 
-    public InputMapper(@Option("configuration") final InputMapperConfiguration configuration, final JmsService service,
+    private I18nMessage i18nMessage;
+
+    public InputMapper(@Option("basicConfig") final InputMapperConfiguration configuration, final JmsService service,
             final JsonBuilderFactory jsonBuilderFactory) {
         this.configuration = configuration;
         this.service = service;
@@ -44,9 +46,6 @@ public class InputMapper implements Serializable {
 
     @Assessor
     public long estimateSize() {
-        // this method should return the estimation of the dataset size
-        // it is recommended to return a byte value
-        // if you don't have the exact size you can use a rough estimation
         return 1L;
     }
 
@@ -67,6 +66,6 @@ public class InputMapper implements Serializable {
         // here we create an actual worker,
         // you are free to rework the configuration1 etc but our default generated implementation
         // propagates the partition mapper entries.
-        return new InputSource(configuration, service, jsonBuilderFactory);
+        return new InputSource(configuration, service, jsonBuilderFactory, i18nMessage);
     }
 }

@@ -1,22 +1,32 @@
-package org.talend.components.jms.configuration;
+package org.talend.components.jms.datastore;
 
 import lombok.Data;
-import org.talend.components.jms.output.JMSOutputAdvancedProperties;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.action.Proposable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.constraint.Pattern;
 import org.talend.sdk.component.api.configuration.constraint.Required;
+import org.talend.sdk.component.api.configuration.type.DataStore;
+import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
-import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
-import java.util.List;
 
+import static org.talend.components.jms.service.ActionService.ACTION_BASIC_HEALTH_CHECK;
 import static org.talend.components.jms.service.ActionService.ACTION_LIST_SUPPORTED_BROKER;
 
 @Data
-public class Configuration implements Serializable {
+@GridLayout({
+        @GridLayout.Row({"moduleList"}),
+        @GridLayout.Row("url"),
+        @GridLayout.Row("userIdentity"),
+        @GridLayout.Row({"userName", "password"})})
+@DataStore
+@Checkable(ACTION_BASIC_HEALTH_CHECK)
+@Documentation("A connection to a data base")
+public class JmsDataStore implements Serializable {
 
     @Option
     @Required
@@ -25,11 +35,12 @@ public class Configuration implements Serializable {
     private String moduleList;
 
     @Option
-    @Documentation("Input for server URL")
+    @Pattern("^(tcp)://")
+    @Documentation("Input for JMS server URL")
     private String url = "tcp://host:port";
 
     @Option
-    @Documentation("Checkbox for User Identity Checking")
+    @Documentation("Checkbox for User login/password checking")
     private boolean userIdentity = false;
 
     @Option
@@ -43,24 +54,4 @@ public class Configuration implements Serializable {
     @ActiveIf(target = "userIdentity", value = "true")
     private String password;
 
-    @Option
-    @Documentation("Checkbox for JNDI Name Lookup Destination")
-    private boolean userJNDILookup = false;
-
-    @Option
-    @Documentation("Drop down list for Message Type")
-    private MessageType messageType = MessageType.TOPIC;
-
-    @Option
-    @Documentation("Input for TOPIC/QUEUE Name")
-    private String destination;
-
-    @Option
-    @Documentation("Properties table")
-    private List<JMSOutputAdvancedProperties> properties;
-
-    @Option
-    @Structure(type = Structure.Type.OUT, discoverSchema = "discoverSchema")
-    @Documentation("Guess schema")
-    private List<String> schema;
 }
