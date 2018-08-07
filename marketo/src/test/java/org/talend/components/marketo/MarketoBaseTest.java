@@ -12,7 +12,18 @@
 // ============================================================================
 package org.talend.components.marketo;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_ACCESS_TOKEN;
+
+import java.io.StringReader;
+import java.util.List;
+import java.util.Map;
+
 import javax.json.JsonBuilderFactory;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
 import javax.json.JsonWriterFactory;
 
@@ -20,6 +31,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.marketo.dataset.MarketoInputDataSet;
@@ -36,6 +48,7 @@ import org.talend.components.marketo.service.OpportunityClient;
 import org.talend.components.marketo.service.UIActionService;
 import org.talend.sdk.component.api.DecryptedServer;
 import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.junit.ComponentsHandler;
 import org.talend.sdk.component.junit.SimpleComponentRule;
 import org.talend.sdk.component.junit.http.junit4.JUnit4HttpApi;
@@ -123,6 +136,8 @@ public class MarketoBaseTest {
 
     protected MarketoOutputDataSet outputDataSet = new MarketoOutputDataSet();
 
+    protected Boolean isProxyMode = Boolean.FALSE;
+
     protected transient static final Logger LOG = LoggerFactory.getLogger(MarketoBaseTest.class);
 
     static {
@@ -142,6 +157,42 @@ public class MarketoBaseTest {
     @BeforeClass
     void init() {
         marketoService = component.findService(MarketoService.class);
+        isProxyMode = System.getProperty("talend.junit.http.capture") == null
+                || System.getProperty("talend.junit.http.capture").equals("false");
+        // for proxy mode
+        if (isProxyMode) {
+            String p = "talend/testing/http/";
+            String r = "org.talend.components.marketo.service.UIActionServiceTest_doHealthCheckOk.json";
+            JsonReader reader = jsonReader.createReader(getClass().getClassLoader().getResourceAsStream(p + r));
+            JsonObject v = reader.readArray().getJsonObject(0);
+            final String token = jsonReader.createReader(new StringReader(v.getJsonObject("response").getString("payload")))
+                    .readObject().getString(ATTR_ACCESS_TOKEN);
+            authorizationClient = Mockito.mock(AuthorizationClient.class);
+            when(authorizationClient.getAccessToken(any())).thenReturn(token);
+            Response<JsonObject> response = new Response<JsonObject>() {
+
+                @Override
+                public int status() {
+                    return 200;
+                }
+
+                @Override
+                public Map<String, List<String>> headers() {
+                    return null;
+                }
+
+                @Override
+                public JsonObject body() {
+                    return jsonFactory.createObjectBuilder().add(ATTR_ACCESS_TOKEN, token).build();
+                }
+
+                @Override
+                public <E> E error(Class<E> aClass) {
+                    throw new UnsupportedOperationException("#error()");
+                }
+            };
+            when(authorizationClient.getAuthorizationToken(anyString(), anyString(), anyString())).thenReturn(response);
+        }
     }
 
     @BeforeEach

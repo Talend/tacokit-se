@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"7f3015ec-97ce-4e59-b5e4-6e53a6cd4d75:sj\",\"token_type\":\"bearer\",\"expires_in\":957,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"4acbc576-b6da-4892-8a88-9fdb5fdcf685:sj\",\"token_type\":\"bearer\",\"expires_in\":3536,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -30,16 +30,16 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities/roles.json?filterValues=opportunity00&access_token=7f3015ec-97ce-4e59-b5e4-6e53a6cd4d75%3Asj&batchSize=3&filterType=externalOpportunityId"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities/roles.json?filterValues=opportunity00&access_token=4acbc576-b6da-4892-8a88-9fdb5fdcf685%3Asj&batchSize=3&filterType=externalOpportunityId"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
-        "Content-Length":"264",
+        "Content-Length":"263",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"13ab1#1650f9fa76b\",\"result\":[{\"seq\":0,\"marketoGUID\":\"395df5f5-f1d9-4398-b35c-6c64b70d6425\",\"role\":\"BestBuyer\",\"externalOpportunityId\":\"opportunity00\",\"createdAt\":\"2018-07-27T01:52:40Z\",\"updatedAt\":\"2018-07-27T01:52:40Z\",\"leadId\":406}],\"success\":true}",
+      "payload":"{\"requestId\":\"3197#165134dfd2c\",\"result\":[{\"seq\":0,\"marketoGUID\":\"395df5f5-f1d9-4398-b35c-6c64b70d6425\",\"role\":\"BestBuyer\",\"externalOpportunityId\":\"opportunity00\",\"createdAt\":\"2018-07-27T01:52:40Z\",\"updatedAt\":\"2018-07-27T01:52:40Z\",\"leadId\":406}],\"success\":true}",
       "status":200
     }
   }
