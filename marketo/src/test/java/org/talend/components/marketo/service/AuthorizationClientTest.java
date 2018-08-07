@@ -20,12 +20,16 @@ import javax.json.JsonObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.marketo.MarketoBaseTest;
+import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.junit5.WithComponents;
 
 @HttpApi(useSsl = true)
 @WithComponents("org.talend.components.marketo")
 class AuthorizationClientTest extends MarketoBaseTest {
+
+    @Service
+    AuthorizationClient authClient;
 
     JsonObject json_602;
 
@@ -47,20 +51,20 @@ class AuthorizationClientTest extends MarketoBaseTest {
     @Test
     void isAccessTokenExpired() {
         json_errors = jsonFactory.createArrayBuilder().add(json_602).build();
-        assertTrue(authorizationClient.isAccessTokenExpired(json_errors));
+        assertTrue(authClient.isAccessTokenExpired(json_errors));
         json_errors = jsonFactory.createArrayBuilder().add(json_1003).build();
-        assertFalse(authorizationClient.isAccessTokenExpired(json_errors));
-        assertFalse(authorizationClient.isAccessTokenExpired(null));
+        assertFalse(authClient.isAccessTokenExpired(json_errors));
+        assertFalse(authClient.isAccessTokenExpired(null));
     }
 
     @Test
     void isErrorRecoverable() {
         json_errors = jsonFactory.createArrayBuilder().add(json_608).build();
-        assertTrue(authorizationClient.isErrorRecoverable(json_errors));
+        assertTrue(authClient.isErrorRecoverable(json_errors));
         json_errors = jsonFactory.createArrayBuilder().add(json_608).add(json_1003).build();
-        assertTrue(authorizationClient.isErrorRecoverable(json_errors));
+        assertTrue(authClient.isErrorRecoverable(json_errors));
         json_errors = jsonFactory.createArrayBuilder().add(json_1003).build();
-        assertFalse(authorizationClient.isErrorRecoverable(json_errors));
+        assertFalse(authClient.isErrorRecoverable(json_errors));
     }
 
 }
