@@ -4,14 +4,22 @@ import java.io.Serializable;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
 import javax.json.JsonObject;
+import javax.naming.Context;
+import javax.naming.NamingException;
 
+import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jms.service.I18nMessage;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
-import org.talend.sdk.component.api.processor.AfterGroup;
-import org.talend.sdk.component.api.processor.BeforeGroup;
 import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.processor.Processor;
@@ -19,9 +27,10 @@ import org.talend.sdk.component.api.processor.Processor;
 import org.talend.components.jms.service.JmsService;
 import org.talend.sdk.component.api.service.Service;
 
+@Slf4j
 @Version(1)
-// default version is 1, if some configuration changes happen between 2 versions you can add a migrationHandler
-@Icon(value = Icon.IconType.CUSTOM, custom = "tJMSOutput")
+// default version is 1, if some basicConfig changes happen between 2 versions you can add a migrationHandler
+@Icon(value = Icon.IconType.CUSTOM, custom = "JMSOutput")
 @Processor(name = "Output")
 @Documentation("TODO fill the documentation for this processor")
 public class Output implements Serializable {
@@ -30,51 +39,90 @@ public class Output implements Serializable {
 
     private final OutputConfiguration configuration;
 
+    private final I18nMessage i18n;
+
     @Service
     private final JmsService service;
 
-    public Output(@Option("configuration") final OutputConfiguration configuration, final JmsService service) {
+    private Connection connection;
+
+    private Context jndiContext;
+
+    private Session session;
+
+    private Destination destination;
+
+    private MessageProducer producer;
+
+    public Output(@Option("basicConfig") final OutputConfiguration configuration, final JmsService service,
+                  final I18nMessage i18nMessage) {
         this.configuration = configuration;
         this.service = service;
-        service.setConfiguration(configuration);
+        this.i18n = i18nMessage;
     }
 
     @PostConstruct
     public void init() {
-        // this method will be executed once for the whole component execution,
-        // this is where you can establish a connection for instance
-        // Note: if you don't need it you can delete it
+        try {
+            // create JNDI context
+            jndiContext = service.getJNDIContext(configuration.getBasicConfig().getConnection().getUrl(),
+                    configuration.getBasicConfig().getConnection().getModuleList()
+            );
+            // create ConnectionFactory from JNDI
+            ConnectionFactory connectionFactory = service.getConnectionFactory(jndiContext);
+
+            try {
+                connection = service.getConnection(connectionFactory,
+                        configuration.getBasicConfig().getConnection().isUserIdentity(),
+                        configuration.getBasicConfig().getConnection().getUserName(),
+                        configuration.getBasicConfig().getConnection().getPassword());
+            } catch (JMSException e) {
+                throw new IllegalStateException(i18n.errorInvalidConnection());
+            }
+
+            try {
+                connection.start();
+            } catch (JMSException e) {
+                throw new IllegalStateException(i18n.errorStartMessagesDelivery());
+            }
+
+            session = service.getSession(connection);
+
+            destination = service.getDestination(session,
+                    jndiContext,
+                    configuration.getBasicConfig().getDestination(),
+                    configuration.getBasicConfig().getMessageType(),
+                    configuration.getBasicConfig().isUserJNDILookup());
+
+            producer = session.createProducer(destination);
+            producer.setDeliveryMode(configuration.getDeliveryMode().getIntValue());
+        } catch (JMSException e) {
+            throw new IllegalStateException(i18n.errorCreateJMSInstance());
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NamingException e) {
+            throw new IllegalStateException(i18n.errorInstantiateConnectionFactory(e.getMessage()));
+        }
+
     }
 
-    @BeforeGroup
-    public void beforeGroup() {
-        // if the environment supports chunking this method is called at the beginning if a chunk
-        // it can be used to start a local transaction specific to the backend you use
-        // Note: if you don't need it you can delete it
-    }
 
     @ElementListener
     public void onNext(@Input final JsonObject record) {
-        // this is the method allowing you to handle the input(s) and emit the output(s)
-        // after some custom logic you put here, to send a value to next element you can use an
-        // output parameter and call emit(value).
-        service.sendTextMessage(getMessage(record));
+        try {
+            producer.send(session.createTextMessage(getMessage(record)));
+        } catch (JMSException e) {
+            throw new IllegalStateException(i18n.errorCantSendMessage());
+        }
     }
 
     private String getMessage(JsonObject record) {
         return record.get(MESSAGE_CONTENT).toString();
     }
 
-    @AfterGroup
-    public void afterGroup() {
-        // symmetric method of the beforeGroup() executed after the chunk processing
-        // Note: if you don't need it you can delete it
-    }
-
     @PreDestroy
     public void release() {
-        // this is the symmetric method of the init() one,
-        // release potential connections you created or data you cached
-        // Note: if you don't need it you can delete it
+        service.closeProducer(producer);
+        service.closeSession(session);
+        service.closeConnection(connection);
+        service.closeContext(jndiContext);
     }
 }
