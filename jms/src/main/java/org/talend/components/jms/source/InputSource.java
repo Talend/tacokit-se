@@ -1,8 +1,6 @@
 package org.talend.components.jms.source;
 
 import java.io.Serializable;
-import java.util.Hashtable;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.jms.Connection;
@@ -19,10 +17,8 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.naming.Context;
 import javax.naming.NamingException;
-import javax.naming.spi.InitialContextFactory;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.jms.configuration.MessageType;
 import org.talend.components.jms.service.I18nMessage;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
@@ -30,13 +26,11 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import org.talend.components.jms.service.JmsService;
 
+import static org.talend.components.jms.MessageConst.MESSAGE_CONTENT;
+
 @Slf4j
 @Documentation("TODO fill the documentation for this source")
 public class InputSource implements Serializable {
-
-    public static final String MESSAGE_CONTENT = "messageContent";
-
-    private final static String CONNECTION_FACTORY = "ConnectionFactory";
 
     private final InputMapperConfiguration configuration;
 
@@ -59,7 +53,7 @@ public class InputSource implements Serializable {
     private final I18nMessage i18n;
 
     public InputSource(@Option("configuration") final InputMapperConfiguration configuration, final JmsService service,
-                       final JsonBuilderFactory jsonBuilderFactory, final I18nMessage i18nMessage) {
+            final JsonBuilderFactory jsonBuilderFactory, final I18nMessage i18nMessage) {
         this.configuration = configuration;
         this.service = service;
         this.jsonBuilderFactory = jsonBuilderFactory;
@@ -71,8 +65,7 @@ public class InputSource implements Serializable {
         try {
             // create JNDI context
             jndiContext = service.getJNDIContext(configuration.getBasicConfig().getConnection().getUrl(),
-                    configuration.getBasicConfig().getConnection().getModuleList()
-            );
+                    configuration.getBasicConfig().getConnection().getModuleList());
             // create ConnectionFactory from JNDI
             ConnectionFactory connectionFactory = service.getConnectionFactory(jndiContext);
 
@@ -97,11 +90,8 @@ public class InputSource implements Serializable {
 
             session = service.getSession(connection);
 
-            destination = service.getDestination(session,
-                    jndiContext,
-                    configuration.getBasicConfig().getDestination(),
-                    configuration.getBasicConfig().getMessageType(),
-                    configuration.getBasicConfig().isUserJNDILookup());
+            destination = service.getDestination(session, jndiContext, configuration.getBasicConfig().getDestination(),
+                    configuration.getBasicConfig().getMessageType(), configuration.getBasicConfig().isUserJNDILookup());
 
             if (configuration.getSubscriptionConfig().isDurableSubscription()) {
                 consumer = session.createDurableSubscriber((Topic) destination,

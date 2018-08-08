@@ -14,15 +14,10 @@ import java.io.Serializable;
 import java.util.List;
 
 @DataSet("JMSInputDataSet")
-@GridLayout(value = {
-        @GridLayout.Row({"basicConfig"}),
-        @GridLayout.Row({"subscriptionConfig"}),
-        @GridLayout.Row({"timeout", "maximumMessages"}),
-        @GridLayout.Row({"messageSelector"})},
-        names = GridLayout.FormType.MAIN)
-@GridLayout(value = {@GridLayout.Row({"schema"}),
-        @GridLayout.Row({"properties"})},
-        names = GridLayout.FormType.ADVANCED)
+@GridLayout(value = { @GridLayout.Row({ "basicConfig" }), @GridLayout.Row({ "subscriptionConfig" }),
+        @GridLayout.Row({ "timeout", "maximumMessages" }),
+        @GridLayout.Row({ "messageSelector" }) }, names = GridLayout.FormType.MAIN)
+@GridLayout(value = { @GridLayout.Row({ "schema" }), @GridLayout.Row({ "properties" }) }, names = GridLayout.FormType.ADVANCED)
 @Documentation("TODO fill the documentation for this basicConfig")
 @Data
 public class InputMapperConfiguration implements Serializable {
