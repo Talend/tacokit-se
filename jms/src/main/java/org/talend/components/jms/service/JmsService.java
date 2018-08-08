@@ -139,7 +139,8 @@ public class JmsService {
         });
     }
 
-    public Context getJNDIContext(String url, String moduleList) throws InstantiationException, IllegalAccessException, ClassNotFoundException, NamingException {
+    public Context getJNDIContext(String url, String moduleList)
+            throws InstantiationException, IllegalAccessException, ClassNotFoundException, NamingException {
         Hashtable<String, String> properties = new Hashtable<>();
         properties.put(Context.PROVIDER_URL, url);
 
@@ -148,14 +149,13 @@ public class JmsService {
         return contextFactory.getInitialContext(properties);
     }
 
-    public Destination getDestination(Session session, Context context, String destination, MessageType messageType, boolean isUserJNDILookup) throws NamingException, JMSException {
+    public Destination getDestination(Session session, Context context, String destination, MessageType messageType,
+                                      boolean isUserJNDILookup) throws NamingException, JMSException {
         Destination dest = null;
         if (isUserJNDILookup) {
             dest = (Destination) context.lookup(destination);
         } else {
-            dest = (MessageType.QUEUE == messageType)
-                    ? session.createQueue(destination)
-                    : session.createTopic(destination);
+            dest = (MessageType.QUEUE == messageType) ? session.createQueue(destination) : session.createTopic(destination);
         }
         return dest;
     }
@@ -168,14 +168,12 @@ public class JmsService {
         return (ConnectionFactory) context.lookup(CONNECTION_FACTORY);
     }
 
-    public Connection getConnection(ConnectionFactory connectionFactory, boolean isUserIdentity, String userName, String password) throws JMSException {
-        return isUserIdentity
-                ? connectionFactory.createConnection(userName,
-                password)
-                : connectionFactory.createConnection();
+    public Connection getConnection(ConnectionFactory connectionFactory, boolean isUserIdentity, String userName, String password)
+            throws JMSException {
+        return isUserIdentity ? connectionFactory.createConnection(userName, password) : connectionFactory.createConnection();
     }
 
-    public void closeConnection(Connection connection){
+    public void closeConnection(Connection connection) {
         if (connection != null) {
             try {
                 connection.close();
@@ -185,7 +183,7 @@ public class JmsService {
         }
     }
 
-    public void closeSession(Session session){
+    public void closeSession(Session session) {
         if (session != null) {
             try {
                 session.close();
@@ -195,7 +193,7 @@ public class JmsService {
         }
     }
 
-    public void closeProducer(MessageProducer producer){
+    public void closeProducer(MessageProducer producer) {
         if (producer != null) {
             try {
                 producer.close();
@@ -205,17 +203,17 @@ public class JmsService {
         }
     }
 
-    public void closeConsumer(MessageConsumer consumer){
+    public void closeConsumer(MessageConsumer consumer) {
         if (consumer != null) {
             try {
                 consumer.close();
             } catch (JMSException e) {
-                log.warn(i18n.warnProducerCantBeClosed(), e);
+                log.warn(i18n.warnConsumerCantBeClosed(), e);
             }
         }
     }
 
-    public void closeContext(Context context){
+    public void closeContext(Context context) {
         if (context != null) {
             try {
                 context.close();
@@ -224,7 +222,5 @@ public class JmsService {
             }
         }
     }
-
-
 
 }
