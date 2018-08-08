@@ -7,7 +7,7 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/identity/oauth/token?grant_type=client_credentials&client_secret=t2a67VUioKCU1uZxp4IhXvm8OpYbLYGQ&client_id=736ec2cf-4038-4eb2-bcc6-8b4ef331f4b5"
+      "uri":"https://586-UXQ-391.mktorest.com/identity/oauth/token"
     },
     "response":{
       "headers":{
@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"4acbc576-b6da-4892-8a88-9fdb5fdcf685:sj\",\"token_type\":\"bearer\",\"expires_in\":3522,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f:sj\",\"token_type\":\"bearer\",\"expires_in\":1183,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -30,16 +30,16 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?filterValues=google01,google02,google03,google04,google05,google06&access_token=4acbc576-b6da-4892-8a88-9fdb5fdcf685%3Asj&fields=createdAt,externalCompanyId,id,updatedAt,annualRevenue,billingCity,billingCountry,billingPostalCode,billingState,billingStreet,company,companyNotes,externalSalesPersonId,industry,mainPhone,numberOfEmployees,sicCode,site,website&filterType="
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?filterValues=google01,google02,google03,google04,google05,google06&access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&fields=createdAt,externalCompanyId,id,updatedAt,annualRevenue,billingCity,billingCountry,billingPostalCode,billingState,billingStreet,company,companyNotes,externalSalesPersonId,industry,mainPhone,numberOfEmployees,sicCode,site,website&filterType="
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
-        "Content-Length":"112",
+        "Content-Length":"113",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"b3ac#165134e324a\",\"success\":false,\"errors\":[{\"code\":\"1003\",\"message\":\"filterType not specified\"}]}",
+      "payload":"{\"requestId\":\"161cd#165199b2868\",\"success\":false,\"errors\":[{\"code\":\"1003\",\"message\":\"filterType not specified\"}]}",
       "status":200
     }
   }

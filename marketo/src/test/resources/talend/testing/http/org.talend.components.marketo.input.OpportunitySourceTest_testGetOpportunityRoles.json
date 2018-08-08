@@ -7,7 +7,7 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/identity/oauth/token?grant_type=client_credentials&client_secret=t2a67VUioKCU1uZxp4IhXvm8OpYbLYGQ&client_id=736ec2cf-4038-4eb2-bcc6-8b4ef331f4b5"
+      "uri":"https://586-UXQ-391.mktorest.com/identity/oauth/token"
     },
     "response":{
       "headers":{
@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"4acbc576-b6da-4892-8a88-9fdb5fdcf685:sj\",\"token_type\":\"bearer\",\"expires_in\":3536,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f:sj\",\"token_type\":\"bearer\",\"expires_in\":1208,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -30,16 +30,16 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities/roles.json?filterValues=opportunity00&access_token=4acbc576-b6da-4892-8a88-9fdb5fdcf685%3Asj&batchSize=3&filterType=externalOpportunityId"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities/roles.json?filterValues=opportunity00&access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&batchSize=3&filterType=externalOpportunityId"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
-        "Content-Length":"263",
+        "Content-Length":"264",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"3197#165134dfd2c\",\"result\":[{\"seq\":0,\"marketoGUID\":\"395df5f5-f1d9-4398-b35c-6c64b70d6425\",\"role\":\"BestBuyer\",\"externalOpportunityId\":\"opportunity00\",\"createdAt\":\"2018-07-27T01:52:40Z\",\"updatedAt\":\"2018-07-27T01:52:40Z\",\"leadId\":406}],\"success\":true}",
+      "payload":"{\"requestId\":\"1227a#165199ac7aa\",\"result\":[{\"seq\":0,\"marketoGUID\":\"395df5f5-f1d9-4398-b35c-6c64b70d6425\",\"role\":\"BestBuyer\",\"externalOpportunityId\":\"opportunity00\",\"createdAt\":\"2018-07-27T01:52:40Z\",\"updatedAt\":\"2018-07-27T01:52:40Z\",\"leadId\":406}],\"success\":true}",
       "status":200
     }
   }

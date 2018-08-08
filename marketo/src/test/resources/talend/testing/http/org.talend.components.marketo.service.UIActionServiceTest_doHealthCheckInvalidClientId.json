@@ -7,7 +7,7 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/identity/oauth/token?grant_type=client_credentials&client_secret=t2a67VUioKCU1uZxp4IhXvm8OpYbLYGQ&client_id=invalid"
+      "uri":"https://586-UXQ-391.mktorest.com/identity/oauth/token"
     },
     "response":{
       "headers":{

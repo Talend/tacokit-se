@@ -10,11 +10,15 @@
     </parent>
     <artifactId>marketo</artifactId>
     <name>Components :: Marketo</name>
+    <properties>
+        <component-runtime-http-junit.version>1.0.4</component-runtime-http-junit.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.talend.sdk.component</groupId>
             <artifactId>component-runtime-http-junit</artifactId>
-            <version>${component-runtime.version}</version>
+            <version>${component-runtime-http-junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -40,17 +44,10 @@
             <version>${junit5.version}</version>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.7</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>2.19.0</version>
         </dependency>
     </dependencies>
 </project>

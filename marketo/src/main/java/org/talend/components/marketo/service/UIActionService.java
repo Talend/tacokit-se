@@ -106,7 +106,7 @@ public class UIActionService extends MarketoService {
 
     @Suggestions(ACTIVITIES_LIST)
     public SuggestionValues getActivities(@Option final MarketoInputDataSet dataSet) {
-        LOG.warn("[getActivities] {}.", dataSet);
+        LOG.debug("[getActivities] {}.", dataSet);
         try {
             String aToken = authorizationClient.getAccessToken(dataSet.getDataStore());
             leadClient.base(dataSet.getDataStore().getEndpoint());
@@ -223,7 +223,7 @@ public class UIActionService extends MarketoService {
                         .asJsonObject().getJsonArray(ATTR_FIELDS);
                 break;
             }
-            LOG.warn("[guessEntitySchema]entitySchema: {}.", entitySchema);
+            LOG.debug("[guessEntitySchema]entitySchema: {}.", entitySchema);
             return getSchemaForEntity(entitySchema);
         } catch (Exception e) {
             LOG.error("Exception caught : {}.", e.getMessage());
