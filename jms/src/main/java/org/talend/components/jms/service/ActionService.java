@@ -60,16 +60,12 @@ public class ActionService {
 
         try {
             // create JNDI context
-            jndiContext = jmsService.getJNDIContext(datastore.getUrl(),
-                    datastore.getModuleList()
-            );
+            jndiContext = jmsService.getJNDIContext(datastore.getUrl(), datastore.getModuleList());
             // create ConnectionFactory from JNDI
             ConnectionFactory connectionFactory = jmsService.getConnectionFactory(jndiContext);
 
             try {
-                connection = jmsService.getConnection(connectionFactory,
-                        datastore.isUserIdentity(),
-                        datastore.getUserName(),
+                connection = jmsService.getConnection(connectionFactory, datastore.isUserIdentity(), datastore.getUserName(),
                         datastore.getPassword());
             } catch (JMSException e) {
                 throw new IllegalStateException(i18n.errorInvalidConnection());

@@ -27,6 +27,8 @@ import org.talend.sdk.component.api.processor.Processor;
 import org.talend.components.jms.service.JmsService;
 import org.talend.sdk.component.api.service.Service;
 
+import static org.talend.components.jms.MessageConst.MESSAGE_CONTENT;
+
 @Slf4j
 @Version(1)
 // default version is 1, if some basicConfig changes happen between 2 versions you can add a migrationHandler
@@ -34,8 +36,6 @@ import org.talend.sdk.component.api.service.Service;
 @Processor(name = "Output")
 @Documentation("TODO fill the documentation for this processor")
 public class Output implements Serializable {
-
-    public static final String MESSAGE_CONTENT = "messageContent";
 
     private final OutputConfiguration configuration;
 
@@ -66,8 +66,7 @@ public class Output implements Serializable {
         try {
             // create JNDI context
             jndiContext = service.getJNDIContext(configuration.getBasicConfig().getConnection().getUrl(),
-                    configuration.getBasicConfig().getConnection().getModuleList()
-            );
+                    configuration.getBasicConfig().getConnection().getModuleList());
             // create ConnectionFactory from JNDI
             ConnectionFactory connectionFactory = service.getConnectionFactory(jndiContext);
 
@@ -88,11 +87,8 @@ public class Output implements Serializable {
 
             session = service.getSession(connection);
 
-            destination = service.getDestination(session,
-                    jndiContext,
-                    configuration.getBasicConfig().getDestination(),
-                    configuration.getBasicConfig().getMessageType(),
-                    configuration.getBasicConfig().isUserJNDILookup());
+            destination = service.getDestination(session, jndiContext, configuration.getBasicConfig().getDestination(),
+                    configuration.getBasicConfig().getMessageType(), configuration.getBasicConfig().isUserJNDILookup());
 
             producer = session.createProducer(destination);
             producer.setDeliveryMode(configuration.getDeliveryMode().getIntValue());
@@ -103,7 +99,6 @@ public class Output implements Serializable {
         }
 
     }
-
 
     @ElementListener
     public void onNext(@Input final JsonObject record) {
