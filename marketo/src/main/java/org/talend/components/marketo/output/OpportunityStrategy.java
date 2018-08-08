@@ -71,7 +71,7 @@ public class OpportunityStrategy extends OutputComponentStrategy {
 
     @Override
     public JsonObject runAction(JsonObject payload) {
-        LOG.warn("[runAction] payload: {}.", payload);
+        LOG.debug("[runAction] payload: {}.", payload);
         switch (dataSet.getAction()) {
         case sync:
             return syncOpportunity(payload);

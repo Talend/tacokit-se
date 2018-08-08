@@ -7,7 +7,7 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/identity/oauth/token?grant_type=client_credentials&client_secret=t2a67VUioKCU1uZxp4IhXvm8OpYbLYGQ&client_id=736ec2cf-4038-4eb2-bcc6-8b4ef331f4b5"
+      "uri":"https://586-UXQ-391.mktorest.com/identity/oauth/token"
     },
     "response":{
       "headers":{
@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"4acbc576-b6da-4892-8a88-9fdb5fdcf685:sj\",\"token_type\":\"bearer\",\"expires_in\":3571,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f:sj\",\"token_type\":\"bearer\",\"expires_in\":1169,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -30,7 +30,7 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/leads.json?filterValues=1,2,3,4,5&access_token=4acbc576-b6da-4892-8a88-9fdb5fdcf685%3Asj&batchSize=200&fields=unknownField&filterType=id"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/leads.json?filterValues=1,2,3,4,5&access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&batchSize=200&fields=unknownField&filterType=id"
     },
     "response":{
       "headers":{
@@ -39,7 +39,7 @@
         "Content-Length":"118",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"219f#165134d7432\",\"success\":false,\"errors\":[{\"code\":\"1006\",\"message\":\"Field 'unknownField' not found\"}]}",
+      "payload":"{\"requestId\":\"bb4a#165199b621f\",\"success\":false,\"errors\":[{\"code\":\"1006\",\"message\":\"Field 'unknownField' not found\"}]}",
       "status":200
     }
   }

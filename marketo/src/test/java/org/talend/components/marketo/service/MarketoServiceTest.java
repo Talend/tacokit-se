@@ -38,7 +38,7 @@ import org.talend.sdk.component.api.service.schema.Schema;
 import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.junit5.WithComponents;
 
-@HttpApi(useSsl = true)
+@HttpApi(useSsl = true, responseLocator = org.talend.sdk.component.junit.http.internal.impl.MarketoResponseLocator.class)
 @WithComponents("org.talend.components.marketo")
 class MarketoServiceTest extends MarketoBaseTest {
 

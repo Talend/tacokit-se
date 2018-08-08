@@ -55,14 +55,14 @@ class MarketoSourceOrProcessorTest extends MarketoBaseTest {
     void toIndexedRecord() {
         IndexedRecord ir = sop.toIndexedRecord(json, schema);
         assertTrue(ir instanceof IndexedRecord);
-        LOG.warn("[toIndexedRecord] IN:{}; OUT:{}.", json, ir);
+        LOG.debug("[toIndexedRecord] IN:{}; OUT:{}.", json, ir);
     }
 
     @Test
     void toJsonObject() {
         JsonObject js = sop.toJson(record);
         assertTrue(js instanceof JsonObject);
-        LOG.warn("[toJsonObject] IN:{}; OUT:{}.", record, js);
+        LOG.debug("[toJsonObject] IN:{}; OUT:{}.", record, js);
     }
 
 }

@@ -12,9 +12,6 @@
 // ============================================================================
 package org.talend.components.marketo;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ACCESS_TOKEN;
 
 import java.io.StringReader;
@@ -31,7 +28,6 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
-import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.marketo.dataset.MarketoInputDataSet;
@@ -60,7 +56,7 @@ import org.talend.sdk.component.junit5.WithMavenServers;
 import org.talend.sdk.component.maven.MavenDecrypter;
 import org.talend.sdk.component.maven.Server;
 
-@HttpApi(useSsl = true)
+@HttpApi(useSsl = true, responseLocator = org.talend.sdk.component.junit.http.internal.impl.MarketoResponseLocator.class)
 @WithMavenServers
 @WithComponents("org.talend.components.marketo")
 public class MarketoBaseTest {
@@ -150,49 +146,13 @@ public class MarketoBaseTest {
                 // System.setProperty("talend.junit.http.capture", "true");
             }
         } catch (Exception e) {
-            System.setProperty("talend.junit.http.capture", "false");
+            // System.setProperty("talend.junit.http.capture", "false");
         }
     }
 
     @BeforeClass
     void init() {
         marketoService = component.findService(MarketoService.class);
-        isProxyMode = System.getProperty("talend.junit.http.capture") == null
-                || System.getProperty("talend.junit.http.capture").equals("false");
-        // for proxy mode
-        if (isProxyMode) {
-            String p = "talend/testing/http/";
-            String r = "org.talend.components.marketo.service.UIActionServiceTest_doHealthCheckOk.json";
-            JsonReader reader = jsonReader.createReader(getClass().getClassLoader().getResourceAsStream(p + r));
-            JsonObject v = reader.readArray().getJsonObject(0);
-            final String token = jsonReader.createReader(new StringReader(v.getJsonObject("response").getString("payload")))
-                    .readObject().getString(ATTR_ACCESS_TOKEN);
-            authorizationClient = Mockito.mock(AuthorizationClient.class);
-            when(authorizationClient.getAccessToken(any())).thenReturn(token);
-            Response<JsonObject> response = new Response<JsonObject>() {
-
-                @Override
-                public int status() {
-                    return 200;
-                }
-
-                @Override
-                public Map<String, List<String>> headers() {
-                    return null;
-                }
-
-                @Override
-                public JsonObject body() {
-                    return jsonFactory.createObjectBuilder().add(ATTR_ACCESS_TOKEN, token).build();
-                }
-
-                @Override
-                public <E> E error(Class<E> aClass) {
-                    throw new UnsupportedOperationException("#error()");
-                }
-            };
-            when(authorizationClient.getAuthorizationToken(anyString(), anyString(), anyString())).thenReturn(response);
-        }
     }
 
     @BeforeEach

@@ -127,7 +127,7 @@ public class MarketoSourceOrProcessor implements Serializable {
      * @return Marketo API result
      */
     public JsonObject handleResponse(final Response<JsonObject> response) {
-        LOG.warn("[handleResponse] [{}] body: {}.", response.status(), response.body());
+        LOG.debug("[handleResponse] [{}] body: {}.", response.status(), response.body());
         if (response.status() == 200) {
             if (response.body().getBoolean(ATTR_SUCCESS)) {
                 return response.body();

@@ -33,7 +33,7 @@ import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.junit5.WithComponents;
 
-@HttpApi(useSsl = true)
+@HttpApi(useSsl = true, responseLocator = org.talend.sdk.component.junit.http.internal.impl.MarketoResponseLocator.class)
 @WithComponents("org.talend.components.marketo")
 public class LeadSourceTest extends SourceBaseTest {
 
@@ -202,7 +202,7 @@ public class LeadSourceTest extends SourceBaseTest {
         inputDataSet.setSinceDateTime("2018-01-01 00:00:01 Z");
         SuggestionValues acts = uiActionService.getActivities(inputDataSet);
         List<String> activities = activities = acts.getItems().stream().limit(10).map(item -> item.getId()).collect(toList());
-        LOG.warn("[testGetLeadActivities] activities: {}", activities);
+        LOG.debug("[testGetLeadActivities] activities: {}", activities);
         inputDataSet.setActivityTypeIds(activities);
         inputDataSet.setFields(fields);
         inputDataSet.setBatchSize(300);
