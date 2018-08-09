@@ -37,7 +37,7 @@ public class InputMapper implements Serializable {
 
     private I18nMessage i18nMessage;
 
-    public InputMapper(@Option("basicConfig") final InputMapperConfiguration configuration, final JmsService service,
+    public InputMapper(@Option("configuration") final InputMapperConfiguration configuration, final JmsService service,
             final JsonBuilderFactory jsonBuilderFactory) {
         this.configuration = configuration;
         this.service = service;
