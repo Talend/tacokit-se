@@ -2,7 +2,7 @@ package org.talend.components.jms.source;
 
 import lombok.Data;
 import org.talend.components.jms.configuration.BasicConfiguration;
-import org.talend.components.jms.output.JMSOutputAdvancedProperties;
+import org.talend.components.jms.datastore.JmsDataStore;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.type.DataSet;
@@ -14,13 +14,23 @@ import java.io.Serializable;
 import java.util.List;
 
 @DataSet("JMSInputDataSet")
-@GridLayout(value = { @GridLayout.Row({ "basicConfig" }), @GridLayout.Row({ "subscriptionConfig" }),
-        @GridLayout.Row({ "timeout", "maximumMessages" }),
-        @GridLayout.Row({ "messageSelector" }) }, names = GridLayout.FormType.MAIN)
-@GridLayout(value = { @GridLayout.Row({ "schema" }), @GridLayout.Row({ "properties" }) }, names = GridLayout.FormType.ADVANCED)
+@GridLayout(value = {
+        @GridLayout.Row({"connection"}),
+        @GridLayout.Row({"basicConfig"}),
+        @GridLayout.Row({"subscriptionConfig"}),
+        @GridLayout.Row({"timeout", "maximumMessages"}),
+        @GridLayout.Row({"messageSelector"})},
+        names = GridLayout.FormType.MAIN)
+@GridLayout(value = {
+        @GridLayout.Row({"schema"})},
+        names = GridLayout.FormType.ADVANCED)
 @Documentation("TODO fill the documentation for this basicConfig")
 @Data
 public class InputMapperConfiguration implements Serializable {
+
+    @Option
+    @Documentation("JMS connection information")
+    private JmsDataStore connection;
 
     @Option
     @Documentation("Common basicConfig")
@@ -48,9 +58,4 @@ public class InputMapperConfiguration implements Serializable {
     @Structure(type = Structure.Type.OUT, discoverSchema = "discoverSchema")
     @Documentation("Guess schema")
     private List<String> schema;
-
-    @Option
-    @Documentation("Properties table")
-    private List<JMSOutputAdvancedProperties> properties;
-
 }
