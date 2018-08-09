@@ -85,6 +85,62 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <!--<jira.host>http://${docker.host.address}:${jira.port}/</jira.host>-->
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>${docker-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>start</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                        <configuration>
+                            <registry>${talend_docker_registry}</registry>
+                            <skip>${really.skip.tests}</skip>
+                            <images>
+                                <image>
+                                    <name>webcenter/activemq:latest</name>
+                                    <run>
+                                        <ports>
+                                            <port>61616:61616</port>
+                                        </ports>
+                                        <wait>
+                                            <tcp>
+                                                <host>localhost</host>
+                                                <ports>
+                                                    <port>61616</port>
+                                                </ports>
+                                            </tcp>
+                                            <time>300000</time>
+                                        </wait>
+                                    </run>
+                                </image>
+                            </images>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>stop</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${really.skip.tests}</skip>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 

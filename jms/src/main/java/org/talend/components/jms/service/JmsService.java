@@ -149,15 +149,9 @@ public class JmsService {
         return contextFactory.getInitialContext(properties);
     }
 
-    public Destination getDestination(Session session, Context context, String destination, MessageType messageType,
-                                      boolean isUserJNDILookup) throws NamingException, JMSException {
-        Destination dest = null;
-        if (isUserJNDILookup) {
-            dest = (Destination) context.lookup(destination);
-        } else {
-            dest = (MessageType.QUEUE == messageType) ? session.createQueue(destination) : session.createTopic(destination);
-        }
-        return dest;
+    public Destination getDestination(Session session, Context context, String destination, MessageType messageType)
+            throws JMSException {
+        return (MessageType.QUEUE == messageType) ? session.createQueue(destination) : session.createTopic(destination);
     }
 
     public Session getSession(Connection connection) throws JMSException {
