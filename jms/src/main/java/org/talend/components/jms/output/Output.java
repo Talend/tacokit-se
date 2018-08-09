@@ -65,16 +65,14 @@ public class Output implements Serializable {
     public void init() {
         try {
             // create JNDI context
-            jndiContext = service.getJNDIContext(configuration.getBasicConfig().getConnection().getUrl(),
-                    configuration.getBasicConfig().getConnection().getModuleList());
+            jndiContext = service.getJNDIContext(configuration.getConnection().getUrl(),
+                    configuration.getConnection().getModuleList());
             // create ConnectionFactory from JNDI
             ConnectionFactory connectionFactory = service.getConnectionFactory(jndiContext);
 
             try {
-                connection = service.getConnection(connectionFactory,
-                        configuration.getBasicConfig().getConnection().isUserIdentity(),
-                        configuration.getBasicConfig().getConnection().getUserName(),
-                        configuration.getBasicConfig().getConnection().getPassword());
+                connection = service.getConnection(connectionFactory, configuration.getConnection().isUserIdentity(),
+                        configuration.getConnection().getUserName(), configuration.getConnection().getPassword());
             } catch (JMSException e) {
                 throw new IllegalStateException(i18n.errorInvalidConnection());
             }
@@ -88,7 +86,7 @@ public class Output implements Serializable {
             session = service.getSession(connection);
 
             destination = service.getDestination(session, jndiContext, configuration.getBasicConfig().getDestination(),
-                    configuration.getBasicConfig().getMessageType(), configuration.getBasicConfig().isUserJNDILookup());
+                    configuration.getBasicConfig().getMessageType());
 
             producer = session.createProducer(destination);
             producer.setDeliveryMode(configuration.getDeliveryMode().getIntValue());

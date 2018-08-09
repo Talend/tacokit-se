@@ -52,7 +52,7 @@ public class InputSource implements Serializable {
 
     private final I18nMessage i18n;
 
-    public InputSource(@Option("configuration") final InputMapperConfiguration configuration, final JmsService service,
+    public InputSource(@Option final InputMapperConfiguration configuration, final JmsService service,
             final JsonBuilderFactory jsonBuilderFactory, final I18nMessage i18nMessage) {
         this.configuration = configuration;
         this.service = service;
@@ -64,16 +64,14 @@ public class InputSource implements Serializable {
     public void init() {
         try {
             // create JNDI context
-            jndiContext = service.getJNDIContext(configuration.getBasicConfig().getConnection().getUrl(),
-                    configuration.getBasicConfig().getConnection().getModuleList());
+            jndiContext = service.getJNDIContext(configuration.getConnection().getUrl(),
+                    configuration.getConnection().getModuleList());
             // create ConnectionFactory from JNDI
             ConnectionFactory connectionFactory = service.getConnectionFactory(jndiContext);
 
             try {
-                connection = service.getConnection(connectionFactory,
-                        configuration.getBasicConfig().getConnection().isUserIdentity(),
-                        configuration.getBasicConfig().getConnection().getUserName(),
-                        configuration.getBasicConfig().getConnection().getPassword());
+                connection = service.getConnection(connectionFactory, configuration.getConnection().isUserIdentity(),
+                        configuration.getConnection().getUserName(), configuration.getConnection().getPassword());
             } catch (JMSException e) {
                 throw new IllegalStateException(i18n.errorInvalidConnection());
             }
@@ -91,7 +89,7 @@ public class InputSource implements Serializable {
             session = service.getSession(connection);
 
             destination = service.getDestination(session, jndiContext, configuration.getBasicConfig().getDestination(),
-                    configuration.getBasicConfig().getMessageType(), configuration.getBasicConfig().isUserJNDILookup());
+                    configuration.getBasicConfig().getMessageType());
 
             if (configuration.getSubscriptionConfig().isDurableSubscription()) {
                 consumer = session.createDurableSubscriber((Topic) destination,
