@@ -108,7 +108,8 @@ public class Output implements Serializable {
     }
 
     private String getMessage(JsonObject record) {
-        return record.get(MESSAGE_CONTENT).toString();
+        String message = record.get(MESSAGE_CONTENT).toString();
+        return record.get(MESSAGE_CONTENT).toString().substring(1, message.length() - 1);
     }
 
     @PreDestroy
