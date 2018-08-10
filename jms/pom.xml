@@ -122,7 +122,7 @@
                                                     <port>61616</port>
                                                 </ports>
                                             </tcp>
-                                            <time>300000</time>
+                                            <time>40000</time>
                                         </wait>
                                     </run>
                                 </image>
