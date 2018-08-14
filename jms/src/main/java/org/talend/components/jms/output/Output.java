@@ -55,7 +55,7 @@ public class Output implements Serializable {
     private MessageProducer producer;
 
     public Output(@Option("configuration") final OutputConfiguration configuration, final JmsService service,
-                  final I18nMessage i18nMessage) {
+            final I18nMessage i18nMessage) {
         this.configuration = configuration;
         this.service = service;
         this.i18n = i18nMessage;
