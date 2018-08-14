@@ -19,6 +19,7 @@ import org.talend.sdk.component.api.input.Split;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import org.talend.components.jms.service.JmsService;
+import org.talend.sdk.component.api.service.Service;
 
 //
 // this class role is to enable the work to be distributed in environments supporting it.
@@ -35,13 +36,15 @@ public class InputMapper implements Serializable {
 
     private final JsonBuilderFactory jsonBuilderFactory;
 
+    @Service
     private I18nMessage i18nMessage;
 
     public InputMapper(@Option("configuration") final InputMapperConfiguration configuration, final JmsService service,
-            final JsonBuilderFactory jsonBuilderFactory) {
+            final JsonBuilderFactory jsonBuilderFactory, final I18nMessage i18nMessage) {
         this.configuration = configuration;
         this.service = service;
         this.jsonBuilderFactory = jsonBuilderFactory;
+        this.i18nMessage = i18nMessage;
     }
 
     @Assessor

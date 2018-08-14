@@ -10,12 +10,13 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 
-@DataSet
+@DataSet("JMSOutputDataSet")
 @GridLayout(value = {
         @GridLayout.Row({"connection"}),
         @GridLayout.Row({"basicConfig"})},
         names = GridLayout.FormType.MAIN)
-@GridLayout(value = {@GridLayout.Row({"deliveryMode"})},
+@GridLayout(value = {
+        @GridLayout.Row({"deliveryMode"})},
         names = GridLayout.FormType.ADVANCED)
 @Documentation("TODO fill the documentation for this basicConfig")
 @Data

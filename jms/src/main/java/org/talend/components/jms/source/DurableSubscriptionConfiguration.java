@@ -8,9 +8,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 
-@GridLayout({
-        @GridLayout.Row({"durableSubscription"}),
-        @GridLayout.Row({"clientId", "subscriberName"})})
+@GridLayout({ @GridLayout.Row({ "durableSubscription" }), @GridLayout.Row({ "clientId", "subscriberName" }) })
 @Data
 public class DurableSubscriptionConfiguration implements Serializable {
 

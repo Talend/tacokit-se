@@ -140,7 +140,7 @@
                                                     <port>61616</port>
                                                 </ports>
                                             </tcp>
-                                            <time>40000</time>
+                                            <time>50000</time>
                                         </wait>
                                     </run>
                                 </image>
