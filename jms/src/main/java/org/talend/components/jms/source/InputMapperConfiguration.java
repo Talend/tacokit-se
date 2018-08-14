@@ -52,7 +52,7 @@ public class InputMapperConfiguration implements Serializable {
 
     @Option
     @Documentation("Message Selector Expression used to receive only messages whose headers and properties match the selector")
-    private String messageSelector = "";
+    private String messageSelector;
 
     @Option
     @Structure(type = Structure.Type.OUT, discoverSchema = "discoverSchema")
