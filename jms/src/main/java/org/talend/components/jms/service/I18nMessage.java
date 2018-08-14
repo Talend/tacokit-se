@@ -7,7 +7,7 @@ public interface I18nMessage {
 
     String errorEmptyURL();
 
-    String errorProviderLoad(String driverId, String missingJars);
+    String errorLoadProvider(String driverId, String missingJars);
 
     String errorInvalidConnection();
 

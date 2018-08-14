@@ -119,13 +119,16 @@ public class JmsService {
     public URLClassLoader getProviderClassLoader(final String providerId) {
         return providersClassLoaders.computeIfAbsent(providerId, key -> {
             final ProviderInfo providerInfo = getProviders().get(providerId);
+            if (providerInfo == null) {
+                throw new IllegalStateException(i18n.errorLoadProvider(providerId, null));
+            }
             final Collection<File> providerFiles = resolver.resolveFromDescriptor(new ByteArrayInputStream(
                     providerInfo.getPaths().stream().filter(p -> p.getPath() != null && !p.getPath().isEmpty())
                             .map(ProviderInfo.Path::getPath).collect(joining("\n")).getBytes(StandardCharsets.UTF_8)));
             final String missingJars = providerFiles.stream().filter(f -> !f.exists()).map(File::getAbsolutePath)
                     .collect(joining("\n"));
             if (!missingJars.isEmpty()) {
-                log.error(i18n.errorProviderLoad(providerId, missingJars));
+                log.error(i18n.errorLoadProvider(providerId, missingJars));
                 return null;
             }
             final URL[] urls = providerFiles.stream().filter(File::exists).map(f -> {
@@ -149,8 +152,7 @@ public class JmsService {
         return contextFactory.getInitialContext(properties);
     }
 
-    public Destination getDestination(Session session, Context context, String destination, MessageType messageType)
-            throws JMSException {
+    public Destination getDestination(Session session, String destination, MessageType messageType) throws JMSException {
         return (MessageType.QUEUE == messageType) ? session.createQueue(destination) : session.createTopic(destination);
     }
 

@@ -85,7 +85,7 @@ public class Output implements Serializable {
 
             session = service.getSession(connection);
 
-            destination = service.getDestination(session, jndiContext, configuration.getBasicConfig().getDestination(),
+            destination = service.getDestination(session, configuration.getBasicConfig().getDestination(),
                     configuration.getBasicConfig().getMessageType());
 
             producer = session.createProducer(destination);
