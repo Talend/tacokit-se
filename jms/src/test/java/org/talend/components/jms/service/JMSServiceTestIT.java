@@ -19,8 +19,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.talend.components.jms.MessageConst.MESSAGE_CONTENT;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
@@ -33,17 +34,25 @@ public class JMSServiceTestIT {
 
     public static final String TEST_MESSAGE = "hello world";
 
+    public static final String TEST_MESSAGE2 = "test message";
+
     public static final String ACTIVEMQ = "ACTIVEMQ";
 
     public static final boolean USER_IDENTITY = true;
 
     public static final boolean DURABLE_SUBSCRIPTION = false;
 
-    public static final String CLIENT_ID = "test";
+    public static final String CLIENT_ID = "testClientId";
 
     public static final String SUBSCRIBER_NAME = "test";
 
     public static final int TIMEOUT = 1;
+
+    public static final String MISSING_PROVIDER = "missingProvider";
+
+    public static final int NO_MESSAGES = 0;
+
+    public static final int TEN_MESSAGES = 10;
 
     @Injected
     private BaseComponentsHandler componentsHandler;
@@ -52,13 +61,15 @@ public class JMSServiceTestIT {
     private JsonBuilderFactory factory;
 
     @Test
-    void sendAndReceiveJMSMessageQueue() {
+    public void sendAndReceiveJMSMessageQueue() {
+        // Send message to QUEUE
         componentsHandler.setInputData(asList(factory.createObjectBuilder().add("messageContent", TEST_MESSAGE).build()));
 
         final String outputConfig = configurationByExample().forInstance(getOutputConfiguration()).configured().toQueryString();
         Job.components().component("jms-output", "JMS://Output?" + outputConfig).component("emitter", "test://emitter")
                 .connections().from("emitter").to("jms-output").build().run();
 
+        // Receive message from QUEUE
         final String inputConfig = configurationByExample().forInstance(getInputConfiguration()).configured().toQueryString();
 
         Job.components().component("jms-input", "JMS://Input?" + inputConfig).component("collector", "test://collector")
@@ -66,13 +77,14 @@ public class JMSServiceTestIT {
 
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
         Optional optional = res.stream().findFirst();
-        assertTrue("Message was not received", optional.isPresent());
-        assertEquals("Sent and received messages should be equal", TEST_MESSAGE,
-                ((JsonObject) optional.get()).getString((MESSAGE_CONTENT)));
+        assertTrue(optional.isPresent(), "Message was not received");
+        assertEquals(TEST_MESSAGE, ((JsonObject) optional.get()).getString((MESSAGE_CONTENT)),
+                "Sent and received messages should be equal");
     }
 
     @Test
-    void sendAndReceiveJMSMessageDurableTopic() {
+    public void sendAndReceiveJMSMessageDurableTopic() {
+        // Subscribe to Durable TOPIC
         InputMapperConfiguration inputConfiguration = getInputConfiguration();
         inputConfiguration.getSubscriptionConfig().setDurableSubscription(true);
         inputConfiguration.getBasicConfig().setMessageType(MessageType.TOPIC);
@@ -82,6 +94,7 @@ public class JMSServiceTestIT {
         Job.components().component("jms-input", "JMS://Input?" + inputConfig).component("collector", "test://collector")
                 .connections().from("jms-input").to("collector").build().run();
 
+        // Send message to TOPIC
         componentsHandler.setInputData(asList(factory.createObjectBuilder().add("messageContent", TEST_MESSAGE).build()));
 
         OutputConfiguration outputConfiguration = getOutputConfiguration();
@@ -90,26 +103,101 @@ public class JMSServiceTestIT {
         Job.components().component("jms-output", "JMS://Output?" + outputConfig).component("emitter", "test://emitter")
                 .connections().from("emitter").to("jms-output").build().run();
 
+        // Receive message from TOPIC
         Job.components().component("jms-input", "JMS://Input?" + inputConfig).component("collector", "test://collector")
                 .connections().from("jms-input").to("collector").build().run();
 
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
         Optional optional = res.stream().findFirst();
 
-        assertTrue("Message was not received", optional.isPresent());
-        assertEquals("Sent and received messages should be equal", TEST_MESSAGE,
-                ((JsonObject) optional.get()).getString((MESSAGE_CONTENT)));
+        assertTrue(optional.isPresent(), "Message was not received");
+        assertEquals(TEST_MESSAGE, ((JsonObject) optional.get()).getString((MESSAGE_CONTENT)),
+                "Sent and received messages should be equal");
     }
 
     @Test
-    void sendToDurableTopic() {
-        componentsHandler.setInputData(asList(factory.createObjectBuilder().add("messageContent", TEST_MESSAGE).build()));
-        OutputConfiguration outputConfiguration = getOutputConfiguration();
-        outputConfiguration.getBasicConfig().setMessageType(MessageType.TOPIC);
+    public void missingProviderConfig() {
+        InputMapperConfiguration inputConfiguration = getInputConfiguration();
+        inputConfiguration.getConnection().setModuleList(MISSING_PROVIDER);
+        final String inputConfig = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
 
-        final String outputConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
+        assertThrows(IllegalStateException.class, () -> Job.components().component("jms-input", "JMS://Input?" + inputConfig)
+                .component("collector", "test://collector").connections().from("jms-input").to("collector").build().run());
+    }
+
+    @Test
+    public void emptyUrlTest() {
+        InputMapperConfiguration inputConfiguration = getInputConfiguration();
+        inputConfiguration.getConnection().setUrl("");
+        final String inputConfig = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
+
+        assertThrows(IllegalArgumentException.class, () -> Job.components().component("jms-input", "JMS://Input?" + inputConfig)
+                .component("collector", "test://collector").connections().from("jms-input").to("collector").build().run());
+    }
+
+    @Test
+    public void testMessageSelector() {
+        // Send Not Persistent message
+        componentsHandler.setInputData(asList(factory.createObjectBuilder().add("messageContent", TEST_MESSAGE).build()));
+        final String outputConfig = configurationByExample().forInstance(getOutputConfiguration()).configured().toQueryString();
         Job.components().component("jms-output", "JMS://Output?" + outputConfig).component("emitter", "test://emitter")
                 .connections().from("emitter").to("jms-output").build().run();
+
+        // Send Persistent message
+        componentsHandler.setInputData(asList(factory.createObjectBuilder().add("messageContent", TEST_MESSAGE2).build()));
+        OutputConfiguration outputConfiguration = getOutputConfiguration();
+        outputConfiguration.setDeliveryMode(OutputConfiguration.DeliveryMode.PERSISTENT);
+        final String outputConfig2 = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
+        Job.components().component("jms-output", "JMS://Output?" + outputConfig2).component("emitter", "test://emitter")
+                .connections().from("emitter").to("jms-output").build().run();
+
+        // Add filter query to receive only PERSISTENT message
+        InputMapperConfiguration inputMapperConfiguration = getInputConfiguration();
+        inputMapperConfiguration.setMessageSelector("JMSDeliveryMode = 'PERSISTENT'");
+        final String inputConfig = configurationByExample().forInstance(inputMapperConfiguration).configured().toQueryString();
+
+        Job.components().component("jms-input", "JMS://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("jms-input").to("collector").build().run();
+
+        final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
+        Optional optional = res.stream().findFirst();
+        assertTrue(optional.isPresent(), "Message was not received");
+        assertEquals(TEST_MESSAGE2, ((JsonObject) optional.get()).getString((MESSAGE_CONTENT)),
+                "Sent and received messages should be equal");
+
+    }
+
+    @Test
+    public void testMaximumMessages() {
+        // Send message to QUEUE
+        componentsHandler.setInputData(asList(factory.createObjectBuilder().add("messageContent", TEST_MESSAGE).build()));
+
+        final String outputConfig2 = configurationByExample().forInstance(getOutputConfiguration()).configured().toQueryString();
+        Job.components().component("jms-output", "JMS://Output?" + outputConfig2).component("emitter", "test://emitter")
+                .connections().from("emitter").to("jms-output").build().run();
+
+        // Forbid message receiving
+        InputMapperConfiguration inputMapperConfiguration = getInputConfiguration();
+        inputMapperConfiguration.setMaximumMessages(NO_MESSAGES);
+        final String inputConfig = configurationByExample().forInstance(inputMapperConfiguration).configured().toQueryString();
+
+        Job.components().component("jms-input", "JMS://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("jms-input").to("collector").build().run();
+
+        final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
+        assertTrue(res.isEmpty(), "Component should not process data");
+
+        // Allow message receiving
+        InputMapperConfiguration inputMapperConfiguration2 = getInputConfiguration();
+        inputMapperConfiguration.setMaximumMessages(TEN_MESSAGES);
+        final String inputConfig2 = configurationByExample().forInstance(inputMapperConfiguration2).configured().toQueryString();
+
+        Job.components().component("jms-input", "JMS://Input?" + inputConfig2).component("collector", "test://collector")
+                .connections().from("jms-input").to("collector").build().run();
+
+        final List<JsonObject> res2 = componentsHandler.getCollectedData(JsonObject.class);
+        Optional optional = res2.stream().findFirst();
+        assertTrue(optional.isPresent(), "Message was not received");
 
     }
 
@@ -119,9 +207,6 @@ public class JMSServiceTestIT {
         JmsDataStore dataStore = new JmsDataStore();
         dataStore.setModuleList(ACTIVEMQ);
         dataStore.setUrl(URL);
-        dataStore.setUserName("admin");
-        dataStore.setPassword("anything");
-        dataStore.setUserIdentity(true);
         basicConfiguration.setDestination(DESTINATION);
         basicConfiguration.setMessageType(MessageType.QUEUE);
         configuration.setConnection(dataStore);
@@ -135,9 +220,6 @@ public class JMSServiceTestIT {
         JmsDataStore dataStore = new JmsDataStore();
         dataStore.setModuleList(ACTIVEMQ);
         dataStore.setUrl(URL);
-        dataStore.setUserName("admin");
-        dataStore.setPassword("anything");
-        dataStore.setUserIdentity(USER_IDENTITY);
         basicConfiguration.setDestination(DESTINATION);
         basicConfiguration.setMessageType(MessageType.QUEUE);
         DurableSubscriptionConfiguration subsConfig = new DurableSubscriptionConfiguration();
@@ -147,7 +229,7 @@ public class JMSServiceTestIT {
         configuration.setConnection(dataStore);
         configuration.setSubscriptionConfig(subsConfig);
         configuration.setBasicConfig(basicConfiguration);
-        configuration.setMaximumMessages(10);
+        configuration.setMaximumMessages(TEN_MESSAGES);
         configuration.setTimeout(TIMEOUT);
         return configuration;
     }
