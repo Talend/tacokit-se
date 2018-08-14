@@ -21,6 +21,7 @@ import java.net.URLClassLoader;
 import java.util.Collections;
 
 import static java.util.stream.Collectors.toList;
+import static org.talend.components.jms.MessageConst.MESSAGE_CONTENT;
 
 @Service
 public class ActionService {
@@ -42,17 +43,17 @@ public class ActionService {
 
     @DiscoverSchema("discoverSchema")
     public Schema guessSchema(InputMapperConfiguration config) {
-        return new Schema(Collections.singletonList(new Schema.Entry("messageContent", Type.STRING)));
+        return new Schema(Collections.singletonList(new Schema.Entry(MESSAGE_CONTENT, Type.STRING)));
     }
 
     @HealthCheck(ACTION_BASIC_HEALTH_CHECK)
-    public HealthCheckStatus validateBasicDatastore(@Option final JmsDataStore datastore) throws NamingException {
+    public HealthCheckStatus validateBasicDatastore(@Option final JmsDataStore datastore) {
         if (datastore.getUrl() == null || datastore.getUrl().isEmpty()) {
             throw new IllegalArgumentException(i18n.errorEmptyURL());
         }
         final URLClassLoader loader = jmsService.getProviderClassLoader(datastore.getModuleList());
         if (loader == null) {
-            throw new IllegalStateException(i18n.errorProviderLoad(datastore.getModuleList(), null));
+            throw new IllegalStateException(i18n.errorLoadProvider(datastore.getModuleList(), null));
         }
 
         Context jndiContext = null;
@@ -68,16 +69,16 @@ public class ActionService {
                 connection = jmsService.getConnection(connectionFactory, datastore.isUserIdentity(), datastore.getUserName(),
                         datastore.getPassword());
             } catch (JMSException e) {
-                throw new IllegalStateException(i18n.errorInvalidConnection());
+                return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.errorInvalidConnection());
             }
 
             try {
                 connection.start();
             } catch (JMSException e) {
-                throw new IllegalStateException(i18n.errorStartMessagesDelivery());
+                return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.errorStartMessagesDelivery());
             }
 
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+        } catch (ClassNotFoundException | NamingException | IllegalAccessException | InstantiationException e) {
             return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.errorInstantiateConnectionFactory(e.getMessage()));
         } finally {
             jmsService.closeConnection(connection);

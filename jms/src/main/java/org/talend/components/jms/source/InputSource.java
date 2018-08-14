@@ -88,7 +88,7 @@ public class InputSource implements Serializable {
 
             session = service.getSession(connection);
 
-            destination = service.getDestination(session, jndiContext, configuration.getBasicConfig().getDestination(),
+            destination = service.getDestination(session, configuration.getBasicConfig().getDestination(),
                     configuration.getBasicConfig().getMessageType());
 
             if (configuration.getSubscriptionConfig().isDurableSubscription()) {
