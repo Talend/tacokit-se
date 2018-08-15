@@ -31,7 +31,6 @@ import static org.talend.components.jms.MessageConst.MESSAGE_CONTENT;
 
 @Slf4j
 @Version(1)
-// default version is 1, if some basicConfig changes happen between 2 versions you can add a migrationHandler
 @Icon(value = Icon.IconType.CUSTOM, custom = "JMSOutput")
 @Processor(name = "Output")
 @Documentation("TODO fill the documentation for this processor")
