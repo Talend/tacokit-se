@@ -23,7 +23,7 @@ import static org.talend.components.jms.service.ActionService.ACTION_LIST_SUPPOR
         @GridLayout.Row("url"),
         @GridLayout.Row("userIdentity"),
         @GridLayout.Row({"userName", "password"})})
-@DataStore
+@DataStore("basic")
 @Checkable(ACTION_BASIC_HEALTH_CHECK)
 @Documentation("A connection to a data base")
 public class JmsDataStore implements Serializable {

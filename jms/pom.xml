@@ -91,6 +91,9 @@
                     <includes>
                         <include>**/*IT.java</include>
                     </includes>
+                    <systemPropertyVariables>
+                        <jms.port>${jms.port}</jms.port>
+                    </systemPropertyVariables>
                 </configuration>
                 <executions>
                     <execution>
@@ -131,7 +134,7 @@
                                     <name>webcenter/activemq:latest</name>
                                     <run>
                                         <ports>
-                                            <port>61616:61616</port>
+                                            <port>jms.port:61616</port>
                                         </ports>
                                         <wait>
                                             <tcp>
@@ -140,7 +143,7 @@
                                                     <port>61616</port>
                                                 </ports>
                                             </tcp>
-                                            <time>50000</time>
+                                            <time>60000</time>
                                         </wait>
                                     </run>
                                 </image>

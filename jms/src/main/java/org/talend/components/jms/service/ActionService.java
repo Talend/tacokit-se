@@ -72,12 +72,6 @@ public class ActionService {
                 return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.errorInvalidConnection());
             }
 
-            try {
-                connection.start();
-            } catch (JMSException e) {
-                return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.errorStartMessagesDelivery());
-            }
-
         } catch (ClassNotFoundException | NamingException | IllegalAccessException | InstantiationException e) {
             return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.errorInstantiateConnectionFactory(e.getMessage()));
         } finally {
