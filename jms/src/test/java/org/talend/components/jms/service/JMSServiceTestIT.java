@@ -23,36 +23,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.talend.components.jms.MessageConst.MESSAGE_CONTENT;
+import static org.talend.components.jms.testutils.JmsTestConstants.*;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.jms") // component package
 public class JMSServiceTestIT {
-
-    public static final String URL = "tcp://localhost:61616";
-
-    public static final String DESTINATION = "test";
-
-    public static final String TEST_MESSAGE = "hello world";
-
-    public static final String TEST_MESSAGE2 = "test message";
-
-    public static final String ACTIVEMQ = "ACTIVEMQ";
-
-    public static final boolean USER_IDENTITY = true;
-
-    public static final boolean DURABLE_SUBSCRIPTION = false;
-
-    public static final String CLIENT_ID = "testClientId";
-
-    public static final String SUBSCRIBER_NAME = "test";
-
-    public static final int TIMEOUT = 1;
-
-    public static final String MISSING_PROVIDER = "missingProvider";
-
-    public static final int NO_MESSAGES = 0;
-
-    public static final int TEN_MESSAGES = 10;
 
     @Injected
     private BaseComponentsHandler componentsHandler;
@@ -205,7 +180,7 @@ public class JMSServiceTestIT {
         OutputConfiguration configuration = new OutputConfiguration();
         BasicConfiguration basicConfiguration = new BasicConfiguration();
         JmsDataStore dataStore = new JmsDataStore();
-        dataStore.setModuleList(ACTIVEMQ);
+        dataStore.setModuleList(JMS_PROVIDER);
         dataStore.setUrl(URL);
         basicConfiguration.setDestination(DESTINATION);
         basicConfiguration.setMessageType(MessageType.QUEUE);
@@ -218,7 +193,7 @@ public class JMSServiceTestIT {
         InputMapperConfiguration configuration = new InputMapperConfiguration();
         BasicConfiguration basicConfiguration = new BasicConfiguration();
         JmsDataStore dataStore = new JmsDataStore();
-        dataStore.setModuleList(ACTIVEMQ);
+        dataStore.setModuleList(JMS_PROVIDER);
         dataStore.setUrl(URL);
         basicConfiguration.setDestination(DESTINATION);
         basicConfiguration.setMessageType(MessageType.QUEUE);

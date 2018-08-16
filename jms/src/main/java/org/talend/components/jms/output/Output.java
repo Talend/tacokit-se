@@ -107,8 +107,16 @@ public class Output implements Serializable {
     }
 
     private String getMessage(JsonObject record) {
-        String message = record.get(MESSAGE_CONTENT).toString();
-        return record.get(MESSAGE_CONTENT).toString().substring(1, message.length() - 1);
+        return escapeQuotes(record.get(MESSAGE_CONTENT).toString());
+    }
+
+    private String escapeQuotes(String message) {
+        if (message != null && !message.isEmpty()) {
+            int beginIndex = message.startsWith("\"") ? 1 : 0;
+            int endIndex = message.length() > 1 && message.endsWith("\"") ? message.length() - 1 : message.length();
+            message = message.substring(beginIndex, endIndex);
+        }
+        return message;
     }
 
     @PreDestroy
