@@ -7,13 +7,11 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.junit5.WithComponents;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.talend.components.jms.testutils.JmsTestConstants.JMS_PROVIDER;
+import static org.talend.components.jms.testutils.JmsTestConstants.URL;
 
 @WithComponents("org.talend.components.jms")
 class ActionServiceTestIT {
-
-    public static String JMS_PROVIDER = "ACTIVEMQ";
-
-    public static final String URL = "tcp://localhost:61616";
 
     @Service
     private ActionService actionService;
