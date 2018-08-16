@@ -16,13 +16,11 @@ import static java.util.stream.Collectors.toList;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.talend.components.jms.MessageConst.MESSAGE_CONTENT;
+import static org.talend.components.jms.testutils.JmsTestConstants.JMS_PROVIDER;
+import static org.talend.components.jms.testutils.JmsTestConstants.URL;
 
 @WithComponents("org.talend.components.jms")
 class ActionServiceTest {
-
-    public static String JMS_PROVIDER = "ACTIVEMQ";
-
-    public static final String URL = "tcp://localhost:61616";
 
     @Service
     private ActionService actionService;

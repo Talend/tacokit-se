@@ -56,7 +56,7 @@ public class JmsService {
 
         @Override
         public Type[] getActualTypeArguments() {
-            return new Type[]{ProviderInfo.class};
+            return new Type[] { ProviderInfo.class };
         }
 
         @Override
