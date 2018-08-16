@@ -1,0 +1,11 @@
+[
+  {
+    "id": "ACTIVEMQ",
+    "class": "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
+    "paths": [
+      {
+        "path": "org.apache.activemq:activemq-all:5.15.5"
+      }
+    ]
+  }
+]
