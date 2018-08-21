@@ -35,7 +35,7 @@ public class JmsDataStore implements Serializable {
     private String moduleList;
 
     @Option
-    @Pattern("^(tcp)://")
+    @Pattern("^(tcp|ssl)://")
     @Documentation("Input for JMS server URL")
     private String url = "tcp://host:port";
 
