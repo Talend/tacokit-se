@@ -19,9 +19,9 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_NAME;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.talend.components.marketo.dataset.CompoundKey;
 import org.talend.components.marketo.dataset.MarketoDataSet.MarketoEntity;
 import org.talend.components.marketo.dataset.MarketoInputDataSet.OtherEntityAction;
 import org.talend.sdk.component.junit.http.junit5.HttpApi;
@@ -93,9 +93,9 @@ public class CustomObjectsSourceTest extends SourceBaseTest {
         inputDataSet.setCustomObjectName(CUSTOM_OBJECT_NAME);
         inputDataSet.setFilterType("dedupeFields");
         inputDataSet.setUseCompoundKey(true);
-        List<Pair> compoundKey = new ArrayList<>();
-        compoundKey.add(Pair.of("customerId", "5"));
-        compoundKey.add(Pair.of("VIN", "ABC-DEF-12345-GIN"));
+        List<CompoundKey> compoundKey = new ArrayList<>();
+        compoundKey.add(new CompoundKey("customerId", "5"));
+        compoundKey.add(new CompoundKey("VIN", "ABC-DEF-12345-GIN"));
         inputDataSet.setCompoundKey(compoundKey);
         initSource();
         while ((result = source.next()) != null) {

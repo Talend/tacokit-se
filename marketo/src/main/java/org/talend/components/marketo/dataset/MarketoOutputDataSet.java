@@ -12,8 +12,6 @@
 // ============================================================================
 package org.talend.components.marketo.dataset;
 
-import lombok.Data;
-
 import static org.talend.components.marketo.service.UIActionService.GUESS_ENTITY_SCHEMA_OUTPUT;
 
 import java.util.List;
@@ -27,6 +25,8 @@ import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure.Type;
 import org.talend.sdk.component.api.meta.Documentation;
 
+import lombok.Data;
+
 @Data
 @DataSet(MarketoOutputDataSet.NAME)
 @GridLayouts({ //
@@ -34,7 +34,7 @@ import org.talend.sdk.component.api.meta.Documentation;
                 @GridLayout.Row({ "dataStore" }), //
                 @GridLayout.Row({ "entity", "action", "listAction", "syncMethod", "lookupField", "dedupeBy", "deleteBy" }), //
                 @GridLayout.Row({ "customObjectName" }), //
-                @GridLayout.Row({ "batchSize" }) //
+        // @GridLayout.Row({ "batchSize" }) //
         }), //
         @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "schema" }),
                 @GridLayout.Row({ "rejectSchema" }), //
@@ -113,6 +113,7 @@ public class MarketoOutputDataSet extends MarketoDataSet {
      */
     @Option
     @ActiveIf(target = "entity", value = { "Lead", "CustomObject", "Company", "Opportunity", "OpportunityRole" })
+    @ActiveIf(target = "action", value = { "sync" })
     @Documentation("Synchronization method")
     private SyncMethod syncMethod;
 
