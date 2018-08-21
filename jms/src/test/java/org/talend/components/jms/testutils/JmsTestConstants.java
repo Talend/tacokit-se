@@ -28,7 +28,7 @@ public class JmsTestConstants {
 
     static {
         String systemPropertyPort = System.getProperty("jms.port");
-        String jmsPort = systemPropertyPort != null ? systemPropertyPort : "61617";
-        URL = "ssl://localhost:" + jmsPort;
+        String jmsPort = systemPropertyPort != null ? systemPropertyPort : "61616";
+        URL = "tcp://localhost:" + jmsPort;
     }
 }
