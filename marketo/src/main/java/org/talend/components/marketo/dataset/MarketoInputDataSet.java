@@ -12,13 +12,10 @@
 // ============================================================================
 package org.talend.components.marketo.dataset;
 
-import lombok.Data;
-
 import static org.talend.components.marketo.service.UIActionService.GUESS_ENTITY_SCHEMA_INPUT;
 
 import java.util.List;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.type.DataSet;
@@ -28,6 +25,8 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure.Type;
 import org.talend.sdk.component.api.meta.Documentation;
+
+import lombok.Data;
 
 @Data
 @DataSet(MarketoInputDataSet.NAME)
@@ -44,7 +43,7 @@ import org.talend.sdk.component.api.meta.Documentation;
                 @GridLayout.Row({ "sinceDateTime" }), //
                 @GridLayout.Row({ "listIds", "listName", "programName", "workspaceName" }), //
                 @GridLayout.Row({ "fields" }), //
-                @GridLayout.Row({ "batchSize" }), //
+                @GridLayout.Row({ "batchSize" }) //
         }), //
         @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "schema" }) })//
 })
@@ -202,7 +201,7 @@ public class MarketoInputDataSet extends MarketoDataSet {
     private String filterValues;
 
     @Option
-    @ActiveIf(target = "entity", value = { "CustomObject" })
+    @ActiveIf(target = "entity", value = { "CustomObject", "OpportunityRole" })
     @ActiveIf(target = "otherAction", value = { "get" })
     @Documentation("Use Compound Key")
     private Boolean useCompoundKey = Boolean.FALSE;
@@ -210,9 +209,9 @@ public class MarketoInputDataSet extends MarketoDataSet {
     @Option
     @ActiveIf(target = "entity", value = { "CustomObject", "OpportunityRole" })
     @ActiveIf(target = "otherAction", value = { "get" })
+    @ActiveIf(target = "useCompoundKey", value = { "true" })
     @Documentation("Compound Key")
-    // private Map<String, String> compoundKey;
-    private List<Pair> compoundKey;
+    private List<CompoundKey> compoundKey;
 
     @Option
     @ActiveIf(target = "entity", value = { "Lead", "CustomObject", "Company", "Opportunity", "OpportunityRole" })

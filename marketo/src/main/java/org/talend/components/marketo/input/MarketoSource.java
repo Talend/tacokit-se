@@ -34,9 +34,9 @@ import javax.json.JsonValue;
 import javax.json.JsonWriterFactory;
 
 import org.apache.avro.generic.IndexedRecord;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.talend.components.marketo.MarketoSourceOrProcessor;
+import org.talend.components.marketo.dataset.CompoundKey;
 import org.talend.components.marketo.dataset.MarketoInputDataSet;
 import org.talend.components.marketo.service.AuthorizationClient;
 import org.talend.components.marketo.service.I18nMessage;
@@ -123,8 +123,8 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
 
     protected JsonObject generateCompoundKeyPayload(String filterType, String fields) {
         Map<String, Object> ck = new HashMap<>();
-        for (Pair<String, String> p : dataSet.getCompoundKey()) {
-            ck.put(p.getLeft(), p.getRight());
+        for (CompoundKey p : dataSet.getCompoundKey()) {
+            ck.put(p.getKey(), p.getValue());
         }
         JsonArray input = jsonFactory.createArrayBuilder().add(jsonFactory.createObjectBuilder(ck).build()).build();
         JsonArray jfields = jsonFactory.createArrayBuilder(Arrays.asList(fields.split(","))).build();
