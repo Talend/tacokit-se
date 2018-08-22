@@ -11,6 +11,7 @@ import org.talend.components.fileio.configuration.RecordDelimiterType;
 import org.talend.components.fileio.configuration.SimpleFileIOFormat;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataSet;
@@ -26,7 +27,7 @@ import lombok.Data;
 @Documentation("Dataset of a HDFS source.")
 @OptionsOrder({ "datastore", "path", "format", "recordDelimiter", "specificRecordDelimiter", "fieldDelimiter",
         "specificFieldDelimiter", "textEnclosureCharacter", "escapeCharacter", "excelFormat", "sheet", "encoding",
-        "specificEncoding", "setHeaderLine", "headerLine", "setFooterLine", "footerLine", "limit" })
+        "specificEncoding", "setHeaderLine", "headerLine", "setFooterLine", "footerLine", "myoptions", "limit" })
 public class SimpleFileIODataSet implements Serializable {
 
     @Option
@@ -76,6 +77,8 @@ public class SimpleFileIODataSet implements Serializable {
     @Documentation("Set the custom encoding")
     private String specificEncoding;
 
+    // FIXME how to support the logic :
+    // show if format is csv or excel
     @Option
     @ActiveIf(target = "format", value = "CSV")
     @Documentation("enable the header setting")
@@ -102,10 +105,12 @@ public class SimpleFileIODataSet implements Serializable {
     @Documentation("Select a excel format")
     private ExcelFormat excelFormat = ExcelFormat.EXCEL2007;
 
+    // FIXME default value not work
     @Option
     @ActiveIf(target = "format", value = "EXCEL")
+    @DefaultValue("Sheet1")
     @Documentation("set the excel sheet name")
-    private String sheet;
+    private String sheet = "Sheet1";
 
     @Option
     @ActiveIf(target = "format", value = "EXCEL")
@@ -122,5 +127,11 @@ public class SimpleFileIODataSet implements Serializable {
     @ActiveIf(target = ".", value = "-2147483648")
     @Documentation("Maximum number of data to handle if positive.")
     private int limit = -1;
+
+    // FIXME trigger not work
+    @Option
+    @Suggestable(value = "findOptions", parameters = { "datastore", "format" })
+    @Documentation("a test for the trigger action")
+    private String myoptions;
 
 }
