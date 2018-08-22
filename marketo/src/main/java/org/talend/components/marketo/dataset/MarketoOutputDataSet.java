@@ -12,6 +12,8 @@
 // ============================================================================
 package org.talend.components.marketo.dataset;
 
+import lombok.Data;
+
 import static org.talend.components.marketo.service.UIActionService.GUESS_ENTITY_SCHEMA_OUTPUT;
 
 import java.util.List;
@@ -25,14 +27,18 @@ import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure.Type;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import lombok.Data;
-
 @Data
 @DataSet(MarketoOutputDataSet.NAME)
 @GridLayouts({ //
         @GridLayout({ //
                 @GridLayout.Row({ "dataStore" }), //
-                @GridLayout.Row({ "entity", "action", "listAction", "syncMethod", "lookupField", "dedupeBy", "deleteBy" }), //
+                @GridLayout.Row({ "entity" }), //
+                @GridLayout.Row({ "action" }), //
+                @GridLayout.Row({ "listAction" }), //
+                @GridLayout.Row({ "syncMethod" }), //
+                @GridLayout.Row({ "lookupField" }), //
+                @GridLayout.Row({ "dedupeBy" }), //
+                @GridLayout.Row({ "deleteBy" }), //
                 @GridLayout.Row({ "customObjectName" }), //
         // @GridLayout.Row({ "batchSize" }) //
         }), //
