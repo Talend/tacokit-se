@@ -12,6 +12,8 @@
 // ============================================================================
 package org.talend.components.marketo.dataset;
 
+import lombok.Data;
+
 import static org.talend.components.marketo.service.UIActionService.GUESS_ENTITY_SCHEMA_INPUT;
 
 import java.util.List;
@@ -26,22 +28,32 @@ import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure.Type;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import lombok.Data;
-
 @Data
 @DataSet(MarketoInputDataSet.NAME)
 @GridLayouts({ //
         @GridLayout({ //
                 @GridLayout.Row({ "dataStore" }), //
-                @GridLayout.Row({ "entity", "leadAction", "otherAction", "listAction" }), //
-                @GridLayout.Row({ "leadKeyName", "leadKeyValues" }), //
-                @GridLayout.Row({ "leadId", "leadIds", "assetIds", "listId" }), //
+                @GridLayout.Row({ "entity" }), //
+                @GridLayout.Row({ "leadAction" }), //
+                @GridLayout.Row({ "otherAction" }), //
+                @GridLayout.Row({ "listAction" }), //
+                @GridLayout.Row({ "leadKeyName" }), //
+                @GridLayout.Row({ "leadKeyValues" }), //
+                @GridLayout.Row({ "leadId", }), //
+                @GridLayout.Row({ "leadIds" }), //
+                @GridLayout.Row({ "assetIds" }), //
+                @GridLayout.Row({ "listId" }), //
                 @GridLayout.Row({ "customObjectName" }), //
                 @GridLayout.Row({ "activityTypeIds" }), //
-                @GridLayout.Row({ "filterType", "filterValues" }), //
-                @GridLayout.Row({ "useCompoundKey", "compoundKey" }), //
+                @GridLayout.Row({ "filterType" }), //
+                @GridLayout.Row({ "filterValues" }), //
+                @GridLayout.Row({ "useCompoundKey" }), //
+                @GridLayout.Row({ "compoundKey" }), //
                 @GridLayout.Row({ "sinceDateTime" }), //
-                @GridLayout.Row({ "listIds", "listName", "programName", "workspaceName" }), //
+                @GridLayout.Row({ "listIds" }), //
+                @GridLayout.Row({ "listName" }), //
+                @GridLayout.Row({ "programName" }), //
+                @GridLayout.Row({ "workspaceName" }), //
                 @GridLayout.Row({ "fields" }), //
                 @GridLayout.Row({ "batchSize" }) //
         }), //
