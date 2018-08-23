@@ -17,7 +17,9 @@ import lombok.EqualsAndHashCode;
 @DataSet("SimpleFileIOOutputDataSet")
 @Documentation("Dataset of a HDFS source.")
 @OptionsOrder({ "datastore", "format", "path", "recordDelimiter", "specificRecordDelimiter", "fieldDelimiter",
-        "specificFieldDelimiter", "overwrite", "mergeOutput", "limit" })
+        "specificFieldDelimiter", "textEnclosureCharacter", "escapeCharacter", "excelFormat", "sheet", "encoding4CSV",
+        "encoding4EXCEL", "specificEncoding4CSV", "specificEncoding4EXCEL", "setHeaderLine4CSV", "setHeaderLine4EXCEL",
+        "headerLine4CSV", "headerLine4EXCEL", "setFooterLine4EXCEL", "footerLine4EXCEL", "overwrite", "mergeOutput", "limit" })
 public class SimpleFileIOOutputDataSet extends SimpleFileIODataSet {
 
     @Option

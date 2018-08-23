@@ -17,8 +17,10 @@ import lombok.EqualsAndHashCode;
 @DataSet("S3OutputDataSet")
 @Documentation("Dataset of a S3 sink.")
 @OptionsOrder({ "datastore", "region", "unknownRegion", "bucket", "object", "encryptDataAtRest", "kmsForDataAtRest", "format",
-        "recordDelimiter", "specificRecordDelimiter", "fieldDelimiter", "specificFieldDelimiter", "limit", "overwrite",
-        "mergeOutput", "limit" })
+        "recordDelimiter", "specificRecordDelimiter", "fieldDelimiter", "specificFieldDelimiter", "textEnclosureCharacter",
+        "escapeCharacter", "excelFormat", "sheet", "encoding4CSV", "encoding4EXCEL", "specificEncoding4CSV",
+        "specificEncoding4EXCEL", "setHeaderLine4CSV", "setHeaderLine4EXCEL", "headerLine4CSV", "headerLine4EXCEL",
+        "setFooterLine4EXCEL", "footerLine4EXCEL", "overwrite", "mergeOutput", "limit" })
 public class S3OutputDataSet extends S3DataSet {
 
     @Option
