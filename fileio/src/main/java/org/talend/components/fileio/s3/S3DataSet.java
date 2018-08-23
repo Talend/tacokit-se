@@ -4,6 +4,8 @@ import static org.talend.sdk.component.api.component.Icon.IconType.FILE_S3_O;
 
 import java.io.Serializable;
 
+import org.talend.components.fileio.configuration.EncodingType;
+import org.talend.components.fileio.configuration.ExcelFormat;
 import org.talend.components.fileio.configuration.FieldDelimiterType;
 import org.talend.components.fileio.configuration.RecordDelimiterType;
 import org.talend.components.fileio.configuration.SimpleFileIOFormat;
@@ -25,7 +27,10 @@ import lombok.Getter;
 @DataSet("S3DataSet")
 @Documentation("Dataset of a S3 source.")
 @OptionsOrder({ "datastore", "region", "unknownRegion", "bucket", "object", "encryptDataAtRest", "kmsForDataAtRest", "format",
-        "recordDelimiter", "specificRecordDelimiter", "fieldDelimiter", "specificFieldDelimiter", "limit" })
+        "recordDelimiter", "specificRecordDelimiter", "fieldDelimiter", "specificFieldDelimiter", "textEnclosureCharacter",
+        "escapeCharacter", "excelFormat", "sheet", "encoding4CSV", "encoding4EXCEL", "specificEncoding4CSV",
+        "specificEncoding4EXCEL", "setHeaderLine4CSV", "setHeaderLine4EXCEL", "headerLine4CSV", "headerLine4EXCEL",
+        "setFooterLine4EXCEL", "footerLine4EXCEL", "limit" })
 public class S3DataSet implements Serializable {
 
     @Option
@@ -97,6 +102,88 @@ public class S3DataSet implements Serializable {
     @ActiveIf(target = "fieldDelimiter", value = "OTHER")
     @Documentation("A custom delimiter if `fieldDelimiter` is `OTHER`")
     private String specificFieldDelimiter = ";";
+
+    @Option
+    @ActiveIf(target = "format", value = "CSV")
+    @Documentation("Select a encoding type for CSV")
+    private EncodingType encoding4CSV = EncodingType.UTF8;
+
+    @Option
+    @ActiveIf(target = "format", value = "CSV")
+    @ActiveIf(target = "encoding4CSV", value = "OTHER")
+    @Documentation("Set the custom encoding for CSV")
+    private String specificEncoding4CSV;
+
+    @Option
+    @ActiveIf(target = "format", value = "EXCEL")
+    @ActiveIf(target = "excelFormat", value = "HTML")
+    @Documentation("Select a encoding type for EXCEL")
+    private EncodingType encoding4EXCEL = EncodingType.UTF8;
+
+    @Option
+    @ActiveIf(target = "format", value = "EXCEL")
+    @ActiveIf(target = "excelFormat", value = "HTML")
+    @ActiveIf(target = "encoding4EXCEL", value = "OTHER")
+    @Documentation("Set the custom encoding for EXCEL")
+    private String specificEncoding4EXCEL;
+
+    // FIXME how to support the logic :
+    // show if format is csv or excel
+    // now skip it to split the option to two : setHeaderLine4CSV, setHeaderLine4EXCEL
+
+    @Option
+    @ActiveIf(target = "format", value = "CSV")
+    @Documentation("enable the header setting for CSV")
+    private boolean setHeaderLine4CSV;
+
+    @Option
+    @ActiveIf(target = "format", value = "CSV")
+    @ActiveIf(target = "setHeaderLine4CSV", value = "true")
+    @Documentation("set the header number for CSV")
+    private String headerLine4CSV;
+
+    @Option
+    @ActiveIf(target = "format", value = "EXCEL")
+    @Documentation("enable the header setting for EXCEL")
+    private boolean setHeaderLine4EXCEL;
+
+    @Option
+    @ActiveIf(target = "format", value = "EXCEL")
+    @ActiveIf(target = "setHeaderLine4EXCEL", value = "true")
+    @Documentation("set the header number for EXCEL")
+    private String headerLine4EXCEL;
+
+    @Option
+    @ActiveIf(target = "format", value = "CSV")
+    @Documentation("set the text enclosure character")
+    private String textEnclosureCharacter;
+
+    @Option
+    @ActiveIf(target = "format", value = "CSV")
+    @Documentation("set the escape character")
+    private String escapeCharacter;
+
+    @Option
+    @ActiveIf(target = "format", value = "EXCEL")
+    @Documentation("Select a excel format")
+    private ExcelFormat excelFormat = ExcelFormat.EXCEL2007;
+
+    @Option
+    @ActiveIf(target = "format", value = "EXCEL")
+    @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" })
+    @Documentation("set the excel sheet name")
+    private String sheet;
+
+    @Option
+    @ActiveIf(target = "format", value = "EXCEL")
+    @Documentation("enable the footer setting for EXCEL")
+    private boolean setFooterLine4EXCEL;
+
+    @Option
+    @ActiveIf(target = "format", value = "EXCEL")
+    @ActiveIf(target = "setFooterLine4EXCEL", value = "true")
+    @Documentation("set the footer number for EXCEL")
+    private String footerLine4EXCEL;
 
     @Option
     @ActiveIf(target = ".", value = "-2147483648")

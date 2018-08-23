@@ -26,8 +26,9 @@ import lombok.Data;
 @DataSet("SimpleFileIODataSet")
 @Documentation("Dataset of a HDFS source.")
 @OptionsOrder({ "datastore", "path", "format", "recordDelimiter", "specificRecordDelimiter", "fieldDelimiter",
-        "specificFieldDelimiter", "textEnclosureCharacter", "escapeCharacter", "excelFormat", "sheet", "encoding",
-        "specificEncoding", "setHeaderLine", "headerLine", "setFooterLine", "footerLine", "myoptions", "limit" })
+        "specificFieldDelimiter", "textEnclosureCharacter", "escapeCharacter", "excelFormat", "sheet", "encoding4CSV",
+        "encoding4EXCEL", "specificEncoding4CSV", "specificEncoding4EXCEL", "setHeaderLine4CSV", "setHeaderLine4EXCEL",
+        "headerLine4CSV", "headerLine4EXCEL", "setFooterLine4EXCEL", "footerLine4EXCEL", "limit" })
 public class SimpleFileIODataSet implements Serializable {
 
     @Option
@@ -68,27 +69,53 @@ public class SimpleFileIODataSet implements Serializable {
 
     @Option
     @ActiveIf(target = "format", value = "CSV")
-    @Documentation("Select a encoding type")
-    private EncodingType encoding = EncodingType.UTF8;
+    @Documentation("Select a encoding type for CSV")
+    private EncodingType encoding4CSV = EncodingType.UTF8;
 
     @Option
     @ActiveIf(target = "format", value = "CSV")
-    @ActiveIf(target = "encoding", value = "OTHER")
-    @Documentation("Set the custom encoding")
-    private String specificEncoding;
+    @ActiveIf(target = "encoding4CSV", value = "OTHER")
+    @Documentation("Set the custom encoding for CSV")
+    private String specificEncoding4CSV;
+
+    @Option
+    @ActiveIf(target = "format", value = "EXCEL")
+    @ActiveIf(target = "excelFormat", value = "HTML")
+    @Documentation("Select a encoding type for EXCEL")
+    private EncodingType encoding4EXCEL = EncodingType.UTF8;
+
+    @Option
+    @ActiveIf(target = "format", value = "EXCEL")
+    @ActiveIf(target = "excelFormat", value = "HTML")
+    @ActiveIf(target = "encoding4EXCEL", value = "OTHER")
+    @Documentation("Set the custom encoding for EXCEL")
+    private String specificEncoding4EXCEL;
 
     // FIXME how to support the logic :
     // show if format is csv or excel
-    @Option
-    @ActiveIf(target = "format", value = "CSV")
-    @Documentation("enable the header setting")
-    private boolean setHeaderLine;
+    // now skip it to split the option to two : setHeaderLine4CSV, setHeaderLine4EXCEL
 
     @Option
     @ActiveIf(target = "format", value = "CSV")
-    @ActiveIf(target = "setHeaderLine", value = "true")
-    @Documentation("set the header number")
-    private String headerLine;
+    @Documentation("enable the header setting for CSV")
+    private boolean setHeaderLine4CSV;
+
+    @Option
+    @ActiveIf(target = "format", value = "CSV")
+    @ActiveIf(target = "setHeaderLine4CSV", value = "true")
+    @Documentation("set the header number for CSV")
+    private String headerLine4CSV;
+
+    @Option
+    @ActiveIf(target = "format", value = "EXCEL")
+    @Documentation("enable the header setting for EXCEL")
+    private boolean setHeaderLine4EXCEL;
+
+    @Option
+    @ActiveIf(target = "format", value = "EXCEL")
+    @ActiveIf(target = "setHeaderLine4EXCEL", value = "true")
+    @Documentation("set the header number for EXCEL")
+    private String headerLine4EXCEL;
 
     @Option
     @ActiveIf(target = "format", value = "CSV")
@@ -105,33 +132,35 @@ public class SimpleFileIODataSet implements Serializable {
     @Documentation("Select a excel format")
     private ExcelFormat excelFormat = ExcelFormat.EXCEL2007;
 
-    // FIXME default value not work
     @Option
     @ActiveIf(target = "format", value = "EXCEL")
-    @DefaultValue("Sheet1")
+    @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" })
     @Documentation("set the excel sheet name")
-    private String sheet = "Sheet1";
+    private String sheet;
 
     @Option
     @ActiveIf(target = "format", value = "EXCEL")
-    @Documentation("enable the footer setting")
-    private boolean setFooterLine;
+    @Documentation("enable the footer setting for EXCEL")
+    private boolean setFooterLine4EXCEL;
 
     @Option
     @ActiveIf(target = "format", value = "EXCEL")
-    @ActiveIf(target = "setFooterLine", value = "true")
-    @Documentation("set the footer number")
-    private String footerLine;
+    @ActiveIf(target = "setFooterLine4EXCEL", value = "true")
+    @Documentation("set the footer number for EXCEL")
+    private String footerLine4EXCEL;
 
     @Option
     @ActiveIf(target = ".", value = "-2147483648")
     @Documentation("Maximum number of data to handle if positive.")
     private int limit = -1;
 
-    // FIXME trigger not work
-    @Option
-    @Suggestable(value = "findOptions", parameters = { "datastore", "format" })
-    @Documentation("a test for the trigger action")
-    private String myoptions;
+    /*
+     * @Option
+     * 
+     * @Suggestable(value = "findOptions", parameters = { "datastore", "format" })
+     * 
+     * @Documentation("a test for the trigger action")
+     * private String myoptions;
+     */
 
 }

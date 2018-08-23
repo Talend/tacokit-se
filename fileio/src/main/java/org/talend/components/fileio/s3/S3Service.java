@@ -28,8 +28,6 @@ import com.amazonaws.services.s3.model.Bucket;
 @Service
 public class S3Service {
 
-    private final static boolean FILTER_BUCKET_REGION = Boolean.getBoolean(S3Service.class + ".filterBucketRegion");
-
     @Suggestions("S3FindBuckets")
     public SuggestionValues findBuckets(@Option("datastore") final S3DataStore dataStore,
             @Option("region") final S3DataSet.S3Region region, @Option("unknownRegion") final String unknownRegion) {
@@ -38,8 +36,7 @@ public class S3Service {
             final String usedRegion = findRuntimeRegion(region, unknownRegion);
             client.setEndpoint(regionToEndpoint(usedRegion));
             return new SuggestionValues(true,
-                    client.listBuckets().stream().filter(b -> FILTER_BUCKET_REGION && doesRegionMatch(client, b, usedRegion))
-                            .map(bucket -> new SuggestionValues.Item(bucket.getName(), bucket.getName()))
+                    client.listBuckets().stream().map(bucket -> new SuggestionValues.Item(bucket.getName(), bucket.getName()))
                             .sorted(comparing(SuggestionValues.Item::getLabel)).collect(toList()));
         } finally {
             client.shutdown();
