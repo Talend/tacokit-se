@@ -9,12 +9,13 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.completion.Suggestions;
+import org.talend.components.fileio.hdfs.SimpleFileIODataStore;
 
 @Service
 public class SimpleFileIOService {
 
     @Suggestions("findOptions")
-    public SuggestionValues findOptions(@Option("datastore") final S3DataStore dataStore,
+    public SuggestionValues findOptions(@Option("datastore") final SimpleFileIODataStore dataStore,
             @Option("format") final SimpleFileIOFormat format) {
         List<SuggestionValues.Item> list = new ArrayList<>();
         list.add(new SuggestionValues.Item("option1", "option1"));
