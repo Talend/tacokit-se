@@ -56,7 +56,7 @@ public class ListStrategy extends OutputComponentStrategy implements ProcessorSt
         leadId = incomingData.getInt(ATTR_LEAD_ID);
         JsonObject leadRecord = jsonFactory.createObjectBuilder().add(ATTR_ID, leadId).build();
         JsonArray input = jsonFactory.createArrayBuilder().add(leadRecord).build();
-        LOG.debug("[getPayload] data: {}; input: {}.", incomingData, input);
+        LOG.warn("[getPayload] data: {}; input: {}.", incomingData, input);
         return jsonFactory.createObjectBuilder() //
                 .add(ATTR_INPUT, input) //
                 .build();

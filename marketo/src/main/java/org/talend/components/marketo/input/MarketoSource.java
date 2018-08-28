@@ -70,7 +70,7 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
     @PostConstruct
     public void init() {
         super.init();
-        LOG.debug("[init] dataSet schema: {}.", dataSet.getSchema());
+        LOG.warn("[init] dataSet schema: {}.", dataSet.getSchema());
         // TODO in some cases we need to fill fields property
         processBatch();
     }
@@ -108,7 +108,7 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
             return;
         }
         while (nextPageToken != null && requestResult == null && hasMore) {
-            LOG.debug("[processBatch] looping for valid results. {}", nextPageToken);
+            LOG.warn("[processBatch] looping for valid results. {}", nextPageToken);
             result = runAction();
             nextPageToken = result.getString(ATTR_NEXT_PAGE_TOKEN, null);
             requestResult = result.getJsonArray(ATTR_RESULT);
@@ -133,7 +133,7 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
                 .add(ATTR_FIELDS, jfields) //
                 .add(ATTR_INPUT, input) //
                 .build();
-        LOG.debug("[generateCompoundKeyPayload] payload: {}.", payload);
+        LOG.warn("[generateCompoundKeyPayload] payload: {}.", payload);
         return payload;
     }
 
