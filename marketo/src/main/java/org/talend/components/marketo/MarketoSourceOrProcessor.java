@@ -95,7 +95,7 @@ public class MarketoSourceOrProcessor implements Serializable {
     public void retrieveAccessToken() {
         Response<JsonObject> result = authorizationClient.getAuthorizationToken(CLIENT_CREDENTIALS,
                 dataSet.getDataStore().getClientId(), dataSet.getDataStore().getClientSecret());
-        LOG.debug("[retrieveAccessToken] [{}] : {}.", result.status(), result.body());
+        LOG.warn("[retrieveAccessToken] [{}] : {}.", result.status(), result.body());
         if (result.status() == 200) {
             accessToken = result.body().getString(ATTR_ACCESS_TOKEN);
         } else {
@@ -127,7 +127,7 @@ public class MarketoSourceOrProcessor implements Serializable {
      * @return Marketo API result
      */
     public JsonObject handleResponse(final Response<JsonObject> response) {
-        LOG.debug("[handleResponse] [{}] body: {}.", response.status(), response.body());
+        LOG.warn("[handleResponse] [{}] body: {}.", response.status(), response.body());
         if (response.status() == 200) {
             if (response.body().getBoolean(ATTR_SUCCESS)) {
                 return response.body();

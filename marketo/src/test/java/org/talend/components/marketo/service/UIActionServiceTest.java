@@ -99,16 +99,16 @@ class UIActionServiceTest extends MarketoBaseTest {
         assertEquals(
                 Arrays.asList("id", "cookie", "email", "twitterId", "facebookId", "linkedInId", "sfdcAccountId", "sfdcContactId",
                         "sfdcLeadId", "sfdcLeadOwnerId", "sfdcOpptyId", "Custom"),
-                uiActionService.getLeadKeyNames().getItems().stream().map(item -> item.getId()).collect(Collectors.toList()));
+                uiActionService.getLeadKeyNames(null).getItems().stream().map(item -> item.getId()).collect(Collectors.toList()));
     }
 
     @Test
     void testGetActivities() {
-        SuggestionValues activities = uiActionService.getActivities(inputDataSet);
+        SuggestionValues activities = uiActionService.getActivities(inputDataSet.getDataStore());
         assertNotNull(activities);
         assertTrue(activities.getItems().size() > 20);
         inputDataSet.getDataStore().setEndpoint(null);
-        activities = uiActionService.getActivities(inputDataSet);
+        activities = uiActionService.getActivities(inputDataSet.getDataStore());
         assertNotNull(activities);
         assertEquals(60, activities.getItems().size());
     }

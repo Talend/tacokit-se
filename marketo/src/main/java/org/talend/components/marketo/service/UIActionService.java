@@ -38,14 +38,17 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.asyncvalidation.AsyncValidation;
 import org.talend.sdk.component.api.service.asyncvalidation.ValidationResult;
+import org.talend.sdk.component.api.service.completion.DynamicValues;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.completion.SuggestionValues.Item;
 import org.talend.sdk.component.api.service.completion.Suggestions;
+import org.talend.sdk.component.api.service.completion.Values;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.schema.DiscoverSchema;
 import org.talend.sdk.component.api.service.schema.Schema;
+import org.talend.sdk.component.api.service.schema.Schema.Entry;
 
 @Service
 public class UIActionService extends MarketoService {
@@ -53,6 +56,14 @@ public class UIActionService extends MarketoService {
     public static final String ACTIVITIES_LIST = "ACTIVITIES_LIST";
 
     public static final String LEAD_KEY_NAME_LIST = "LEAD_KEY_NAME_LIST";
+
+    public static final String LIST_NAMES = "LIST_NAMES";
+
+    public static final String FIELD_NAMES = "FIELD_NAMES";
+
+    public static final String CUSTOM_OBJECT_NAMES = "CUSTOM_OBJECT_NAMES";
+
+    public static final String FIELD_NAME_PROPOSITIONS = "FIELD_NAME_PROPOSITIONS";
 
     public static final String HEALTH_CHECK = "MARKETO_HEALTH_CHECK";
 
@@ -87,7 +98,8 @@ public class UIActionService extends MarketoService {
     }
 
     @Suggestions(LEAD_KEY_NAME_LIST)
-    public SuggestionValues getLeadKeyNames() {
+    public SuggestionValues getLeadKeyNames(@Option final MarketoInputDataSet dataSet) {
+        LOG.warn("[getLeadKeyNames] {}", dataSet);
         return new SuggestionValues(true, Arrays.asList( //
                 new SuggestionValues.Item("id", "id"), //
                 new SuggestionValues.Item("cookie", "cookie"), //
@@ -105,17 +117,18 @@ public class UIActionService extends MarketoService {
     }
 
     @Suggestions(ACTIVITIES_LIST)
-    public SuggestionValues getActivities(@Option final MarketoInputDataSet dataSet) {
-        LOG.debug("[getActivities] {}.", dataSet);
+    public SuggestionValues getActivities(@Option final MarketoDataStore dataStore) {
+        LOG.warn("[getActivities] {}.", dataStore);
         try {
-            String aToken = authorizationClient.getAccessToken(dataSet.getDataStore());
-            leadClient.base(dataSet.getDataStore().getEndpoint());
+            String aToken = authorizationClient.getAccessToken(dataStore);
+            leadClient.base(dataStore.getEndpoint());
             List<Item> activities = new ArrayList<>();
             for (JsonObject act : parseResultFromResponse(leadClient.getActivities(aToken)).getValuesAs(JsonObject.class)) {
                 activities.add(new SuggestionValues.Item(String.valueOf(act.getInt(ATTR_ID)), act.getString(ATTR_NAME)));
             }
             return new SuggestionValues(true, activities);
         } catch (Exception e) {
+            LOG.warn("[getActivities] Exception: {}", e.getMessage());
             return new SuggestionValues(true, Arrays.asList( //
                     new SuggestionValues.Item("1", "Visit Webpage"), //
                     new SuggestionValues.Item("2", "Fill Out Form"), //
@@ -181,31 +194,107 @@ public class UIActionService extends MarketoService {
         }
     }
 
+    @Suggestions(LIST_NAMES)
+    public SuggestionValues getListNames(@Option final MarketoDataStore dataStore) {
+        listClient.base(dataStore.getEndpoint());
+        LOG.warn("[getListNames] {}.", dataStore);
+        try {
+            String aToken = authorizationClient.getAccessToken(dataStore);
+            leadClient.base(dataStore.getEndpoint());
+            List<Item> listNames = new ArrayList<>();
+            for (JsonObject l : parseResultFromResponse(listClient.getLists(aToken, null, null, "", "", "", 300))
+                    .getValuesAs(JsonObject.class)) {
+                listNames.add(new SuggestionValues.Item(String.valueOf(l.getString(ATTR_NAME)), l.getString(ATTR_NAME)));
+            }
+            return new SuggestionValues(true, listNames);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    @Suggestions(FIELD_NAMES)
+    public SuggestionValues getFieldNames(@Option final MarketoDataStore dataStore, @Option final String entity,
+            @Option final String customObjectName) {
+        LOG.warn("[getFieldNames] {}.", dataStore, entity, customObjectName);
+        try {
+            List<Item> fieldNames = new ArrayList<>();
+            Schema schema = getEntitySchema(dataStore, entity, customObjectName, "");
+            for (Entry f : schema.getEntries()) {
+                fieldNames.add(new SuggestionValues.Item(f.getName(), f.getName()));
+            }
+            return new SuggestionValues(false, fieldNames);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    @DynamicValues(FIELD_NAME_PROPOSITIONS)
+    public Values getFieldNamePropositions() {
+        MarketoDataStore dataStore = null;
+        String entity = "", customObjectName = "";
+        LOG.warn("[getFieldNames] {}.", dataStore, entity, customObjectName);
+        try {
+            List<Values.Item> fieldNames = new ArrayList<>();
+            Schema schema = getEntitySchema(dataStore, entity, customObjectName, "");
+            for (Entry f : schema.getEntries()) {
+                fieldNames.add(new Values.Item(f.getName(), f.getName()));
+            }
+
+            return new Values(fieldNames);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    @Suggestions(CUSTOM_OBJECT_NAMES)
+    public SuggestionValues getCustomObjectNames(@Option final MarketoDataStore dataStore) {
+        LOG.warn("[getCustomObjectNames] {}.", dataStore);
+        try {
+            String aToken = authorizationClient.getAccessToken(dataStore);
+            customObjectClient.base(dataStore.getEndpoint());
+            List<Item> coNames = new ArrayList<>();
+            for (JsonObject l : parseResultFromResponse(customObjectClient.listCustomObjects(aToken, ""))
+                    .getValuesAs(JsonObject.class)) {
+                coNames.add(new SuggestionValues.Item(String.valueOf(l.getString(ATTR_NAME)), l.getString(ATTR_NAME)));
+            }
+            return new SuggestionValues(true, coNames);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
     @DiscoverSchema(GUESS_ENTITY_SCHEMA_INPUT)
-    public Schema guessEntitySchemaForInput(@Option final MarketoInputDataSet dataSet) {
+    public Schema guessEntitySchemaForInput(@Option(MarketoInputDataSet.NAME) final MarketoInputDataSet dataSet) {
+        LOG.warn("[guessEntitySchemaForInput] {}", dataSet);
         MarketoEntity entity = dataSet.getEntity();
+        return getEntitySchema(dataSet.getDataStore(), dataSet.getEntity().name(), dataSet.getCustomObjectName(),
+                dataSet.getListAction().name());
+    }
+
+    public Schema getEntitySchema(final MarketoDataStore dataStore, final String entity, final String customObjectName,
+            final String listAction) {
+        LOG.warn("[getEntitySchema] {} - {} - {}- {}", dataStore, entity, customObjectName, listAction);
         try {
             JsonArray entitySchema = null;
-            String accessToken = authorizationClient.getAccessToken(dataSet.getDataStore());
-            String endpoint = dataSet.getDataStore().getEndpoint();
-            switch (entity) {
+            String accessToken = authorizationClient.getAccessToken(dataStore);
+            String endpoint = dataStore.getEndpoint();
+            switch (MarketoEntity.valueOf(entity)) {
             case Lead:
                 leadClient.base(endpoint);
                 entitySchema = parseResultFromResponse(leadClient.describeLead(accessToken));
                 break;
             case List:
-                if (ListAction.getLeads.equals(dataSet.getListAction())) {
+                if (ListAction.getLeads.name().equals(listAction)) {
                     leadClient.base(endpoint);
                     entitySchema = parseResultFromResponse(leadClient.describeLead(accessToken));
                 } else {
-                    return getInputSchema(MarketoEntity.List, dataSet.getListAction().name());
+                    return getInputSchema(MarketoEntity.List, listAction);
                 }
                 break;
             case CustomObject:
                 customObjectClient.base(endpoint);
-                entitySchema = parseResultFromResponse(
-                        customObjectClient.describeCustomObjects(accessToken, dataSet.getCustomObjectName())).get(0)
-                                .asJsonObject().getJsonArray(ATTR_FIELDS);
+                entitySchema = parseResultFromResponse(customObjectClient.describeCustomObjects(accessToken, customObjectName))
+                        .get(0).asJsonObject().getJsonArray(ATTR_FIELDS);
                 break;
             case Company:
                 companyClient.base(endpoint);
@@ -223,7 +312,7 @@ public class UIActionService extends MarketoService {
                         .asJsonObject().getJsonArray(ATTR_FIELDS);
                 break;
             }
-            LOG.debug("[guessEntitySchema]entitySchema: {}.", entitySchema);
+            LOG.warn("[guessEntitySchema]entitySchema: {}.", entitySchema);
             return getSchemaForEntity(entitySchema);
         } catch (Exception e) {
             LOG.error("Exception caught : {}.", e.getMessage());
@@ -233,6 +322,7 @@ public class UIActionService extends MarketoService {
 
     @DiscoverSchema(GUESS_ENTITY_SCHEMA_OUTPUT)
     public Schema guessEntitySchemaForOutput(@Option final MarketoOutputDataSet dataSet) {
+        LOG.warn("[guessEntitySchemaForOutput] {}", dataSet);
         return getOutputSchema(dataSet.getEntity());
     }
 

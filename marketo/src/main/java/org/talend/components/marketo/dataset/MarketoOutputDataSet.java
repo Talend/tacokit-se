@@ -12,13 +12,14 @@
 // ============================================================================
 package org.talend.components.marketo.dataset;
 
-import lombok.Data;
-
+import static org.talend.components.marketo.service.UIActionService.CUSTOM_OBJECT_NAMES;
+import static org.talend.components.marketo.service.UIActionService.FIELD_NAMES;
 import static org.talend.components.marketo.service.UIActionService.GUESS_ENTITY_SCHEMA_OUTPUT;
 
 import java.util.List;
 
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -26,6 +27,8 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure.Type;
 import org.talend.sdk.component.api.meta.Documentation;
+
+import lombok.Data;
 
 @Data
 @DataSet(MarketoOutputDataSet.NAME)
@@ -95,6 +98,7 @@ public class MarketoOutputDataSet extends MarketoDataSet {
     @Option
     @ActiveIf(target = "entity", value = "Lead")
     @ActiveIf(target = "action", value = "sync")
+    @Suggestable(value = FIELD_NAMES, parameters = { "dataStore", "entity", "customObjectName" })
     @Documentation("Lookup Field")
     private String lookupField;
 
@@ -103,6 +107,7 @@ public class MarketoOutputDataSet extends MarketoDataSet {
      */
     @Option
     @ActiveIf(target = "entity", value = { "CustomObject" })
+    @Suggestable(value = CUSTOM_OBJECT_NAMES, parameters = { "dataStore" })
     @Documentation("Custom Object Name")
     private String customObjectName;
 

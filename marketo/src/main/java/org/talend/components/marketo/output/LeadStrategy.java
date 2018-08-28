@@ -50,8 +50,8 @@ public class LeadStrategy extends OutputComponentStrategy implements ProcessorSt
     public JsonObject getPayload(JsonObject incomingData) {
         JsonObject data = incomingData;
         JsonArray input = jsonFactory.createArrayBuilder().add(data).build();
-        LOG.debug("[getPayload] data : {}", data);
-        LOG.debug("[getPayload] input: {}", input);
+        LOG.warn("[getPayload] data : {}", data);
+        LOG.warn("[getPayload] input: {}", input);
         if (OutputAction.sync.equals(dataSet.getAction())) {
             return jsonFactory.createObjectBuilder() //
                     .add(ATTR_ACTION, dataSet.getSyncMethod().name()) //

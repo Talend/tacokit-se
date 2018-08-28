@@ -100,11 +100,11 @@ public class MarketoProcessor extends MarketoSourceOrProcessor {
     @ElementListener
     public void map(final JsonObject data, @Output final OutputEmitter<JsonObject> main,
             @Output("rejected") final OutputEmitter<JsonObject> rejected) {
-        LOG.debug("[map] received: {}.", data);
+        LOG.warn("[map] received: {}.", data);
         JsonObject payload = strategy.getPayload(data);
-        LOG.debug("[map] payload : {}.", payload);
+        LOG.warn("[map] payload : {}.", payload);
         JsonObject result = strategy.runAction(payload);
-        LOG.debug("[map] result  : {}.", result);
+        LOG.warn("[map] result  : {}.", result);
         for (JsonObject status : result.getJsonArray(ATTR_RESULT).getValuesAs(JsonObject.class)) {
             if (strategy.isRejected(status)) {
                 rejected.emit(strategy.createRejectData(status));
