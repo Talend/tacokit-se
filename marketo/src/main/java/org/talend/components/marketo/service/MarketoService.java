@@ -34,6 +34,7 @@ import javax.json.JsonObject;
 
 import org.slf4j.Logger;
 import org.talend.components.marketo.dataset.MarketoDataSet.MarketoEntity;
+import org.talend.components.marketo.datastore.MarketoDataStore;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.schema.Schema;
@@ -65,6 +66,16 @@ public class MarketoService {
     protected I18nMessage i18n;
 
     private transient static final Logger LOG = getLogger(MarketoService.class);
+
+
+    public void initClients(MarketoDataStore dataStore){
+        authorizationClient.base(dataStore.getEndpoint());
+        leadClient.base(dataStore.getEndpoint());
+        listClient.base(dataStore.getEndpoint());
+        customObjectClient.base(dataStore.getEndpoint());
+        companyClient.base(dataStore.getEndpoint());
+        opportunityClient.base(dataStore.getEndpoint());
+    }
 
     public String getFieldsFromDescribeFormatedForApi(JsonArray fields) {
         List<String> result = new ArrayList<>();

@@ -77,7 +77,7 @@ public class UIActionService extends MarketoService {
 
     @HealthCheck(HEALTH_CHECK)
     public HealthCheckStatus doHealthCheck(@Option(MarketoDataStore.NAME) MarketoDataStore dataStore, final I18nMessage i18n) {
-        authorizationClient.base(dataStore.getEndpoint());
+        initClients(dataStore);
         Response<JsonObject> result = authorizationClient.getAuthorizationToken(CLIENT_CREDENTIALS, dataStore.getClientId(),
                 dataStore.getClientSecret());
         if (result.status() == 200 && result.body().getString(ATTR_ACCESS_TOKEN, null) != null) {
@@ -120,8 +120,8 @@ public class UIActionService extends MarketoService {
     public SuggestionValues getActivities(@Option final MarketoDataStore dataStore) {
         LOG.warn("[getActivities] {}.", dataStore);
         try {
+            initClients(dataStore);
             String aToken = authorizationClient.getAccessToken(dataStore);
-            leadClient.base(dataStore.getEndpoint());
             List<Item> activities = new ArrayList<>();
             for (JsonObject act : parseResultFromResponse(leadClient.getActivities(aToken)).getValuesAs(JsonObject.class)) {
                 activities.add(new SuggestionValues.Item(String.valueOf(act.getInt(ATTR_ID)), act.getString(ATTR_NAME)));
@@ -196,11 +196,10 @@ public class UIActionService extends MarketoService {
 
     @Suggestions(LIST_NAMES)
     public SuggestionValues getListNames(@Option final MarketoDataStore dataStore) {
-        listClient.base(dataStore.getEndpoint());
         LOG.warn("[getListNames] {}.", dataStore);
         try {
+            initClients(dataStore);
             String aToken = authorizationClient.getAccessToken(dataStore);
-            leadClient.base(dataStore.getEndpoint());
             List<Item> listNames = new ArrayList<>();
             for (JsonObject l : parseResultFromResponse(listClient.getLists(aToken, null, null, "", "", "", 300))
                     .getValuesAs(JsonObject.class)) {
@@ -250,8 +249,8 @@ public class UIActionService extends MarketoService {
     public SuggestionValues getCustomObjectNames(@Option final MarketoDataStore dataStore) {
         LOG.warn("[getCustomObjectNames] {}.", dataStore);
         try {
+            initClients(dataStore);
             String aToken = authorizationClient.getAccessToken(dataStore);
-            customObjectClient.base(dataStore.getEndpoint());
             List<Item> coNames = new ArrayList<>();
             for (JsonObject l : parseResultFromResponse(customObjectClient.listCustomObjects(aToken, ""))
                     .getValuesAs(JsonObject.class)) {
@@ -275,39 +274,33 @@ public class UIActionService extends MarketoService {
             final String listAction) {
         LOG.warn("[getEntitySchema] {} - {} - {}- {}", dataStore, entity, customObjectName, listAction);
         try {
-            JsonArray entitySchema = null;
+            initClients(dataStore);
             String accessToken = authorizationClient.getAccessToken(dataStore);
-            String endpoint = dataStore.getEndpoint();
+            JsonArray entitySchema = null;
             switch (MarketoEntity.valueOf(entity)) {
             case Lead:
-                leadClient.base(endpoint);
                 entitySchema = parseResultFromResponse(leadClient.describeLead(accessToken));
                 break;
             case List:
                 if (ListAction.getLeads.name().equals(listAction)) {
-                    leadClient.base(endpoint);
                     entitySchema = parseResultFromResponse(leadClient.describeLead(accessToken));
                 } else {
                     return getInputSchema(MarketoEntity.List, listAction);
                 }
                 break;
             case CustomObject:
-                customObjectClient.base(endpoint);
                 entitySchema = parseResultFromResponse(customObjectClient.describeCustomObjects(accessToken, customObjectName))
                         .get(0).asJsonObject().getJsonArray(ATTR_FIELDS);
                 break;
             case Company:
-                companyClient.base(endpoint);
                 entitySchema = parseResultFromResponse(companyClient.describeCompanies(accessToken)).get(0).asJsonObject()
                         .getJsonArray(ATTR_FIELDS);
                 break;
             case Opportunity:
-                opportunityClient.base(endpoint);
                 entitySchema = parseResultFromResponse(opportunityClient.describeOpportunity(accessToken)).get(0).asJsonObject()
                         .getJsonArray(ATTR_FIELDS);
                 break;
             case OpportunityRole:
-                opportunityClient.base(endpoint);
                 entitySchema = parseResultFromResponse(opportunityClient.describeOpportunityRole(accessToken)).get(0)
                         .asJsonObject().getJsonArray(ATTR_FIELDS);
                 break;
