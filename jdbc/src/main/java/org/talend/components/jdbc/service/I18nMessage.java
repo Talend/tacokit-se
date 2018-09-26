@@ -37,4 +37,6 @@ public interface I18nMessage {
 
     String warnConnectionCantBeClosed();
 
+    String warnReadOnlyOptimisationFailure();
+
 }

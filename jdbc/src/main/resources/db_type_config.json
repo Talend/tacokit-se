@@ -2,7 +2,7 @@
 
 	{
 		"id" : "MYSQL",
-		"class" : "org.gjt.mm.mysql.Driver",
+		"class" : "com.mysql.jdbc.Driver",
 		"url" : "jdbc:mysql://localhost:3306/db",
 		"paths" : 
 	 	[

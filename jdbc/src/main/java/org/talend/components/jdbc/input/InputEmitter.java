@@ -19,7 +19,7 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
 import org.talend.components.jdbc.DriverInfo;
-import org.talend.components.jdbc.dataset.QueryDataset;
+import org.talend.components.jdbc.dataset.InputDataset;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.component.Icon;
@@ -38,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 @Documentation("JDBC query input")
 public class InputEmitter implements Serializable {
 
-    private final QueryDataset queryDataset;
+    private final InputDataset queryDataset;
 
     private JsonBuilderFactory jsonBuilderFactory;
 
@@ -58,7 +58,7 @@ public class InputEmitter implements Serializable {
 
     private ResultSet resultSet;
 
-    public InputEmitter(@Option("configuration") final QueryDataset queryDataSet, final JdbcService jdbcDriversService,
+    public InputEmitter(@Option("configuration") final InputDataset queryDataSet, final JdbcService jdbcDriversService,
             final JsonBuilderFactory jsonBuilderFactory, final I18nMessage i18nMessage) {
         this.queryDataset = queryDataSet;
         this.jsonBuilderFactory = jsonBuilderFactory;
@@ -93,7 +93,12 @@ public class InputEmitter implements Serializable {
             };
             try {
                 connection = driverInstance.connect(queryDataset.getConnection().getJdbcUrl(), info);
-                connection.setReadOnly(true);
+                try {
+                    connection.setReadOnly(true);
+                } catch (final Throwable e) {
+                    log.warn(i18n.warnReadOnlyOptimisationFailure(), e); // not supported in some database
+                }
+
                 if (!connection.isValid(30)) {
                     throw new IllegalStateException(i18n.errorInvalidConnection());
                 }
@@ -119,7 +124,6 @@ public class InputEmitter implements Serializable {
         } catch (SQLException e) {
             throw new IllegalStateException(i18n.errorSQL(e.getErrorCode(), e.getMessage()));
         }
-
     }
 
     @Producer

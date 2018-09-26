@@ -47,7 +47,6 @@ class ActionServiceTest {
         final HealthCheckStatus status = myService.validateBasicDatastore(datastore);
         assertNotNull(status);
         assertEquals(HealthCheckStatus.Status.OK, status.getStatus());
-
     }
 
     @Test

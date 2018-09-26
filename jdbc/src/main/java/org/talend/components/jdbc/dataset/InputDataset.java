@@ -16,7 +16,7 @@ import lombok.Data;
         @GridLayout.Row("sqlQuery"), })
 @DataSet("query.selectonly")
 @Documentation("A read only query to a database")
-public class QueryDataset implements Serializable {
+public class InputDataset implements Serializable {
 
     @Option
     @Documentation("the connection information to execute the query")

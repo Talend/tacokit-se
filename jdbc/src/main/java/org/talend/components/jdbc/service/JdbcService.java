@@ -16,6 +16,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -24,6 +25,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
@@ -31,7 +33,8 @@ import javax.annotation.PreDestroy;
 import javax.json.bind.Jsonb;
 
 import org.talend.components.jdbc.DriverInfo;
-import org.talend.components.jdbc.dataset.QueryDataset;
+import org.talend.components.jdbc.dataset.InputDataset;
+import org.talend.components.jdbc.datastore.BasicDatastore;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.dependency.Resolver;
@@ -186,8 +189,8 @@ public class JdbcService {
         });
     }
 
-    public String createQuery(final QueryDataset queryDataset) {
-        if (QueryDataset.SourceType.TABLE_NAME.equals(queryDataset.getSourceType())) {
+    public String createQuery(final InputDataset queryDataset) {
+        if (InputDataset.SourceType.TABLE_NAME.equals(queryDataset.getSourceType())) {
             return "select * from " + queryDataset.getTableName();
         } else {
             if (queryDataset.getSqlQuery() == null || queryDataset.getSqlQuery().isEmpty()) {
@@ -197,6 +200,46 @@ public class JdbcService {
                 throw new UnsupportedOperationException(i18n.errorUnauthorizedQuery());
             }
             return queryDataset.getSqlQuery();
+        }
+    }
+
+    public Connection connection(final BasicDatastore datastore) {
+        if (datastore == null) {
+            throw new IllegalArgumentException("datastore can't be null");
+        }
+        final DriverInfo driverInfo = getDrivers().get(datastore.getDbType());
+        if (driverInfo == null) {
+            throw new IllegalStateException(i18n.errorDriverNotFound(datastore.getDbType()));
+        }
+        final URLClassLoader driverLoader = getDriverClassLoader(driverInfo.getId());
+        if (driverLoader == null) {
+            throw new IllegalStateException(i18n.errorCantLoadDriver(datastore.getDbType()));
+        }
+        try {
+            final Driver driverInstance = (Driver) driverLoader.loadClass(driverInfo.getClazz()).newInstance();
+            if (!driverInstance.acceptsURL(datastore.getJdbcUrl())) {
+                throw new IllegalStateException(i18n.errorUnsupportedSubProtocol());
+            }
+            final Properties info = new Properties() {
+
+                {
+                    setProperty("user", datastore.getUserId());
+                    setProperty("password", datastore.getPassword());
+                }
+            };
+            try {
+                final Connection connection = driverInstance.connect(datastore.getJdbcUrl(), info);
+                if (!connection.isValid(30)) {
+                    throw new IllegalStateException(i18n.errorInvalidConnection());
+                }
+                return connection;
+            } catch (SQLException e) {
+                throw new IllegalStateException(e);
+            }
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            throw new IllegalStateException(i18n.errorCantLoadDriver(datastore.getDbType()));
+        } catch (SQLException e) {
+            throw new IllegalStateException(i18n.errorSQL(e.getErrorCode(), e.getMessage()));
         }
     }
 

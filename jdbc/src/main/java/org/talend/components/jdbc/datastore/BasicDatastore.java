@@ -35,12 +35,10 @@ public class BasicDatastore implements Serializable {
     private String jdbcUrl;
 
     @Option
-    @Required
     @Documentation("database user")
     private String userId;
 
     @Option
-    @Required
     @Credential
     @Documentation("database password")
     private String password;
