@@ -2,6 +2,7 @@ package org.talend.components.jdbc.input;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -58,8 +59,6 @@ public class InputEmitter implements Serializable {
     @PostConstruct
     public void init() {
         final String query = jdbcDriversService.createQuery(queryDataset);
-        final String dbType = queryDataset.getConnection().getDbType();
-
         try {
             connection = jdbcDriversService.connection(queryDataset.getConnection());
             try {
@@ -124,8 +123,6 @@ public class InputEmitter implements Serializable {
         case java.sql.Types.FLOAT:
             builder.withFloat(name, (Float) value);
             break;
-        case java.sql.Types.DECIMAL:
-        case java.sql.Types.NUMERIC:
         case java.sql.Types.DOUBLE:
         case java.sql.Types.REAL:
             builder.withDouble(name, (Double) value);
@@ -147,6 +144,8 @@ public class InputEmitter implements Serializable {
         case Types.LONGVARBINARY:
             builder.withBytes(name, (byte[]) value);
             break;
+        case java.sql.Types.DECIMAL:
+        case java.sql.Types.NUMERIC:
         case java.sql.Types.VARCHAR:
         case java.sql.Types.LONGVARCHAR:
         case java.sql.Types.CHAR:
