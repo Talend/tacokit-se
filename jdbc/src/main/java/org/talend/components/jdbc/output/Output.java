@@ -8,11 +8,10 @@ import java.sql.SQLException;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.talend.components.jdbc.JdbcConfiguration;
+import org.talend.components.jdbc.dataset.OutputDataset;
 import org.talend.components.jdbc.output.internal.StatementManager;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
-import org.talend.components.jdbc.dataset.OutputDataset;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -23,7 +22,6 @@ import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.service.configuration.Configuration;
 
 import lombok.extern.slf4j.Slf4j;
 

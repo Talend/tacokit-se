@@ -1,17 +1,10 @@
 package org.talend.components.jdbc.service;
 
-import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toMap;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -23,7 +16,6 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.function.Supplier;
@@ -31,17 +23,14 @@ import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.json.bind.Jsonb;
 
-import org.talend.components.jdbc.dataset.InputDataset;
 import org.talend.components.jdbc.JdbcConfiguration;
+import org.talend.components.jdbc.dataset.InputDataset;
 import org.talend.components.jdbc.datastore.BasicDatastore;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.Configuration;
-import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.dependency.Resolver;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -55,9 +44,6 @@ public class JdbcService {
     private Enumeration<Driver> initialRegisteredDrivers;
 
     private final Map<JdbcConfiguration.Driver, URLClassLoader> driversClassLoaders = new HashMap<>();
-
-    @Service
-    private Jsonb jsonb;
 
     @Service
     private Resolver resolver;
@@ -85,7 +71,7 @@ public class JdbcService {
                 }
             }
         });
-
+        initialRegisteredDrivers = null;
     }
 
     private void diregisterDriver(final JdbcConfiguration.Driver driver) {

@@ -3,17 +3,14 @@ package org.talend.components.jdbc.service;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
-import java.net.URLClassLoader;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.Driver;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 import java.util.function.Supplier;
 

@@ -2,26 +2,16 @@ package org.talend.components.jdbc.input;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
-import java.net.URLClassLoader;
 import java.sql.Connection;
-
-import java.sql.Driver;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.json.JsonBuilderFactory;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
 
-import org.talend.components.jdbc.JdbcConfiguration;
 import org.talend.components.jdbc.dataset.InputDataset;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
@@ -32,7 +22,6 @@ import org.talend.sdk.component.api.input.Emitter;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import lombok.extern.slf4j.Slf4j;
@@ -51,12 +40,6 @@ public class InputEmitter implements Serializable {
     private final JdbcService jdbcDriversService;
 
     private final I18nMessage i18n;
-
-    private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-
-    private final DateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
-
-    private final DateFormat timestampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     private Connection connection;
 
