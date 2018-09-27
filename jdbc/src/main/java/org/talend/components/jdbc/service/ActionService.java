@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.talend.components.jdbc.JdbcConfiguration;
 import org.talend.components.jdbc.datastore.BasicDatastore;
@@ -46,17 +47,19 @@ public class ActionService {
     @Service
     private I18nMessage i18n;
 
+    @Configuration("jdbc")
+    private Supplier<JdbcConfiguration> jdbcConfiguration;
+
     @DynamicValues(ACTION_LIST_SUPPORTED_DB)
-    public Values loadSupportedDataBaseTypes(@Configuration("jdbc") JdbcConfiguration jdbcConfiguration) {
-        return new Values(jdbcConfiguration.getDrivers().stream().map(driver -> new Values.Item(driver.getId(), driver.getId()))
-                .collect(toList()));
+    public Values loadSupportedDataBaseTypes() {
+        return new Values(jdbcConfiguration.get().getDrivers().stream()
+                .map(driver -> new Values.Item(driver.getId(), driver.getId())).collect(toList()));
     }
 
     @HealthCheck(ACTION_BASIC_HEALTH_CHECK)
-    public HealthCheckStatus validateBasicDatastore(@Option final BasicDatastore datastore,
-            @Configuration("jdbc") JdbcConfiguration jdbcConfiguration) {
+    public HealthCheckStatus validateBasicDatastore(@Option final BasicDatastore datastore) {
         try {
-            this.jdbcDriversService.connection(datastore, jdbcConfiguration);
+            this.jdbcDriversService.connection(datastore);
         } catch (final Exception e) {
             return new HealthCheckStatus(HealthCheckStatus.Status.KO, e.getMessage());
         }
@@ -68,7 +71,7 @@ public class ActionService {
     public SuggestionValues getTableFromDatabase(@Option final BasicDatastore datastore,
             @Configuration("drivers") JdbcConfiguration jdbcConfiguration) {
         final Collection<SuggestionValues.Item> items = new HashSet<>();
-        try (Connection conn = jdbcDriversService.connection(datastore, jdbcConfiguration)) {
+        try (Connection conn = jdbcDriversService.connection(datastore)) {
             DatabaseMetaData dbMetaData = conn.getMetaData();
             Set<String> tableTypes = getAvailableTableTypes(dbMetaData);
             final String schema = (datastore.getJdbcUrl().contains("oracle") && datastore.getUserId() != null)

@@ -33,7 +33,7 @@ import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
 @WithDerby(onStartSQLScript = "derby/output_create.sql", onShutdownSQLScript = "derby/delete.sql")
-@WithComponents(value = "org.talend.components.jdbc") // component package
+@WithComponents(value = "org.talend.components.jdbc")
 class OutputTest {
 
     @Injected
@@ -42,18 +42,10 @@ class OutputTest {
     @Service
     private JdbcService jdbcService;
 
-    private JdbcConfiguration jdbcConfiguration;
-
     @BeforeEach
     void clearTable(final DerbyExtension.DerbyInfo derbyInfo) {
-        jdbcConfiguration = new JdbcConfiguration();
-        final List<JdbcConfiguration.Driver> drivers = new ArrayList<>();
-        drivers.add(new JdbcConfiguration.Driver("DERBY", "org.apache.derby.jdbc.ClientDriver", "",
-                Arrays.asList(new JdbcConfiguration.Driver.Path("org.apache.derby:derby:10.12.1.1"))));
-        jdbcConfiguration.setDrivers(drivers);
-
         final BasicDatastore datastore = newConnection(derbyInfo);
-        try (final Connection connection = jdbcService.connection(datastore, jdbcConfiguration);) {
+        try (final Connection connection = jdbcService.connection(datastore);) {
             try (final PreparedStatement stm = connection.prepareStatement("truncate table users")) {
                 stm.execute();
             }

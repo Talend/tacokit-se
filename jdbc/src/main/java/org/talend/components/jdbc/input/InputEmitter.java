@@ -39,8 +39,6 @@ import lombok.extern.slf4j.Slf4j;
 @Documentation("JDBC query input")
 public class InputEmitter implements Serializable {
 
-    private final JdbcConfiguration jdbcConfiguration;
-
     private final InputDataset queryDataset;
 
     private JsonBuilderFactory jsonBuilderFactory;
@@ -61,14 +59,12 @@ public class InputEmitter implements Serializable {
 
     private ResultSet resultSet;
 
-    public InputEmitter(@Option("configuration") final InputDataset queryDataSet,
-            @Configuration("jdbc") final JdbcConfiguration jdbcConfiguration, final JdbcService jdbcDriversService,
+    public InputEmitter(@Option("configuration") final InputDataset queryDataSet, final JdbcService jdbcDriversService,
             final JsonBuilderFactory jsonBuilderFactory, final I18nMessage i18nMessage) {
         this.queryDataset = queryDataSet;
         this.jsonBuilderFactory = jsonBuilderFactory;
         this.jdbcDriversService = jdbcDriversService;
         this.i18n = i18nMessage;
-        this.jdbcConfiguration = jdbcConfiguration;
     }
 
     @PostConstruct
@@ -77,7 +73,7 @@ public class InputEmitter implements Serializable {
         final String dbType = queryDataset.getConnection().getDbType();
 
         try {
-            connection = jdbcDriversService.connection(queryDataset.getConnection(), jdbcConfiguration);
+            connection = jdbcDriversService.connection(queryDataset.getConnection());
             try {
                 connection.setReadOnly(true);
             } catch (final Throwable e) {

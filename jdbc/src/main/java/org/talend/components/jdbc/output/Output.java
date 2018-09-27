@@ -46,21 +46,16 @@ public class Output implements Serializable {
 
     private StatementManager statementManager;
 
-    private JdbcConfiguration jdbcConfiguration;
-
-    public Output(@Option("configuration") final OutputDataset dataset,
-            @Configuration("jdbc") JdbcConfiguration jdbcConfiguration, final JdbcService jdbcDriversService,
+    public Output(@Option("configuration") final OutputDataset dataset, final JdbcService jdbcDriversService,
             final I18nMessage i18nMessage) {
-
         this.dataset = dataset;
         this.jdbcDriversService = jdbcDriversService;
         this.i18n = i18nMessage;
-        this.jdbcConfiguration = jdbcConfiguration;
     }
 
     @PostConstruct
     public void init() {
-        connection = jdbcDriversService.connection(dataset.getConnection(), jdbcConfiguration);
+        connection = jdbcDriversService.connection(dataset.getConnection());
         try {
             connection.setAutoCommit(false);
         } catch (SQLException e) {

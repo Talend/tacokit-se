@@ -42,28 +42,13 @@ class ActionServiceTest {
     @Service
     private LocalConfiguration localConfiguration;
 
-    private JdbcConfiguration jdbcConfiguration;
-
-    @BeforeEach
-    void before() {
-        jdbcConfiguration = objectFactory.createInstance(JdbcConfiguration.class.getName()).withFieldInjection()
-                .withProperties(localConfiguration.keys().stream().filter(k -> k.startsWith("configuration."))
-                        .collect(toMap(k -> k.substring("configuration.".length()), localConfiguration::get)))
-                .ignoreUnknownProperties().create(JdbcConfiguration.class);
-        this.jdbcConfiguration = new JdbcConfiguration();
-        final List<JdbcConfiguration.Driver> drivers = new ArrayList<>();
-        drivers.add(new JdbcConfiguration.Driver("DERBY", "org.apache.derby.jdbc.ClientDriver", "",
-                asList(new JdbcConfiguration.Driver.Path("org.apache.derby:derby:10.12.1.1"))));
-        this.jdbcConfiguration.setDrivers(drivers);
-    }
-
     @Test
     @DisplayName("DynamicValue - Load Drivers")
     void loadSupportedDataBaseTypes() {
-        final Values values = myService.loadSupportedDataBaseTypes(jdbcConfiguration);
+        final Values values = myService.loadSupportedDataBaseTypes();
         assertNotNull(values);
-        assertEquals(1, values.getItems().size());
-        assertEquals(asList("DERBY"), values.getItems().stream().map(Values.Item::getId).collect(toList()));
+        assertEquals(3, values.getItems().size());
+        assertEquals(asList("MySQL", "DERBY", "ORACLE"), values.getItems().stream().map(Values.Item::getId).collect(toList()));
     }
 
     @Test
@@ -74,7 +59,7 @@ class ActionServiceTest {
         datastore.setJdbcUrl("jdbc:derby://localhost:" + info.getPort() + "/" + info.getDbName());
         datastore.setUserId("sa");
         datastore.setPassword("sa");
-        final HealthCheckStatus status = myService.validateBasicDatastore(datastore, jdbcConfiguration);
+        final HealthCheckStatus status = myService.validateBasicDatastore(datastore);
         assertNotNull(status);
         assertEquals(HealthCheckStatus.Status.OK, status.getStatus());
     }
@@ -87,7 +72,7 @@ class ActionServiceTest {
         datastore.setJdbcUrl("jdbc:derby://localhost:" + info.getPort() + "/" + info.getDbName());
         datastore.setUserId("bad");
         datastore.setPassword("az");
-        final HealthCheckStatus status = myService.validateBasicDatastore(datastore, jdbcConfiguration);
+        final HealthCheckStatus status = myService.validateBasicDatastore(datastore);
         assertNotNull(status);
         assertEquals(HealthCheckStatus.Status.KO, status.getStatus());
     }
@@ -100,7 +85,7 @@ class ActionServiceTest {
         datastore.setJdbcUrl("jdbc:derby://localhost:" + info.getPort() + "/DontExistUnlessyouCreatedDB");
         datastore.setUserId("bad");
         datastore.setPassword("az");
-        final HealthCheckStatus status = myService.validateBasicDatastore(datastore, jdbcConfiguration);
+        final HealthCheckStatus status = myService.validateBasicDatastore(datastore);
         assertNotNull(status);
         assertEquals(HealthCheckStatus.Status.KO, status.getStatus());
     }
@@ -113,7 +98,7 @@ class ActionServiceTest {
         datastore.setJdbcUrl("jdbc:darby/DB");
         datastore.setUserId("bad");
         datastore.setPassword("az");
-        final HealthCheckStatus status = myService.validateBasicDatastore(datastore, jdbcConfiguration);
+        final HealthCheckStatus status = myService.validateBasicDatastore(datastore);
         assertNotNull(status);
         assertEquals(HealthCheckStatus.Status.KO, status.getStatus());
     }
