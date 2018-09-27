@@ -68,8 +68,7 @@ public class ActionService {
     }
 
     @Suggestions("tables.list")
-    public SuggestionValues getTableFromDatabase(@Option final BasicDatastore datastore,
-            @Configuration("drivers") JdbcConfiguration jdbcConfiguration) {
+    public SuggestionValues getTableFromDatabase(@Option final BasicDatastore datastore) {
         final Collection<SuggestionValues.Item> items = new HashSet<>();
         try (Connection conn = jdbcDriversService.connection(datastore)) {
             DatabaseMetaData dbMetaData = conn.getMetaData();
@@ -90,8 +89,8 @@ public class ActionService {
 
                 }
             }
-        } catch (SQLException e) {
-            log.warn("can't get table suggestions list from this database");
+        } catch (final Exception unexpected) { // catch all exceptions for this ui action to return empty list
+            log.error("can't get table suggestions list from this database", unexpected);
         }
         return new SuggestionValues(true, items);
     }
