@@ -1,10 +1,8 @@
 package org.talend.components.jdbc.datastore;
 
-import static org.talend.components.jdbc.service.ActionService.ACTION_BASIC_HEALTH_CHECK;
-import static org.talend.components.jdbc.service.ActionService.ACTION_LIST_SUPPORTED_DB;
-
 import java.io.Serializable;
 
+import org.talend.components.jdbc.service.ActionService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.action.Proposable;
@@ -19,14 +17,14 @@ import lombok.Data;
 @Data
 @GridLayout({ @GridLayout.Row("dbType"), @GridLayout.Row("jdbcUrl"), @GridLayout.Row("userId"), @GridLayout.Row("password"), })
 @DataStore("basic")
-@Checkable(ACTION_BASIC_HEALTH_CHECK)
+@Checkable(ActionService.ACTION_BASIC_HEALTH_CHECK)
 @Documentation("A connection to a data base")
 public class BasicDatastore implements Serializable {
 
     @Option
     @Required
     @Documentation("Data base type from the supported data base list")
-    @Proposable(ACTION_LIST_SUPPORTED_DB)
+    @Proposable(ActionService.ACTION_LIST_SUPPORTED_DB)
     private String dbType;
 
     @Option

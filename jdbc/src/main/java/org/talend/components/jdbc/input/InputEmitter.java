@@ -18,7 +18,7 @@ import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
-import org.talend.components.jdbc.DriverInfo;
+import org.talend.components.jdbc.JdbcConfiguration;
 import org.talend.components.jdbc.dataset.InputDataset;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
@@ -28,6 +28,7 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Emitter;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
+import org.talend.sdk.component.api.service.configuration.Configuration;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,6 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 @Emitter(name = "Input")
 @Documentation("JDBC query input")
 public class InputEmitter implements Serializable {
+
+    private final JdbcConfiguration jdbcConfiguration;
 
     private final InputDataset queryDataset;
 
@@ -58,71 +61,44 @@ public class InputEmitter implements Serializable {
 
     private ResultSet resultSet;
 
-    public InputEmitter(@Option("configuration") final InputDataset queryDataSet, final JdbcService jdbcDriversService,
+    public InputEmitter(@Option("configuration") final InputDataset queryDataSet,
+            @Configuration("jdbc") final JdbcConfiguration jdbcConfiguration, final JdbcService jdbcDriversService,
             final JsonBuilderFactory jsonBuilderFactory, final I18nMessage i18nMessage) {
         this.queryDataset = queryDataSet;
         this.jsonBuilderFactory = jsonBuilderFactory;
         this.jdbcDriversService = jdbcDriversService;
         this.i18n = i18nMessage;
+        this.jdbcConfiguration = jdbcConfiguration;
     }
 
     @PostConstruct
     public void init() {
         final String query = jdbcDriversService.createQuery(queryDataset);
         final String dbType = queryDataset.getConnection().getDbType();
-        final DriverInfo driverInfo = jdbcDriversService.getDrivers().get(dbType);
-        if (driverInfo == null) {
-            throw new IllegalStateException(i18n.errorDriverNotFound(dbType));
-        }
-        final URLClassLoader driverLoader = jdbcDriversService.getDriverClassLoader(driverInfo.getId());
-        if (driverLoader == null) {
-            throw new IllegalStateException(i18n.errorCantLoadDriver(dbType));
-        }
 
         try {
-            final Driver driverInstance = (Driver) driverLoader.loadClass(driverInfo.getClazz()).newInstance();
-            if (!driverInstance.acceptsURL(queryDataset.getConnection().getJdbcUrl())) {
-                throw new IllegalStateException(i18n.errorUnsupportedSubProtocol());
-            }
-            final Properties info = new Properties() {
-
-                {
-                    setProperty("user", queryDataset.getConnection().getUserId());
-                    setProperty("password", queryDataset.getConnection().getPassword());
-                }
-            };
+            connection = jdbcDriversService.connection(queryDataset.getConnection(), jdbcConfiguration);
             try {
-                connection = driverInstance.connect(queryDataset.getConnection().getJdbcUrl(), info);
-                try {
-                    connection.setReadOnly(true);
-                } catch (final Throwable e) {
-                    log.warn(i18n.warnReadOnlyOptimisationFailure(), e); // not supported in some database
-                }
-
-                if (!connection.isValid(30)) {
-                    throw new IllegalStateException(i18n.errorInvalidConnection());
-                }
-                if (driverInfo.getClazz() != null && driverInfo.getClazz().toLowerCase().contains("mysql")) {
-                    statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-                    final Class<?> clazz = statement.getClass();
-                    try {
-                        Method method = clazz.getMethod("enableStreamingResults");
-                        if (method != null) { // have to use reflect here
-                            method.invoke(statement);
-                        }
-                    } catch (Exception e) { // ignore anything
-                    }
-                } else {
-                    statement = connection.createStatement();
-                }
-                resultSet = statement.executeQuery(query);
-            } catch (SQLException e) {
-                throw new IllegalStateException(e);
+                connection.setReadOnly(true);
+            } catch (final Throwable e) {
+                log.warn(i18n.warnReadOnlyOptimisationFailure(), e); // not supported in some database
             }
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            throw new IllegalStateException(i18n.errorCantLoadDriver(dbType));
+            if (connection.getMetaData().getDriverName().toLowerCase().contains("mysql")) {
+                statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+                final Class<?> clazz = statement.getClass();
+                try {
+                    Method method = clazz.getMethod("enableStreamingResults");
+                    if (method != null) { // have to use reflect here
+                        method.invoke(statement);
+                    }
+                } catch (Exception e) { // ignore anything
+                }
+            } else {
+                statement = connection.createStatement();
+            }
+            resultSet = statement.executeQuery(query);
         } catch (SQLException e) {
-            throw new IllegalStateException(i18n.errorSQL(e.getErrorCode(), e.getMessage()));
+            throw new IllegalStateException(e);
         }
     }
 

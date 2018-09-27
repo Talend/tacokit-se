@@ -12,7 +12,9 @@ import org.talend.sdk.component.api.configuration.ui.layout.AutoLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @DataSet("JdbcOutputDataset")
@@ -51,6 +53,8 @@ public class OutputDataset implements Serializable {
     }
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     @AutoLayout
     public static class UpdateOperationMapping {
 

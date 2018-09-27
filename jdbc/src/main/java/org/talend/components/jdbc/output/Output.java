@@ -4,15 +4,15 @@ import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.talend.components.jdbc.dataset.OutputDataset;
+import org.talend.components.jdbc.JdbcConfiguration;
 import org.talend.components.jdbc.output.internal.StatementManager;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
+import org.talend.components.jdbc.dataset.OutputDataset;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -23,6 +23,7 @@ import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.service.configuration.Configuration;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,16 +46,21 @@ public class Output implements Serializable {
 
     private StatementManager statementManager;
 
-    public Output(@Option("configuration") final OutputDataset dataset, final JdbcService jdbcDriversService,
+    private JdbcConfiguration jdbcConfiguration;
+
+    public Output(@Option("configuration") final OutputDataset dataset,
+            @Configuration("jdbc") JdbcConfiguration jdbcConfiguration, final JdbcService jdbcDriversService,
             final I18nMessage i18nMessage) {
+
         this.dataset = dataset;
         this.jdbcDriversService = jdbcDriversService;
         this.i18n = i18nMessage;
+        this.jdbcConfiguration = jdbcConfiguration;
     }
 
     @PostConstruct
     public void init() {
-        connection = jdbcDriversService.connection(dataset.getConnection());
+        connection = jdbcDriversService.connection(dataset.getConnection(), jdbcConfiguration);
         try {
             connection.setAutoCommit(false);
         } catch (SQLException e) {
@@ -125,7 +131,14 @@ public class Output implements Serializable {
 
             // fixme : should we transform this component to a processor and :
             // 2 . emit rejected records
-            throw new IllegalStateException(e);
+
+            StringBuilder batchErrorMessage = new StringBuilder();
+            SQLException batchError = e;
+            while (batchError.getNextException() != null) {
+                batchErrorMessage.append("- ").append(batchError.getNextException().getLocalizedMessage()).append("\n");
+                batchError = batchError.getNextException();
+            }
+            throw new IllegalStateException(batchErrorMessage.toString(), e);
         }
     }
 

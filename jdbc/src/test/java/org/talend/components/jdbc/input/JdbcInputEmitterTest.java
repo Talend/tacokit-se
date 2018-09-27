@@ -22,7 +22,7 @@ import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
-@WithDerby(onStartSQLScript = "derby/create.sql", onShutdownSQLScript = "derby/delete.sql")
+@WithDerby(onStartSQLScript = "derby/input_create.sql", onShutdownSQLScript = "derby/delete.sql")
 @WithComponents("org.talend.components.jdbc") // component package
 class JdbcInputEmitterTest {
 

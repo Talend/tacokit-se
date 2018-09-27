@@ -12,6 +12,9 @@ import org.talend.components.jdbc.dataset.OutputDataset;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class InsertStatementManager extends StatementManager {
 
     private final String tableName;
@@ -30,8 +33,10 @@ public class InsertStatementManager extends StatementManager {
         columns = record.getSchema().getEntries().stream().map(Schema.Entry::getName).toArray(String[]::new);
         indexedColumns = IntStream.rangeClosed(1, columns.length).mapToObj(i -> new AbstractMap.SimpleEntry<>(columns[i - 1], i))
                 .collect(toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
-        return "INSERT INTO " + tableName + Stream.of(columns).collect(joining(",", "(", ")")) + " VALUES"
+        final String query = "INSERT INTO " + tableName + Stream.of(columns).collect(joining(",", "(", ")")) + " VALUES"
                 + Stream.of(columns).map(c -> "?").collect(joining(",", "(", ")"));
+        log.trace("[query] : " + query);
+        return query;
     }
 
     @Override
