@@ -46,22 +46,22 @@ public class OutputDataset implements Serializable {
 
     @Option
     @Documentation("")
-    private ActionOnData actionOnData = ActionOnData.Insert;
+    private ActionOnData actionOnData = ActionOnData.INSERT;
 
     @Option
-    @ActiveIf(target = "actionOnData", value = "Update")
+    @ActiveIf(target = "actionOnData", value = "UPDATE")
     @Documentation("")
     private List<UpdateOperationMapping> updateOperationMapping;
 
     @Option
-    @ActiveIf(target = "actionOnData", value = "Delete")
+    @ActiveIf(target = "actionOnData", value = "DELETE")
     @Documentation("")
     private List<String> deleteKeys;
 
     public enum ActionOnData {
-        Insert,
-        Update,
-        Delete
+        INSERT,
+        UPDATE,
+        DELETE
     }
 
     @Data

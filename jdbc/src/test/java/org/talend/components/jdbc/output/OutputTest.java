@@ -71,7 +71,7 @@ class OutputTest {
         final BasicDatastore connection = newConnection(derbyInfo);
         final OutputDataset dataset = new OutputDataset();
         dataset.setConnection(connection);
-        dataset.setActionOnData(OutputDataset.ActionOnData.Insert);
+        dataset.setActionOnData(OutputDataset.ActionOnData.INSERT);
         dataset.setTableName("users");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
         Job.components().component("userGenerator", "jdbcTest://UserGenerator?config.rowCount=4&config.namePrefix=user")
@@ -101,7 +101,7 @@ class OutputTest {
         final BasicDatastore connection = newConnection(derbyInfo);
         final OutputDataset dataset = new OutputDataset();
         dataset.setConnection(connection);
-        dataset.setActionOnData(OutputDataset.ActionOnData.Insert);
+        dataset.setActionOnData(OutputDataset.ActionOnData.INSERT);
         dataset.setTableName("users");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
         Job.components().component("userGenerator", "jdbcTest://UserGenerator?config.rowCount=4&config.namePrefix=user")
@@ -111,7 +111,7 @@ class OutputTest {
         // update the inserted data data
         final OutputDataset updateDataset = new OutputDataset();
         updateDataset.setConnection(connection);
-        updateDataset.setActionOnData(OutputDataset.ActionOnData.Update);
+        updateDataset.setActionOnData(OutputDataset.ActionOnData.UPDATE);
         updateDataset.setTableName("users");
         final List<OutputDataset.UpdateOperationMapping> updateOperationMapping = new ArrayList<>();
         updateOperationMapping.add(new OutputDataset.UpdateOperationMapping("id", true));
@@ -145,7 +145,7 @@ class OutputTest {
         final BasicDatastore connection = newConnection(derbyInfo);
         final OutputDataset dataset = new OutputDataset();
         dataset.setConnection(connection);
-        dataset.setActionOnData(OutputDataset.ActionOnData.Insert);
+        dataset.setActionOnData(OutputDataset.ActionOnData.INSERT);
         dataset.setTableName("users");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
         Job.components().component("userGenerator", "jdbcTest://UserGenerator?config.rowCount=4")
@@ -155,7 +155,7 @@ class OutputTest {
         // delete the inserted data data
         final OutputDataset deleteDataset = new OutputDataset();
         deleteDataset.setConnection(connection);
-        deleteDataset.setActionOnData(OutputDataset.ActionOnData.Delete);
+        deleteDataset.setActionOnData(OutputDataset.ActionOnData.DELETE);
         deleteDataset.setTableName("users");
         deleteDataset.setDeleteKeys(asList("id"));
         final String updateConfig = configurationByExample().forInstance(deleteDataset).configured().toQueryString();

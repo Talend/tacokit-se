@@ -30,11 +30,11 @@ public abstract class StatementManager {
 
     public static StatementManager get(final OutputDataset dataset) {
         switch (dataset.getActionOnData()) {
-        case Insert:
+        case INSERT:
             return new InsertStatementManager(dataset);
-        case Update:
+        case UPDATE:
             return new UpdateStatementManager(dataset);
-        case Delete:
+        case DELETE:
             return new DeleteStatementManager(dataset);
         default:
             throw new IllegalStateException("Unsupported operation");

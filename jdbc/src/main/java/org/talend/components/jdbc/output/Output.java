@@ -93,13 +93,13 @@ public class Output implements Serializable {
             if (preparedStatement == null) {
                 switch (dataset.getActionOnData()) {
                 default:
-                case Insert:
+                case INSERT:
                     preparedStatement = connection.prepareStatement(statementManager.createQuery(record));
                     break;
-                case Delete:
+                case DELETE:
                     preparedStatement = connection.prepareStatement(statementManager.createQuery(record));
                     break;
-                case Update:
+                case UPDATE:
                     preparedStatement = connection.prepareStatement(statementManager.createQuery(record));
                     break;
                 }
