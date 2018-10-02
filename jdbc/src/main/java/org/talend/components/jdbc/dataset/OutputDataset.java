@@ -1,11 +1,11 @@
 /*
  * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -36,26 +36,26 @@ import lombok.NoArgsConstructor;
 public class OutputDataset implements Serializable {
 
     @Option
-    @Documentation("")
+    @Documentation("Connection information")
     private BasicDatastore connection;
 
     @Option
     @Suggestable(value = "tables.list", parameters = "connection")
-    @Documentation("")
+    @Documentation("Table to perform action on it")
     private String tableName;
 
     @Option
-    @Documentation("")
+    @Documentation("The action to be performed")
     private ActionOnData actionOnData = ActionOnData.INSERT;
 
     @Option
     @ActiveIf(target = "actionOnData", value = "UPDATE")
-    @Documentation("")
+    @Documentation("The update operation mapping. This mapping indicate the columns to be used as keys for the update. Columns that are not marked as key will be updated.")
     private List<UpdateOperationMapping> updateOperationMapping;
 
     @Option
     @ActiveIf(target = "actionOnData", value = "DELETE")
-    @Documentation("")
+    @Documentation("The keys to be used in the where clause of the delete query. those keys need to be a part of the record columns")
     private List<String> deleteKeys;
 
     public enum ActionOnData {
@@ -72,11 +72,11 @@ public class OutputDataset implements Serializable {
 
         // fixme : use the values from schema when available in tacokit
         @Option
-        @Documentation("")
+        @Documentation("The column name")
         private String column;
 
         @Option
-        @Documentation("")
+        @Documentation("Is the column a key")
         private boolean key;
     }
 
