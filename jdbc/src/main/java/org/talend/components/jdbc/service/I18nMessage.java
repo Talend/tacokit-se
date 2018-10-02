@@ -51,4 +51,21 @@ public interface I18nMessage {
 
     String warnReadOnlyOptimisationFailure();
 
+    String errorNoKeyForDeleteQuery();
+
+    String errorNoKeyForUpdateQuery();
+
+    String errorNoFieldForQueryParam(final String deleteKey);
+
+    String errorNoUpdatableColumnWasDefined();
+
+    String errorUnsupportedDatabaseAction();
+
+    String errorCantClearPreparedStatement();
+
+    String errorCantClosePreparedStatement();
+
+    String errorCantCloseJdbcConnectionProperly();
+
+    String errorCantLoadTableSuggestions();
 }

@@ -1,72 +1,85 @@
 /*
  * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
 package org.talend.components.jdbc.output.internal;
 
+import static java.util.Collections.emptyList;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 
+import java.sql.Connection;
 import java.util.AbstractMap;
 import java.util.Map;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.talend.components.jdbc.dataset.OutputDataset;
+import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 
 public class UpdateStatementManager extends StatementManager {
 
-    private final String tableName;
-
-    private final String[] updateValues;
+    private final OutputDataset dataset;
 
     private final String[] updateKeys;
 
-    private final Map<String, Integer> indexedColumns;
+    private final String[] updateValues;
 
-    UpdateStatementManager(final OutputDataset dataset) {
-        super();
-        tableName = dataset.getTableName();
-        updateKeys = dataset.getUpdateOperationMapping().stream().filter(OutputDataset.UpdateOperationMapping::isKey)
-                .map(OutputDataset.UpdateOperationMapping::getColumn).toArray(String[]::new);
-
-        if (updateKeys.length == 0) {
-            throw new IllegalStateException("Please select the update keys.");
+    UpdateStatementManager(final OutputDataset dataset, final Connection connection, final I18nMessage i18nMessage) {
+        super(connection, i18nMessage);
+        this.dataset = dataset;
+        this.updateKeys = ofNullable(dataset.getUpdateOperationMapping()).orElse(emptyList()).stream()
+                .filter(OutputDataset.UpdateOperationMapping::isKey).map(OutputDataset.UpdateOperationMapping::getColumn)
+                .toArray(String[]::new);
+        if (this.updateKeys.length == 0) {
+            throw new IllegalStateException(i18n.errorNoKeyForUpdateQuery());
         }
 
-        updateValues = dataset.getUpdateOperationMapping().stream().filter(m -> !m.isKey())
+        this.updateValues = ofNullable(dataset.getUpdateOperationMapping()).orElse(emptyList()).stream().filter(m -> !m.isKey())
                 .map(OutputDataset.UpdateOperationMapping::getColumn).toArray(String[]::new);
-
-        if (updateValues.length == 0) {
-            throw new IllegalStateException("Please select the columns  to be updated.");
+        if (this.updateValues.length == 0) {
+            throw new IllegalStateException(i18n.errorNoUpdatableColumnWasDefined());
         }
 
-        indexedColumns = Stream
-                .concat(IntStream.rangeClosed(1, updateValues.length)
-                        .mapToObj(i -> new AbstractMap.SimpleEntry<>(updateValues[i - 1], i)),
-                        IntStream.rangeClosed(1, updateKeys.length)
-                                .mapToObj(i -> new AbstractMap.SimpleEntry<>(updateKeys[i - 1], i + updateValues.length)))
-                .collect(toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
     }
 
     @Override
     public String createQuery(final Record record) {
-        return "UPDATE " + tableName + " SET " + Stream.of(updateValues).map(c -> c + " = ?").collect(joining(",")) + " WHERE "
-                + Stream.of(updateKeys).map(c -> c + " = ?").collect(joining(" AND "));
+        return "UPDATE " + dataset.getTableName() + " SET " + Stream.of(updateValues).map(c -> c + " = ?").collect(joining(","))
+                + " WHERE " + Stream.of(updateKeys).map(c -> c + " = ?").collect(joining(" AND "));
     }
 
     @Override
-    public Map<String, Integer> getIndexedColumns() {
-        return indexedColumns;
+    public Map<Schema.Entry, Integer> getSqlQueryParams(final Record record) {
+        final Stream<AbstractMap.SimpleEntry<Schema.Entry, Integer>> updateEntries = IntStream
+                .rangeClosed(1, this.updateValues.length)
+                .mapToObj(i -> new AbstractMap.SimpleEntry<>(record.getSchema().getEntries().stream()
+                        .filter(e -> e.getName().equals(this.updateValues[i - 1])).findFirst().orElseThrow(
+                                () -> new IllegalStateException(this.i18n.errorNoFieldForQueryParam(this.updateValues[i - 1]))),
+                        i));
+
+        final Stream<AbstractMap.SimpleEntry<Schema.Entry, Integer>> updateKeysEntries = IntStream
+                .rangeClosed(1, updateKeys.length)
+                .mapToObj(i -> new AbstractMap.SimpleEntry<>(
+                        record.getSchema().getEntries().stream().filter(e -> e.getName().equals(updateKeys[i - 1])).findFirst()
+                                .orElseThrow(() -> new IllegalStateException(
+                                        this.i18n.errorNoFieldForQueryParam(this.updateKeys[i - 1]))),
+                        i + this.updateValues.length));
+
+        return Stream.concat(updateEntries, updateKeysEntries)
+                .collect(toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
+
     }
 
 }

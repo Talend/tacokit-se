@@ -1,11 +1,11 @@
 /*
  * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -51,10 +51,22 @@ public class UserGenerator implements Serializable {
 
     @PostConstruct
     public void init() {
-        data.addAll(IntStream.range(1, config.rowCount + 1)
-                .mapToObj(i -> recordBuilderFactory.newRecordBuilder().withInt("id", i)
-                        .withString("name", ofNullable(config.namePrefix).orElse("user") + i).build())
-                .collect(Collectors.toList()));
+        data.addAll(IntStream.range(1, config.rowCount + 1).mapToObj(i -> {
+            final Record.Builder builder = recordBuilderFactory.newRecordBuilder();
+            if (config.nullEvery != -1 && i % config.nullEvery == 0) {
+                if (!config.idIsNull) {
+                    builder.withInt("id", i);
+                }
+                if (!config.nameIsNull) {
+                    builder.withString("name", ofNullable(config.namePrefix).orElse("user") + i);
+                }
+            } else {
+                builder.withInt("id", i);
+                builder.withString("name", ofNullable(config.namePrefix).orElse("user") + i);
+            }
+
+            return builder;
+        }).map(Record.Builder::build).collect(Collectors.toList()));
     }
 
     @Producer
@@ -74,6 +86,12 @@ public class UserGenerator implements Serializable {
         private int rowCount;
 
         private String namePrefix;
+
+        private boolean nameIsNull = false;
+
+        private boolean idIsNull = false;
+
+        private int nullEvery = -1;
     }
 
 }

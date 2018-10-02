@@ -1,11 +1,11 @@
 /*
  * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -16,6 +16,7 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.derby.vti.XmlVTI.asList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
@@ -35,6 +36,7 @@ import org.talend.components.jdbc.WithDerby;
 import org.talend.components.jdbc.dataset.InputDataset;
 import org.talend.components.jdbc.dataset.OutputDataset;
 import org.talend.components.jdbc.datastore.BasicDatastore;
+import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
@@ -52,6 +54,9 @@ class OutputTest {
     @Service
     private JdbcService jdbcService;
 
+    @Service
+    private I18nMessage i18nMessage;
+
     @BeforeEach
     void clearTable(final DerbyExtension.DerbyInfo derbyInfo) {
         final BasicDatastore datastore = newConnection(derbyInfo);
@@ -66,7 +71,7 @@ class OutputTest {
     }
 
     @Test
-    @DisplayName("Execute a valid insert")
+    @DisplayName("Insert - valid query")
     void insert(final DerbyExtension.DerbyInfo derbyInfo) {
         final BasicDatastore connection = newConnection(derbyInfo);
         final OutputDataset dataset = new OutputDataset();
@@ -74,7 +79,9 @@ class OutputTest {
         dataset.setActionOnData(OutputDataset.ActionOnData.INSERT);
         dataset.setTableName("users");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
-        Job.components().component("userGenerator", "jdbcTest://UserGenerator?config.rowCount=4&config.namePrefix=user")
+        Job.components()
+                .component("userGenerator",
+                        "jdbcTest://UserGenerator?config.rowCount=4&config.namePrefix=user&config.nullEvery=2&config.nameIsNull")
                 .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("userGenerator").to("jdbcOutput").build()
                 .run();
 
@@ -90,12 +97,13 @@ class OutputTest {
         final List<JsonObject> records = componentsHandler.getCollectedData(JsonObject.class);
         assertNotNull(records);
         assertEquals(4, records.size());
-        assertEquals(asList("user1", "user2", "user3", "user4"),
-                records.stream().map(r -> r.getString("NAME")).collect(toList()));
+        assertEquals(1 + 2 + 3 + 4, records.stream().mapToInt(r -> r.getInt("ID")).sum());
+        assertEquals(asList("user1", "user3"),
+                records.stream().filter(r -> r.containsKey("NAME")).map(r -> r.getString("NAME")).collect(toList()));
     }
 
     @Test
-    @DisplayName("Execute a valid update")
+    @DisplayName("Update - valid query")
     void update(final DerbyExtension.DerbyInfo derbyInfo) {
         // insert some initial data
         final BasicDatastore connection = newConnection(derbyInfo);
@@ -139,7 +147,88 @@ class OutputTest {
     }
 
     @Test
-    @DisplayName("Execute a valid update")
+    @DisplayName("Update - no keys")
+    void updateWithNoKeys(final DerbyExtension.DerbyInfo derbyInfo) {
+        final IllegalStateException error = assertThrows(IllegalStateException.class, () -> {
+            final OutputDataset updateDataset = new OutputDataset();
+            updateDataset.setConnection(newConnection(derbyInfo));
+            updateDataset.setActionOnData(OutputDataset.ActionOnData.UPDATE);
+            updateDataset.setTableName("users");
+            final String updateConfig = configurationByExample().forInstance(updateDataset).configured().toQueryString();
+            Job.components()
+                    .component("userGenerator", "jdbcTest://UserGenerator?config.rowCount=4&config.namePrefix=updatedUser")
+                    .component("jdbcOutput", "Jdbc://Output?" + updateConfig).connections().from("userGenerator").to("jdbcOutput")
+                    .build().run();
+        });
+        assertEquals(i18nMessage.errorNoKeyForUpdateQuery(), error.getMessage());
+    }
+
+    @Test
+    @DisplayName("Update - missing key in the incoming record")
+    void updateWithMissingKeys(final DerbyExtension.DerbyInfo derbyInfo) {
+        final IllegalStateException error = assertThrows(IllegalStateException.class, () -> {
+            final OutputDataset updateDataset = new OutputDataset();
+            updateDataset.setConnection(newConnection(derbyInfo));
+            updateDataset.setActionOnData(OutputDataset.ActionOnData.UPDATE);
+            updateDataset.setTableName("users");
+            final List<OutputDataset.UpdateOperationMapping> updateOperationMapping = new ArrayList<>();
+            updateOperationMapping.add(new OutputDataset.UpdateOperationMapping("id", true));
+            updateOperationMapping.add(new OutputDataset.UpdateOperationMapping("name", false));
+            updateDataset.setUpdateOperationMapping(updateOperationMapping);
+            final String updateConfig = configurationByExample().forInstance(updateDataset).configured().toQueryString();
+            Job.components()
+                    .component("userGenerator",
+                            "jdbcTest://UserGenerator?config.rowCount=4&config.nullEvery=2&config.idIsNull=true")
+                    .component("jdbcOutput", "Jdbc://Output?" + updateConfig).connections().from("userGenerator").to("jdbcOutput")
+                    .build().run();
+        });
+        assertEquals(i18nMessage.errorNoFieldForQueryParam("id"), error.getMessage());
+    }
+
+    @Test
+    @DisplayName("Update - no updatable columns")
+    void updateWithNoUpdatableColumn(final DerbyExtension.DerbyInfo derbyInfo) {
+        final IllegalStateException error = assertThrows(IllegalStateException.class, () -> {
+            final OutputDataset updateDataset = new OutputDataset();
+            updateDataset.setConnection(newConnection(derbyInfo));
+            updateDataset.setActionOnData(OutputDataset.ActionOnData.UPDATE);
+            updateDataset.setTableName("users");
+            final List<OutputDataset.UpdateOperationMapping> updateOperationMapping = new ArrayList<>();
+            updateOperationMapping.add(new OutputDataset.UpdateOperationMapping("id", true));
+            updateDataset.setUpdateOperationMapping(updateOperationMapping);
+            final String updateConfig = configurationByExample().forInstance(updateDataset).configured().toQueryString();
+            Job.components()
+                    .component("userGenerator", "jdbcTest://UserGenerator?config.rowCount=4&config.namePrefix=updatedUser")
+                    .component("jdbcOutput", "Jdbc://Output?" + updateConfig).connections().from("userGenerator").to("jdbcOutput")
+                    .build().run();
+        });
+        assertEquals(i18nMessage.errorNoUpdatableColumnWasDefined(), error.getMessage());
+    }
+
+    @Test
+    @DisplayName("Update - missing updatable column in the incoming recprd")
+    void updateWithMissingUpdatableColumn(final DerbyExtension.DerbyInfo derbyInfo) {
+        final IllegalStateException error = assertThrows(IllegalStateException.class, () -> {
+            final OutputDataset updateDataset = new OutputDataset();
+            updateDataset.setConnection(newConnection(derbyInfo));
+            updateDataset.setActionOnData(OutputDataset.ActionOnData.UPDATE);
+            updateDataset.setTableName("users");
+            final List<OutputDataset.UpdateOperationMapping> updateOperationMapping = new ArrayList<>();
+            updateOperationMapping.add(new OutputDataset.UpdateOperationMapping("id", true));
+            updateOperationMapping.add(new OutputDataset.UpdateOperationMapping("name", false));
+            updateDataset.setUpdateOperationMapping(updateOperationMapping);
+            final String updateConfig = configurationByExample().forInstance(updateDataset).configured().toQueryString();
+            Job.components()
+                    .component("userGenerator",
+                            "jdbcTest://UserGenerator?config.rowCount=4&config.nameIsNull=true&config.nullEvery=1")
+                    .component("jdbcOutput", "Jdbc://Output?" + updateConfig).connections().from("userGenerator").to("jdbcOutput")
+                    .build().run();
+        });
+        assertEquals(i18nMessage.errorNoFieldForQueryParam("name"), error.getMessage());
+    }
+
+    @Test
+    @DisplayName("Delete - valid query")
     void delete(final DerbyExtension.DerbyInfo derbyInfo) {
         // insert some initial data
         final BasicDatastore connection = newConnection(derbyInfo);
@@ -175,6 +264,41 @@ class OutputTest {
         final List<JsonObject> records = componentsHandler.getCollectedData(JsonObject.class);
         assertNotNull(records);
         assertTrue(records.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Delete - No keys")
+    void deleteWithNoKeys(final DerbyExtension.DerbyInfo derbyInfo) {
+        final IllegalStateException error = assertThrows(IllegalStateException.class, () -> {
+            final OutputDataset deleteDataset = new OutputDataset();
+            deleteDataset.setConnection(newConnection(derbyInfo));
+            deleteDataset.setActionOnData(OutputDataset.ActionOnData.DELETE);
+            deleteDataset.setTableName("users");
+            final String updateConfig = configurationByExample().forInstance(deleteDataset).configured().toQueryString();
+            Job.components().component("userGenerator", "jdbcTest://UserGenerator?config.rowCount=4")
+                    .component("jdbcOutput", "Jdbc://Output?" + updateConfig).connections().from("userGenerator").to("jdbcOutput")
+                    .build().run();
+        });
+        assertEquals(i18nMessage.errorNoKeyForDeleteQuery(), error.getMessage());
+    }
+
+    @Test
+    @DisplayName("Delete - Missing defined key in incoming record")
+    void deleteWithMissingDefinedKeys(final DerbyExtension.DerbyInfo derbyInfo) {
+        final IllegalStateException error = assertThrows(IllegalStateException.class, () -> {
+            final OutputDataset deleteDataset = new OutputDataset();
+            deleteDataset.setConnection(newConnection(derbyInfo));
+            deleteDataset.setActionOnData(OutputDataset.ActionOnData.DELETE);
+            deleteDataset.setTableName("users");
+            deleteDataset.setDeleteKeys(asList("name"));
+            final String updateConfig = configurationByExample().forInstance(deleteDataset).configured().toQueryString();
+            Job.components()
+                    .component("userGenerator",
+                            "jdbcTest://UserGenerator?config.rowCount=4&config.nameIsNull=true&config.nullEvery=1")
+                    .component("jdbcOutput", "Jdbc://Output?" + updateConfig).connections().from("userGenerator").to("jdbcOutput")
+                    .build().run();
+        });
+        assertEquals(i18nMessage.errorNoFieldForQueryParam("name"), error.getMessage());
     }
 
     private BasicDatastore newConnection(final DerbyExtension.DerbyInfo derbyInfo) {

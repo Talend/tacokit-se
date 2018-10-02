@@ -98,7 +98,7 @@ public class ActionService {
                 }
             }
         } catch (final Exception unexpected) { // catch all exceptions for this ui action to return empty list
-            log.error("can't get table suggestions list from this database", unexpected);
+            log.error(i18n.errorCantLoadTableSuggestions(), unexpected);
         }
         return new SuggestionValues(true, items);
     }
