@@ -4,6 +4,7 @@ import static org.talend.sdk.component.api.component.Icon.IconType.REPLICATE;
 
 import java.io.Serializable;
 
+import com.cedarsoftware.util.io.JsonObject;
 import org.apache.beam.sdk.values.PCollection;
 import org.talend.components.adapter.beam.BeamJobBuilder;
 import org.talend.components.adapter.beam.BeamJobContext;
@@ -11,6 +12,9 @@ import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
+import org.talend.sdk.component.api.processor.ElementListener;
+import org.talend.sdk.component.api.processor.Output;
+import org.talend.sdk.component.api.processor.OutputEmitter;
 import org.talend.sdk.component.api.processor.Processor;
 
 @Version
@@ -33,6 +37,13 @@ public class Replicate implements BeamJobBuilder, Serializable {
     private boolean hasFlow;
 
     private boolean hasSecondFlow;
+
+    @ElementListener
+    public void onElement(final JsonObject ignored, @Output final OutputEmitter<JsonObject> output,
+            @Output("second") final OutputEmitter<JsonObject> second) {
+        // Dummy method to pass validate
+        // no-op
+    }
 
     public Replicate(@Option("configuration") final ReplicateConfiguration configuration) {
         this.configuration = configuration;
