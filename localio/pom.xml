@@ -33,12 +33,13 @@
     </dependency>
 
     <dependency>
-      <groupId>org.apache.beam</groupId>
-      <artifactId>beam-runners-direct-java</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.talend.sdk.component</groupId>
       <artifactId>component-runtime-beam-junit</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.beam</groupId>
+      <artifactId>beam-runners-direct-java</artifactId>
     </dependency>
 
     <dependency>
@@ -82,6 +83,7 @@
         </exclusion>
       </exclusions>
     </dependency>
+
     <!-- guava for components-adapter-beam -->
     <dependency>
       <groupId>com.google.guava</groupId>

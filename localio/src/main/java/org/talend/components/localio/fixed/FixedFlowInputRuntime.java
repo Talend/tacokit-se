@@ -1,35 +1,30 @@
 package org.talend.components.localio.fixed;
 
 import org.apache.avro.generic.IndexedRecord;
-import org.apache.beam.sdk.coders.AvroCoder;
-import org.apache.beam.sdk.io.GenerateSequence;
-import org.apache.beam.sdk.transforms.Combine;
-import org.apache.beam.sdk.transforms.Create;
-import org.apache.beam.sdk.transforms.DoFn;
-import org.apache.beam.sdk.transforms.PTransform;
-import org.apache.beam.sdk.transforms.ParDo;
-import org.apache.beam.sdk.transforms.View;
-import org.apache.beam.sdk.values.PBegin;
-import org.apache.beam.sdk.values.PCollection;
-import org.apache.beam.sdk.values.PCollectionView;
-import org.talend.components.adapter.beam.io.rowgenerator.RowGeneratorIO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.talend.sdk.component.api.base.BufferizedProducerSupport;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.input.PartitionMapper;
+import org.talend.sdk.component.api.input.*;
 import org.talend.sdk.component.api.meta.Documentation;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.runtime.beam.spi.record.AvroRecord;
 
+import javax.annotation.PostConstruct;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import static org.talend.sdk.component.api.component.Icon.IconType.FLOW_SOURCE_O;
-
 @Version
-@Icon(FLOW_SOURCE_O)
+@Icon(value = Icon.IconType.CUSTOM, custom = "FixedFlowInputRuntime")
 @PartitionMapper(name = "FixedFlowInputRuntime")
 @Documentation("This component duplicates an input a configured number of times.")
-public class FixedFlowInputRuntime extends PTransform<PBegin, PCollection<IndexedRecord>> {
+public class FixedFlowInputRuntime implements Serializable {
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final FixedFlowInputConfiguration configuration;
 
@@ -37,44 +32,78 @@ public class FixedFlowInputRuntime extends PTransform<PBegin, PCollection<Indexe
         this.configuration = configuration;
     }
 
-    @Override
-    public PCollection<IndexedRecord> expand(final PBegin begin) {
-        FixedDataSetRuntime runtime = new FixedDataSetRuntime(configuration.getDataset());
-        // The values to include in the PCollection
-        List<IndexedRecord> values = new LinkedList<>();
+    @Assessor
+    public long estimateSize() {
+        switch (this.configuration.getOverrideValuesAction()) {
+        case NONE:
+            return this.configuration.getDataset().getValues().getBytes().length;
+        case REPLACE:
+            return this.configuration.getOverrideValues().getBytes().length;
+        case APPEND:
+        default:
+            return this.configuration.getDataset().getValues().getBytes().length
+                    + this.configuration.getOverrideValues().getBytes().length;
+        }
+    }
 
-        if (configuration.getOverrideValuesAction() == FixedFlowInputConfiguration.OverrideValuesAction.NONE
-                || configuration.getOverrideValuesAction() == FixedFlowInputConfiguration.OverrideValuesAction.APPEND) {
-            if (!configuration.getDataset().getValues().trim().isEmpty()) {
-                values.addAll(runtime.getValues(Integer.MAX_VALUE));
-            }
+    @Split
+    public List<FixedFlowInputRuntime> split(@PartitionSize final long bundles) {
+        // No need to split the data at this point because the component will be used with a limited number of records.
+        List<FixedFlowInputRuntime> mappers = new ArrayList<>();
+        mappers.add(new FixedFlowInputRuntime(configuration));
+        return mappers;
+    }
+
+    @Emitter
+    public FixedFlowInputProducer createWorker() {
+        return new FixedFlowInputProducer(configuration);
+    }
+
+    class FixedFlowInputProducer implements Serializable {
+
+        private FixedFlowInputConfiguration configuration;
+
+        private BufferizedProducerSupport<IndexedRecord> bufferedReader;
+
+        private int repeat = 0;
+
+        FixedFlowInputProducer(final FixedFlowInputConfiguration configuration) {
+            this.configuration = configuration;
         }
 
-        if (configuration.getOverrideValuesAction() == FixedFlowInputConfiguration.OverrideValuesAction.APPEND
-                || configuration.getOverrideValuesAction() == FixedFlowInputConfiguration.OverrideValuesAction.REPLACE) {
-            configuration.getDataset().setValues(configuration.getOverrideValues());
-            if (!configuration.getDataset().getValues().trim().isEmpty()) {
-                values.addAll(runtime.getValues(Integer.MAX_VALUE));
+        @PostConstruct
+        public void init() {
+            FixedDataSetRuntime runtime = new FixedDataSetRuntime(configuration.getDataset());
+            List<IndexedRecord> values = new LinkedList<>();
+
+            if (configuration.getOverrideValuesAction() == FixedFlowInputConfiguration.OverrideValuesAction.NONE
+                    || configuration.getOverrideValuesAction() == FixedFlowInputConfiguration.OverrideValuesAction.APPEND) {
+                if (!configuration.getDataset().getValues().trim().isEmpty()) {
+                    values.addAll(runtime.getValues(Integer.MAX_VALUE));
+                }
             }
+
+            if (configuration.getOverrideValuesAction() == FixedFlowInputConfiguration.OverrideValuesAction.APPEND
+                    || configuration.getOverrideValuesAction() == FixedFlowInputConfiguration.OverrideValuesAction.REPLACE) {
+                configuration.getDataset().setValues(configuration.getOverrideValues());
+                if (!configuration.getDataset().getValues().trim().isEmpty()) {
+                    values.addAll(runtime.getValues(Integer.MAX_VALUE));
+                }
+            }
+
+            bufferedReader = new BufferizedProducerSupport<>(() -> {
+                if (++repeat > configuration.getRepeat()) {
+                    return null;
+                } else {
+                    return values.iterator();
+                }
+            });
         }
 
-        if (values.size() != 0) {
-            final PCollectionView<List<IndexedRecord>> data = ((PCollection<IndexedRecord>) begin
-                    .apply(Create.of(values).withCoder((AvroCoder) AvroCoder.of(runtime.getSchema())))).apply(View.asList());
-            return begin.apply(GenerateSequence.from(0).to(configuration.getRepeat()))
-                    .apply(ParDo.of(new DoFn<Long, IndexedRecord>() {
-
-                        @ProcessElement
-                        public void processElement(ProcessContext c) {
-                            List<IndexedRecord> indexedRecords = c.sideInput(data);
-                            indexedRecords.forEach(r -> c.output(r));
-                        }
-                    }).withSideInputs(data));
-        } else {
-            return begin.apply(RowGeneratorIO.read().withSchema(runtime.getSchema()) //
-                    .withSeed(0L) //
-                    .withPartitions(1) //
-                    .withRows(configuration.getRepeat()));
+        @Producer
+        public Record next() {
+            IndexedRecord record = bufferedReader.next();
+            return record != null ? new AvroRecord(record) : null;
         }
     }
 }

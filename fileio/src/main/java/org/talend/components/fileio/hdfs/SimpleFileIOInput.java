@@ -10,12 +10,12 @@ import org.talend.components.simplefileio.runtime.SimpleFileIOInputRuntime;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.input.PartitionMapper;
 import org.talend.sdk.component.api.meta.Documentation;
-import org.talend.sdk.component.api.processor.Processor;
 
 @Version
 @Icon(FILE_HDFS_O)
-@Processor(name = "SimpleFileIOInput")
+@PartitionMapper(name = "SimpleFileIOInput")
 @Documentation("This component reads data from HDFS.")
 public class SimpleFileIOInput extends PTransform<PBegin, PCollection<IndexedRecord>> {
 
