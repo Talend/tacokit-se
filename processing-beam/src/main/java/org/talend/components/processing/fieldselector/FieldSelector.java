@@ -13,7 +13,6 @@ import org.talend.sdk.component.api.processor.Output;
 import org.talend.sdk.component.api.processor.OutputEmitter;
 import org.talend.sdk.component.api.processor.Processor;
 
-import javax.json.JsonObject;
 import java.io.Serializable;
 
 import static org.talend.sdk.component.api.component.Icon.IconType.FIELD_SELECTOR;

@@ -8,6 +8,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Data
@@ -17,7 +18,7 @@ public class FieldSelectorConfiguration implements Serializable {
 
     @Option
     @Documentation("The list of columns to extract to create the new record.")
-    private List<Selector> selectors = new ArrayList<>();
+    private List<Selector> selectors = Arrays.asList(new Selector());
 
     @Data
     @OptionsOrder({ "field", "path" })
