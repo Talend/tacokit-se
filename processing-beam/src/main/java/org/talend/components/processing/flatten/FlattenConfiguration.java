@@ -16,7 +16,6 @@ import java.io.Serializable;
 import static org.talend.sdk.component.api.component.Icon.IconType.NORMALIZE;
 
 @Data
-@Icon(custom = "Flatten", value = NORMALIZE)
 @Documentation("Flatten Configuration")
 @OptionsOrder({ "columnToFlatten", "isList", "fieldDelimiter", "specificFieldDelimiter", "discardTrailingEmptyStr", "trim" })
 public class FlattenConfiguration implements Serializable {
