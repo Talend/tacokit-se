@@ -1,6 +1,15 @@
 package org.talend.components.processing.replicate;
 
+import org.apache.avro.generic.IndexedRecord;
+import org.apache.beam.sdk.transforms.DoFn;
+import org.apache.beam.sdk.transforms.PTransform;
+import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.PCollection;
+import org.apache.beam.sdk.values.PCollectionTuple;
+import org.apache.beam.sdk.values.TupleTag;
+import org.apache.beam.sdk.values.TupleTagList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.talend.components.adapter.beam.BeamJobBuilder;
 import org.talend.components.adapter.beam.BeamJobContext;
 import org.talend.sdk.component.api.component.Icon;
@@ -21,22 +30,35 @@ import static org.talend.sdk.component.api.component.Icon.IconType.REPLICATE;
 @Icon(REPLICATE)
 @Processor(name = "Replicate")
 @Documentation("This component replicates the input two one or two outputs (limited to two outputs for the moment).")
-public class Replicate implements BeamJobBuilder, Serializable {
+public class Replicate extends PTransform<PCollection<IndexedRecord>, PCollectionTuple> {
 
     private final ReplicateConfiguration configuration;
 
-    private final static String MAIN_CONNECTOR = "__default__";
-
-    // TODO: It would be really useful if we could differentiate between named outputs for the
-    // component. For the moment this works because we want the two to be exactly the same in all
-    // cases.
     private final static String FLOW_CONNECTOR = "__default__";
 
     private final static String SECOND_FLOW_CONNECTOR = "second";
 
-    private boolean hasFlow;
+    private static Logger LOG = LoggerFactory.getLogger(Replicate.class);
 
-    private boolean hasSecondFlow;
+    public TupleTag<IndexedRecord> defaultTag = new TupleTag<>(FLOW_CONNECTOR);
+
+    public TupleTag<IndexedRecord> secondTag = new TupleTag<>(SECOND_FLOW_CONNECTOR);
+
+    static class ReplicateDoFn extends DoFn<IndexedRecord, IndexedRecord> {
+
+        private Replicate runtime;
+
+        public ReplicateDoFn(Replicate runtime) {
+            this.runtime = runtime;
+        }
+
+        @ProcessElement
+        public void processElement(@Element IndexedRecord record, MultiOutputReceiver out) {
+            // broadcast the incoming record to the different outputs
+            out.get(runtime.defaultTag).output(record);
+            out.get(runtime.secondTag).output(record);
+        }
+    }
 
     public Replicate(@Option("configuration") final ReplicateConfiguration configuration) {
         this.configuration = configuration;
@@ -44,34 +66,13 @@ public class Replicate implements BeamJobBuilder, Serializable {
 
     @ElementListener
     public void onElement(final JsonObject ignored, @Output final OutputEmitter<JsonObject> output,
-            @Output("second") final OutputEmitter<JsonObject> second) {
-        // Dummy method to pass validate
+            @Output(SECOND_FLOW_CONNECTOR) final OutputEmitter<JsonObject> second) {
         // no-op
     }
 
     @Override
-    public void build(BeamJobContext beamJobContext) {
-        String mainLink = beamJobContext.getLinkNameByPortName("input_" + MAIN_CONNECTOR);
-        if (!isEmpty(mainLink)) {
-            PCollection<Object> mainPCollection = beamJobContext.getPCollectionByLinkName(mainLink);
-            if (mainPCollection != null) {
-                String flowLink = beamJobContext.getLinkNameByPortName("output_" + FLOW_CONNECTOR);
-                String secondFlowLink = beamJobContext.getLinkNameByPortName("output_" + SECOND_FLOW_CONNECTOR);
-
-                hasFlow = !isEmpty(flowLink);
-                hasSecondFlow = !isEmpty(secondFlowLink);
-
-                if (hasFlow) {
-                    beamJobContext.putPCollectionByLinkName(flowLink, mainPCollection);
-                }
-                if (hasSecondFlow) {
-                    beamJobContext.putPCollectionByLinkName(secondFlowLink, mainPCollection);
-                }
-            }
-        }
-    }
-
-    public static boolean isEmpty(final CharSequence cs) {
-        return cs == null || cs.length() == 0;
+    public PCollectionTuple expand(PCollection<IndexedRecord> input) {
+        ReplicateDoFn doFn = new ReplicateDoFn(this);
+        return input.apply(ParDo.of(doFn).withOutputTags(defaultTag, TupleTagList.of(secondTag)));
     }
 }

@@ -37,8 +37,6 @@ public class S3ConfigurationService {
         final S3DatasetProperties dataset = new S3DatasetProperties("datasetRef");
         dataset.bucket.setValue(configuration.getBucket());
         dataset.object.setValue(configuration.getObject());
-        dataset.unknownRegion.setValue(configuration.getUnknownRegion());
-        dataset.region.setValue(S3Region.valueOf(configuration.getRegion().name()));
         dataset.fieldDelimiter
                 .setValue(SimpleFileIODatasetProperties.FieldDelimiterType.valueOf(configuration.getFieldDelimiter().name()));
         dataset.specificFieldDelimiter.setValue(configuration.getSpecificFieldDelimiter());
