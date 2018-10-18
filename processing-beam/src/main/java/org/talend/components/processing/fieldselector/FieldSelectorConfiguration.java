@@ -2,12 +2,12 @@ package org.talend.components.processing.fieldselector;
 
 import lombok.Data;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.OptionsOrder;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,7 +32,9 @@ public class FieldSelectorConfiguration implements Serializable {
 
         @Option
         @Required
+        @Suggestable("datalist")
         @Documentation("The extraction path")
         private String path = "";
+
     }
 }

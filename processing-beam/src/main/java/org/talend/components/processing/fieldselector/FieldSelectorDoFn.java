@@ -42,27 +42,36 @@ public class FieldSelectorDoFn extends DoFn<IndexedRecord, IndexedRecord> {
         Map<String, Object> selectedFields = new HashMap<>();
         List<Field> fieldSchemas = new ArrayList<>();
 
-        for (FieldSelectorConfiguration.Selector selector : configuration.getSelectors()) {
-            String path = selector.getPath();
-            String field = selector.getField();
-            if (StringUtils.isNotEmpty(field) && StringUtils.isNotEmpty(path)) {
-                // Extract field from the input
-                List<Evaluator.Ctx> avPathContexts = FieldSelectorUtil.getInputFields(context.element(), path);
+        if (!configuration.getSelectors().isEmpty()) {
+            for (FieldSelectorConfiguration.Selector selector : configuration.getSelectors()) {
+                String path = selector.getPath();
+                String field = selector.getField();
+                if (StringUtils.isNotEmpty(field) && StringUtils.isNotEmpty(path)) {
+                    // Extract field from the input
+                    List<Evaluator.Ctx> avPathContexts = FieldSelectorUtil.getInputFields(context.element(), path);
 
-                if (outputSchema == null) {
-                    if (avPathContexts.isEmpty()) {
-                        fieldSchemas.add(inferSchema(context.element(), path, field));
-                    } else {
-                        fieldSchemas.add(retrieveSchema(avPathContexts, path, field));
+                    if (outputSchema == null) {
+                        if (avPathContexts.isEmpty()) {
+                            fieldSchemas.add(inferSchema(context.element(), path, field));
+                        } else {
+                            fieldSchemas.add(retrieveSchema(avPathContexts, path, field));
+                        }
                     }
-                }
 
-                if (!avPathContexts.isEmpty()) {
-                    selectedFields.put(field, FieldSelectorUtil.extractValuesFromContext(avPathContexts, path));
+                    if (!avPathContexts.isEmpty()) {
+                        Object o = FieldSelectorUtil.extractValuesFromContext(avPathContexts, path);
+                        selectedFields.put(field, o);
+                    }
+                } // else empty selector, we ignoring it.
+            }
+            if (!selectedFields.isEmpty()) {
+                if (outputSchema == null) {
+                    outputSchema = Schema.createRecord("output_" + context.element().getSchema().getName(), "", "", false,
+                            fieldSchemas);
                 }
-            } // else empty selector, we ignoring it.
-        }
-        if (!selectedFields.isEmpty()) {
+                context.output(FieldSelectorUtil.generateIndexedRecord(selectedFields, outputSchema));
+            }
+        } else {
             if (outputSchema == null) {
                 outputSchema = Schema.createRecord("output_" + context.element().getSchema().getName(), "", "", false,
                         fieldSchemas);

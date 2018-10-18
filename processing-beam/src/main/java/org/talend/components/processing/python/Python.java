@@ -27,13 +27,13 @@ public class Python extends PTransform<PCollection<IndexedRecord>, PCollection> 
 
     private PythonConfiguration configuration;
 
+    public Python(@Option("configuration") final PythonConfiguration configuration) {
+        this.configuration = configuration;
+    }
+
     @ElementListener
     public void onElement(final JsonObject element, @Output final OutputEmitter<JsonObject> output) {
         //
-    }
-
-    public Python(@Option("configuration") final PythonConfiguration configuration) {
-        this.configuration = configuration;
     }
 
     @Override
