@@ -1,9 +1,8 @@
 package org.talend.components.processing.normalize;
 
-import static org.talend.sdk.component.api.component.Icon.IconType.NORMALIZE;
-
-import java.io.Serializable;
-
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Getter;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -11,20 +10,20 @@ import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.OptionsOrder;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
+import java.io.Serializable;
+
+import static org.talend.sdk.component.api.component.Icon.IconType.NORMALIZE;
 
 @Data
 @Icon(NORMALIZE)
 @Documentation("Normalization configuration.")
-@OptionsOrder({ "columnToNormalize", "fieldSeparator", "otherSeparator", "discardTrailingEmptyStr", "trim" })
+@OptionsOrder({ "columnToFlatten", "fieldSeparator", "otherSeparator", "discardTrailingEmptyStr", "trim" })
 public class NormalizeConfiguration implements Serializable {
 
     @Option
     @Required
     @Documentation("The column to normalize")
-    private String columnToNormalize = "";
+    private String columnToFlatten = "";
 
     @Option
     @Documentation("Should discard trailing spaces")

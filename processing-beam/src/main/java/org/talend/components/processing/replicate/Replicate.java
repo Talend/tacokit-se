@@ -44,7 +44,7 @@ public class Replicate implements BeamJobBuilder, Serializable {
 
     @ElementListener
     public void onElement(final JsonObject ignored, @Output final OutputEmitter<JsonObject> output,
-                          @Output("second") final OutputEmitter<JsonObject> second) {
+            @Output("second") final OutputEmitter<JsonObject> second) {
         // Dummy method to pass validate
         // no-op
     }

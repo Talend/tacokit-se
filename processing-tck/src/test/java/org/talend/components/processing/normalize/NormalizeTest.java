@@ -1,19 +1,19 @@
 package org.talend.components.processing.normalize;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.talend.sdk.component.runtime.manager.chain.Job.components;
-
-import javax.json.JsonBuilderFactory;
-import javax.json.JsonObject;
-
 import org.junit.jupiter.api.Test;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.ComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
+
+import javax.json.JsonBuilderFactory;
+import javax.json.JsonObject;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.talend.sdk.component.runtime.manager.chain.Job.components;
 
 @WithComponents("org.talend.components.processing")
 class NormalizeTest {
@@ -32,7 +32,7 @@ class NormalizeTest {
                         .build()));
         components().component("input", "test://emitter")
                 .component("normalize",
-                        "Processing://Normalize?configuration.trim=true&configuration.columnToNormalize=/nested/name")
+                        "Processing://Normalize?configuration.trim=true&configuration.columnToFlatten=/nested/name")
                 .component("output", "test://collector").connections().from("input").to("normalize").from("normalize")
                 .to("output").build().run();
 
@@ -47,7 +47,7 @@ class NormalizeTest {
                 factory.createObjectBuilder().add("nested", factory.createObjectBuilder().add("name", "  The Test 2  "))
                         .build()));
         components().component("input", "test://emitter").component("normalize",
-                "Processing://Normalize?configuration.discardTrailingEmptyStr=true&configuration.columnToNormalize=/nested/name")
+                "Processing://Normalize?configuration.discardTrailingEmptyStr=true&configuration.columnToFlatten=/nested/name")
                 .component("output", "test://collector").connections().from("input").to("normalize").from("normalize")
                 .to("output").build().run();
 
@@ -62,7 +62,7 @@ class NormalizeTest {
                 .build()));
         components().component("input", "test://emitter")
                 .component("normalize",
-                        "Processing://Normalize?configuration.trim=true&configuration.columnToNormalize=/nested/name")
+                        "Processing://Normalize?configuration.trim=true&configuration.columnToFlatten=/nested/name")
                 .component("output", "test://collector").connections().from("input").to("normalize").from("normalize")
                 .to("output").build().run();
 
@@ -76,7 +76,7 @@ class NormalizeTest {
                 .add("nested", factory.createObjectBuilder().add("name", "  first;second  ")).build()));
         components().component("input", "test://emitter")
                 .component("normalize",
-                        "Processing://Normalize?configuration.trim=true&configuration.columnToNormalize=/nested/name")
+                        "Processing://Normalize?configuration.trim=true&configuration.columnToFlatten=/nested/name")
                 .component("output", "test://collector").connections().from("input").to("normalize").from("normalize")
                 .to("output").build().run();
 
