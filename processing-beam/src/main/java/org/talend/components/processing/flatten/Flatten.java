@@ -20,7 +20,7 @@ import static org.talend.sdk.component.api.component.Icon.IconType.NORMALIZE;
 @Version
 @Processor(name = "Flatten")
 @Icon(NORMALIZE)
-@Documentation("This component allow the user to create multiple records from one field of the incoming data.")
+@Documentation("Create multiple records from one field of the incoming record.")
 public class Flatten extends PTransform<PCollection<IndexedRecord>, PCollection> {
 
     private FlattenConfiguration configuration;
