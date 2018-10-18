@@ -29,10 +29,10 @@ class ReplicateTest {
         final Pipeline p = Pipeline.create(options);
 
         // Create PCollection for test
-        Schema a = GenericDataRecordHelper.createSchemaFromObject("a", new Object[]{"a"});
-        IndexedRecord irA = GenericDataRecordHelper.createRecord(a, new Object[]{"a"});
-        IndexedRecord irB = GenericDataRecordHelper.createRecord(a, new Object[]{"b"});
-        IndexedRecord irC = GenericDataRecordHelper.createRecord(a, new Object[]{"c"});
+        Schema a = GenericDataRecordHelper.createSchemaFromObject("a", new Object[] { "a" });
+        IndexedRecord irA = GenericDataRecordHelper.createRecord(a, new Object[] { "a" });
+        IndexedRecord irB = GenericDataRecordHelper.createRecord(a, new Object[] { "b" });
+        IndexedRecord irC = GenericDataRecordHelper.createRecord(a, new Object[] { "c" });
 
         List<IndexedRecord> data = Arrays.asList( //
                 irA, //
