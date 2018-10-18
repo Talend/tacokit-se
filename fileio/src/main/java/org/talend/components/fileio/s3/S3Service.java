@@ -7,6 +7,7 @@ import static java.util.stream.Collectors.toList;
 import java.util.List;
 
 import org.talend.components.simplefileio.s3.S3Region;
+import org.talend.components.simplefileio.s3.S3RegionUtil;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
@@ -34,7 +35,7 @@ public class S3Service {
         final AmazonS3 client = createClient(dataStore);
         try {
             final String usedRegion = findRuntimeRegion(region, unknownRegion);
-            client.setEndpoint(regionToEndpoint(usedRegion));
+            client.setEndpoint(S3RegionUtil.regionToEndpoint(usedRegion));
             return new SuggestionValues(true,
                     client.listBuckets().stream().map(bucket -> new SuggestionValues.Item(bucket.getName(), bucket.getName()))
                             .sorted(comparing(SuggestionValues.Item::getLabel)).collect(toList()));
@@ -86,17 +87,6 @@ public class S3Service {
         } catch (final Exception e) {
             return false;
         }
-    }
-
-    private String regionToEndpoint(final String region) {
-        final S3Region s3Region = S3Region.fromString(region);
-        if (s3Region != null) {
-            return s3Region.toEndpoint();
-        }
-        // TODO let the user provide endpoint,
-        // or we remove the custom region, and provide a configuration file can be loaded on fly, keep update
-        // also need to consider location to region mapping
-        return String.format("s3.dualstack.%s.amazonaws.com", region);
     }
 
     private String findRuntimeRegion(final S3DataSet.S3Region region, final String alternative) {
