@@ -19,7 +19,7 @@ import static org.talend.sdk.component.api.component.Icon.IconType.NORMALIZE;
 
 @Version
 @Processor(name = "Flatten")
-@Icon(custom = "Flatten", value = NORMALIZE)
+@Icon(NORMALIZE)
 @Documentation("Flatten")
 public class Flatten extends PTransform<PCollection<IndexedRecord>, PCollection> {
 
