@@ -2,6 +2,7 @@ package org.talend.components.processing.filter;
 
 import lombok.Data;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.OptionsOrder;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -14,12 +15,6 @@ import java.util.List;
 @OptionsOrder({ "filters", "logicalOpType" })
 @Documentation("A set of filter and a way to combine them to filter data.")
 public class FilterConfiguration implements Serializable {
-
-    public final static String MAIN_CONNECTOR = "__default__";
-
-    public final static String FLOW_CONNECTOR = "__default__";
-
-    public final static String REJECT_CONNECTOR = "reject";
 
     @Option
     @Documentation("How to combine filters")
@@ -36,6 +31,7 @@ public class FilterConfiguration implements Serializable {
 
         @Option
         @Required
+        @Suggestable("datalist")
         @Documentation("The column name to use for this criteria")
         private String columnName = "";
 

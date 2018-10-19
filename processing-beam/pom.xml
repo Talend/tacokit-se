@@ -44,6 +44,12 @@
     <dependency>
       <groupId>org.talend.daikon</groupId>
       <artifactId>daikon</artifactId>
+      <version>0.26.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.talend.daikon</groupId>
+      <artifactId>daikon</artifactId>
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
@@ -55,10 +61,18 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- forcing commons-lang3 version -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.6</version>
+    </dependency>
+
     <dependency>
       <groupId>org.talend.components</groupId>
       <artifactId>components-adapter-beam</artifactId>
       <version>${tcomp0.version}</version>
+      <scope>test</scope>
       <exclusions>
         <exclusion>
           <groupId>org.apache.beam</groupId>

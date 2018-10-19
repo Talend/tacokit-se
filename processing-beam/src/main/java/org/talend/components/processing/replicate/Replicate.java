@@ -8,10 +8,6 @@ import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionTuple;
 import org.apache.beam.sdk.values.TupleTag;
 import org.apache.beam.sdk.values.TupleTagList;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.talend.components.adapter.beam.BeamJobBuilder;
-import org.talend.components.adapter.beam.BeamJobContext;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -22,7 +18,6 @@ import org.talend.sdk.component.api.processor.OutputEmitter;
 import org.talend.sdk.component.api.processor.Processor;
 
 import javax.json.JsonObject;
-import java.io.Serializable;
 
 import static org.talend.sdk.component.api.component.Icon.IconType.REPLICATE;
 
@@ -37,8 +32,6 @@ public class Replicate extends PTransform<PCollection<IndexedRecord>, PCollectio
     private final static String FLOW_CONNECTOR = "__default__";
 
     private final static String SECOND_FLOW_CONNECTOR = "second";
-
-    private static Logger LOG = LoggerFactory.getLogger(Replicate.class);
 
     public TupleTag<IndexedRecord> defaultTag = new TupleTag<>(FLOW_CONNECTOR);
 
