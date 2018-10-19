@@ -102,7 +102,7 @@ public class Normalize implements Serializable {
 
     private void ensureInit() {
         if (pointer == null) {
-            pointer = provider.createPointer(configuration.getColumnToNormalize());
+            pointer = provider.createPointer(configuration.getColumnToFlatten());
 
             delimiter = NormalizeConfiguration.Delimiter.OTHER.equals(configuration.getFieldSeparator())
                     ? configuration.getOtherSeparator()

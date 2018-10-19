@@ -39,12 +39,10 @@ public class LimitTest {
 
     private final Schema inputSimpleSchema = SchemaBuilder.record("inputRow") //
             .fields() //
-            .name("a").type().optional().stringType()
-            .endRecord();
+            .name("a").type().optional().stringType().endRecord();
 
     private final GenericRecord inputSimpleRecord = new GenericRecordBuilder(inputSimpleSchema) //
-            .set("a", "aaa")
-            .build();
+            .set("a", "aaa").build();
 
     @Rule
     public final TestPipeline pipeline = TestPipeline.create();
@@ -55,15 +53,14 @@ public class LimitTest {
     @Test
     public void testBasic() {
         PCollection<IndexedRecord> input = pipeline.apply( //
-                Create.<IndexedRecord>of(inputSimpleRecord, inputSimpleRecord, inputSimpleRecord)
-        );
+                Create.<IndexedRecord> of(inputSimpleRecord, inputSimpleRecord, inputSimpleRecord));
 
         LimitConfiguration configuration = new LimitConfiguration();
         configuration.setLimit(2L);
         Limit runtime = new Limit(configuration);
 
         PCollection<IndexedRecord> afterLimit = input.apply(runtime);
-        PCollection<Long> output = afterLimit.apply(Count.<IndexedRecord>globally());
+        PCollection<Long> output = afterLimit.apply(Count.<IndexedRecord> globally());
 
         PAssert.that(output).containsInAnyOrder(2L);
         pipeline.run().waitUntilFinish();
