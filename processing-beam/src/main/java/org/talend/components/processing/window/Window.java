@@ -25,7 +25,7 @@ import static org.talend.sdk.component.api.component.Icon.IconType.WINDOW;
 @Version
 @Icon(WINDOW)
 @Processor(name = "Window")
-@Documentation("This component windows the input two one or two outputs (limited to two outputs for the moment).")
+@Documentation("This component makes windows of data by buffering input records according to provided duration(s).")
 public class Window extends PTransform<PCollection<IndexedRecord>, PCollection<IndexedRecord>> {
 
     private final WindowConfiguration configuration;
@@ -48,22 +48,21 @@ public class Window extends PTransform<PCollection<IndexedRecord>, PCollection<I
                     String.valueOf(configuration.getWindowLength()));
         }
 
-        // Session Window
         if (configuration.getWindowSession()) {
+            // Session Window
             windowed_items = input.apply(org.apache.beam.sdk.transforms.windowing.Window
                     .into(Sessions.withGapDuration(Duration.millis(configuration.getWindowLength()))));
-            return windowed_items;
-        }
-
-        if (configuration.getWindowSlideLength() < 1) {
-            // Fixed Window
-            windowed_items = input.apply(org.apache.beam.sdk.transforms.windowing.Window
-                    .into(FixedWindows.of(new Duration(configuration.getWindowLength().longValue()))));
         } else {
-            // Sliding Window
-            windowed_items = input.apply(org.apache.beam.sdk.transforms.windowing.Window
-                    .into(SlidingWindows.of(new Duration(configuration.getWindowLength().longValue()))
-                            .every(new Duration(configuration.getWindowSlideLength().longValue()))));
+            if (configuration.getWindowSlideLength() < 1) {
+                // Fixed Window
+                windowed_items = input.apply(org.apache.beam.sdk.transforms.windowing.Window
+                        .into(FixedWindows.of(new Duration(configuration.getWindowLength().longValue()))));
+            } else {
+                // Sliding Window
+                windowed_items = input.apply(org.apache.beam.sdk.transforms.windowing.Window
+                        .into(SlidingWindows.of(new Duration(configuration.getWindowLength().longValue()))
+                                .every(new Duration(configuration.getWindowSlideLength().longValue()))));
+            }
         }
         return windowed_items;
     }
