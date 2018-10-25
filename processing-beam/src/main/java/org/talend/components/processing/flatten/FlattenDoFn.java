@@ -4,7 +4,6 @@ import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.beam.sdk.transforms.DoFn;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -21,7 +20,8 @@ public class FlattenDoFn extends DoFn<IndexedRecord, IndexedRecord> {
         boolean isDiscardTrailingEmptyStr = properties.isDiscardTrailingEmptyStr();
         boolean isTrim = properties.isTrim();
 
-        if (StringUtils.isNotEmpty(columnToFlatten)) {
+        if (!FlattenUtils.isNullOrEmpty(columnToFlatten)) {
+
             if (columnToFlatten.startsWith(".")) {
                 columnToFlatten = columnToFlatten.substring(1, columnToFlatten.length());
             }

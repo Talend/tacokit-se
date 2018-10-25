@@ -264,6 +264,16 @@ public class FlattenUtils {
     }
 
     /**
+     * Checks empty or null strings, avoid using Gauva or lang3 for this simple test.
+     * 
+     * @param str the tested string
+     * @return bool
+     */
+    public static boolean isNullOrEmpty(String str) {
+        return str == null || str.isEmpty();
+    }
+
+    /**
      * Splits toSplit parameter around matches of the given delim parameter.
      *
      * @param toSplit string to split
@@ -274,17 +284,22 @@ public class FlattenUtils {
      */
     public static List<Object> delimit(String toSplit, String delim, boolean isDiscardTrailingEmptyStr, boolean isTrim) {
 
-        String[] strSplitted = toSplit.split(delim);
+        String[] strSplitted = toSplit.split(delim, -1);
         List<Object> strList = new ArrayList<Object>();
+        int lastNonEmpty = 0;
         for (int i = 0; i < strSplitted.length; i++) {
-            if (isDiscardTrailingEmptyStr) {
-                strSplitted[i] = strSplitted[i].replaceAll("\\s+$", "");
+            if (!isNullOrEmpty(strSplitted[i])) {
+                lastNonEmpty = i;
             }
             if (isTrim) {
                 strSplitted[i] = strSplitted[i].trim();
             }
             strList.add(strSplitted[i]);
         }
-        return strList;
+        if (isDiscardTrailingEmptyStr) {
+            return strList.subList(0, lastNonEmpty + 1);
+        } else {
+            return strList;
+        }
     }
 }
