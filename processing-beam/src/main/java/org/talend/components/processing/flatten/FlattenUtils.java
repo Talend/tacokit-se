@@ -273,6 +273,10 @@ public class FlattenUtils {
         return str == null || str.isEmpty();
     }
 
+    public static boolean isNotNullOrEmpty(String str) {
+        return !isNullOrEmpty(str);
+    }
+
     /**
      * Splits toSplit parameter around matches of the given delim parameter.
      *
@@ -288,7 +292,7 @@ public class FlattenUtils {
         List<Object> strList = new ArrayList<Object>();
         int lastNonEmpty = 0;
         for (int i = 0; i < strSplitted.length; i++) {
-            if (!isNullOrEmpty(strSplitted[i])) {
+            if (isNotNullOrEmpty(strSplitted[i])) {
                 lastNonEmpty = i;
             }
             if (isTrim) {

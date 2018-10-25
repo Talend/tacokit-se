@@ -20,7 +20,7 @@ public class FlattenDoFn extends DoFn<IndexedRecord, IndexedRecord> {
         boolean isDiscardTrailingEmptyStr = properties.isDiscardTrailingEmptyStr();
         boolean isTrim = properties.isTrim();
 
-        if (!FlattenUtils.isNullOrEmpty(columnToFlatten)) {
+        if (FlattenUtils.isNotNullOrEmpty(columnToFlatten)) {
 
             if (columnToFlatten.startsWith(".")) {
                 columnToFlatten = columnToFlatten.substring(1, columnToFlatten.length());
