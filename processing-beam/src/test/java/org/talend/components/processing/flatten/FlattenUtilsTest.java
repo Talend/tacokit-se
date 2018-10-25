@@ -520,19 +520,72 @@ public class FlattenUtilsTest {
         Assert.assertEquals(listSplit.get(2).toString(), "a3");
     }
 
-    /**
-     * Splits toSplit variable around matches of ";" with removing white space at the end of each item.
-     *
-     * Expected results of split: {" a1", " a2", " a3"}
-     */
     @Test
-    public void testDelimitIsDiscardTrailingEmptyStr() {
+    public void testDTESwithCompleteString() {
 
-        String toSplit = " a1 ; a2  ; a3   ";
+        String toSplit = "a1;a2;a3";
         List<Object> listSplit = FlattenUtils.delimit(toSplit, ";", true, false);
-        Assert.assertEquals(listSplit.get(0).toString(), " a1");
-        Assert.assertEquals(listSplit.get(1).toString(), " a2");
-        Assert.assertEquals(listSplit.get(2).toString(), " a3");
+        Assert.assertEquals("a1", listSplit.get(0).toString());
+        Assert.assertEquals("a2", listSplit.get(1).toString());
+        Assert.assertEquals("a3", listSplit.get(2).toString());
+    }
+
+    @Test
+    public void testDTESwithEmptyTrailingValues() {
+
+        String toSplit = "a1;a2;a3;;";
+        List<Object> listSplit = FlattenUtils.delimit(toSplit, ";", true, false);
+        Assert.assertEquals("a1", listSplit.get(0).toString());
+        Assert.assertEquals("a2", listSplit.get(1).toString());
+        Assert.assertEquals("a3", listSplit.get(2).toString());
+    }
+
+    @Test
+    public void testwoDTESwithEmptyTrailingValues() {
+
+        String toSplit = "a1;a2;a3;;a4";
+        List<Object> listSplit = FlattenUtils.delimit(toSplit, ";", false, false);
+        Assert.assertEquals("a1", listSplit.get(0).toString());
+        Assert.assertEquals("a2", listSplit.get(1).toString());
+        Assert.assertEquals("a3", listSplit.get(2).toString());
+        Assert.assertEquals("", listSplit.get(3).toString());
+        Assert.assertEquals("a4", listSplit.get(4).toString());
+    }
+
+    @Test
+    public void testDTESwithEmptyTrailingValuesInTheMiddle() {
+
+        String toSplit = "a1;a2;a3;;a4";
+        List<Object> listSplit = FlattenUtils.delimit(toSplit, ";", true, false);
+        Assert.assertEquals("a1", listSplit.get(0).toString());
+        Assert.assertEquals("a2", listSplit.get(1).toString());
+        Assert.assertEquals("a3", listSplit.get(2).toString());
+        Assert.assertEquals("", listSplit.get(3).toString());
+        Assert.assertEquals("a4", listSplit.get(4).toString());
+    }
+
+    @Test
+    public void testwoDTESwithEmptyTrailingValuesInTheEnd() {
+
+        String toSplit = "a1;a2;a3;;";
+        List<Object> listSplit = FlattenUtils.delimit(toSplit, ";", false, false);
+        Assert.assertEquals("a1", listSplit.get(0).toString());
+        Assert.assertEquals("a2", listSplit.get(1).toString());
+        Assert.assertEquals("a3", listSplit.get(2).toString());
+        Assert.assertEquals("", listSplit.get(3).toString());
+        Assert.assertEquals("", listSplit.get(4).toString());
+        Assert.assertEquals(5, listSplit.size());
+    }
+
+    @Test
+    public void testDTESwithEmptyTrailingValuesInTheEnd() {
+
+        String toSplit = "a1;a2;a3;;";
+        List<Object> listSplit = FlattenUtils.delimit(toSplit, ";", true, false);
+        Assert.assertEquals("a1", listSplit.get(0).toString());
+        Assert.assertEquals("a2", listSplit.get(1).toString());
+        Assert.assertEquals("a3", listSplit.get(2).toString());
+        Assert.assertEquals(3, listSplit.size());
     }
 
     /**
