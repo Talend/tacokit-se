@@ -20,7 +20,7 @@ public class FlattenConfiguration implements Serializable {
     @Option
     @Required
     @Documentation("")
-    private String columnToFlatten;
+    private String columnToFlatten = "";
 
     @Option
     @Required
