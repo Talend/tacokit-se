@@ -65,7 +65,7 @@ public class Filter extends PTransform<PCollection<IndexedRecord>, PCollectionTu
         return input.apply(ParDo.of(new FilterDoFn(configuration)).withOutputTags(flowOutput, TupleTagList.of(rejectOutput)));
     }
 
-    // TODO: Currenlty the component alway send data on output and reject link, even if they are not
+    // TODO: Currently the component always sends data on output and reject links, even if they are not
     // used in the pipeline. it should change.
     /*
      * public void build(BeamJobContext ctx) {
