@@ -19,14 +19,14 @@ public class WindowConfiguration implements Serializable {
 
     @Option
     @Required
-    @Documentation("Use Window session")
+    @Documentation("Enable the Window session to set a gap between each window (the gap starts at the latest arrived record)")
     private Boolean windowSession = false;
 
     @Option
     @Required
     @Min(1)
     @Max(Integer.MAX_VALUE)
-    @Documentation("The Window duration, or window session duration (ms)")
+    @Documentation("Set the Window duration (session disabled), or set the gap after the latest arrived record (session enabled)")
     private Integer windowLength = 5000;
 
     @Option
@@ -34,7 +34,7 @@ public class WindowConfiguration implements Serializable {
     @ActiveIf(target = "windowSession", value = "false")
     @Min(0)
     @Max(Integer.MAX_VALUE)
-    @Documentation("The slide duration (ms)")
+    @Documentation("The sliding duration between the previous Window beginning and the next Window (ms)")
     private Integer windowSlideLength = 5000;
 
 }
