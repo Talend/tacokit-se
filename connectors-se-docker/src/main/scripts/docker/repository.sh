@@ -20,10 +20,14 @@ work_dir="$BASEDIR/target/docker_repository/image"
 mkdir -p "$work_dir"
 cd "$work_dir"
     cp "$BASEDIR/src/main/docker/Dockerfile.repository" Dockerfile
-    cp -r "$BASEDIR/target/docker-m2" m2
+    cp -r "$BASEDIR/target/docker-m2/" m2
     createComponentRegistry
 
     buildAndTag
     pushImage $LAST_IMAGE
+    echo "You can run 'docker run talend/connectors-se:$DOCKER_IMAGE_VERSION'"
 cd -
+rm -Rf $work_dir
+echo
 echo "-----------------------------------------------------"
+echo

@@ -16,14 +16,17 @@
 #  limitations under the License.
 #
 
-export COMPONENT_SERVER_IMAGE_VERSION=1.1.2_20181016100528
+export COMPONENT_SERVER_IMAGE_VERSION=${COMPONENT_SERVER_IMAGE_VERSION:1.1.2_20181024155243}
 
 export BASEDIR=$(cd "$(dirname "$0")" ; pwd -P)/../../../..
 export CONNECTOR_VERSION=$(grep "<version>" "$BASEDIR/pom.xml" | head -n 1 | sed "s/.*>\\(.*\\)<.*/\\1/")
 export TALEND_REGISTRY="${TALEND_REGISTRY:-registry.datapwn.com}"
 DOCKER_IMAGE_VERSION=${DOCKER_IMAGE_VERSION:-$CONNECTOR_VERSION}
 if [[ "$DOCKER_IMAGE_VERSION" = *"SNAPSHOT" ]]; then
-    BRANCH=_${1}
+    BRANCH=${1}
+    if [[ "x$BRANCH" != "x" ]]; then
+        BRANCH=_$BRANCH
+    fi
     DOCKER_IMAGE_VERSION=$(echo $CONNECTOR_VERSION | sed "s/-SNAPSHOT//")${BRANCH}_$(date +%Y%m%d%H%M%S)
 fi
 export DOCKER_IMAGE_VERSION
