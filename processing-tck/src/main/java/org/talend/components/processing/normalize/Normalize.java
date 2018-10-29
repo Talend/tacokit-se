@@ -1,19 +1,5 @@
 package org.talend.components.processing.normalize;
 
-import static javax.json.stream.JsonCollectors.toJsonArray;
-import static org.talend.sdk.component.api.component.Icon.IconType.NORMALIZE;
-
-import java.io.Serializable;
-import java.util.function.Function;
-import java.util.stream.Stream;
-
-import javax.json.JsonBuilderFactory;
-import javax.json.JsonObject;
-import javax.json.JsonPointer;
-import javax.json.JsonString;
-import javax.json.JsonValue;
-import javax.json.spi.JsonProvider;
-
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -22,6 +8,19 @@ import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.processor.Output;
 import org.talend.sdk.component.api.processor.OutputEmitter;
 import org.talend.sdk.component.api.processor.Processor;
+
+import javax.json.JsonBuilderFactory;
+import javax.json.JsonObject;
+import javax.json.JsonPointer;
+import javax.json.JsonString;
+import javax.json.JsonValue;
+import javax.json.spi.JsonProvider;
+import java.io.Serializable;
+import java.util.function.Function;
+import java.util.stream.Stream;
+
+import static javax.json.stream.JsonCollectors.toJsonArray;
+import static org.talend.sdk.component.api.component.Icon.IconType.NORMALIZE;
 
 @Version
 @Processor(name = "Normalize")
@@ -102,7 +101,7 @@ public class Normalize implements Serializable {
 
     private void ensureInit() {
         if (pointer == null) {
-            pointer = provider.createPointer(configuration.getColumnToFlatten());
+            pointer = provider.createPointer(configuration.getColumnToNormalize());
 
             delimiter = NormalizeConfiguration.Delimiter.OTHER.equals(configuration.getFieldSeparator())
                     ? configuration.getOtherSeparator()

@@ -32,7 +32,7 @@ class NormalizeTest {
                         .build()));
         components().component("input", "test://emitter")
                 .component("normalize",
-                        "Processing://Normalize?configuration.trim=true&configuration.columnToFlatten=/nested/name")
+                        "Processing://Normalize?configuration.trim=true&configuration.columnToNormalize=/nested/name")
                 .component("output", "test://collector").connections().from("input").to("normalize").from("normalize")
                 .to("output").build().run();
 
@@ -47,7 +47,7 @@ class NormalizeTest {
                 factory.createObjectBuilder().add("nested", factory.createObjectBuilder().add("name", "  The Test 2  "))
                         .build()));
         components().component("input", "test://emitter").component("normalize",
-                "Processing://Normalize?configuration.discardTrailingEmptyStr=true&configuration.columnToFlatten=/nested/name")
+                "Processing://Normalize?configuration.discardTrailingEmptyStr=true&configuration.columnToNormalize=/nested/name")
                 .component("output", "test://collector").connections().from("input").to("normalize").from("normalize")
                 .to("output").build().run();
 
@@ -62,7 +62,7 @@ class NormalizeTest {
                 .build()));
         components().component("input", "test://emitter")
                 .component("normalize",
-                        "Processing://Normalize?configuration.trim=true&configuration.columnToFlatten=/nested/name")
+                        "Processing://Normalize?configuration.trim=true&configuration.columnToNormalize=/nested/name")
                 .component("output", "test://collector").connections().from("input").to("normalize").from("normalize")
                 .to("output").build().run();
 
@@ -76,7 +76,7 @@ class NormalizeTest {
                 .add("nested", factory.createObjectBuilder().add("name", "  first;second  ")).build()));
         components().component("input", "test://emitter")
                 .component("normalize",
-                        "Processing://Normalize?configuration.trim=true&configuration.columnToFlatten=/nested/name")
+                        "Processing://Normalize?configuration.trim=true&configuration.columnToNormalize=/nested/name")
                 .component("output", "test://collector").connections().from("input").to("normalize").from("normalize")
                 .to("output").build().run();
 

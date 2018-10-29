@@ -18,7 +18,7 @@ import javax.json.JsonObject;
 import static org.talend.sdk.component.api.component.Icon.IconType.NORMALIZE;
 
 @Version
-@Processor(name = "Flatten")
+@Processor(name = "Normalize")
 @Icon(NORMALIZE)
 @Documentation("Create multiple records from one field of the incoming record.")
 public class Flatten extends PTransform<PCollection<IndexedRecord>, PCollection> {

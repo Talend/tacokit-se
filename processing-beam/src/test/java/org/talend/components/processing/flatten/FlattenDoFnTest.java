@@ -170,7 +170,7 @@ public class FlattenDoFnTest {
     @Test
     public void testNormalize_nothing() throws Exception {
         FlattenConfiguration configuration = getFlattenConfigurationWithTrimAndTrailing();
-        configuration.setColumnToFlatten(null);
+        configuration.setColumnToNormalize(null);
 
         FlattenDoFn function = new FlattenDoFn().withConfiguration(configuration);
         DoFnTester<IndexedRecord, IndexedRecord> fnTester = DoFnTester.of(function);
@@ -193,7 +193,7 @@ public class FlattenDoFnTest {
     @Test
     public void testNormalizeSimpleFields_a() throws Exception {
         FlattenConfiguration configuration = getFlattenConfigurationWithTrimAndTrailing();
-        configuration.setColumnToFlatten("a");
+        configuration.setColumnToNormalize("a");
 
         FlattenDoFn function = new FlattenDoFn().withConfiguration(configuration);
         DoFnTester<IndexedRecord, IndexedRecord> fnTester = DoFnTester.of(function);
@@ -219,7 +219,7 @@ public class FlattenDoFnTest {
     @Test
     public void testNormalizeSimpleFields_a_withDot() throws Exception {
         FlattenConfiguration configuration = getFlattenConfigurationWithTrimAndTrailing();
-        configuration.setColumnToFlatten(".a");
+        configuration.setColumnToNormalize(".a");
 
         FlattenDoFn function = new FlattenDoFn().withConfiguration(configuration);
         DoFnTester<IndexedRecord, IndexedRecord> fnTester = DoFnTester.of(function);
@@ -248,7 +248,7 @@ public class FlattenDoFnTest {
     @Test
     public void testNormalizeSimpleFields_bx() throws Exception {
         FlattenConfiguration configuration = getFlattenConfigurationWithTrimAndTrailing();
-        configuration.setColumnToFlatten("b.x");
+        configuration.setColumnToNormalize("b.x");
 
         FlattenDoFn function = new FlattenDoFn().withConfiguration(configuration);
         DoFnTester<IndexedRecord, IndexedRecord> fnTester = DoFnTester.of(function);
@@ -302,7 +302,7 @@ public class FlattenDoFnTest {
     @Test
     public void testNormalizeSimpleFields_bx_withDot() throws Exception {
         FlattenConfiguration configuration = getFlattenConfigurationWithTrimAndTrailing();
-        configuration.setColumnToFlatten(".b.x");
+        configuration.setColumnToNormalize(".b.x");
 
         FlattenDoFn function = new FlattenDoFn().withConfiguration(configuration);
         DoFnTester<IndexedRecord, IndexedRecord> fnTester = DoFnTester.of(function);
@@ -356,7 +356,7 @@ public class FlattenDoFnTest {
     @Test
     public void testNormalizeSimpleFields_bydk() throws Exception {
         FlattenConfiguration configuration = getFlattenConfigurationWithTrimAndTrailing();
-        configuration.setColumnToFlatten("b.y.d.k");
+        configuration.setColumnToNormalize("b.y.d.k");
 
         FlattenDoFn function = new FlattenDoFn().withConfiguration(configuration);
         DoFnTester<IndexedRecord, IndexedRecord> fnTester = DoFnTester.of(function);
@@ -421,7 +421,7 @@ public class FlattenDoFnTest {
     @Test(expected = TalendRuntimeException.class)
     public void testNormalizeSimpleFields_bydkt() throws Exception {
         FlattenConfiguration configuration = getDefaultFlattenConfiguration();
-        configuration.setColumnToFlatten("b.y.d.k.t");
+        configuration.setColumnToNormalize("b.y.d.k.t");
 
         FlattenDoFn function = new FlattenDoFn().withConfiguration(configuration);
 
@@ -452,7 +452,7 @@ public class FlattenDoFnTest {
         configuration.setSpecificFieldDelimiter("#");
         configuration.setTrim(true);
         configuration.setDiscardTrailingEmptyStr(true);
-        configuration.setColumnToFlatten("b.x");
+        configuration.setColumnToNormalize("b.x");
 
         GenericRecord inputRecordXY_otherSeparator = new GenericRecordBuilder(inputSchemaXY) //
                 .set("x", "x1#x2") //
@@ -519,7 +519,7 @@ public class FlattenDoFnTest {
     public void testNormalizeArrayFields_cg() throws Exception {
         FlattenConfiguration configuration = getDefaultFlattenConfiguration();
         configuration.setList(true);
-        configuration.setColumnToFlatten("c.g");
+        configuration.setColumnToNormalize("c.g");
 
         FlattenDoFn function = new FlattenDoFn().withConfiguration(configuration);
         DoFnTester<IndexedRecord, IndexedRecord> fnTester = DoFnTester.of(function);
@@ -595,7 +595,7 @@ public class FlattenDoFnTest {
     public void testNormalizeArrayFields_bydj() throws Exception {
         FlattenConfiguration configuration = getDefaultFlattenConfiguration();
         configuration.setList(true);
-        configuration.setColumnToFlatten("b.y.d.j");
+        configuration.setColumnToNormalize("b.y.d.j");
 
         FlattenDoFn function = new FlattenDoFn().withConfiguration(configuration);
         DoFnTester<IndexedRecord, IndexedRecord> fnTester = DoFnTester.of(function);
@@ -700,7 +700,7 @@ public class FlattenDoFnTest {
     public void testNormalizeSimpleFields_m() throws Exception {
         FlattenConfiguration configuration = getDefaultFlattenConfiguration();
         configuration.setList(false);
-        configuration.setColumnToFlatten("m");
+        configuration.setColumnToNormalize("m");
 
         FlattenDoFn function = new FlattenDoFn().withConfiguration(configuration);
 
@@ -760,7 +760,7 @@ public class FlattenDoFnTest {
     @Test(expected = TalendRuntimeException.class)
     public void testNormalizeArrayFields_bydjl() throws Exception {
         FlattenConfiguration configuration = getDefaultFlattenConfiguration();
-        configuration.setColumnToFlatten("b.y.d.j.l");
+        configuration.setColumnToNormalize("b.y.d.j.l");
 
         FlattenDoFn function = new FlattenDoFn().withConfiguration(configuration);
 
@@ -780,7 +780,7 @@ public class FlattenDoFnTest {
     @Test
     public void testNormalizeComplexFields_b() throws Exception {
         FlattenConfiguration configuration = getDefaultFlattenConfiguration();
-        configuration.setColumnToFlatten("b");
+        configuration.setColumnToNormalize("b");
 
         FlattenDoFn function = new FlattenDoFn().withConfiguration(configuration);
 
@@ -804,7 +804,7 @@ public class FlattenDoFnTest {
     @Test
     public void testNormalizeComplexFields_by() throws Exception {
         FlattenConfiguration configuration = getDefaultFlattenConfiguration();
-        configuration.setColumnToFlatten("b.y");
+        configuration.setColumnToNormalize("b.y");
 
         FlattenDoFn function = new FlattenDoFn().withConfiguration(configuration);
 
@@ -829,7 +829,7 @@ public class FlattenDoFnTest {
     @Test
     public void testNormalizeComplexFields_byd() throws Exception {
         FlattenConfiguration configuration = getDefaultFlattenConfiguration();
-        configuration.setColumnToFlatten("b.y.d");
+        configuration.setColumnToNormalize("b.y.d");
 
         FlattenDoFn function = new FlattenDoFn().withConfiguration(configuration);
 
@@ -870,7 +870,7 @@ public class FlattenDoFnTest {
     public void testVariableDuplication() throws Exception {
         FlattenConfiguration configuration = getFlattenConfigurationWithTrimAndTrailing();
         configuration.setList(false);
-        configuration.setColumnToFlatten("b.x");
+        configuration.setColumnToNormalize("b.x");
 
         FlattenDoFn function = new FlattenDoFn().withConfiguration(configuration);
 
@@ -931,7 +931,7 @@ public class FlattenDoFnTest {
     @Test(expected = TalendRuntimeException.class)
     public void testNormalizeNotFoundField() throws Exception {
         FlattenConfiguration configuration = getDefaultFlattenConfiguration();
-        configuration.setColumnToFlatten("b.y.f");
+        configuration.setColumnToNormalize("b.y.f");
 
         FlattenDoFn function = new FlattenDoFn().withConfiguration(configuration);
 

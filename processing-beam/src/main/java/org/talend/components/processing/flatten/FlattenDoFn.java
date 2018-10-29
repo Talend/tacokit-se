@@ -15,7 +15,7 @@ public class FlattenDoFn extends DoFn<IndexedRecord, IndexedRecord> {
     public void processElement(ProcessContext context) throws Exception {
         IndexedRecord inputRecord = context.element();
 
-        String columnToFlatten = properties.getColumnToFlatten();
+        String columnToFlatten = properties.getColumnToNormalize();
         String delimiter = properties.getFieldDelimiter();
         boolean isDiscardTrailingEmptyStr = properties.isDiscardTrailingEmptyStr();
         boolean isTrim = properties.isTrim();

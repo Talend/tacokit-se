@@ -14,13 +14,13 @@ import java.io.Serializable;
 
 @Data
 @Documentation("Flatten Configuration")
-@OptionsOrder({ "columnToFlatten", "isList", "fieldDelimiter", "specificFieldDelimiter", "discardTrailingEmptyStr", "trim" })
+@OptionsOrder({ "columnToNormalize", "isList", "fieldDelimiter", "specificFieldDelimiter", "discardTrailingEmptyStr", "trim" })
 public class FlattenConfiguration implements Serializable {
 
     @Option
     @Required
     @Documentation("")
-    private String columnToFlatten = "";
+    private String columnToNormalize = "";
 
     @Option
     @Required
