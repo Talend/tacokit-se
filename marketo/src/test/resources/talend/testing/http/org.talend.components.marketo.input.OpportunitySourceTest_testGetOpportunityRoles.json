@@ -30,7 +30,7 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities/roles.json?filterValues=opportunity00&access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&batchSize=3&filterType=externalOpportunityId"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities/roles.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&filterType=externalOpportunityId&filterValues=opportunity00&batchSize=3"
     },
     "response":{
       "headers":{

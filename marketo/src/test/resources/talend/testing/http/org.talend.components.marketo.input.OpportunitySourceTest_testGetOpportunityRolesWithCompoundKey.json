@@ -31,7 +31,7 @@
         "Content-Length":"177"
       },
       "method":"POST",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities/roles.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&_method=GET"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities/roles.json?_method=GET&access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj"
     },
     "response":{
       "headers":{

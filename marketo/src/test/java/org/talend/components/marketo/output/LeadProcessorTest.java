@@ -12,7 +12,6 @@
 // ============================================================================
 package org.talend.components.marketo.output;
 
-import static org.apache.avro.SchemaBuilder.record;
 import static org.junit.Assert.*;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_CODE;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_EMAIL;
@@ -22,8 +21,6 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_STATUS;
 
 import javax.json.JsonObject;
 
-import org.apache.avro.generic.GenericData.Record;
-import org.apache.avro.generic.IndexedRecord;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.marketo.dataset.MarketoDataSet.MarketoEntity;
@@ -102,25 +99,6 @@ public class LeadProcessorTest extends MarketoProcessorBaseTest {
         data = jsonFactory.createObjectBuilder().add(ATTR_ID, 0).build();
         processor.map(data, main -> fail("Lead 0 should not exist."),
                 reject -> assertEquals("1004", reject.getJsonArray(ATTR_REASONS).get(0).asJsonObject().getString(ATTR_CODE)));
-    }
-
-    @Test
-    void testSyncLeadsWithIndexedRecord() {
-        outputDataSet.setAction(OutputAction.sync);
-        outputDataSet.setSyncMethod(SyncMethod.createOrUpdate);
-        outputDataSet.setLookupField(ATTR_EMAIL);
-        initProcessor();
-        IndexedRecord dataIR = new Record(record("OpportunityRoleSyncREST").fields()//
-                .name("email").type().stringType().noDefault()//
-                .name("firstName").type().stringType().noDefault()//
-                .endRecord());
-        dataIR.put(0, "egallois@talend.com");
-        dataIR.put(1, "Emmanuel");
-        try {
-            processor.mapWithIndexedRecord(dataIR, null, null);
-            fail("Should have an exception here");
-        } catch (Exception e) {
-        }
     }
 
 }

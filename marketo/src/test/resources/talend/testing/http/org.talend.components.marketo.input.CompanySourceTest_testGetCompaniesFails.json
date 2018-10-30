@@ -30,7 +30,7 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?filterValues=France&access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&batchSize=10&fields=mainPhone,company,website&filterType=billingCountry"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&filterType=billingCountry&filterValues=France&fields=mainPhone,company,website&batchSize=10"
     },
     "response":{
       "headers":{

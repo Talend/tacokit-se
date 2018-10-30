@@ -11,32 +11,13 @@
     <artifactId>marketo</artifactId>
     <name>Components :: Marketo</name>
     <properties>
-        <component-runtime-http-junit.version>1.0.4</component-runtime-http-junit.version>
     </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.talend.sdk.component</groupId>
             <artifactId>component-runtime-http-junit</artifactId>
-            <version>${component-runtime-http-junit.version}</version>
+            <version>${component-runtime.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.avro</groupId>
-            <artifactId>avro</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.talend.sdk.component</groupId>
-            <artifactId>component-runtime-beam</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.beam</groupId>
-            <artifactId>beam-sdks-java-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.beam</groupId>
-            <artifactId>beam-runners-direct-java</artifactId>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

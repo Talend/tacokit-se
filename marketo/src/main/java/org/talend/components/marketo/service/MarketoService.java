@@ -26,7 +26,6 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_UPDATED_AT;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_WORKSPACE_NAME;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import javax.json.JsonArray;
@@ -35,14 +34,18 @@ import javax.json.JsonObject;
 import org.slf4j.Logger;
 import org.talend.components.marketo.dataset.MarketoDataSet.MarketoEntity;
 import org.talend.components.marketo.datastore.MarketoDataStore;
+import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.record.Schema.Builder;
+import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.http.Response;
-import org.talend.sdk.component.api.service.schema.Schema;
-import org.talend.sdk.component.api.service.schema.Schema.Entry;
-import org.talend.sdk.component.api.service.schema.Type;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 @Service
 public class MarketoService {
+
+    @Service
+    protected RecordBuilderFactory recordBuilder;
 
     @Service
     protected AuthorizationClient authorizationClient;
@@ -67,8 +70,7 @@ public class MarketoService {
 
     private transient static final Logger LOG = getLogger(MarketoService.class);
 
-
-    public void initClients(MarketoDataStore dataStore){
+    public void initClients(MarketoDataStore dataStore) {
         authorizationClient.base(dataStore.getEndpoint());
         leadClient.base(dataStore.getEndpoint());
         listClient.base(dataStore.getEndpoint());
@@ -99,14 +101,14 @@ public class MarketoService {
     }
 
     protected Schema getSchemaForEntity(JsonArray entitySchema) {
-        Schema s = new Schema();
-        Collection<Entry> entries = new ArrayList<>();
+        List<Entry> entries = new ArrayList<>();
         for (JsonObject field : entitySchema.getValuesAs(JsonObject.class)) {
-            Entry entry = new Entry();
+            String entryName;
+            Schema.Type entryType;
             if (field.getJsonObject("rest") != null) {
-                entry.setName(field.getJsonObject("rest").getString(ATTR_NAME));
+                entryName = field.getJsonObject("rest").getString(ATTR_NAME);
             } else {
-                entry.setName(field.getString(ATTR_NAME));
+                entryName = field.getString(ATTR_NAME);
             }
             String dataType = field.getString("dataType", "string");
             switch (dataType) {
@@ -117,100 +119,93 @@ public class MarketoService {
             case ("url"):
             case ("lead_function"):
             case ("reference"):
-                entry.setType(Type.STRING);
+                entryType = Schema.Type.STRING;
                 break;
             case ("integer"):
-                entry.setType(Type.INT);
+                entryType = Schema.Type.INT;
                 break;
             case ("boolean"):
-                entry.setType(Type.BOOLEAN);
+                entryType = Schema.Type.BOOLEAN;
                 break;
             case ("float"):
             case ("currency"):
-                entry.setType(Type.DOUBLE);
+                entryType = Schema.Type.DOUBLE;
                 break;
             case ("date"):
             case ("datetime"):
-                entry.setType(Type.STRING);
+                entryType = Schema.Type.STRING;
                 break;
             default:
                 LOG.warn("Non managed type : {}. for {}. Defaulting to String.", dataType, this);
-                entry.setType(Type.STRING);
+                entryType = Schema.Type.STRING;
             }
-            entries.add(entry);
+            entries.add(recordBuilder.newEntryBuilder().withName(entryName).withType(entryType).build());
         }
-        s.setEntries(entries);
-        return s;
+        Builder b = recordBuilder.newSchemaBuilder(Schema.Type.RECORD);
+        entries.forEach(b::withEntry);
+        return b.build();
     }
 
     public Schema getOutputSchema(MarketoEntity entity) {
-        Schema schema = new Schema();
-        Collection<Entry> entries = new ArrayList<>();
         switch (entity) {
         case Lead:
         case List:
-            entries.add(new Entry(ATTR_ID, Type.INT));
-            entries.add(new Entry(ATTR_STATUS, Type.STRING));
-            entries.add(new Entry(ATTR_REASONS, Type.STRING));
-            break;
+            return getLeadListDefaultSchema();
         case CustomObject:
-            entries.add(new Entry(ATTR_SEQ, Type.INT));
-            entries.add(new Entry(ATTR_MARKETO_GUID, Type.INT));
-            entries.add(new Entry(ATTR_STATUS, Type.STRING));
-            entries.add(new Entry(ATTR_REASONS, Type.STRING));
-            break;
         case Company:
         case Opportunity:
         case OpportunityRole:
-            entries.add(new Entry(ATTR_SEQ, Type.INT));
-            entries.add(new Entry(ATTR_MARKETO_GUID, Type.STRING));
-            entries.add(new Entry(ATTR_STATUS, Type.STRING));
-            entries.add(new Entry(ATTR_REASONS, Type.STRING));
-            break;
+            return getCustomObjectDefaultSchema();
         }
-        schema.setEntries(entries);
-        return schema;
+        return null;
     }
 
     // TODO this is not the correct defaults schemas!!!
     public Schema getInputSchema(MarketoEntity entity, String action) {
-        Schema schema = new Schema();
-        Collection<Entry> entries = new ArrayList<>();
         switch (entity) {
         case Lead:
         case List:
             switch (action) {
             case "isMemberOfList":
-                entries.add(new Entry(ATTR_ID, Type.INT));
-                entries.add(new Entry(ATTR_STATUS, Type.STRING));
-                entries.add(new Entry(ATTR_REASONS, Type.STRING));
-                break;
+                return getLeadListDefaultSchema();
             case "list":
             case "get":
-                entries.add(new Entry(ATTR_ID, Type.INT));
-                entries.add(new Entry(ATTR_NAME, Type.STRING));
-                entries.add(new Entry(ATTR_WORKSPACE_NAME, Type.STRING));
-                entries.add(new Entry(ATTR_CREATED_AT, Type.STRING));
-                entries.add(new Entry(ATTR_UPDATED_AT, Type.STRING));
-                break;
+                return getListGetDefaultSchema();
             default:
-                entries.add(new Entry(ATTR_ID, Type.INT));
-                entries.add(new Entry(ATTR_STATUS, Type.STRING));
-                entries.add(new Entry(ATTR_REASONS, Type.STRING));
+                return getLeadListDefaultSchema();
             }
-            break;
         case CustomObject:
         case Company:
         case Opportunity:
         case OpportunityRole:
-            entries.add(new Entry(ATTR_SEQ, Type.INT));
-            entries.add(new Entry(ATTR_MARKETO_GUID, Type.STRING));
-            entries.add(new Entry(ATTR_STATUS, Type.STRING));
-            entries.add(new Entry(ATTR_REASONS, Type.STRING));
-            break;
+            return getCustomObjectDefaultSchema();
         }
-        schema.setEntries(entries);
-        return schema;
+        return null;
+    }
+
+    Schema getLeadListDefaultSchema() {
+        return recordBuilder.newSchemaBuilder(Schema.Type.RECORD)
+                .withEntry(recordBuilder.newEntryBuilder().withName(ATTR_ID).withType(Schema.Type.INT).build())
+                .withEntry(recordBuilder.newEntryBuilder().withName(ATTR_STATUS).withType(Schema.Type.STRING).build())
+                .withEntry(recordBuilder.newEntryBuilder().withName(ATTR_REASONS).withType(Schema.Type.STRING).build()).build();
+    }
+
+    Schema getListGetDefaultSchema() {
+        return recordBuilder.newSchemaBuilder(Schema.Type.RECORD)
+                .withEntry(recordBuilder.newEntryBuilder().withName(ATTR_ID).withType(Schema.Type.INT).build())
+                .withEntry(recordBuilder.newEntryBuilder().withName(ATTR_NAME).withType(Schema.Type.STRING).build())
+                .withEntry(recordBuilder.newEntryBuilder().withName(ATTR_WORKSPACE_NAME).withType(Schema.Type.STRING).build())
+                .withEntry(recordBuilder.newEntryBuilder().withName(ATTR_CREATED_AT).withType(Schema.Type.STRING).build())
+                .withEntry(recordBuilder.newEntryBuilder().withName(ATTR_UPDATED_AT).withType(Schema.Type.STRING).build())
+                .build();
+    }
+
+    Schema getCustomObjectDefaultSchema() {
+        return recordBuilder.newSchemaBuilder(Schema.Type.RECORD)
+                .withEntry(recordBuilder.newEntryBuilder().withName(ATTR_SEQ).withType(Schema.Type.INT).build())
+                .withEntry(recordBuilder.newEntryBuilder().withName(ATTR_MARKETO_GUID).withType(Schema.Type.STRING).build())
+                .withEntry(recordBuilder.newEntryBuilder().withName(ATTR_STATUS).withType(Schema.Type.STRING).build())
+                .withEntry(recordBuilder.newEntryBuilder().withName(ATTR_REASONS).withType(Schema.Type.STRING).build()).build();
     }
 
 }

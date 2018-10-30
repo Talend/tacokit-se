@@ -30,7 +30,7 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/customobjects/car_c.json?filterValues=a215bdf6-3fed-42e5-9042-3c4258768afb&access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&batchSize=10&fields=createdAt,marketoGUID,updatedAt,VIN,customerId,model,year&filterType=marketoGUID"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/customobjects/car_c.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&filterType=marketoGUID&filterValues=a215bdf6-3fed-42e5-9042-3c4258768afb&fields=createdAt,marketoGUID,updatedAt,VIN,customerId,model,year&batchSize=10"
     },
     "response":{
       "headers":{
