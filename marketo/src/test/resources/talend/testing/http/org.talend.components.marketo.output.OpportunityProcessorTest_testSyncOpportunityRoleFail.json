@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f:sj\",\"token_type\":\"bearer\",\"expires_in\":1264,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"a2ae16b1-ab5f-4898-85c8-ffdea564e26d:sj\",\"token_type\":\"bearer\",\"expires_in\":3359,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -31,16 +31,16 @@
         "Content-Length":"134"
       },
       "method":"POST",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities/roles.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities/roles.json?access_token=a2ae16b1-ab5f-4898-85c8-ffdea564e26d%3Asj"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
-        "Content-Length":"144",
+        "Content-Length":"145",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"635e#1651999edff\",\"result\":[{\"seq\":0,\"reasons\":[{\"code\":\"1013\",\"message\":\"Record not found\"}],\"status\":\"skipped\"}],\"success\":true}",
+      "payload":"{\"requestId\":\"1036c#166c4500ce1\",\"result\":[{\"seq\":0,\"reasons\":[{\"code\":\"1013\",\"message\":\"Record not found\"}],\"status\":\"skipped\"}],\"success\":true}",
       "status":200
     }
   }
