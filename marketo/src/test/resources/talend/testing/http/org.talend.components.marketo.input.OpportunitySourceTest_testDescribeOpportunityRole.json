@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f:sj\",\"token_type\":\"bearer\",\"expires_in\":1205,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"a2ae16b1-ab5f-4898-85c8-ffdea564e26d:sj\",\"token_type\":\"bearer\",\"expires_in\":3411,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -30,17 +30,17 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities/roles/describe.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities/roles/describe.json?access_token=a2ae16b1-ab5f-4898-85c8-ffdea564e26d%3Asj"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
         "Vary":"Accept-Encoding",
-        "Content-Length":"1343",
+        "Content-Length":"1344",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"1a2#165199ad4c0\",\"result\":[{\"name\":\"opportunityRole\",\"displayName\":\"Opportunity Role\",\"description\":\"Marketo Opportunity Person Role\",\"createdAt\":\"2017-12-20T23:15:55Z\",\"updatedAt\":\"2017-12-20T23:15:55Z\",\"idField\":\"marketoGUID\",\"dedupeFields\":[\"externalOpportunityId\",\"leadId\",\"role\"],\"searchableFields\":[[\"externalOpportunityId\",\"leadId\",\"role\"],[\"marketoGUID\"],[\"externalOpportunityId\"],[\"leadId\"]],\"fields\":[{\"name\":\"createdAt\",\"displayName\":\"createdAt\",\"dataType\":\"datetime\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"marketoGUID\",\"displayName\":\"marketoGUID\",\"dataType\":\"string\",\"length\":36,\"updateable\":false,\"crmManaged\":false},{\"name\":\"updatedAt\",\"displayName\":\"updatedAt\",\"dataType\":\"datetime\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"externalCreatedDate\",\"displayName\":\"externalCreatedDate\",\"dataType\":\"datetime\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"externalOpportunityId\",\"displayName\":\"externalOpportunityId\",\"dataType\":\"string\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"isPrimary\",\"displayName\":\"isPrimary\",\"dataType\":\"boolean\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"leadId\",\"displayName\":\"leadId\",\"dataType\":\"integer\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"role\",\"displayName\":\"role\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false}]}],\"success\":true}",
+      "payload":"{\"requestId\":\"d071#166c44f408b\",\"result\":[{\"name\":\"opportunityRole\",\"displayName\":\"Opportunity Role\",\"description\":\"Marketo Opportunity Person Role\",\"createdAt\":\"2017-12-20T23:15:55Z\",\"updatedAt\":\"2017-12-20T23:15:55Z\",\"idField\":\"marketoGUID\",\"dedupeFields\":[\"externalOpportunityId\",\"leadId\",\"role\"],\"searchableFields\":[[\"externalOpportunityId\",\"leadId\",\"role\"],[\"marketoGUID\"],[\"externalOpportunityId\"],[\"leadId\"]],\"fields\":[{\"name\":\"createdAt\",\"displayName\":\"createdAt\",\"dataType\":\"datetime\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"marketoGUID\",\"displayName\":\"marketoGUID\",\"dataType\":\"string\",\"length\":36,\"updateable\":false,\"crmManaged\":false},{\"name\":\"updatedAt\",\"displayName\":\"updatedAt\",\"dataType\":\"datetime\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"externalCreatedDate\",\"displayName\":\"externalCreatedDate\",\"dataType\":\"datetime\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"externalOpportunityId\",\"displayName\":\"externalOpportunityId\",\"dataType\":\"string\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"isPrimary\",\"displayName\":\"isPrimary\",\"dataType\":\"boolean\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"leadId\",\"displayName\":\"leadId\",\"dataType\":\"integer\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"role\",\"displayName\":\"role\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false}]}],\"success\":true}",
       "status":200
     }
   }

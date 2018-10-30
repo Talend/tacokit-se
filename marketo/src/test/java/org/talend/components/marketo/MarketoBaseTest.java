@@ -12,15 +12,7 @@
 // ============================================================================
 package org.talend.components.marketo;
 
-import static org.talend.components.marketo.MarketoApiConstants.ATTR_ACCESS_TOKEN;
-
-import java.io.StringReader;
-import java.util.List;
-import java.util.Map;
-
 import javax.json.JsonBuilderFactory;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
 import javax.json.JsonWriterFactory;
 
@@ -44,7 +36,6 @@ import org.talend.components.marketo.service.OpportunityClient;
 import org.talend.components.marketo.service.UIActionService;
 import org.talend.sdk.component.api.DecryptedServer;
 import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.junit.ComponentsHandler;
 import org.talend.sdk.component.junit.SimpleComponentRule;
 import org.talend.sdk.component.junit.http.junit4.JUnit4HttpApi;

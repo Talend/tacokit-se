@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f:sj\",\"token_type\":\"bearer\",\"expires_in\":1266,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"a2ae16b1-ab5f-4898-85c8-ffdea564e26d:sj\",\"token_type\":\"bearer\",\"expires_in\":3362,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -31,16 +31,16 @@
         "Content-Length":"134"
       },
       "method":"POST",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities/roles.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities/roles.json?access_token=a2ae16b1-ab5f-4898-85c8-ffdea564e26d%3Asj"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
-        "Content-Length":"141",
+        "Content-Length":"140",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"160f9#1651999e5ec\",\"result\":[{\"seq\":0,\"marketoGUID\":\"de868506-540c-4aef-b6a8-182e33f0ac84\",\"status\":\"created\"}],\"success\":true}",
+      "payload":"{\"requestId\":\"c6e4#166c4500286\",\"result\":[{\"seq\":0,\"marketoGUID\":\"3738c65b-2f85-465c-9eb8-ad6f4e98df41\",\"status\":\"created\"}],\"success\":true}",
       "status":200
     }
   }
