@@ -16,30 +16,23 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE_APPLICATION_JSON;
 import static org.talend.components.marketo.MarketoApiConstants.REQUEST_PARAM_QUERY_METHOD_GET;
 
-import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
-import javax.json.JsonReaderFactory;
-import javax.json.JsonWriterFactory;
 
 import org.slf4j.Logger;
 import org.talend.components.marketo.dataset.MarketoInputDataSet;
-import org.talend.components.marketo.service.AuthorizationClient;
 import org.talend.components.marketo.service.CustomObjectClient;
-import org.talend.components.marketo.service.I18nMessage;
+import org.talend.components.marketo.service.MarketoService;
+import org.talend.components.marketo.service.Toolbox;
 
 public class CustomObjectSource extends MarketoSource {
 
     private final CustomObjectClient customObjectClient;
 
     public CustomObjectSource(MarketoInputDataSet dataSet, //
-            final I18nMessage i18n, //
-            final JsonBuilderFactory jsonFactory, //
-            final JsonReaderFactory jsonReader, //
-            final JsonWriterFactory jsonWriter, //
-            final AuthorizationClient authorizationClient, //
-            final CustomObjectClient customObjectClient) {
-        super(dataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient);
-        this.customObjectClient = customObjectClient;
+            final MarketoService service, //
+            final Toolbox tools) {
+        super(dataSet, service, tools);
+        this.customObjectClient = service.getCustomObjectClient();
         this.customObjectClient.base(this.dataSet.getDataStore().getEndpoint());
     }
 

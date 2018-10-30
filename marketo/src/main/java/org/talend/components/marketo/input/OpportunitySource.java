@@ -16,17 +16,14 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE_APPLICATION_JSON;
 import static org.talend.components.marketo.MarketoApiConstants.REQUEST_PARAM_QUERY_METHOD_GET;
 
-import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
-import javax.json.JsonReaderFactory;
-import javax.json.JsonWriterFactory;
 
 import org.slf4j.Logger;
 import org.talend.components.marketo.dataset.MarketoDataSet.MarketoEntity;
 import org.talend.components.marketo.dataset.MarketoInputDataSet;
-import org.talend.components.marketo.service.AuthorizationClient;
-import org.talend.components.marketo.service.I18nMessage;
+import org.talend.components.marketo.service.MarketoService;
 import org.talend.components.marketo.service.OpportunityClient;
+import org.talend.components.marketo.service.Toolbox;
 import org.talend.sdk.component.api.configuration.Option;
 
 public class OpportunitySource extends MarketoSource {
@@ -36,14 +33,10 @@ public class OpportunitySource extends MarketoSource {
     private boolean isOpportunityRole;
 
     public OpportunitySource(@Option("configuration") final MarketoInputDataSet dataSet, //
-            final I18nMessage i18n, //
-            final JsonBuilderFactory jsonFactory, //
-            final JsonReaderFactory jsonReader, //
-            final JsonWriterFactory jsonWriter, //
-            final AuthorizationClient authorizationClient, //
-            final OpportunityClient opportunityClient) {
-        super(dataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient);
-        this.opportunityClient = opportunityClient;
+            final MarketoService service, //
+            final Toolbox tools) {
+        super(dataSet, service, tools);
+        this.opportunityClient = service.getOpportunityClient();
         this.opportunityClient.base(this.dataSet.getDataStore().getEndpoint());
         isOpportunityRole = MarketoEntity.OpportunityRole.equals(dataSet.getEntity());
     }

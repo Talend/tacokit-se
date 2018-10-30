@@ -49,11 +49,11 @@ class CompanySourceTest extends SourceBaseTest {
     @Test
     void testDescribeCompanies() {
         inputDataSet.setOtherAction(OtherEntityAction.describe);
-        source = new CompanySource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, companyClient);
+        source = new CompanySource(inputDataSet, service, tools);
         source.init();
         JsonObject result = source.next();
         assertNotNull(result);
-        assertEquals(fields, marketoService.getFieldsFromDescribeFormatedForApi(result.getJsonArray(ATTR_FIELDS)));
+        assertEquals(fields, service.getFieldsFromDescribeFormatedForApi(result.getJsonArray(ATTR_FIELDS)));
         result = source.next();
         assertNull(result);
     }
@@ -65,7 +65,7 @@ class CompanySourceTest extends SourceBaseTest {
         inputDataSet.setFilterValues("google01,google02,google03,google04,google05,google06");
         inputDataSet.setFields("mainPhone,company,website");
         inputDataSet.setBatchSize(10);
-        source = new CompanySource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, companyClient);
+        source = new CompanySource(inputDataSet, service, tools);
         source.init();
         JsonObject json;
         while ((json = source.next()) != null) {
@@ -81,7 +81,7 @@ class CompanySourceTest extends SourceBaseTest {
         inputDataSet.setFilterValues("France");
         inputDataSet.setFields("mainPhone,company,website");
         inputDataSet.setBatchSize(10);
-        source = new CompanySource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, companyClient);
+        source = new CompanySource(inputDataSet, service, tools);
         try {
             source.init();
         } catch (RuntimeException e) {
@@ -94,6 +94,7 @@ class CompanySourceTest extends SourceBaseTest {
         inputDataSet.setOtherAction(OtherEntityAction.describe);
         final Mapper mapper = component.createMapper(MarketoInputMapper.class, inputDataSet);
         List<JsonObject> res = component.collectAsList(JsonObject.class, mapper);
+        LOG.warn("[testDescribeCompaniesWithCreateMapper] {}" , res.get(0));
         assertEquals(1, res.size());
         JsonObject record2 = res.get(0).asJsonObject();
     }
@@ -118,7 +119,7 @@ class CompanySourceTest extends SourceBaseTest {
         inputDataSet.setFilterType("");
         inputDataSet.setFilterValues("google01,google02,google03,google04,google05,google06");
         inputDataSet.setFields(fields);
-        source = new CompanySource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, companyClient);
+        source = new CompanySource(inputDataSet, service, tools);
         try {
             source.init();
         } catch (RuntimeException e) {
@@ -129,7 +130,7 @@ class CompanySourceTest extends SourceBaseTest {
     @Test
     void testInvalidAccessToken() {
         inputDataSet.getDataStore().setEndpoint(MARKETO_ENDPOINT + "/bzh");
-        source = new CompanySource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, companyClient);
+        source = new CompanySource(inputDataSet, service, tools);
         try {
             source.init();
             fail("Should have a 403 error. Should not be here");

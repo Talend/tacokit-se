@@ -15,6 +15,7 @@ package org.talend.components.marketo.service;
 import static java.util.stream.Collectors.joining;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_CREATED_AT;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FIELDS;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ID;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_MARKETO_GUID;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_NAME;
@@ -33,40 +34,54 @@ import javax.json.JsonObject;
 
 import org.slf4j.Logger;
 import org.talend.components.marketo.dataset.MarketoDataSet.MarketoEntity;
+import org.talend.components.marketo.dataset.MarketoInputDataSet;
+import org.talend.components.marketo.dataset.MarketoInputDataSet.ListAction;
 import org.talend.components.marketo.datastore.MarketoDataStore;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Builder;
 import org.talend.sdk.component.api.record.Schema.Entry;
+import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
+
+@Accessors
 @Service
 public class MarketoService {
 
     @Service
+    protected I18nMessage i18n;
+
+    @Getter
+    @Service
     protected RecordBuilderFactory recordBuilder;
 
+    @Getter
     @Service
     protected AuthorizationClient authorizationClient;
 
+    @Getter
     @Service
     protected LeadClient leadClient;
 
+    @Getter
     @Service
     protected CustomObjectClient customObjectClient;
 
+    @Getter
     @Service
     protected CompanyClient companyClient;
 
+    @Getter
     @Service
     protected OpportunityClient opportunityClient;
 
+    @Getter
     @Service
     protected ListClient listClient;
-
-    @Service
-    protected I18nMessage i18n;
 
     private transient static final Logger LOG = getLogger(MarketoService.class);
 
@@ -100,17 +115,68 @@ public class MarketoService {
         throw new IllegalArgumentException(i18n.invalidOperation());
     }
 
+    public Schema getEntitySchema(final MarketoInputDataSet dataSet) {
+        LOG.warn("[getEntitySchema] {} ", dataSet);
+        return getEntitySchema(dataSet.getDataStore(), dataSet.getEntity().name(), dataSet.getCustomObjectName(),
+                dataSet.getListAction() == null ? "" : dataSet.getListAction().name());
+    }
+
+    public Schema getEntitySchema(final MarketoDataStore dataStore, final String entity, final String customObjectName,
+            final String listAction) {
+        LOG.warn("[getEntitySchema] {} - {} - {}- {}", dataStore, entity, customObjectName, listAction);
+        try {
+            initClients(dataStore);
+            String accessToken = authorizationClient.getAccessToken(dataStore);
+            JsonArray entitySchema = null;
+            switch (MarketoEntity.valueOf(entity)) {
+            case Lead:
+                entitySchema = parseResultFromResponse(leadClient.describeLead(accessToken));
+                break;
+            case List:
+                if (ListAction.getLeads.name().equals(listAction)) {
+                    entitySchema = parseResultFromResponse(leadClient.describeLead(accessToken));
+                } else {
+                    return getInputSchema(MarketoEntity.List, listAction);
+                }
+                break;
+            case CustomObject:
+                entitySchema = parseResultFromResponse(customObjectClient.describeCustomObjects(accessToken, customObjectName))
+                        .get(0).asJsonObject().getJsonArray(ATTR_FIELDS);
+                break;
+            case Company:
+                entitySchema = parseResultFromResponse(companyClient.describeCompanies(accessToken)).get(0).asJsonObject()
+                        .getJsonArray(ATTR_FIELDS);
+                break;
+            case Opportunity:
+                entitySchema = parseResultFromResponse(opportunityClient.describeOpportunity(accessToken)).get(0).asJsonObject()
+                        .getJsonArray(ATTR_FIELDS);
+                break;
+            case OpportunityRole:
+                entitySchema = parseResultFromResponse(opportunityClient.describeOpportunityRole(accessToken)).get(0)
+                        .asJsonObject().getJsonArray(ATTR_FIELDS);
+                break;
+            }
+            LOG.warn("[guessEntitySchema] entitySchema: {}.", entitySchema);
+            return getSchemaForEntity(entitySchema);
+        } catch (Exception e) {
+            LOG.error("Exception caught : {}.", e.getMessage());
+        }
+        return null;
+    }
+
     protected Schema getSchemaForEntity(JsonArray entitySchema) {
         List<Entry> entries = new ArrayList<>();
         for (JsonObject field : entitySchema.getValuesAs(JsonObject.class)) {
             String entryName;
             Schema.Type entryType;
+            String entityComment;
             if (field.getJsonObject("rest") != null) {
                 entryName = field.getJsonObject("rest").getString(ATTR_NAME);
             } else {
                 entryName = field.getString(ATTR_NAME);
             }
             String dataType = field.getString("dataType", "string");
+            entityComment = dataType;
             switch (dataType) {
             case ("string"):
             case ("text"):
@@ -121,25 +187,41 @@ public class MarketoService {
             case ("reference"):
                 entryType = Schema.Type.STRING;
                 break;
+            case ("percent"):
+            case ("score"):
             case ("integer"):
                 entryType = Schema.Type.INT;
                 break;
+            case ("checkbox"):
             case ("boolean"):
                 entryType = Schema.Type.BOOLEAN;
                 break;
             case ("float"):
             case ("currency"):
-                entryType = Schema.Type.DOUBLE;
+                entryType = Type.FLOAT;
                 break;
             case ("date"):
+                /*
+                 * Used for date. Follows W3C format. 2010-05-07
+                 */
             case ("datetime"):
-                entryType = Schema.Type.STRING;
+                /*
+                 * Used for a date & time. Follows W3C format (ISO 8601). The best practice is to always include the time zone
+                 * offset.
+                 * Complete date plus hours and minutes:
+                 *
+                 * YYYY-MM-DDThh:mmTZD
+                 *
+                 * where TZD is “+hh:mm” or “-hh:mm”
+                 */
+                entryType = Type.DATETIME;
                 break;
             default:
                 LOG.warn("Non managed type : {}. for {}. Defaulting to String.", dataType, this);
                 entryType = Schema.Type.STRING;
             }
-            entries.add(recordBuilder.newEntryBuilder().withName(entryName).withType(entryType).build());
+            entries.add(
+                    recordBuilder.newEntryBuilder().withName(entryName).withType(entryType).withComment(entityComment).build());
         }
         Builder b = recordBuilder.newSchemaBuilder(Schema.Type.RECORD);
         entries.forEach(b::withEntry);

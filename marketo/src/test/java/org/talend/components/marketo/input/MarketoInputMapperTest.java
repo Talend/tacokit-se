@@ -28,8 +28,7 @@ class MarketoInputMapperTest extends MarketoBaseTest {
     @BeforeEach
     protected void setUp() {
         super.setUp();
-        mapper = new MarketoInputMapper(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient, leadClient,
-                listClient, customObjectClient, null, opportunityClient, companyClient);
+        mapper = new MarketoInputMapper(inputDataSet, service, tools);
         mapper.init();
     }
 

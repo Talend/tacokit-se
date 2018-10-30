@@ -94,8 +94,7 @@ class OpportunityProcessorTest extends MarketoProcessorBaseTest {
     }
 
     private void initProcessor() {
-        processor = new MarketoProcessor(outputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient,
-                leadClient, listClient, companyClient, customObjectClient, opportunityClient);
+        processor = new MarketoProcessor(outputDataSet, service, tools);
         processor.init();
     }
 

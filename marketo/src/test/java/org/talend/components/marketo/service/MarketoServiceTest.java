@@ -55,7 +55,7 @@ class MarketoServiceTest extends MarketoBaseTest {
                 + "mainPhone,numberOfEmployees,sicCode,site,website";
         JsonReader reader = jsonReader.createReader(getClass().getClassLoader().getResourceAsStream("describe_company.json"));
         JsonObject v = reader.readObject();
-        String f = marketoService
+        String f = service
                 .getFieldsFromDescribeFormatedForApi(v.getJsonArray("result").get(0).asJsonObject().getJsonArray(ATTR_FIELDS));
         assertEquals(fields, f);
     }
@@ -63,44 +63,44 @@ class MarketoServiceTest extends MarketoBaseTest {
     @ParameterizedTest
     @ValueSource(strings = { "Lead" }) // , "List", "Company", "CustomObject", "Opportunity", "OpportunityRole" })
     void testGetInputSchema(String entity) {
-        Schema schema = marketoService.getInputSchema(MarketoEntity.valueOf(entity), LeadAction.getLead.name());
+        Schema schema = service.getInputSchema(MarketoEntity.valueOf(entity), LeadAction.getLead.name());
         assertNotNull(schema);
     }
 
     @Test
     void testGetListInputSchema() {
-        Schema schema = marketoService.getInputSchema(MarketoEntity.List, LeadAction.getLead.name());
+        Schema schema = service.getInputSchema(MarketoEntity.List, LeadAction.getLead.name());
         assertNotNull(schema);
     }
 
     @Test
     void testGetCompanyInputSchema() {
-        Schema schema = marketoService.getInputSchema(MarketoEntity.Company, LeadAction.getLead.name());
+        Schema schema = service.getInputSchema(MarketoEntity.Company, LeadAction.getLead.name());
         assertNotNull(schema);
     }
 
     @Test
     void testGetCustomObjectInputSchema() {
-        Schema schema = marketoService.getInputSchema(MarketoEntity.CustomObject, LeadAction.getLead.name());
+        Schema schema = service.getInputSchema(MarketoEntity.CustomObject, LeadAction.getLead.name());
         assertNotNull(schema);
     }
 
     @Test
     void testGetOpportunityInputSchema() {
-        Schema schema = marketoService.getInputSchema(MarketoEntity.Opportunity, LeadAction.getLead.name());
+        Schema schema = service.getInputSchema(MarketoEntity.Opportunity, LeadAction.getLead.name());
         assertNotNull(schema);
     }
 
     @Test
     void testGetOpportunityRoleInputSchema() {
-        Schema schema = marketoService.getInputSchema(MarketoEntity.OpportunityRole, LeadAction.getLead.name());
+        Schema schema = service.getInputSchema(MarketoEntity.OpportunityRole, LeadAction.getLead.name());
         assertNotNull(schema);
     }
 
     @ParameterizedTest
     @ValueSource(strings = { "Lead" }) // , "List" })
     void testLeadSyncOutputSchemas(String entity) {
-        Schema schema = marketoService.getOutputSchema(MarketoEntity.valueOf(entity));
+        Schema schema = service.getOutputSchema(MarketoEntity.valueOf(entity));
         assertNotNull(schema);
         assertFalse(schema.getEntries().isEmpty());
         schema.getEntries().forEach(
@@ -109,7 +109,7 @@ class MarketoServiceTest extends MarketoBaseTest {
 
     @Test
     void testListSyncOutputSchemas() {
-        Schema schema = marketoService.getOutputSchema(MarketoEntity.List);
+        Schema schema = service.getOutputSchema(MarketoEntity.List);
         assertNotNull(schema);
         assertFalse(schema.getEntries().isEmpty());
         schema.getEntries().forEach(
@@ -119,7 +119,7 @@ class MarketoServiceTest extends MarketoBaseTest {
     @ParameterizedTest
     @ValueSource(strings = { "CustomObject" }) // , "Company", "Opportunity", "OpportunityRole" })
     void testCustomObjectSyncOutputSchemas(String entity) {
-        Schema schema = marketoService.getOutputSchema(MarketoEntity.valueOf(entity));
+        Schema schema = service.getOutputSchema(MarketoEntity.valueOf(entity));
         assertNotNull(schema);
         assertFalse(schema.getEntries().isEmpty());
         schema.getEntries().forEach(entry -> assertThat(Arrays.asList(ATTR_SEQ, ATTR_MARKETO_GUID, ATTR_STATUS, ATTR_REASONS),
@@ -128,7 +128,7 @@ class MarketoServiceTest extends MarketoBaseTest {
 
     @Test
     void testCompanySyncOutputSchemas() {
-        Schema schema = marketoService.getOutputSchema(MarketoEntity.Company);
+        Schema schema = service.getOutputSchema(MarketoEntity.Company);
         assertNotNull(schema);
         assertFalse(schema.getEntries().isEmpty());
         schema.getEntries().forEach(entry -> assertThat(Arrays.asList(ATTR_SEQ, ATTR_MARKETO_GUID, ATTR_STATUS, ATTR_REASONS),
@@ -137,7 +137,7 @@ class MarketoServiceTest extends MarketoBaseTest {
 
     @Test
     void testOpportunitySyncOutputSchemas() {
-        Schema schema = marketoService.getOutputSchema(MarketoEntity.Opportunity);
+        Schema schema = service.getOutputSchema(MarketoEntity.Opportunity);
         assertNotNull(schema);
         assertFalse(schema.getEntries().isEmpty());
         schema.getEntries().forEach(entry -> assertThat(Arrays.asList(ATTR_SEQ, ATTR_MARKETO_GUID, ATTR_STATUS, ATTR_REASONS),
@@ -146,7 +146,7 @@ class MarketoServiceTest extends MarketoBaseTest {
 
     @Test
     void testOpportunityRoleSyncOutputSchemas() {
-        Schema schema = marketoService.getOutputSchema(MarketoEntity.OpportunityRole);
+        Schema schema = service.getOutputSchema(MarketoEntity.OpportunityRole);
         assertNotNull(schema);
         assertFalse(schema.getEntries().isEmpty());
         schema.getEntries().forEach(entry -> assertThat(Arrays.asList(ATTR_SEQ, ATTR_MARKETO_GUID, ATTR_STATUS, ATTR_REASONS),

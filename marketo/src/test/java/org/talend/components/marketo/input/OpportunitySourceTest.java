@@ -49,8 +49,7 @@ class OpportunitySourceTest extends SourceBaseTest {
     }
 
     private void initSource() {
-        source = new OpportunitySource(inputDataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient,
-                opportunityClient);
+        source = new OpportunitySource(inputDataSet, service, tools);
         source.init();
     }
 
