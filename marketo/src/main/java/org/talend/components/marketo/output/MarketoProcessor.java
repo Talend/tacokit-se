@@ -15,22 +15,14 @@ package org.talend.components.marketo.output;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_RESULT;
 
 import javax.annotation.PostConstruct;
-import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
-import javax.json.JsonReaderFactory;
-import javax.json.JsonWriterFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.marketo.MarketoSourceOrProcessor;
 import org.talend.components.marketo.dataset.MarketoOutputDataSet;
-import org.talend.components.marketo.service.AuthorizationClient;
-import org.talend.components.marketo.service.CompanyClient;
-import org.talend.components.marketo.service.CustomObjectClient;
-import org.talend.components.marketo.service.I18nMessage;
-import org.talend.components.marketo.service.LeadClient;
-import org.talend.components.marketo.service.ListClient;
-import org.talend.components.marketo.service.OpportunityClient;
+import org.talend.components.marketo.service.MarketoService;
+import org.talend.components.marketo.service.Toolbox;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -53,39 +45,27 @@ public class MarketoProcessor extends MarketoSourceOrProcessor {
     private transient static final Logger LOG = LoggerFactory.getLogger(MarketoProcessor.class);
 
     public MarketoProcessor(@Option("configuration") final MarketoOutputDataSet dataSet, //
-            final I18nMessage i18n, //
-            final JsonBuilderFactory jsonFactory, //
-            final JsonReaderFactory jsonReader, //
-            final JsonWriterFactory jsonWriter, //
-            // REST API Clients
-            final AuthorizationClient authorizationClient, //
-            final LeadClient leadClient, //
-            final ListClient listClient, //
-            final CompanyClient companyClient, //
-            final CustomObjectClient customObjectClient, //
-            final OpportunityClient opportunityClient) {
-        super(dataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient);
+            final MarketoService service, //
+            final Toolbox tools) {
+        super(dataSet, service, tools);
         this.dataSet = dataSet;
 
         switch (dataSet.getEntity()) {
         case Lead:
-            strategy = new LeadStrategy(dataSet, i18n, authorizationClient, jsonFactory, jsonReader, jsonWriter, leadClient);
+            strategy = new LeadStrategy(dataSet, service, tools);
             break;
         case List:
-            strategy = new ListStrategy(dataSet, i18n, authorizationClient, jsonFactory, jsonReader, jsonWriter, listClient);
+            strategy = new ListStrategy(dataSet, service, tools);
             break;
         case CustomObject:
-            strategy = new CustomObjectStrategy(dataSet, i18n, authorizationClient, jsonFactory, jsonReader, jsonWriter,
-                    customObjectClient);
+            strategy = new CustomObjectStrategy(dataSet, service, tools);
             break;
         case Company:
-            strategy = new CompanyStrategy(dataSet, i18n, authorizationClient, jsonFactory, jsonReader, jsonWriter,
-                    companyClient);
+            strategy = new CompanyStrategy(dataSet, service, tools);
             break;
         case Opportunity:
         case OpportunityRole:
-            strategy = new OpportunityStrategy(dataSet, i18n, authorizationClient, jsonFactory, jsonReader, jsonWriter,
-                    opportunityClient);
+            strategy = new OpportunityStrategy(dataSet, service, tools);
             break;
         }
     }

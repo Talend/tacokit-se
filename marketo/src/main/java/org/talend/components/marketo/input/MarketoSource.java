@@ -27,23 +27,22 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.json.JsonArray;
-import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
-import javax.json.JsonReaderFactory;
 import javax.json.JsonValue;
-import javax.json.JsonWriterFactory;
 
 import org.slf4j.Logger;
 import org.talend.components.marketo.MarketoSourceOrProcessor;
 import org.talend.components.marketo.dataset.CompoundKey;
 import org.talend.components.marketo.dataset.MarketoInputDataSet;
-import org.talend.components.marketo.service.AuthorizationClient;
-import org.talend.components.marketo.service.I18nMessage;
+import org.talend.components.marketo.service.MarketoService;
+import org.talend.components.marketo.service.Toolbox;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 
 @Version
 @Icon(value = Icon.IconType.CUSTOM, custom = "MarketoInput")
@@ -52,24 +51,24 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
 
     protected final MarketoInputDataSet dataSet;
 
+    protected Schema schema;
+
     protected Iterator<JsonValue> resultIterator;
 
     private transient static final Logger LOG = getLogger(MarketoSource.class);
 
     public MarketoSource(@Option("configuration") final MarketoInputDataSet dataSet, //
-            final I18nMessage i18n, //
-            final JsonBuilderFactory jsonFactory, //
-            final JsonReaderFactory jsonReader, //
-            final JsonWriterFactory jsonWriter, //
-            final AuthorizationClient authorizationClient) {
-        super(dataSet, i18n, jsonFactory, jsonReader, jsonWriter, authorizationClient);
+            final MarketoService service, //
+            final Toolbox tools) {
+        super(dataSet, service, tools);
         this.dataSet = dataSet;
     }
 
     @PostConstruct
     public void init() {
         super.init();
-        LOG.warn("[init] dataSet schema: {}.", dataSet.getSchema());
+        schema = marketoService.getEntitySchema(dataSet);
+        LOG.warn("[init] dataSet {}. Master entity schema: {}.", dataSet, schema);
         // TODO in some cases we need to fill fields property
         processBatch();
     }
@@ -78,8 +77,8 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
      * Flow management
      */
 
-    @Producer
-    public JsonObject next() {
+
+    public JsonObject nextJson() {
         JsonValue next = null;
         boolean hasNext = resultIterator.hasNext();
         if (hasNext) {
@@ -89,6 +88,18 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
             next = resultIterator.hasNext() ? resultIterator.next() : null;
         }
         return next == null ? null : next.asJsonObject();
+    }
+    @Producer
+    public Record next() {
+        JsonValue next = null;
+        boolean hasNext = resultIterator.hasNext();
+        if (hasNext) {
+            next = resultIterator.next();
+        } else if (nextPageToken != null) {
+            processBatch();
+            next = resultIterator.hasNext() ? resultIterator.next() : null;
+        }
+        return next == null ? null : convertToRecord(next.asJsonObject(), schema);
     }
 
     public void processBatch() {

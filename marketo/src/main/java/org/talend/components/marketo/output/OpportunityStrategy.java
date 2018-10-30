@@ -20,18 +20,15 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_INPUT;
 import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE_APPLICATION_JSON;
 
 import javax.json.JsonArray;
-import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
-import javax.json.JsonReaderFactory;
-import javax.json.JsonWriterFactory;
 
 import org.slf4j.Logger;
 import org.talend.components.marketo.dataset.MarketoDataSet.MarketoEntity;
 import org.talend.components.marketo.dataset.MarketoOutputDataSet;
 import org.talend.components.marketo.dataset.MarketoOutputDataSet.OutputAction;
-import org.talend.components.marketo.service.AuthorizationClient;
-import org.talend.components.marketo.service.I18nMessage;
+import org.talend.components.marketo.service.MarketoService;
 import org.talend.components.marketo.service.OpportunityClient;
+import org.talend.components.marketo.service.Toolbox;
 import org.talend.sdk.component.api.configuration.Option;
 
 public class OpportunityStrategy extends OutputComponentStrategy {
@@ -42,11 +39,11 @@ public class OpportunityStrategy extends OutputComponentStrategy {
 
     private transient static final Logger LOG = getLogger(OpportunityStrategy.class);
 
-    public OpportunityStrategy(@Option("configuration") final MarketoOutputDataSet dataSet, final I18nMessage i18n,
-            final AuthorizationClient authorizationClient, final JsonBuilderFactory jsonFactory,
-            final JsonReaderFactory jsonReader, final JsonWriterFactory jsonWriter, final OpportunityClient opportunityClient) {
-        super(dataSet, i18n, authorizationClient, jsonFactory, jsonReader, jsonWriter);
-        this.opportunityClient = opportunityClient;
+    public OpportunityStrategy(@Option("configuration") final MarketoOutputDataSet dataSet, //
+            final MarketoService service, //
+            final Toolbox tools) {
+        super(dataSet, service, tools);
+        this.opportunityClient = service.getOpportunityClient();
         this.opportunityClient.base(dataSet.getDataStore().getEndpoint());
         isOpportunityRole = MarketoEntity.OpportunityRole.equals(dataSet.getEntity());
     }

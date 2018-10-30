@@ -35,12 +35,16 @@ import org.slf4j.Logger;
 import org.talend.components.marketo.dataset.MarketoDataSet;
 import org.talend.components.marketo.service.AuthorizationClient;
 import org.talend.components.marketo.service.I18nMessage;
+import org.talend.components.marketo.service.MarketoService;
+import org.talend.components.marketo.service.Toolbox;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.http.Response;
 
 public class MarketoSourceOrProcessor implements Serializable {
+
+    protected final MarketoService marketoService;
 
     protected final I18nMessage i18n;
 
@@ -60,18 +64,16 @@ public class MarketoSourceOrProcessor implements Serializable {
 
     private transient static final Logger LOG = getLogger(MarketoSourceOrProcessor.class);
 
-    public MarketoSourceOrProcessor(@Option("configuration") final MarketoDataSet dataSet, final I18nMessage i18n,
-            final JsonBuilderFactory jsonFactory, //
-            final JsonReaderFactory jsonReader, //
-            final JsonWriterFactory jsonWriter, //
-            //
-            final AuthorizationClient authorizationClient) {
+    public MarketoSourceOrProcessor(@Option("configuration") final MarketoDataSet dataSet, //
+            final MarketoService service, //
+            final Toolbox tools) {
         this.dataSet = dataSet;
-        this.i18n = i18n;
-        this.jsonFactory = jsonFactory;
-        this.jsonReader = jsonReader;
-        this.jsonWriter = jsonWriter;
-        this.authorizationClient = authorizationClient;
+        this.i18n = tools.getI18n();
+        this.jsonFactory = tools.getJsonFactory();
+        this.jsonReader = tools.getJsonReader();
+        this.jsonWriter = tools.getJsonWriter();
+        this.marketoService = service;
+        this.authorizationClient = service.getAuthorizationClient();
         this.authorizationClient.base(this.dataSet.getDataStore().getEndpoint());
     }
 
@@ -162,7 +164,8 @@ public class MarketoSourceOrProcessor implements Serializable {
         return json;
     }
 
-    public Record toIndexedRecord(final JsonObject json, final Schema schema) {
+    public Record convertToRecord(final JsonObject json, final Schema schema) {
+        LOG.warn("[convertToRecord] json: {} with schema: {}.");
         // TODO implement method
         return null;
     }

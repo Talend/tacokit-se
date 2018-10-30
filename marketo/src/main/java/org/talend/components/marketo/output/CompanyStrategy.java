@@ -19,27 +19,24 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_INPUT;
 import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE_APPLICATION_JSON;
 
 import javax.json.JsonArray;
-import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
-import javax.json.JsonReaderFactory;
-import javax.json.JsonWriterFactory;
 
 import org.talend.components.marketo.dataset.MarketoOutputDataSet;
 import org.talend.components.marketo.dataset.MarketoOutputDataSet.OutputAction;
-import org.talend.components.marketo.service.AuthorizationClient;
 import org.talend.components.marketo.service.CompanyClient;
-import org.talend.components.marketo.service.I18nMessage;
+import org.talend.components.marketo.service.MarketoService;
+import org.talend.components.marketo.service.Toolbox;
 import org.talend.sdk.component.api.configuration.Option;
 
 public class CompanyStrategy extends OutputComponentStrategy implements ProcessorStrategy {
 
     private CompanyClient companyClient;
 
-    public CompanyStrategy(@Option("configuration") final MarketoOutputDataSet dataSet, final I18nMessage i18n,
-            final AuthorizationClient authorizationClient, final JsonBuilderFactory jsonFactory,
-            final JsonReaderFactory jsonReader, final JsonWriterFactory jsonWriter, final CompanyClient companyClient) {
-        super(dataSet, i18n, authorizationClient, jsonFactory, jsonReader, jsonWriter);
-        this.companyClient = companyClient;
+    public CompanyStrategy(@Option("configuration") final MarketoOutputDataSet dataSet, //
+            final MarketoService service, //
+            final Toolbox tools) {
+        super(dataSet, service, tools);
+        this.companyClient = service.getCompanyClient();
         this.companyClient.base(this.dataSet.getDataStore().getEndpoint());
     }
 
