@@ -31,15 +31,14 @@ import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
 import javax.json.JsonWriterFactory;
 
-import org.apache.avro.Schema;
-import org.apache.avro.generic.IndexedRecord;
 import org.slf4j.Logger;
 import org.talend.components.marketo.dataset.MarketoDataSet;
 import org.talend.components.marketo.service.AuthorizationClient;
 import org.talend.components.marketo.service.I18nMessage;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.http.Response;
-import org.talend.sdk.component.runtime.beam.transform.avro.JsonIndexedRecord;
 
 public class MarketoSourceOrProcessor implements Serializable {
 
@@ -138,7 +137,7 @@ public class MarketoSourceOrProcessor implements Serializable {
         throw new RuntimeException(response.error(String.class));
     }
 
-    public JsonObject toJson(final IndexedRecord record) {
+    public JsonObject toJson(final Record record) {
         JsonReader reader = jsonReader.createReader(new StringReader(record.toString()));
         Throwable throwable = null;
         JsonObject json;
@@ -163,7 +162,8 @@ public class MarketoSourceOrProcessor implements Serializable {
         return json;
     }
 
-    public IndexedRecord toIndexedRecord(final JsonObject json, final Schema schema) {
-        return new JsonIndexedRecord(json, schema);
+    public Record toIndexedRecord(final JsonObject json, final Schema schema) {
+        // TODO implement method
+        return null;
     }
 }

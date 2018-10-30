@@ -187,7 +187,7 @@ public class MarketoInputDataSet extends MarketoDataSet {
     @ActiveIf(target = "entity", value = { "Lead" })
     @ActiveIf(target = "leadAction", value = "getLeadActivity")
     @Documentation("Activity Type Ids (10 max supported")
-    private List<ActivityType> activityTypeIds;
+    private List<String> activityTypeIds;
 
     /*
      * Other Entities DataSet parameters

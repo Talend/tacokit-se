@@ -20,7 +20,6 @@ import javax.json.JsonObject;
 import javax.json.JsonReaderFactory;
 import javax.json.JsonWriterFactory;
 
-import org.apache.avro.generic.IndexedRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.marketo.MarketoSourceOrProcessor;
@@ -110,19 +109,6 @@ public class MarketoProcessor extends MarketoSourceOrProcessor {
                 rejected.emit(strategy.createRejectData(status));
             } else {
                 main.emit(strategy.createMainData(status));
-            }
-        }
-    }
-
-    public void mapWithIndexedRecord(final IndexedRecord data, @Output final OutputEmitter<IndexedRecord> main,
-            @Output("rejected") final OutputEmitter<IndexedRecord> rejected) {
-        JsonObject payload = strategy.getPayload(toJson(data));
-        JsonObject result = strategy.runAction(payload);
-        for (JsonObject status : result.getJsonArray(ATTR_RESULT).getValuesAs(JsonObject.class)) {
-            if (strategy.isRejected(status)) {
-                rejected.emit(toIndexedRecord(strategy.createRejectData(status), null));
-            } else {
-                main.emit(toIndexedRecord(strategy.createMainData(status), null));
             }
         }
     }

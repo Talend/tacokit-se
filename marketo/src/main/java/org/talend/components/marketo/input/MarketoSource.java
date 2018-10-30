@@ -33,7 +33,6 @@ import javax.json.JsonReaderFactory;
 import javax.json.JsonValue;
 import javax.json.JsonWriterFactory;
 
-import org.apache.avro.generic.IndexedRecord;
 import org.slf4j.Logger;
 import org.talend.components.marketo.MarketoSourceOrProcessor;
 import org.talend.components.marketo.dataset.CompoundKey;
@@ -90,11 +89,6 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
             next = resultIterator.hasNext() ? resultIterator.next() : null;
         }
         return next == null ? null : next.asJsonObject();
-    }
-
-    public IndexedRecord nextIndexedRecord() {
-        JsonObject nextIR = next();
-        return nextIR == null ? null : toIndexedRecord(nextIR, null);
     }
 
     public void processBatch() {

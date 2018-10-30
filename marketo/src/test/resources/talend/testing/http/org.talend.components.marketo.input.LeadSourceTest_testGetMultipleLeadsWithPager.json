@@ -30,7 +30,7 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/leads.json?filterValues=1,2,3,4,5&access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&batchSize=1&filterType=id"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/leads.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&filterType=id&filterValues=1,2,3,4,5&batchSize=1"
     },
     "response":{
       "headers":{
@@ -51,7 +51,7 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/leads.json?filterValues=1,2,3,4,5&access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&nextPageToken=43BVDORLQ2MDFAOD4RZR6A2UMBWEVE3XA4PU7WF5VOIJY5N4YHXA%3D%3D%3D%3D&batchSize=1&filterType=id"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/leads.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&filterType=id&filterValues=1,2,3,4,5&batchSize=1&nextPageToken=43BVDORLQ2MDFAOD4RZR6A2UMBWEVE3XA4PU7WF5VOIJY5N4YHXA%3D%3D%3D%3D"
     },
     "response":{
       "headers":{
@@ -72,7 +72,7 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/leads.json?filterValues=1,2,3,4,5&access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&nextPageToken=43BVDORLQ2MDFAOD4RZR6A2UMBDLOLE2WKK6R7CVND3ZYXWYBZAQ%3D%3D%3D%3D&batchSize=1&filterType=id"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/leads.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&filterType=id&filterValues=1,2,3,4,5&batchSize=1&nextPageToken=43BVDORLQ2MDFAOD4RZR6A2UMBDLOLE2WKK6R7CVND3ZYXWYBZAQ%3D%3D%3D%3D"
     },
     "response":{
       "headers":{
@@ -93,7 +93,7 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/leads.json?filterValues=1,2,3,4,5&access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&nextPageToken=43BVDORLQ2MDFAOD4RZR6A2UMDNWFRKCTV4DMPW5KBMNP7MGLKNQ%3D%3D%3D%3D&batchSize=1&filterType=id"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/leads.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&filterType=id&filterValues=1,2,3,4,5&batchSize=1&nextPageToken=43BVDORLQ2MDFAOD4RZR6A2UMDNWFRKCTV4DMPW5KBMNP7MGLKNQ%3D%3D%3D%3D"
     },
     "response":{
       "headers":{
@@ -114,7 +114,7 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/leads.json?filterValues=1,2,3,4,5&access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&nextPageToken=43BVDORLQ2MDFAOD4RZR6A2UMBDSVRTU7DP2UNC7HI3KI3Z62UYQ%3D%3D%3D%3D&batchSize=1&filterType=id"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/leads.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&filterType=id&filterValues=1,2,3,4,5&batchSize=1&nextPageToken=43BVDORLQ2MDFAOD4RZR6A2UMBDSVRTU7DP2UNC7HI3KI3Z62UYQ%3D%3D%3D%3D"
     },
     "response":{
       "headers":{

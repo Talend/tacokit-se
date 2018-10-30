@@ -27,11 +27,11 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.talend.components.marketo.MarketoBaseTest;
 import org.talend.components.marketo.dataset.MarketoDataSet.MarketoEntity;
 import org.talend.components.marketo.dataset.MarketoInputDataSet.ListAction;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.asyncvalidation.ValidationResult;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status;
-import org.talend.sdk.component.api.service.schema.Schema;
 import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.junit5.WithComponents;
 

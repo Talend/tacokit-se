@@ -96,7 +96,7 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/activities.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&activityTypeIds=1,2,3,6,7,8,9,10,11,12&nextPageToken=NIQFWL5GTS2F76HCJGEHZ4YO36GAADZOCDVDC45EJS4LFCRXRDDQ%3D%3D%3D%3D&batchSize=300"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/activities.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&nextPageToken=NIQFWL5GTS2F76HCJGEHZ4YO36GAADZOCDVDC45EJS4LFCRXRDDQ%3D%3D%3D%3D&activityTypeIds=1,2,3,6,7,8,9,10,11,12&batchSize=300"
     },
     "response":{
       "headers":{

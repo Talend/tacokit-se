@@ -27,7 +27,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.talend.components.marketo.dataset.ActivityType;
 import org.talend.components.marketo.dataset.MarketoDataSet.MarketoEntity;
 import org.talend.components.marketo.dataset.MarketoInputDataSet.LeadAction;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
@@ -203,8 +202,8 @@ public class LeadSourceTest extends SourceBaseTest {
         inputDataSet.setSinceDateTime("2018-01-01 00:00:01 Z");
         SuggestionValues acts = uiActionService.getActivities(inputDataSet.getDataStore());
         // List<String> activities = activities = acts.getItems().stream().limit(10).map(item -> item.getId()).collect(toList());
-        List<ActivityType> activities = activities = acts.getItems().stream().limit(10)
-                .map(item -> new ActivityType(item.getId())).collect(toList());
+        List<String> activities = activities = acts.getItems().stream().limit(10).map(item -> String.valueOf(item.getId()))
+                .collect(toList());
         LOG.debug("[testGetLeadActivities] activities: {}", activities);
         inputDataSet.setActivityTypeIds(activities);
         inputDataSet.setFields(fields);
