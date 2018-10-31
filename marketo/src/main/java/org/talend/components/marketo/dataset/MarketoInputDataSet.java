@@ -32,6 +32,7 @@ import org.talend.sdk.component.api.configuration.ui.widget.Structure.Type;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
+import lombok.ToString;
 
 @Data
 @DataSet(MarketoInputDataSet.NAME)
@@ -65,6 +66,7 @@ import lombok.Data;
         @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "schema" }) })//
 })
 @Documentation("Marketo Source DataSet")
+@ToString(callSuper = true)
 public class MarketoInputDataSet extends MarketoDataSet {
 
     public static final String NAME = "MarketoInputDataSet";

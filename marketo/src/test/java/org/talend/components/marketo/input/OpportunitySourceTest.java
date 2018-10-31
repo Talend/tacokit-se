@@ -62,7 +62,7 @@ class OpportunitySourceTest extends SourceBaseTest {
         while ((result = source.next()) != null) {
             assertNotNull(result);
             assertNotNull(result.getString(ATTR_NAME));
-            assertNotNull(result.getJsonArray(ATTR_DEDUPE_FIELDS));
+            assertNotNull(result.getString(ATTR_DEDUPE_FIELDS));
         }
     }
 
@@ -74,7 +74,7 @@ class OpportunitySourceTest extends SourceBaseTest {
         while ((result = source.next()) != null) {
             assertNotNull(result);
             assertNotNull(result.getString(ATTR_NAME));
-            assertNotNull(result.getJsonArray(ATTR_DEDUPE_FIELDS));
+            assertNotNull(result.getString(ATTR_DEDUPE_FIELDS));
         }
     }
 

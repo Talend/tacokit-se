@@ -12,8 +12,6 @@
 // ============================================================================
 package org.talend.components.marketo.datastore;
 
-import lombok.Data;
-
 import static org.talend.components.marketo.service.UIActionService.HEALTH_CHECK;
 import static org.talend.components.marketo.service.UIActionService.URL_CHECK;
 
@@ -29,6 +27,9 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
 
+import lombok.Data;
+import lombok.ToString;
+
 @Data
 @DataStore(MarketoDataStore.NAME)
 @GridLayouts({ //
@@ -39,6 +40,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 })
 @Checkable(HEALTH_CHECK)
 @Documentation(MarketoDataStore.NAME)
+@ToString
 public class MarketoDataStore implements Serializable {
 
     public static final String NAME = "MarketoDataStore";

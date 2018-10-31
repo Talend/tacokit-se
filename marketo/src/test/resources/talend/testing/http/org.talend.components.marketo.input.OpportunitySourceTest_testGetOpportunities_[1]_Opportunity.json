@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"a2ae16b1-ab5f-4898-85c8-ffdea564e26d:sj\",\"token_type\":\"bearer\",\"expires_in\":3414,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"129a8f6d-dccd-4057-96d8-c4097d3708a8:sj\",\"token_type\":\"bearer\",\"expires_in\":2945,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -30,16 +30,61 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities.json?access_token=a2ae16b1-ab5f-4898-85c8-ffdea564e26d%3Asj&filterType=externalOpportunityId&filterValues=opportunity00&batchSize=3"
+      "uri":"https://586-UXQ-391.mktorest.com/identity/oauth/token"
+    },
+    "response":{
+      "headers":{
+        "Transfer-Encoding":"chunked",
+        "Server":"nginx",
+        "Cache-Control":"no-store",
+        "Connection":"keep-alive",
+        "Pragma":"no-cache",
+        "Content-Type":"application/json;charset=UTF-8"
+      },
+      "payload":"{\"access_token\":\"129a8f6d-dccd-4057-96d8-c4097d3708a8:sj\",\"token_type\":\"bearer\",\"expires_in\":2945,\"scope\":\"undx@talend.com\"}",
+      "status":200
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "content-length":"0",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Connection":"keep-alive"
+      },
+      "method":"GET",
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities/describe.json?access_token=129a8f6d-dccd-4057-96d8-c4097d3708a8%3Asj"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
-        "Content-Length":"58",
+        "Vary":"Accept-Encoding",
+        "Content-Length":"3272",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"ee5#166c44f37ad\",\"result\":[],\"success\":true}",
+      "payload":"{\"requestId\":\"180ef#166c59707f2\",\"result\":[{\"name\":\"opportunity\",\"displayName\":\"Opportunity\",\"description\":\"Marketo Opportunity\",\"createdAt\":\"2017-12-20T23:15:55Z\",\"updatedAt\":\"2017-12-20T23:15:55Z\",\"idField\":\"marketoGUID\",\"dedupeFields\":[\"externalOpportunityId\"],\"searchableFields\":[[\"externalOpportunityId\"],[\"marketoGUID\"],[\"externalCompanyId\"],[\"externalSalesPersonId\"]],\"fields\":[{\"name\":\"createdAt\",\"displayName\":\"createdAt\",\"dataType\":\"datetime\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"externalOpportunityId\",\"displayName\":\"externalOpportunityId\",\"dataType\":\"string\",\"length\":50,\"updateable\":false,\"crmManaged\":false},{\"name\":\"marketoGUID\",\"displayName\":\"marketoGUID\",\"dataType\":\"string\",\"length\":36,\"updateable\":false,\"crmManaged\":false},{\"name\":\"updatedAt\",\"displayName\":\"updatedAt\",\"dataType\":\"datetime\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"amount\",\"displayName\":\"amount\",\"dataType\":\"currency\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"closeDate\",\"displayName\":\"closeDate\",\"dataType\":\"date\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"description\",\"displayName\":\"description\",\"dataType\":\"string\",\"length\":2000,\"updateable\":true,\"crmManaged\":false},{\"name\":\"expectedRevenue\",\"displayName\":\"expectedRevenue\",\"dataType\":\"currency\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"externalCompanyId\",\"displayName\":\"externalCompanyId\",\"dataType\":\"string\",\"length\":50,\"updateable\":true,\"crmManaged\":false},{\"name\":\"externalCreatedDate\",\"displayName\":\"externalCreatedDate\",\"dataType\":\"datetime\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"externalSalesPersonId\",\"displayName\":\"externalSalesPersonId\",\"dataType\":\"string\",\"length\":50,\"updateable\":true,\"crmManaged\":false},{\"name\":\"fiscal\",\"displayName\":\"fiscal\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"fiscalQuarter\",\"displayName\":\"fiscalQuarter\",\"dataType\":\"integer\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"fiscalYear\",\"displayName\":\"fiscalYear\",\"dataType\":\"integer\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"forecastCategoryName\",\"displayName\":\"forecastCategoryName\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"isClosed\",\"displayName\":\"isClosed\",\"dataType\":\"boolean\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"isWon\",\"displayName\":\"isWon\",\"dataType\":\"boolean\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"lastActivityDate\",\"displayName\":\"lastActivityDate\",\"dataType\":\"date\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"leadSource\",\"displayName\":\"leadSource\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"name\",\"displayName\":\"name\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"nextStep\",\"displayName\":\"nextStep\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"probability\",\"displayName\":\"probability\",\"dataType\":\"integer\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"quantity\",\"displayName\":\"quantity\",\"dataType\":\"float\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"stage\",\"displayName\":\"stage\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"type\",\"displayName\":\"type\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false}]}],\"success\":true}",
+      "status":200
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "content-length":"0",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Connection":"keep-alive"
+      },
+      "method":"GET",
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/opportunities.json?access_token=129a8f6d-dccd-4057-96d8-c4097d3708a8%3Asj&filterType=externalOpportunityId&filterValues=opportunity00&batchSize=3"
+    },
+    "response":{
+      "headers":{
+        "Server":"nginx",
+        "Connection":"keep-alive",
+        "Content-Length":"59",
+        "Content-Type":"application/json;charset=UTF-8"
+      },
+      "payload":"{\"requestId\":\"7068#166c5970af8\",\"result\":[],\"success\":true}",
       "status":200
     }
   }

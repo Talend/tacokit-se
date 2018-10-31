@@ -15,8 +15,8 @@ package org.talend.components.marketo.input;
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.*;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_EMAIL;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_FIELDS;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ID;
-import static org.talend.components.marketo.MarketoApiConstants.ATTR_RESULT;
 
 import java.util.Collections;
 import java.util.List;
@@ -66,10 +66,11 @@ public class LeadSourceTest extends SourceBaseTest {
         source.init();
         while ((result = source.next()) != null) {
             assertNotNull(result);
+            assertEquals(fields, result.getString(ATTR_FIELDS));
         }
-        result = source.runAction();
-        assertNotNull(result);
-        assertEquals(fields, service.getFieldsFromDescribeFormatedForApi(result.getJsonArray(ATTR_RESULT)));
+        // result = source.runAction();
+        // assertNotNull(result);
+        // assertEquals(fields, service.getFieldsFromDescribeFormatedForApi(result.getJsonArray(ATTR_RESULT)));
     }
 
     @Test

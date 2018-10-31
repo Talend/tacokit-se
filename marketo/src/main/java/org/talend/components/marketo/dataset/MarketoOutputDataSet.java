@@ -29,6 +29,7 @@ import org.talend.sdk.component.api.configuration.ui.widget.Structure.Type;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
+import lombok.ToString;
 
 @Data
 @DataSet(MarketoOutputDataSet.NAME)
@@ -50,6 +51,7 @@ import lombok.Data;
         })//
 })
 @Documentation("Marketo Processor DataSet")
+@ToString(callSuper = true)
 public class MarketoOutputDataSet extends MarketoDataSet {
 
     public static final String NAME = "MarketoOutputDataSet";
