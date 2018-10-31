@@ -16,6 +16,7 @@ import javax.json.JsonBuilderFactory;
 import javax.json.JsonReaderFactory;
 import javax.json.JsonWriterFactory;
 
+import org.apache.beam.sdk.testing.TestPipeline;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -47,6 +48,7 @@ import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.junit5.WithMavenServers;
 import org.talend.sdk.component.maven.MavenDecrypter;
 import org.talend.sdk.component.maven.Server;
+import org.talend.sdk.component.runtime.manager.ComponentManager;
 
 @HttpApi(useSsl = true, responseLocator = org.talend.sdk.component.junit.http.internal.impl.MarketoResponseLocator.class)
 @WithMavenServers
@@ -76,6 +78,9 @@ public class MarketoBaseTest {
 
     @Rule
     public final JUnit4HttpApiPerMethodConfigurator configurator = new JUnit4HttpApiPerMethodConfigurator(API);
+
+    @Rule
+    public transient final TestPipeline pipeline = TestPipeline.create();
 
     @DecryptedServer(value = "marketo-nocrm", alwaysTryLookup = false)
     protected Server serverNoCrm;
@@ -138,7 +143,7 @@ public class MarketoBaseTest {
             MARKETO_CLIENT_ID = serverWithNoCrm.getUsername();
             MARKETO_CLIENT_SECRET = serverWithNoCrm.getPassword();
             if (!"username".equals(MARKETO_CLIENT_ID)) {
-                // System.setProperty("talend.junit.http.capture", "true");
+                System.setProperty("talend.junit.http.capture", "true");
             }
         } catch (Exception e) {
             // System.setProperty("talend.junit.http.capture", "false");
@@ -148,6 +153,7 @@ public class MarketoBaseTest {
     @BeforeClass
     void init() {
         service = component.findService(MarketoService.class);
+        final ComponentManager manager = ComponentManager.instance();
     }
 
     @BeforeEach

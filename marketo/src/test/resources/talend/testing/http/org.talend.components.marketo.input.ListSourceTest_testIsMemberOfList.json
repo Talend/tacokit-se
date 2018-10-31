@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f:sj\",\"token_type\":\"bearer\",\"expires_in\":1213,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"129a8f6d-dccd-4057-96d8-c4097d3708a8:sj\",\"token_type\":\"bearer\",\"expires_in\":2891,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -30,16 +30,39 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/lists/1001/leads/ismember.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&id=1,2,3,4,5"
+      "uri":"https://586-UXQ-391.mktorest.com/identity/oauth/token"
+    },
+    "response":{
+      "headers":{
+        "Transfer-Encoding":"chunked",
+        "Server":"nginx",
+        "Cache-Control":"no-store",
+        "Connection":"keep-alive",
+        "Pragma":"no-cache",
+        "Content-Type":"application/json;charset=UTF-8"
+      },
+      "payload":"{\"access_token\":\"129a8f6d-dccd-4057-96d8-c4097d3708a8:sj\",\"token_type\":\"bearer\",\"expires_in\":2889,\"scope\":\"undx@talend.com\"}",
+      "status":200
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "content-length":"0",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Connection":"keep-alive"
+      },
+      "method":"GET",
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/lists/1001/leads/ismember.json?access_token=129a8f6d-dccd-4057-96d8-c4097d3708a8%3Asj&id=1,2,3,4,5"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
-        "Content-Length":"311",
+        "Content-Length":"312",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"bf84#165199ab2ef\",\"result\":[{\"id\":1,\"status\":\"skipped\",\"reasons\":[{\"code\":\"1004\",\"message\":\"Lead not found\"}]},{\"id\":2,\"status\":\"skipped\",\"reasons\":[{\"code\":\"1004\",\"message\":\"Lead not found\"}]},{\"id\":3,\"status\":\"memberof\"},{\"id\":4,\"status\":\"memberof\"},{\"id\":5,\"status\":\"memberof\"}],\"success\":true}",
+      "payload":"{\"requestId\":\"17be9#166c597e00e\",\"result\":[{\"id\":1,\"status\":\"skipped\",\"reasons\":[{\"code\":\"1004\",\"message\":\"Lead not found\"}]},{\"id\":2,\"status\":\"skipped\",\"reasons\":[{\"code\":\"1004\",\"message\":\"Lead not found\"}]},{\"id\":3,\"status\":\"memberof\"},{\"id\":4,\"status\":\"memberof\"},{\"id\":5,\"status\":\"memberof\"}],\"success\":true}",
       "status":200
     }
   }

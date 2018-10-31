@@ -43,6 +43,7 @@ import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.record.Schema.Entry;
 
 @Version
 @Icon(value = Icon.IconType.CUSTOM, custom = "MarketoInput")
@@ -51,34 +52,41 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
 
     protected final MarketoInputDataSet dataSet;
 
-    protected Schema schema;
+    protected Map<String, Schema.Entry> schema;
 
     protected Iterator<JsonValue> resultIterator;
 
     private transient static final Logger LOG = getLogger(MarketoSource.class);
 
     public MarketoSource(@Option("configuration") final MarketoInputDataSet dataSet, //
-            final MarketoService service, //
-            final Toolbox tools) {
+                         final MarketoService service, //
+                         final Toolbox tools) {
         super(dataSet, service, tools);
         this.dataSet = dataSet;
+    }
+
+
+    private Map<String,Entry> buildSchemaMap(final Schema entitySchema) {
+        Map<String, Entry> s = new HashMap<>();
+        for (Entry entry : entitySchema.getEntries()) {
+            s.put(entry.getName(), entry);
+        }
+        return s;
     }
 
     @PostConstruct
     public void init() {
         super.init();
-        schema = marketoService.getEntitySchema(dataSet);
+        schema = buildSchemaMap(marketoService.getEntitySchema(dataSet));
         LOG.warn("[init] dataSet {}. Master entity schema: {}.", dataSet, schema);
         // TODO in some cases we need to fill fields property
         processBatch();
     }
-
     /*
      * Flow management
      */
 
-
-    public JsonObject nextJson() {
+    public JsonObject nextJ() {
         JsonValue next = null;
         boolean hasNext = resultIterator.hasNext();
         if (hasNext) {
@@ -89,6 +97,7 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
         }
         return next == null ? null : next.asJsonObject();
     }
+
     @Producer
     public Record next() {
         JsonValue next = null;

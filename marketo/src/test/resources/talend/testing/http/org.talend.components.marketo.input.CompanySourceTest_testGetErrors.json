@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f:sj\",\"token_type\":\"bearer\",\"expires_in\":1183,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"129a8f6d-dccd-4057-96d8-c4097d3708a8:sj\",\"token_type\":\"bearer\",\"expires_in\":2905,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -30,16 +30,61 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&filterType=&filterValues=google01,google02,google03,google04,google05,google06&fields=createdAt,externalCompanyId,id,updatedAt,annualRevenue,billingCity,billingCountry,billingPostalCode,billingState,billingStreet,company,companyNotes,externalSalesPersonId,industry,mainPhone,numberOfEmployees,sicCode,site,website"
+      "uri":"https://586-UXQ-391.mktorest.com/identity/oauth/token"
+    },
+    "response":{
+      "headers":{
+        "Transfer-Encoding":"chunked",
+        "Server":"nginx",
+        "Cache-Control":"no-store",
+        "Connection":"keep-alive",
+        "Pragma":"no-cache",
+        "Content-Type":"application/json;charset=UTF-8"
+      },
+      "payload":"{\"access_token\":\"129a8f6d-dccd-4057-96d8-c4097d3708a8:sj\",\"token_type\":\"bearer\",\"expires_in\":2905,\"scope\":\"undx@talend.com\"}",
+      "status":200
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "content-length":"0",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Connection":"keep-alive"
+      },
+      "method":"GET",
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies/describe.json?access_token=129a8f6d-dccd-4057-96d8-c4097d3708a8%3Asj"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
-        "Content-Length":"113",
+        "Vary":"Accept-Encoding",
+        "Content-Length":"2571",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"161cd#165199b2868\",\"success\":false,\"errors\":[{\"code\":\"1003\",\"message\":\"filterType not specified\"}]}",
+      "payload":"{\"requestId\":\"15d2e#166c597a484\",\"result\":[{\"name\":\"Company\",\"description\":\"Map for API company fields\",\"createdAt\":\"2017-12-20T23:15:55Z\",\"updatedAt\":\"2017-12-20T23:15:55Z\",\"idField\":\"id\",\"dedupeFields\":[\"externalCompanyId\"],\"searchableFields\":[[\"externalCompanyId\"],[\"id\"],[\"externalSalesPersonId\"],[\"company\"]],\"fields\":[{\"name\":\"createdAt\",\"displayName\":\"Created At\",\"dataType\":\"datetime\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"externalCompanyId\",\"displayName\":\"External Company Id\",\"dataType\":\"string\",\"length\":50,\"updateable\":false,\"crmManaged\":false},{\"name\":\"id\",\"displayName\":\"Id\",\"dataType\":\"integer\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"updatedAt\",\"displayName\":\"Updated At\",\"dataType\":\"datetime\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"annualRevenue\",\"displayName\":\"Annual Revenue\",\"dataType\":\"currency\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingCity\",\"displayName\":\"Billing City\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingCountry\",\"displayName\":\"Billing Country\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingPostalCode\",\"displayName\":\"Billing Postal Code\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingState\",\"displayName\":\"Billing State\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingStreet\",\"displayName\":\"Billing Address\",\"dataType\":\"text\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"company\",\"displayName\":\"Company Name\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"companyNotes\",\"displayName\":\"Company Notes\",\"dataType\":\"text\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"externalSalesPersonId\",\"displayName\":\"externalSalesPersonId\",\"dataType\":\"string\",\"length\":50,\"updateable\":true,\"crmManaged\":false},{\"name\":\"industry\",\"displayName\":\"Industry\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"mainPhone\",\"displayName\":\"Main Phone\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"numberOfEmployees\",\"displayName\":\"Num Employees\",\"dataType\":\"integer\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"sicCode\",\"displayName\":\"SIC Code\",\"dataType\":\"string\",\"length\":40,\"updateable\":true,\"crmManaged\":false},{\"name\":\"site\",\"displayName\":\"Site\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"website\",\"displayName\":\"Website\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false}]}],\"success\":true}",
+      "status":200
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "content-length":"0",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Connection":"keep-alive"
+      },
+      "method":"GET",
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?access_token=129a8f6d-dccd-4057-96d8-c4097d3708a8%3Asj&filterType=&filterValues=google01,google02,google03,google04,google05,google06&fields=createdAt,externalCompanyId,id,updatedAt,annualRevenue,billingCity,billingCountry,billingPostalCode,billingState,billingStreet,company,companyNotes,externalSalesPersonId,industry,mainPhone,numberOfEmployees,sicCode,site,website"
+    },
+    "response":{
+      "headers":{
+        "Server":"nginx",
+        "Connection":"keep-alive",
+        "Content-Length":"112",
+        "Content-Type":"application/json;charset=UTF-8"
+      },
+      "payload":"{\"requestId\":\"5559#166c597a7b9\",\"success\":false,\"errors\":[{\"code\":\"1003\",\"message\":\"filterType not specified\"}]}",
       "status":200
     }
   }

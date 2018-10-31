@@ -69,7 +69,8 @@ public class CustomObjectsSourceTest extends SourceBaseTest {
         initSource();
         result = source.next();
         assertNotNull(result);
-        assertEquals(fields, service.getFieldsFromDescribeFormatedForApi(result.getJsonArray(ATTR_FIELDS)));
+        assertEquals(fields, result.getString(ATTR_FIELDS));
+        // assertEquals(fields, service.getFieldsFromDescribeFormatedForApi(result.getJsonArray(ATTR_FIELDS)));
         result = source.next();
         assertNull(result);
     }

@@ -18,6 +18,8 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.talend.components.marketo.dataset.MarketoInputDataSet;
 import org.talend.components.marketo.service.AuthorizationClient;
 import org.talend.components.marketo.service.MarketoService;
@@ -46,18 +48,22 @@ public class MarketoInputMapper implements Serializable {
 
     private AuthorizationClient authorizationClient;
 
+    private transient static final Logger LOG = LoggerFactory.getLogger(MarketoInputMapper.class);
+
     public MarketoInputMapper(@Option("configuration") final MarketoInputDataSet dataset, //
             final MarketoService service, //
             final Toolbox tools) {
         this.dataset = dataset;
         this.service = service;
         this.tools = tools;
-        this.authorizationClient = service.getAuthorizationClient();
+        authorizationClient = service.getAuthorizationClient();
+        LOG.warn("[MarketoInputMapper] {}", dataset);
+        authorizationClient.base(dataset.getDataStore().getEndpoint());
     }
 
     @PostConstruct
     public void init() {
-        authorizationClient.base(dataset.getDataStore().getEndpoint());
+        // NOOP
     }
 
     @Assessor

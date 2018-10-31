@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f:sj\",\"token_type\":\"bearer\",\"expires_in\":1291,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"129a8f6d-dccd-4057-96d8-c4097d3708a8:sj\",\"token_type\":\"bearer\",\"expires_in\":2776,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -31,7 +31,7 @@
         "Content-Length":"97"
       },
       "method":"POST",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?access_token=129a8f6d-dccd-4057-96d8-c4097d3708a8%3Asj"
     },
     "response":{
       "headers":{
@@ -40,7 +40,7 @@
         "Content-Length":"98",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"128d6#165199983ef\",\"result\":[{\"seq\":0,\"id\":2103,\"status\":\"created\"}],\"success\":true}",
+      "payload":"{\"requestId\":\"14b4f#166c5999a25\",\"result\":[{\"seq\":0,\"id\":2115,\"status\":\"created\"}],\"success\":true}",
       "status":200
     }
   },
@@ -63,7 +63,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f:sj\",\"token_type\":\"bearer\",\"expires_in\":1289,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"129a8f6d-dccd-4057-96d8-c4097d3708a8:sj\",\"token_type\":\"bearer\",\"expires_in\":2774,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -76,29 +76,7 @@
         "Content-Length":"93"
       },
       "method":"POST",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj"
-    },
-    "response":{
-      "headers":{
-        "Server":"nginx",
-        "Connection":"keep-alive",
-        "Content-Length":"97",
-        "Content-Type":"application/json;charset=UTF-8"
-      },
-      "payload":"{\"requestId\":\"afef#16519998d81\",\"result\":[{\"seq\":0,\"id\":2103,\"status\":\"updated\"}],\"success\":true}",
-      "status":200
-    }
-  },
-  {
-    "request":{
-      "headers":{
-        "Content-type":"application/json",
-        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
-        "Connection":"keep-alive",
-        "Content-Length":"93"
-      },
-      "method":"POST",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?access_token=129a8f6d-dccd-4057-96d8-c4097d3708a8%3Asj"
     },
     "response":{
       "headers":{
@@ -107,7 +85,29 @@
         "Content-Length":"98",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"11460#1651999915c\",\"result\":[{\"seq\":0,\"id\":2103,\"status\":\"updated\"}],\"success\":true}",
+      "payload":"{\"requestId\":\"104e5#166c599a198\",\"result\":[{\"seq\":0,\"id\":2115,\"status\":\"updated\"}],\"success\":true}",
+      "status":200
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "Content-type":"application/json",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Connection":"keep-alive",
+        "Content-Length":"93"
+      },
+      "method":"POST",
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?access_token=129a8f6d-dccd-4057-96d8-c4097d3708a8%3Asj"
+    },
+    "response":{
+      "headers":{
+        "Server":"nginx",
+        "Connection":"keep-alive",
+        "Content-Length":"97",
+        "Content-Type":"application/json;charset=UTF-8"
+      },
+      "payload":"{\"requestId\":\"e0ff#166c599a56e\",\"result\":[{\"seq\":0,\"id\":2115,\"status\":\"updated\"}],\"success\":true}",
       "status":200
     }
   },
@@ -120,16 +120,16 @@
         "Content-Length":"105"
       },
       "method":"POST",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?access_token=129a8f6d-dccd-4057-96d8-c4097d3708a8%3Asj"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
-        "Content-Length":"145",
+        "Content-Length":"144",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"15e88#16519999469\",\"result\":[{\"seq\":0,\"status\":\"skipped\",\"reasons\":[{\"code\":\"1013\",\"message\":\"Record not found\"}]}],\"success\":true}",
+      "payload":"{\"requestId\":\"cfc9#166c599a88b\",\"result\":[{\"seq\":0,\"status\":\"skipped\",\"reasons\":[{\"code\":\"1013\",\"message\":\"Record not found\"}]}],\"success\":true}",
       "status":200
     }
   },
@@ -152,7 +152,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f:sj\",\"token_type\":\"bearer\",\"expires_in\":1285,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"129a8f6d-dccd-4057-96d8-c4097d3708a8:sj\",\"token_type\":\"bearer\",\"expires_in\":2771,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -165,7 +165,7 @@
         "Content-Length":"71"
       },
       "method":"POST",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies/delete.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies/delete.json?access_token=129a8f6d-dccd-4057-96d8-c4097d3708a8%3Asj"
     },
     "response":{
       "headers":{
@@ -174,7 +174,7 @@
         "Content-Length":"98",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"14889#16519999a7a\",\"result\":[{\"seq\":0,\"id\":2103,\"status\":\"deleted\"}],\"success\":true}",
+      "payload":"{\"requestId\":\"14b35#166c599b097\",\"result\":[{\"seq\":0,\"id\":2115,\"status\":\"deleted\"}],\"success\":true}",
       "status":200
     }
   }

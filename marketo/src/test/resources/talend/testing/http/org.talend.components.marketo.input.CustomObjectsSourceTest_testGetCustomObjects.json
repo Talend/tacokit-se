@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f:sj\",\"token_type\":\"bearer\",\"expires_in\":1200,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"129a8f6d-dccd-4057-96d8-c4097d3708a8:sj\",\"token_type\":\"bearer\",\"expires_in\":2974,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -30,16 +30,61 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/customobjects/car_c.json?access_token=e826e6e3-1c5c-4b79-bb41-27f3f05f2f0f%3Asj&filterType=marketoGUID&filterValues=a215bdf6-3fed-42e5-9042-3c4258768afb&fields=createdAt,marketoGUID,updatedAt,VIN,customerId,model,year&batchSize=10"
+      "uri":"https://586-UXQ-391.mktorest.com/identity/oauth/token"
+    },
+    "response":{
+      "headers":{
+        "Transfer-Encoding":"chunked",
+        "Server":"nginx",
+        "Cache-Control":"no-store",
+        "Connection":"keep-alive",
+        "Pragma":"no-cache",
+        "Content-Type":"application/json;charset=UTF-8"
+      },
+      "payload":"{\"access_token\":\"129a8f6d-dccd-4057-96d8-c4097d3708a8:sj\",\"token_type\":\"bearer\",\"expires_in\":2973,\"scope\":\"undx@talend.com\"}",
+      "status":200
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "content-length":"0",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Connection":"keep-alive"
+      },
+      "method":"GET",
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/customobjects/car_c/describe.json?access_token=129a8f6d-dccd-4057-96d8-c4097d3708a8%3Asj"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
-        "Content-Length":"263",
+        "Vary":"Accept-Encoding",
+        "Content-Length":"1059",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"184e9#165199ae8c4\",\"result\":[{\"seq\":0,\"marketoGUID\":\"a215bdf6-3fed-42e5-9042-3c4258768afb\",\"year\":2018,\"customerId\":\"5\",\"createdAt\":\"2018-07-31T09:44:15Z\",\"updatedAt\":\"2018-07-31T09:47:37Z\",\"VIN\":\"ABC-DEF-12345-GIN\",\"model\":\"coccx\"}],\"success\":true}",
+      "payload":"{\"requestId\":\"915#166c5969977\",\"result\":[{\"name\":\"car_c\",\"displayName\":\"Car\",\"createdAt\":\"2018-06-13T13:24:06Z\",\"updatedAt\":\"2018-07-31T07:25:48Z\",\"idField\":\"marketoGUID\",\"dedupeFields\":[\"customerId\",\"VIN\"],\"searchableFields\":[[\"customerId\",\"VIN\"],[\"marketoGUID\"]],\"fields\":[{\"name\":\"createdAt\",\"displayName\":\"Created At\",\"dataType\":\"datetime\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"marketoGUID\",\"displayName\":\"Marketo GUID\",\"dataType\":\"string\",\"length\":36,\"updateable\":false,\"crmManaged\":false},{\"name\":\"updatedAt\",\"displayName\":\"Updated At\",\"dataType\":\"datetime\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"VIN\",\"displayName\":\"VIN\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"customerId\",\"displayName\":\"CustomerId\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"model\",\"displayName\":\"Model\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"year\",\"displayName\":\"Year\",\"dataType\":\"integer\",\"updateable\":true,\"crmManaged\":false}]}],\"success\":true}",
+      "status":200
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "content-length":"0",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Connection":"keep-alive"
+      },
+      "method":"GET",
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/customobjects/car_c.json?access_token=129a8f6d-dccd-4057-96d8-c4097d3708a8%3Asj&filterType=marketoGUID&filterValues=a215bdf6-3fed-42e5-9042-3c4258768afb&fields=createdAt,marketoGUID,updatedAt,VIN,customerId,model,year&batchSize=10"
+    },
+    "response":{
+      "headers":{
+        "Server":"nginx",
+        "Connection":"keep-alive",
+        "Content-Length":"262",
+        "Content-Type":"application/json;charset=UTF-8"
+      },
+      "payload":"{\"requestId\":\"1ecb#166c5969d04\",\"result\":[{\"seq\":0,\"marketoGUID\":\"a215bdf6-3fed-42e5-9042-3c4258768afb\",\"year\":2018,\"customerId\":\"5\",\"createdAt\":\"2018-07-31T09:44:15Z\",\"updatedAt\":\"2018-07-31T09:47:37Z\",\"VIN\":\"ABC-DEF-12345-GIN\",\"model\":\"coccx\"}],\"success\":true}",
       "status":200
     }
   }

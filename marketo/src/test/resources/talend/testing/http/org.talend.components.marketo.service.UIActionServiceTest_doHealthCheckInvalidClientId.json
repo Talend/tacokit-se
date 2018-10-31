@@ -14,12 +14,12 @@
         "Transfer-Encoding":"chunked",
         "Server":"nginx",
         "Cache-Control":"no-store",
-        "WWW-Authenticate":"Form realm=\"oauth\", error=\"unauthorized\", error_description=\"No client with requested id: invalid\"",
+        "WWW-Authenticate":"Form realm=\"oauth\", error=\"invalid_client\", error_description=\"Bad client credentials\"",
         "Connection":"keep-alive",
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"error\":\"unauthorized\",\"error_description\":\"No client with requested id: invalid\"}",
+      "payload":"{\"error\":\"invalid_client\",\"error_description\":\"Bad client credentials\"}",
       "status":401
     }
   }

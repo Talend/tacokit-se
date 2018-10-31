@@ -22,6 +22,9 @@ import static org.talend.components.marketo.service.AuthorizationClient.CLIENT_C
 
 import java.io.Serializable;
 import java.io.StringReader;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.json.JsonArray;
@@ -29,6 +32,7 @@ import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
+import javax.json.JsonValue;
 import javax.json.JsonWriterFactory;
 
 import org.slf4j.Logger;
@@ -164,9 +168,38 @@ public class MarketoSourceOrProcessor implements Serializable {
         return json;
     }
 
-    public Record convertToRecord(final JsonObject json, final Schema schema) {
-        LOG.warn("[convertToRecord] json: {} with schema: {}.");
+    public Record convertToRecord(final JsonObject json, final Map<String, Schema.Entry> schema) {
+        LOG.warn("[convertToRecord] json: {} with schema: {}.", json, schema);
+        Record.Builder b = marketoService.getRecordBuilder().newRecordBuilder();
+        Set<Entry<String, JsonValue>> props = json.entrySet();
+        for (Entry<String, JsonValue> p : props){
+            Schema.Entry e = schema.get(p.getKey());
+            LOG.warn("[convertToRecord] {} - {}", p, e);
+            switch(e.getType()){
+                case RECORD:
+                    break;
+                case ARRAY:
+                    break;
+                case STRING:
+                    b.withString(p.getKey(), p.getValue().toString());
+                    break;
+                case BYTES:
+                    break;
+                case INT:
+                    break;
+                case LONG:
+                    break;
+                case FLOAT:
+                    break;
+                case DOUBLE:
+                    break;
+                case BOOLEAN:
+                    break;
+                case DATETIME:
+                    break;
+            }
+        }
         // TODO implement method
-        return null;
+        return b.build();
     }
 }
