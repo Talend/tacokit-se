@@ -59,17 +59,19 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
     private transient static final Logger LOG = getLogger(MarketoSource.class);
 
     public MarketoSource(@Option("configuration") final MarketoInputDataSet dataSet, //
-                         final MarketoService service, //
-                         final Toolbox tools) {
+            final MarketoService service, //
+            final Toolbox tools) {
         super(dataSet, service, tools);
         this.dataSet = dataSet;
     }
 
-
-    private Map<String,Entry> buildSchemaMap(final Schema entitySchema) {
+    private Map<String, Entry> buildSchemaMap(final Schema entitySchema) {
+        LOG.warn("[buildSchemaMap] {}", entitySchema);
         Map<String, Entry> s = new HashMap<>();
-        for (Entry entry : entitySchema.getEntries()) {
-            s.put(entry.getName(), entry);
+        if (entitySchema != null) {
+            for (Entry entry : entitySchema.getEntries()) {
+                s.put(entry.getName(), entry);
+            }
         }
         return s;
     }
@@ -79,7 +81,6 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
         super.init();
         schema = buildSchemaMap(marketoService.getEntitySchema(dataSet));
         LOG.warn("[init] dataSet {}. Master entity schema: {}.", dataSet, schema);
-        // TODO in some cases we need to fill fields property
         processBatch();
     }
     /*

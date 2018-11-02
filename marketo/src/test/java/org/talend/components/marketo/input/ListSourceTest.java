@@ -12,7 +12,9 @@
 // ============================================================================
 package org.talend.components.marketo.input;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_ID;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_NAME;
 
 import org.hamcrest.CoreMatchers;
@@ -71,6 +73,7 @@ class ListSourceTest extends SourceBaseTest {
         result = source.next();
         assertNotNull(result);
         assertEquals(result.getString(ATTR_NAME), "GroupList000");
+        assertEquals(result.getInt(ATTR_ID), 1001);
         result = source.next();
         assertNull(result);
     }
@@ -81,7 +84,7 @@ class ListSourceTest extends SourceBaseTest {
         inputDataSet.setListId(LIST_ID);
         inputDataSet.setLeadIds(LEAD_IDS);
         inputDataSet.setBatchSize(2);
-        inputDataSet.setFields(fields);
+        inputDataSet.setFields(asList(fields.split(",")));
         source = new ListSource(inputDataSet, service, tools);
         source.init();
         while ((result = source.next()) != null) {

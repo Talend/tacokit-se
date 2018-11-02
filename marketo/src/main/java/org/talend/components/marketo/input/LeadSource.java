@@ -70,7 +70,7 @@ public class LeadSource extends MarketoSource {
 
     private JsonObject getLead() {
         Integer leadId = dataSet.getLeadId();
-        String fields = dataSet.getFields();
+        String fields = dataSet.getFields() == null ? null : dataSet.getFields().stream().collect(joining(","));
         return handleResponse(leadClient.getLeadById(accessToken, leadId, fields));
     }
 
@@ -109,7 +109,7 @@ public class LeadSource extends MarketoSource {
     private JsonObject getMultipleLeads() {
         String filterType = dataSet.getLeadKeyName();
         String filterValues = dataSet.getLeadKeyValues();
-        String fields = dataSet.getFields();
+        String fields = dataSet.getFields() == null ? null : dataSet.getFields().stream().collect(joining(","));
         Integer batchSize = dataSet.getBatchSize();
         if (isLeadUrlSizeGreaterThan8k(filterType, filterValues, fields, batchSize)) {
             return handleResponse(leadClient.getLeadByFilterType(HEADER_CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED,
@@ -143,7 +143,7 @@ public class LeadSource extends MarketoSource {
         }
         Integer listId = dataSet.getListId();
         String leadIds = dataSet.getLeadIds();
-        String fields = dataSet.getFields();
+        String fields = dataSet.getFields() == null ? null : dataSet.getFields().stream().collect(joining(","));
         Integer batchSize = dataSet.getBatchSize();
         return handleResponse(leadClient.getLeadChanges(accessToken, nextPageToken, listId, leadIds, fields, batchSize));
     }

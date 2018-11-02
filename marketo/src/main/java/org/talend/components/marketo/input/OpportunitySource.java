@@ -12,6 +12,7 @@
 // ============================================================================
 package org.talend.components.marketo.input;
 
+import static java.util.stream.Collectors.joining;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE_APPLICATION_JSON;
 import static org.talend.components.marketo.MarketoApiConstants.REQUEST_PARAM_QUERY_METHOD_GET;
@@ -59,7 +60,7 @@ public class OpportunitySource extends MarketoSource {
     private JsonObject getOpportunity() {
         String filterType = dataSet.getFilterType();
         String filterValues = dataSet.getFilterValues();
-        String fields = dataSet.getFields();
+        String fields = dataSet.getFields() == null ? null : dataSet.getFields().stream().collect(joining(","));
         int batchSize = dataSet.getBatchSize();
         if (isOpportunityRole) {
             if (dataSet.getUseCompoundKey()) {

@@ -12,6 +12,7 @@
 // ============================================================================
 package org.talend.components.marketo.input;
 
+import static java.util.stream.Collectors.joining;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import javax.json.JsonObject;
@@ -55,7 +56,7 @@ public class ListSource extends MarketoSource {
 
     private JsonObject getLeadsByListId() {
         Integer listId = dataSet.getListId();
-        String fields = dataSet.getFields();
+        String fields = dataSet.getFields() == null ? null : dataSet.getFields().stream().collect(joining(","));
         Integer batchSize = dataSet.getBatchSize();
         return handleResponse(listClient.getLeadsByListId(accessToken, nextPageToken, listId, fields, batchSize));
     }

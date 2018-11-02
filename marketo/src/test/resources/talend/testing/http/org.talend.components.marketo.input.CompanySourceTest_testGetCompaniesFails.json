@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"129a8f6d-dccd-4057-96d8-c4097d3708a8:sj\",\"token_type\":\"bearer\",\"expires_in\":2913,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"8210cc9f-dbf3-4cb7-b1d4-a26688fe3727:sj\",\"token_type\":\"bearer\",\"expires_in\":2801,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -41,7 +41,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"129a8f6d-dccd-4057-96d8-c4097d3708a8:sj\",\"token_type\":\"bearer\",\"expires_in\":2912,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"8210cc9f-dbf3-4cb7-b1d4-a26688fe3727:sj\",\"token_type\":\"bearer\",\"expires_in\":2800,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -53,17 +53,17 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies/describe.json?access_token=129a8f6d-dccd-4057-96d8-c4097d3708a8%3Asj"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies/describe.json?access_token=8210cc9f-dbf3-4cb7-b1d4-a26688fe3727%3Asj"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
         "Vary":"Accept-Encoding",
-        "Content-Length":"2570",
+        "Content-Length":"2571",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"dc39#166c5978735\",\"result\":[{\"name\":\"Company\",\"description\":\"Map for API company fields\",\"createdAt\":\"2017-12-20T23:15:55Z\",\"updatedAt\":\"2017-12-20T23:15:55Z\",\"idField\":\"id\",\"dedupeFields\":[\"externalCompanyId\"],\"searchableFields\":[[\"externalCompanyId\"],[\"id\"],[\"externalSalesPersonId\"],[\"company\"]],\"fields\":[{\"name\":\"createdAt\",\"displayName\":\"Created At\",\"dataType\":\"datetime\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"externalCompanyId\",\"displayName\":\"External Company Id\",\"dataType\":\"string\",\"length\":50,\"updateable\":false,\"crmManaged\":false},{\"name\":\"id\",\"displayName\":\"Id\",\"dataType\":\"integer\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"updatedAt\",\"displayName\":\"Updated At\",\"dataType\":\"datetime\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"annualRevenue\",\"displayName\":\"Annual Revenue\",\"dataType\":\"currency\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingCity\",\"displayName\":\"Billing City\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingCountry\",\"displayName\":\"Billing Country\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingPostalCode\",\"displayName\":\"Billing Postal Code\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingState\",\"displayName\":\"Billing State\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingStreet\",\"displayName\":\"Billing Address\",\"dataType\":\"text\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"company\",\"displayName\":\"Company Name\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"companyNotes\",\"displayName\":\"Company Notes\",\"dataType\":\"text\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"externalSalesPersonId\",\"displayName\":\"externalSalesPersonId\",\"dataType\":\"string\",\"length\":50,\"updateable\":true,\"crmManaged\":false},{\"name\":\"industry\",\"displayName\":\"Industry\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"mainPhone\",\"displayName\":\"Main Phone\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"numberOfEmployees\",\"displayName\":\"Num Employees\",\"dataType\":\"integer\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"sicCode\",\"displayName\":\"SIC Code\",\"dataType\":\"string\",\"length\":40,\"updateable\":true,\"crmManaged\":false},{\"name\":\"site\",\"displayName\":\"Site\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"website\",\"displayName\":\"Website\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false}]}],\"success\":true}",
+      "payload":"{\"requestId\":\"11111#166d4c7d9d4\",\"result\":[{\"name\":\"Company\",\"description\":\"Map for API company fields\",\"createdAt\":\"2017-12-20T23:15:55Z\",\"updatedAt\":\"2017-12-20T23:15:55Z\",\"idField\":\"id\",\"dedupeFields\":[\"externalCompanyId\"],\"searchableFields\":[[\"externalCompanyId\"],[\"id\"],[\"externalSalesPersonId\"],[\"company\"]],\"fields\":[{\"name\":\"createdAt\",\"displayName\":\"Created At\",\"dataType\":\"datetime\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"externalCompanyId\",\"displayName\":\"External Company Id\",\"dataType\":\"string\",\"length\":50,\"updateable\":false,\"crmManaged\":false},{\"name\":\"id\",\"displayName\":\"Id\",\"dataType\":\"integer\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"updatedAt\",\"displayName\":\"Updated At\",\"dataType\":\"datetime\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"annualRevenue\",\"displayName\":\"Annual Revenue\",\"dataType\":\"currency\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingCity\",\"displayName\":\"Billing City\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingCountry\",\"displayName\":\"Billing Country\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingPostalCode\",\"displayName\":\"Billing Postal Code\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingState\",\"displayName\":\"Billing State\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingStreet\",\"displayName\":\"Billing Address\",\"dataType\":\"text\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"company\",\"displayName\":\"Company Name\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"companyNotes\",\"displayName\":\"Company Notes\",\"dataType\":\"text\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"externalSalesPersonId\",\"displayName\":\"externalSalesPersonId\",\"dataType\":\"string\",\"length\":50,\"updateable\":true,\"crmManaged\":false},{\"name\":\"industry\",\"displayName\":\"Industry\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"mainPhone\",\"displayName\":\"Main Phone\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"numberOfEmployees\",\"displayName\":\"Num Employees\",\"dataType\":\"integer\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"sicCode\",\"displayName\":\"SIC Code\",\"dataType\":\"string\",\"length\":40,\"updateable\":true,\"crmManaged\":false},{\"name\":\"site\",\"displayName\":\"Site\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"website\",\"displayName\":\"Website\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false}]}],\"success\":true}",
       "status":200
     }
   },
@@ -75,7 +75,7 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?access_token=129a8f6d-dccd-4057-96d8-c4097d3708a8%3Asj&filterType=billingCountry&filterValues=France&fields=mainPhone,company,website&batchSize=10"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?access_token=8210cc9f-dbf3-4cb7-b1d4-a26688fe3727%3Asj&filterType=billingCountry&filterValues=France&fields=mainPhone,company,website&batchSize=10"
     },
     "response":{
       "headers":{
@@ -84,7 +84,7 @@
         "Content-Length":"123",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"c1c3#166c5978a99\",\"success\":false,\"errors\":[{\"code\":\"1003\",\"message\":\"Invalid filterType 'billingCountry'\"}]}",
+      "payload":"{\"requestId\":\"ecdf#166d4c7dbec\",\"success\":false,\"errors\":[{\"code\":\"1003\",\"message\":\"Invalid filterType 'billingCountry'\"}]}",
       "status":200
     }
   }

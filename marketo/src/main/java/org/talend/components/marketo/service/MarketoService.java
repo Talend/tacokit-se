@@ -12,6 +12,9 @@
 // ============================================================================
 package org.talend.components.marketo.service;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
+
 import static java.util.stream.Collectors.joining;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_CREATED_AT;
@@ -28,7 +31,6 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_WORKSPACE_N
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 
@@ -44,9 +46,6 @@ import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-
-import lombok.Getter;
-import lombok.experimental.Accessors;
 
 @Accessors
 @Service
@@ -156,7 +155,7 @@ public class MarketoService {
                         .asJsonObject().getJsonArray(ATTR_FIELDS);
                 break;
             }
-            LOG.warn("[guessEntitySchema] entitySchema: {}.", entitySchema);
+            LOG.warn("[getEntitySchema] entitySchema: {}.", entitySchema);
             return getSchemaForEntity(entitySchema);
         } catch (Exception e) {
             LOG.error("Exception caught : {}.", e.getMessage());

@@ -12,6 +12,7 @@
 // ============================================================================
 package org.talend.components.marketo;
 
+import static java.util.stream.Collectors.joining;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ACCESS_TOKEN;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_CODE;
@@ -22,10 +23,11 @@ import static org.talend.components.marketo.service.AuthorizationClient.CLIENT_C
 
 import java.io.Serializable;
 import java.io.StringReader;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
 import javax.annotation.PostConstruct;
 import javax.json.JsonArray;
 import javax.json.JsonBuilderFactory;
@@ -33,6 +35,7 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
 import javax.json.JsonValue;
+import javax.json.JsonValue.ValueType;
 import javax.json.JsonWriterFactory;
 
 import org.slf4j.Logger;
@@ -44,6 +47,7 @@ import org.talend.components.marketo.service.Toolbox;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.http.Response;
 
 public class MarketoSourceOrProcessor implements Serializable {
@@ -170,36 +174,111 @@ public class MarketoSourceOrProcessor implements Serializable {
 
     public Record convertToRecord(final JsonObject json, final Map<String, Schema.Entry> schema) {
         LOG.warn("[convertToRecord] json: {} with schema: {}.", json, schema);
+        LOG.error("[convertToRecord] master schema :{}", schema);
         Record.Builder b = marketoService.getRecordBuilder().newRecordBuilder();
         Set<Entry<String, JsonValue>> props = json.entrySet();
-        for (Entry<String, JsonValue> p : props){
-            Schema.Entry e = schema.get(p.getKey());
-            LOG.warn("[convertToRecord] {} - {}", p, e);
-            switch(e.getType()){
-                case RECORD:
+        for (Entry<String, JsonValue> p : props) {
+            String key = p.getKey();
+            Schema.Entry e = schema.get(key);
+            LOG.error("schema entry : {}.", e);
+            Type type = null;
+            ValueType jsonType = p.getValue().getValueType();
+            if (e == null) {
+                type = Type.STRING;
+                switch (p.getValue().getValueType()) {
+                case NUMBER:
+                    // if ("integer".equals())
+                    type = Type.DOUBLE;
+                    break;
+                case TRUE:
+                case FALSE:
+                    type = Type.BOOLEAN;
                     break;
                 case ARRAY:
+                    type = Type.ARRAY;
+                    break;
+                case NULL:
+                case OBJECT:
+                case STRING:
+                    type = Type.STRING;
+                    break;
+                }
+            } else {
+                type = e.getType();
+                if (Type.LONG.equals(type) && "datetime".equals(e.getComment())) {
+                    type = Type.DATETIME;
+                }
+            }
+            LOG.warn("[convertToRecord] {} - {} ({})", p, e, p.getValue().getValueType());
+            // try {
+            switch (type) {
+            case STRING:
+                switch (jsonType) {
+                case ARRAY:
+                    b.withString(key,
+                            json.getJsonArray(key).stream().map(jsonValue -> jsonValue.toString()).collect(joining(",")));
+                    break;
+                case OBJECT:
+                    b.withString(key, String.valueOf(json.getJsonObject(key).toString()));
                     break;
                 case STRING:
-                    b.withString(p.getKey(), p.getValue().toString());
+                    b.withString(key, json.getString(key));
                     break;
-                case BYTES:
+                case NUMBER:
+                    b.withString(key, String.valueOf(json.getJsonNumber(key)));
                     break;
-                case INT:
+                case TRUE:
+                case FALSE:
+                    b.withString(key, String.valueOf(json.getBoolean(key)));
                     break;
-                case LONG:
+                case NULL:
+                    b.withString(key, null);
                     break;
-                case FLOAT:
-                    break;
-                case DOUBLE:
-                    break;
-                case BOOLEAN:
-                    break;
-                case DATETIME:
-                    break;
+                }
+                break;
+            case INT:
+                b.withInt(key, jsonType.equals(ValueType.NULL) ? 0 : json.getInt(key));
+                break;
+            case LONG:
+                b.withLong(key, jsonType.equals(ValueType.NULL) ? 0 : json.getJsonNumber(key).longValue());
+                break;
+            case FLOAT:
+                b.withFloat(key, jsonType.equals(ValueType.NULL) ? 0 : Float.valueOf(json.getString(key)));
+                break;
+            case DOUBLE:
+                b.withDouble(key, jsonType.equals(ValueType.NULL) ? 0 : json.getJsonNumber(key).doubleValue());
+                break;
+            case BOOLEAN:
+                b.withBoolean(key, jsonType.equals(ValueType.NULL) ? false : json.getBoolean(key));
+                break;
+            case DATETIME:
+                try {
+                    b.withDateTime(key, jsonType.equals(ValueType.NULL) ? null
+                            : new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").parse(json.getString(key)));
+                } catch (ParseException e1) {
+                    LOG.error("Date parsing error: {}.", e1.getMessage());
+                }
+                break;
+            case ARRAY:
+                String ary = json.getJsonArray(key).stream().map(jsonValue -> jsonValue.toString()).collect(joining(","));
+                // not in a sub array
+                if (!ary.contains("{")) {
+                    ary = ary.replaceAll("\"", "").replaceAll("(\\[|\\])", "");
+                }
+                b.withString(key, ary);
+                break;
+            case BYTES:
+            case RECORD:
+                b.withString(key, json.getString(key));
             }
+            // } catch (Exception ex){
+            // LOG.error("Exception[{}] {} : {} TYPE:{}.", ex.getMessage(), key, p.getValue(), type);
+            // }
         }
         // TODO implement method
-        return b.build();
+        Record r = b.build();
+        LOG.warn("[convertToRecord] {}", r);
+        // return b.build();
+        return r;
     }
 }

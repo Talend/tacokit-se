@@ -12,6 +12,7 @@
 // ============================================================================
 package org.talend.components.marketo.input;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_DEDUPE_FIELDS;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_EXTERNAL_OPPORTUNITY_ID;
@@ -115,7 +116,7 @@ class OpportunitySourceTest extends SourceBaseTest {
     void testGetOpportunityRolesWithCompoundKey() {
         inputDataSet.setEntity(MarketoEntity.OpportunityRole);
         inputDataSet.setOtherAction(OtherEntityAction.get);
-        inputDataSet.setFields("marketoGuid,externalOpportunityId,leadId,role");
+        inputDataSet.setFields(asList("marketoGuid", "externalOpportunityId", "leadId", "role"));
         inputDataSet.setFilterType("dedupeFields");
         inputDataSet.setUseCompoundKey(true);
         List<CompoundKey> compoundKey = new ArrayList<>();
