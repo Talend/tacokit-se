@@ -16,7 +16,6 @@ import javax.json.JsonBuilderFactory;
 import javax.json.JsonReaderFactory;
 import javax.json.JsonWriterFactory;
 
-import org.apache.beam.sdk.testing.TestPipeline;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -79,9 +78,6 @@ public class MarketoBaseTest {
     @Rule
     public final JUnit4HttpApiPerMethodConfigurator configurator = new JUnit4HttpApiPerMethodConfigurator(API);
 
-    @Rule
-    public transient final TestPipeline pipeline = TestPipeline.create();
-
     @DecryptedServer(value = "marketo-nocrm", alwaysTryLookup = false)
     protected Server serverNoCrm;
 
@@ -143,7 +139,7 @@ public class MarketoBaseTest {
             MARKETO_CLIENT_ID = serverWithNoCrm.getUsername();
             MARKETO_CLIENT_SECRET = serverWithNoCrm.getPassword();
             if (!"username".equals(MARKETO_CLIENT_ID)) {
-                System.setProperty("talend.junit.http.capture", "true");
+                // System.setProperty("talend.junit.http.capture", "true");
             }
         } catch (Exception e) {
             // System.setProperty("talend.junit.http.capture", "false");

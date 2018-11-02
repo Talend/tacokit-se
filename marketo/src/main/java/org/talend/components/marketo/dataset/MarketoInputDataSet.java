@@ -12,6 +12,10 @@
 // ============================================================================
 package org.talend.components.marketo.dataset;
 
+import lombok.Data;
+import lombok.ToString;
+
+import static org.talend.components.marketo.service.UIActionService.ACTIVITIES_LIST;
 import static org.talend.components.marketo.service.UIActionService.CUSTOM_OBJECT_NAMES;
 import static org.talend.components.marketo.service.UIActionService.FIELD_NAMES;
 import static org.talend.components.marketo.service.UIActionService.GUESS_ENTITY_SCHEMA_INPUT;
@@ -30,9 +34,6 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure.Type;
 import org.talend.sdk.component.api.meta.Documentation;
-
-import lombok.Data;
-import lombok.ToString;
 
 @Data
 @DataSet(MarketoInputDataSet.NAME)
@@ -188,6 +189,7 @@ public class MarketoInputDataSet extends MarketoDataSet {
     @Option
     @ActiveIf(target = "entity", value = { "Lead" })
     @ActiveIf(target = "leadAction", value = "getLeadActivity")
+    @Suggestable(value = ACTIVITIES_LIST, parameters = { "dataStore" })
     @Documentation("Activity Type Ids (10 max supported")
     private List<String> activityTypeIds;
 
@@ -236,10 +238,8 @@ public class MarketoInputDataSet extends MarketoDataSet {
 
     @Option
     @ActiveIf(target = "entity", value = { "Lead", "CustomObject", "Company", "Opportunity", "OpportunityRole" })
+    @Suggestable(value = FIELD_NAMES, parameters = { "dataStore", "entity", "customObjectName" })
     @Documentation("Fields")
-    // TODO as Lead may contain more than 1k fields, the guess schema may not be the solution. Instead using
-    // suggestion values may be the right solution (using the describe api call to provide field names). So changing
-    // this property to List<String> has to be done.
-    private String fields;
+    private List<String> fields;
 
 }

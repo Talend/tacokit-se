@@ -18,7 +18,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"129a8f6d-dccd-4057-96d8-c4097d3708a8:sj\",\"token_type\":\"bearer\",\"expires_in\":2925,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"8210cc9f-dbf3-4cb7-b1d4-a26688fe3727:sj\",\"token_type\":\"bearer\",\"expires_in\":2805,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -41,7 +41,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"129a8f6d-dccd-4057-96d8-c4097d3708a8:sj\",\"token_type\":\"bearer\",\"expires_in\":2924,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"8210cc9f-dbf3-4cb7-b1d4-a26688fe3727:sj\",\"token_type\":\"bearer\",\"expires_in\":2805,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -53,17 +53,17 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies/describe.json?access_token=129a8f6d-dccd-4057-96d8-c4097d3708a8%3Asj"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies/describe.json?access_token=8210cc9f-dbf3-4cb7-b1d4-a26688fe3727%3Asj"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
         "Vary":"Accept-Encoding",
-        "Content-Length":"2568",
+        "Content-Length":"2570",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"af#166c59756eb\",\"result\":[{\"name\":\"Company\",\"description\":\"Map for API company fields\",\"createdAt\":\"2017-12-20T23:15:55Z\",\"updatedAt\":\"2017-12-20T23:15:55Z\",\"idField\":\"id\",\"dedupeFields\":[\"externalCompanyId\"],\"searchableFields\":[[\"externalCompanyId\"],[\"id\"],[\"externalSalesPersonId\"],[\"company\"]],\"fields\":[{\"name\":\"createdAt\",\"displayName\":\"Created At\",\"dataType\":\"datetime\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"externalCompanyId\",\"displayName\":\"External Company Id\",\"dataType\":\"string\",\"length\":50,\"updateable\":false,\"crmManaged\":false},{\"name\":\"id\",\"displayName\":\"Id\",\"dataType\":\"integer\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"updatedAt\",\"displayName\":\"Updated At\",\"dataType\":\"datetime\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"annualRevenue\",\"displayName\":\"Annual Revenue\",\"dataType\":\"currency\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingCity\",\"displayName\":\"Billing City\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingCountry\",\"displayName\":\"Billing Country\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingPostalCode\",\"displayName\":\"Billing Postal Code\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingState\",\"displayName\":\"Billing State\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingStreet\",\"displayName\":\"Billing Address\",\"dataType\":\"text\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"company\",\"displayName\":\"Company Name\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"companyNotes\",\"displayName\":\"Company Notes\",\"dataType\":\"text\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"externalSalesPersonId\",\"displayName\":\"externalSalesPersonId\",\"dataType\":\"string\",\"length\":50,\"updateable\":true,\"crmManaged\":false},{\"name\":\"industry\",\"displayName\":\"Industry\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"mainPhone\",\"displayName\":\"Main Phone\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"numberOfEmployees\",\"displayName\":\"Num Employees\",\"dataType\":\"integer\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"sicCode\",\"displayName\":\"SIC Code\",\"dataType\":\"string\",\"length\":40,\"updateable\":true,\"crmManaged\":false},{\"name\":\"site\",\"displayName\":\"Site\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"website\",\"displayName\":\"Website\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false}]}],\"success\":true}",
+      "payload":"{\"requestId\":\"c12d#166d4c7c6a7\",\"result\":[{\"name\":\"Company\",\"description\":\"Map for API company fields\",\"createdAt\":\"2017-12-20T23:15:55Z\",\"updatedAt\":\"2017-12-20T23:15:55Z\",\"idField\":\"id\",\"dedupeFields\":[\"externalCompanyId\"],\"searchableFields\":[[\"externalCompanyId\"],[\"id\"],[\"externalSalesPersonId\"],[\"company\"]],\"fields\":[{\"name\":\"createdAt\",\"displayName\":\"Created At\",\"dataType\":\"datetime\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"externalCompanyId\",\"displayName\":\"External Company Id\",\"dataType\":\"string\",\"length\":50,\"updateable\":false,\"crmManaged\":false},{\"name\":\"id\",\"displayName\":\"Id\",\"dataType\":\"integer\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"updatedAt\",\"displayName\":\"Updated At\",\"dataType\":\"datetime\",\"updateable\":false,\"crmManaged\":false},{\"name\":\"annualRevenue\",\"displayName\":\"Annual Revenue\",\"dataType\":\"currency\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingCity\",\"displayName\":\"Billing City\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingCountry\",\"displayName\":\"Billing Country\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingPostalCode\",\"displayName\":\"Billing Postal Code\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingState\",\"displayName\":\"Billing State\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"billingStreet\",\"displayName\":\"Billing Address\",\"dataType\":\"text\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"company\",\"displayName\":\"Company Name\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"companyNotes\",\"displayName\":\"Company Notes\",\"dataType\":\"text\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"externalSalesPersonId\",\"displayName\":\"externalSalesPersonId\",\"dataType\":\"string\",\"length\":50,\"updateable\":true,\"crmManaged\":false},{\"name\":\"industry\",\"displayName\":\"Industry\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"mainPhone\",\"displayName\":\"Main Phone\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"numberOfEmployees\",\"displayName\":\"Num Employees\",\"dataType\":\"integer\",\"updateable\":true,\"crmManaged\":false},{\"name\":\"sicCode\",\"displayName\":\"SIC Code\",\"dataType\":\"string\",\"length\":40,\"updateable\":true,\"crmManaged\":false},{\"name\":\"site\",\"displayName\":\"Site\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false},{\"name\":\"website\",\"displayName\":\"Website\",\"dataType\":\"string\",\"length\":255,\"updateable\":true,\"crmManaged\":false}]}],\"success\":true}",
       "status":200
     }
   },
@@ -75,16 +75,16 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?access_token=129a8f6d-dccd-4057-96d8-c4097d3708a8%3Asj&filterType=externalCompanyId&filterValues=google01,google02,google03,google04,google05,google06&fields=mainPhone,company,website&batchSize=10"
+      "uri":"https://586-UXQ-391.mktorest.com/rest/v1/companies.json?access_token=8210cc9f-dbf3-4cb7-b1d4-a26688fe3727%3Asj&filterType=externalCompanyId&filterValues=google01,google02,google03,google04,google05,google06&fields=mainPhone,company,website&batchSize=10"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
-        "Content-Length":"510",
+        "Content-Length":"511",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"cf2a#166c5975a0b\",\"result\":[{\"seq\":0,\"id\":53,\"website\":\"g.plus\",\"externalCompanyId\":\"google02\",\"mainPhone\":\"33688828052\",\"company\":\"Google\"},{\"seq\":1,\"id\":54,\"website\":\"g.plus\",\"externalCompanyId\":\"google03\",\"mainPhone\":\"33688828052\",\"company\":\"Google\"},{\"seq\":2,\"id\":55,\"website\":\"g.plus\",\"externalCompanyId\":\"google04\",\"mainPhone\":\"33688828052\",\"company\":\"Google\"},{\"seq\":3,\"id\":56,\"website\":\"g.plus\",\"externalCompanyId\":\"google05\",\"mainPhone\":\"33688828052\",\"company\":\"Google\"}],\"success\":true}",
+      "payload":"{\"requestId\":\"1044e#166d4c7c8bd\",\"result\":[{\"seq\":0,\"id\":53,\"website\":\"g.plus\",\"externalCompanyId\":\"google02\",\"mainPhone\":\"33688828052\",\"company\":\"Google\"},{\"seq\":1,\"id\":54,\"website\":\"g.plus\",\"externalCompanyId\":\"google03\",\"mainPhone\":\"33688828052\",\"company\":\"Google\"},{\"seq\":2,\"id\":55,\"website\":\"g.plus\",\"externalCompanyId\":\"google04\",\"mainPhone\":\"33688828052\",\"company\":\"Google\"},{\"seq\":3,\"id\":56,\"website\":\"g.plus\",\"externalCompanyId\":\"google05\",\"mainPhone\":\"33688828052\",\"company\":\"Google\"}],\"success\":true}",
       "status":200
     }
   }

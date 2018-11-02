@@ -12,15 +12,19 @@
 // ============================================================================
 package org.talend.components.marketo.input;
 
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_EMAIL;
-import static org.talend.components.marketo.MarketoApiConstants.ATTR_FIELDS;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ID;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import javax.json.JsonObject;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -66,11 +70,8 @@ public class LeadSourceTest extends SourceBaseTest {
         source.init();
         while ((result = source.next()) != null) {
             assertNotNull(result);
-            assertEquals(fields, result.getString(ATTR_FIELDS));
+            LOG.error("{}.", result);
         }
-        // result = source.runAction();
-        // assertNotNull(result);
-        // assertEquals(fields, service.getFieldsFromDescribeFormatedForApi(result.getJsonArray(ATTR_RESULT)));
     }
 
     @Test
@@ -112,7 +113,7 @@ public class LeadSourceTest extends SourceBaseTest {
             assertNotNull(result);
         }
         // will all fields
-        inputDataSet.setFields(fields);
+        inputDataSet.setFields(asList(fields.split(",")));
         inputDataSet.setBatchSize(2);
         source = new LeadSource(inputDataSet, service, tools);
         source.init();
@@ -124,7 +125,7 @@ public class LeadSourceTest extends SourceBaseTest {
     @Test
     void testGetMultipleLeadsWithAllFields() {
         setMultipleLeadsDefault();
-        inputDataSet.setFields(fields);
+        inputDataSet.setFields(asList(fields.split(",")));
         source = new LeadSource(inputDataSet, service, tools);
         source.init();
         while ((result = source.next()) != null) {
@@ -135,7 +136,10 @@ public class LeadSourceTest extends SourceBaseTest {
     @Test
     void testGetMultipleLeadsWithAllFieldsOver8k() {
         setMultipleLeadsDefault();
-        inputDataSet.setFields(fields + String.join(" ", Collections.nCopies(5000, " ")));
+        List<String> longFields = new ArrayList<>();
+        longFields.addAll(asList(fields.split(",")));
+        longFields.add(String.join(" ", Collections.nCopies(5000, " ")));
+        inputDataSet.setFields(longFields);
         source = new LeadSource(inputDataSet, service, tools);
         source.init();
         while ((result = source.next()) != null) {
@@ -146,7 +150,7 @@ public class LeadSourceTest extends SourceBaseTest {
     @Test
     void testGetMultipleLeadsWithUnknownField() {
         setMultipleLeadsDefault();
-        inputDataSet.setFields("unknownField");
+        inputDataSet.setFields(asList("unknownField"));
         source = new LeadSource(inputDataSet, service, tools);
         try {
             source.init();
@@ -176,7 +180,7 @@ public class LeadSourceTest extends SourceBaseTest {
     void testGetLeadChanges() {
         inputDataSet.setLeadAction(LeadAction.getLeadChanges);
         inputDataSet.setSinceDateTime("2018-01-01 00:00:01 Z");
-        inputDataSet.setFields(fields);
+        inputDataSet.setFields(asList(fields.split(",")));
         source = new LeadSource(inputDataSet, service, tools);
         source.init();
         while ((result = source.next()) != null) {
@@ -188,7 +192,7 @@ public class LeadSourceTest extends SourceBaseTest {
     void testGetLeadChangesWithPaging() {
         inputDataSet.setLeadAction(LeadAction.getLeadChanges);
         inputDataSet.setSinceDateTime("2018-01-01 00:00:01 Z");
-        inputDataSet.setFields(fields);
+        inputDataSet.setFields(asList(fields.split(",")));
         inputDataSet.setBatchSize(5);
         source = new LeadSource(inputDataSet, service, tools);
         source.init();
@@ -207,7 +211,7 @@ public class LeadSourceTest extends SourceBaseTest {
                 .collect(toList());
         LOG.debug("[testGetLeadActivities] activities: {}", activities);
         inputDataSet.setActivityTypeIds(activities);
-        inputDataSet.setFields(fields);
+        inputDataSet.setFields(asList(fields.split(",")));
         inputDataSet.setBatchSize(300);
         source = new LeadSource(inputDataSet, service, tools);
         source.init();

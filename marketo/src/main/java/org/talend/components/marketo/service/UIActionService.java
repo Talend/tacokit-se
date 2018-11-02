@@ -211,7 +211,7 @@ public class UIActionService extends MarketoService {
     @Suggestions(FIELD_NAMES)
     public SuggestionValues getFieldNames(@Option final MarketoDataStore dataStore, @Option final String entity,
             @Option final String customObjectName) {
-        LOG.warn("[getFieldNames] {}.", dataStore, entity, customObjectName);
+        LOG.warn("[getFieldNames] datastore:{}; entity: {}; customObjectName: {}.", dataStore, entity, customObjectName);
         try {
             List<Item> fieldNames = new ArrayList<>();
             Schema schema = getEntitySchema(dataStore, entity, customObjectName, "");
