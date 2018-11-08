@@ -32,7 +32,7 @@ cd "$work_dir"
     echo 'export MEECROWAVE_OPTS="$MEECROWAVE_OPTS -Dtalend.component.server.component.registry=/opt/talend/connectors-se/component-registry.properties"' >> ./component-kit/bin/setenv.sh
     echo 'export MEECROWAVE_OPTS="$MEECROWAVE_OPTS -Dtalend.component.server.maven.repository=/opt/talend/connectors-se"' >> ./component-kit/bin/setenv.sh
     echo '' >> ./component-kit/bin/setenv.sh
-    echo '[ ! -z "$CONNECTORS_SE_SETUP_OPTS" ] && java -jar /opt/talend/setup.jar' >> ./component-kit/bin/setenv.sh
+    echo '[ ! -z "$CONNECTORS_SE_SETUP_OPTS" ] && java -jar /opt/talend/setup.jar $CONNECTORS_SE_SETUP_OPTS' >> ./component-kit/bin/setenv.sh
     echo '' >> ./component-kit/bin/setenv.sh
     echo "" >> ./component-kit/bin/setenv.sh
 

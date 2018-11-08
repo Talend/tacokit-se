@@ -44,8 +44,8 @@
 
     <junit5.version>5.3.1</junit5.version>
 
-    <surefire.version>2.22.0</surefire.version>
-    <jacoco.version>0.8.1</jacoco.version>
+    <surefire.version>3.0.0-M1</surefire.version>
+    <jacoco.version>0.8.2</jacoco.version>
 
     <commons-csv.version>1.4</commons-csv.version>
     <guava.version>20.0</guava.version>
@@ -268,7 +268,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.7.0</version>
+        <version>3.8.0</version>
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
@@ -304,6 +304,13 @@
             <phase>process-classes</phase>
             <goals>
               <goal>asciidoc</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>talend-component-icon-report</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>icon-report</goal>
             </goals>
           </execution>
           <execution>
@@ -478,9 +485,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>2.9</version>
+        <version>3.0.0</version>
         <configuration>
-          <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+          <dependencyDetailsEnabled>true</dependencyDetailsEnabled>
         </configuration>
       </plugin>
       <plugin>
