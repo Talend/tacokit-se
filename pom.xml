@@ -58,7 +58,6 @@
     <module>fileio</module>
     <module>bigquery</module>
     <module>elasticsearch</module>
-    <module>processing-beam</module>
     <module>processing-tck</module>
     <module>jdbc</module>
     <module>salesforce</module>
