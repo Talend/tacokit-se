@@ -152,7 +152,6 @@ public class JdbcService {
         if (datastore.getJdbcUrl() == null || datastore.getJdbcUrl().isEmpty()) {
             throw new IllegalArgumentException(i18n.errorEmptyJdbcURL());
         }
-
         final JdbcConfiguration.Driver driver = getDriver(datastore);
         final URLClassLoader driverLoader = getDriverClassLoader(driver);
         try {
@@ -167,15 +166,22 @@ public class JdbcService {
                     setProperty("password", datastore.getPassword());
                 }
             };
+            final Connection connection;
             try {
-                final Connection connection = driverInstance.connect(datastore.getJdbcUrl(), info);
-                if (!connection.isValid(30)) {
-                    throw new IllegalStateException(i18n.errorInvalidConnection());
-                }
-                return connection;
+                connection = driverInstance.connect(datastore.getJdbcUrl(), info);
             } catch (SQLException e) {
                 throw new IllegalStateException(e);
             }
+
+            if (!connection.isValid(30)) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    log.error(i18n.errorCantCloseJdbcConnectionProperly());
+                }
+                throw new IllegalStateException(i18n.errorInvalidConnection());
+            }
+            return connection;
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
             throw new IllegalStateException(i18n.errorCantLoadDriver(datastore.getDbType()));
         } catch (SQLException e) {
