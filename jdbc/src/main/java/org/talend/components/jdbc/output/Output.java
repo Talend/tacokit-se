@@ -60,11 +60,6 @@ public class Output implements Serializable {
 
     @PostConstruct
     public void init() {
-
-    }
-
-    @BeforeGroup
-    public void beforeGroup() {
         final Connection connection = jdbcDriversService.connection(dataset.getConnection());
         try {
             connection.setAutoCommit(false);
@@ -73,7 +68,10 @@ public class Output implements Serializable {
         }
 
         this.statementManager = StatementManager.get(dataset, connection, i18n);
+    }
 
+    @BeforeGroup
+    public void beforeGroup() {
     }
 
     @ElementListener
@@ -85,12 +83,14 @@ public class Output implements Serializable {
     public void afterGroup() {
         statementManager.executeBatch();
         this.statementManager.clear();
-        statementManager.close();
+
     }
 
     @PreDestroy
     public void preDestroy() {
-
+        if (statementManager != null) {
+            statementManager.close();
+        }
     }
 
 }

@@ -130,7 +130,6 @@ public abstract class StatementManager implements AutoCloseable {
                 throw new IllegalStateException(i18n.errorCantClearPreparedStatement());
             }
         });
-
     }
 
     @Override
