@@ -1,4 +1,4 @@
-def slackChannel = 'components'
+def slackChannel = 'components-ci'
 def version = 'will be replaced'
 def image = 'will be replaced'
 
@@ -12,7 +12,7 @@ kind: Pod
 spec:
   containers:
     - name: maven
-      image: jenkinsxio/builder-maven:0.0.319
+      image: jenkinsxio/builder-maven:0.1.60
       command:
       - cat
       tty: true
@@ -34,8 +34,15 @@ spec:
   }
 
   environment {
-    MAVEN_OPTS = '-Dmaven.artifact.threads=128 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss'
-    TALEND_REGISTRY="registry.datapwn.com"
+    MAVEN_OPTS='-Dmaven.artifact.threads=128 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss'
+    TALEND_REGISTRY='registry.datapwn.com'
+  }
+
+  parameters {
+    string(
+      name: 'COMPONENT_SERVER_IMAGE_VERSION',
+      defaultValue: '1.1.2_20181108161652',
+      description: 'The Component Server docker image tag')
   }
 
   options {
@@ -65,7 +72,11 @@ spec:
               passwordVariable: 'DOCKER_PASSWORD',
               usernameVariable: 'DOCKER_LOGIN')
           ]) {
-            sh "chmod +x ./connectors-se-docker/src/main/scripts/docker/*.sh && ./connectors-se-docker/src/main/scripts/docker/all.sh `git rev-parse --abbrev-ref HEAD | tr / _`"
+            sh """
+                 |chmod +x ./connectors-se-docker/src/main/scripts/docker/*.sh
+                 |revision=`git rev-parse --abbrev-ref HEAD | tr / _`
+                 |./connectors-se-docker/src/main/scripts/docker/all.sh \$revision
+                 |""".stripMargin()
           }
         }
       }
@@ -92,6 +103,14 @@ spec:
     }
     success {
       slackSend (color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})", channel: "${slackChannel}")
+      script {
+        if (env.COMPONENT_SERVER_IMAGE_VERSION) {
+          println "Launching Connectors EE build with component server docker image >${env.COMPONENT_SERVER_IMAGE_VERSION}<"
+          build job: '/connectors-ee/master',
+                parameters: [ string(name: 'COMPONENT_SERVER_IMAGE_VERSION', value: "${env.COMPONENT_SERVER_IMAGE_VERSION}") ],
+                wait: false, propagate: false
+          }
+      }
     }
     failure {
       slackSend (color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})", channel: "${slackChannel}")
