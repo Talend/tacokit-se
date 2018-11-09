@@ -80,17 +80,21 @@ public class UserGenerator implements Serializable {
     }
 
     @Data
-    public static class Config {
+    public static class Config implements Serializable {
 
         @Option
         private int rowCount;
 
+        @Option
         private String namePrefix;
 
+        @Option
         private boolean nameIsNull = false;
 
+        @Option
         private boolean idIsNull = false;
 
+        @Option
         private int nullEvery = -1;
     }
 

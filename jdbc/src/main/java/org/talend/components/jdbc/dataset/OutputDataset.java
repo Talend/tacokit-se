@@ -68,7 +68,7 @@ public class OutputDataset implements Serializable {
     @NoArgsConstructor
     @AllArgsConstructor
     @AutoLayout
-    public static class UpdateOperationMapping {
+    public static class UpdateOperationMapping implements Serializable {
 
         // fixme : use the values from schema when available in tacokit
         @Option

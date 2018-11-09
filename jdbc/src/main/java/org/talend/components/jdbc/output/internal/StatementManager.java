@@ -20,6 +20,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.talend.components.jdbc.dataset.OutputDataset;
@@ -33,6 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 public abstract class StatementManager implements AutoCloseable {
+
+    private String uuid = UUID.randomUUID().toString();
 
     private final Connection connection;
 
@@ -132,6 +135,7 @@ public abstract class StatementManager implements AutoCloseable {
 
     @Override
     public void close() {
+        log.info("closing statement manager: " + uuid + " from thread: " + Thread.currentThread().getName());
         statements.forEach((k, s) -> {
             try {
                 s.close();
