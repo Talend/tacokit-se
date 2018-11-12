@@ -39,6 +39,7 @@ import org.talend.components.jdbc.components.DataCollector;
 import org.talend.components.jdbc.dataset.InputDataset;
 import org.talend.components.jdbc.datastore.BasicDatastore;
 import org.talend.components.jdbc.service.JdbcService;
+import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
@@ -72,12 +73,13 @@ class JdbcInputEmitterTest extends BaseTest {
         dataset.setSqlQuery("select * from users");
 
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
-        Job.components().component("jdbcInput", "Jdbc://Input?" + config).component("collector", "jdbcTest://DataCollector")
-                .connections().from("jdbcInput").to("collector").build().run();
+        Job.components().component("jdbcInput", "Jdbc://Input?" + config).component("collector", "test://collector").connections()
+                .from("jdbcInput").to("collector").build().run();
 
-        assertEquals(4, DataCollector.getData().size());
+        final List<Record> collectedData = componentsHandler.getCollectedData(Record.class);
+        assertEquals(4, collectedData.size());
         assertEquals(Stream.of("user1", "user2", "user3", "user4").collect(toSet()),
-                DataCollector.getData().stream().map(r -> r.getString("NAME")).collect(toSet()));
+                collectedData.stream().map(r -> r.getString("NAME")).collect(toSet()));
     }
 
     @Test

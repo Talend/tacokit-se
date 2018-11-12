@@ -85,6 +85,9 @@
               <goal>test</goal>
             </goals>
             <configuration>
+              <systemProperties>
+                <talend.component.junit.handler.state>static</talend.component.junit.handler.state>
+              </systemProperties>
               <testFailureIgnore>true</testFailureIgnore>
             </configuration>
           </execution>
