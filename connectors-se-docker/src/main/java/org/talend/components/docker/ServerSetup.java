@@ -40,7 +40,7 @@ public class ServerSetup {
 
     @Command
     public static void setup(@Out final PrintStream stdout, @Err final PrintStream stderr,
-            @Option("maven-repository-location") @Default("/opt/talend/connectors-se") final String m2,
+            @Option("maven-repository-location") @Default("${env.MAVEN_LOCAL_REPOSITORY:-/opt/talend/connectors-se}") final String m2,
             @Option("nexus-base") @Default("http://repo.apache.maven.org/maven2/") final String nexusBase,
             @Option("nexus-token") final String nexusToken,
             @Option("component-jdbc-auto-download-drivers") final boolean downloadDrivers,

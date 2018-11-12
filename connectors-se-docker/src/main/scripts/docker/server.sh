@@ -20,6 +20,7 @@ work_dir="$BASEDIR/target/docker_server"
 mkdir -p "$work_dir"
 cd "$work_dir"
     cp "$BASEDIR/src/main/docker/Dockerfile.server" Dockerfile
+    rm -Rf m2
     cp -r "$BASEDIR/target/docker-m2/" m2
     cp "$BASEDIR/target/connectors-se-docker-setup-shade.jar" setup.jar
     createComponentRegistry

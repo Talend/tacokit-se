@@ -71,7 +71,7 @@
     <dependency>
       <groupId>org.tomitribe</groupId>
       <artifactId>tomitribe-crest-cli</artifactId>
-      <version>0.8</version>
+      <version>0.10</version>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
