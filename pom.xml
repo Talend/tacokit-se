@@ -54,7 +54,6 @@
   </properties>
 
   <modules>
-    <module>localio</module>
     <module>fileio</module>
     <module>bigquery</module>
     <module>elasticsearch</module>
