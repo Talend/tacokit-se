@@ -12,22 +12,13 @@
  */
 package org.talend.components.jdbc.input;
 
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.derby.vti.XmlVTI.asList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Stream;
-
-import javax.json.JsonObject;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -36,7 +27,8 @@ import org.talend.components.jdbc.BaseTest;
 import org.talend.components.jdbc.DerbyExtension;
 import org.talend.components.jdbc.WithDerby;
 import org.talend.components.jdbc.components.DataCollector;
-import org.talend.components.jdbc.dataset.InputDataset;
+import org.talend.components.jdbc.dataset.QueryDataset;
+import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.BasicDatastore;
 import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.record.Record;
@@ -67,14 +59,13 @@ class JdbcInputEmitterTest extends BaseTest {
     @Test
     @DisplayName("Execute a valid query")
     void validQuery() {
-        final InputDataset dataset = new InputDataset();
+        final QueryDataset dataset = new QueryDataset();
         dataset.setConnection(datastore);
-        dataset.setSourceType(InputDataset.SourceType.QUERY);
         dataset.setSqlQuery("select * from users");
 
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
-        Job.components().component("jdbcInput", "Jdbc://Input?" + config).component("collector", "test://collector").connections()
-                .from("jdbcInput").to("collector").build().run();
+        Job.components().component("jdbcInput", "Jdbc://QueryInput?" + config).component("collector", "test://collector")
+                .connections().from("jdbcInput").to("collector").build().run();
 
         final List<Record> collectedData = componentsHandler.getCollectedData(Record.class);
         assertEquals(4, collectedData.size());
@@ -85,13 +76,12 @@ class JdbcInputEmitterTest extends BaseTest {
     @Test
     @DisplayName("Execute a not valid query ")
     void invalidQuery() {
-        final InputDataset dataset = new InputDataset();
+        final QueryDataset dataset = new QueryDataset();
         dataset.setConnection(datastore);
-        dataset.setSourceType(InputDataset.SourceType.QUERY);
         dataset.setSqlQuery("select from users");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
         assertThrows(IllegalStateException.class,
-                () -> Job.components().component("jdbcInput", "Jdbc://Input?" + config)
+                () -> Job.components().component("jdbcInput", "Jdbc://QueryInput?" + config)
                         .component("collector", "jdbcTest://DataCollector").connections().from("jdbcInput").to("collector")
                         .build().run());
     }
@@ -99,13 +89,12 @@ class JdbcInputEmitterTest extends BaseTest {
     @Test
     @DisplayName("Execute a non authorized query (drop table)")
     void unauthorizedDropQuery() {
-        final InputDataset dataset = new InputDataset();
+        final QueryDataset dataset = new QueryDataset();
         dataset.setConnection(datastore);
-        dataset.setSourceType(InputDataset.SourceType.QUERY);
         dataset.setSqlQuery("drop table users");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
         assertThrows(UnsupportedOperationException.class,
-                () -> Job.components().component("jdbcInput", "Jdbc://Input?" + config)
+                () -> Job.components().component("jdbcInput", "Jdbc://QueryInput?" + config)
                         .component("collector", "jdbcTest://DataCollector").connections().from("jdbcInput").to("collector")
                         .build().run());
     }
@@ -113,13 +102,12 @@ class JdbcInputEmitterTest extends BaseTest {
     @Test
     @DisplayName("Execute a non authorized query (insert into)")
     void unauthorizedInsertQuery() {
-        final InputDataset dataset = new InputDataset();
+        final QueryDataset dataset = new QueryDataset();
         dataset.setConnection(datastore);
-        dataset.setSourceType(InputDataset.SourceType.QUERY);
         dataset.setSqlQuery("INSERT INTO users(id, name) VALUES (1, 'user1')");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
         assertThrows(UnsupportedOperationException.class,
-                () -> Job.components().component("jdbcInput", "Jdbc://Input?" + config)
+                () -> Job.components().component("jdbcInput", "Jdbc://QueryInput?" + config)
                         .component("collector", "jdbcTest://DataCollector").connections().from("jdbcInput").to("collector")
                         .build().run());
     }
@@ -127,13 +115,12 @@ class JdbcInputEmitterTest extends BaseTest {
     @Test
     @DisplayName("Execute query using valid table name")
     void validTableName() {
-        final InputDataset dataset = new InputDataset();
+        final TableNameDataset dataset = new TableNameDataset();
         dataset.setConnection(datastore);
-        dataset.setSourceType(InputDataset.SourceType.TABLE_NAME);
         dataset.setTableName("users");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
-        Job.components().component("jdbcInput", "Jdbc://Input?" + config).component("collector", "jdbcTest://DataCollector")
-                .connections().from("jdbcInput").to("collector").build().run();
+        Job.components().component("jdbcInput", "Jdbc://TableNameInput?" + config)
+                .component("collector", "jdbcTest://DataCollector").connections().from("jdbcInput").to("collector").build().run();
 
         assertEquals(4, DataCollector.getData().size());
         assertEquals(Stream.of("user1", "user2", "user3", "user4").collect(toSet()),
@@ -143,13 +130,12 @@ class JdbcInputEmitterTest extends BaseTest {
     @Test
     @DisplayName("Execute query using invalid table name")
     void invalidTableName() {
-        final InputDataset dataset = new InputDataset();
+        final TableNameDataset dataset = new TableNameDataset();
         dataset.setConnection(datastore);
-        dataset.setSourceType(InputDataset.SourceType.TABLE_NAME);
         dataset.setTableName("xxx");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
         assertThrows(IllegalStateException.class,
-                () -> Job.components().component("jdbcInput", "Jdbc://Input?" + config)
+                () -> Job.components().component("jdbcInput", "Jdbc://TableNameInput?" + config)
                         .component("collector", "jdbcTest://DataCollector").connections().from("jdbcInput").to("collector")
                         .build().run());
     }
@@ -162,12 +148,12 @@ class JdbcInputEmitterTest extends BaseTest {
         connection.setPassword("sa");
         connection.setDbType("ORACLEXX");
         connection.setJdbcUrl("jdbc:derby://localhost:1234/foo");
-        final InputDataset dataset = new InputDataset();
+        final QueryDataset dataset = new QueryDataset();
         dataset.setConnection(connection);
         dataset.setSqlQuery("select * from users");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
         assertThrows(IllegalStateException.class,
-                () -> Job.components().component("jdbcInput", "Jdbc://Input?" + config)
+                () -> Job.components().component("jdbcInput", "Jdbc://QueryInput?" + config)
                         .component("collector", "jdbcTest://DataCollector").connections().from("jdbcInput").to("collector")
                         .build().run());
     }
@@ -180,12 +166,12 @@ class JdbcInputEmitterTest extends BaseTest {
         connection.setPassword("sa");
         connection.setDbType("ORACLE");
         connection.setJdbcUrl("jdbc:derby://localhost:1234/foo");
-        final InputDataset dataset = new InputDataset();
+        final QueryDataset dataset = new QueryDataset();
         dataset.setConnection(connection);
         dataset.setSqlQuery("select * from users");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
         assertThrows(IllegalStateException.class,
-                () -> Job.components().component("jdbcInput", "Jdbc://Input?" + config)
+                () -> Job.components().component("jdbcInput", "Jdbc://QueryInput?" + config)
                         .component("collector", "jdbcTest://DataCollector").connections().from("jdbcInput").to("collector")
                         .build().run());
     }

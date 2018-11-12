@@ -23,31 +23,31 @@ import java.util.Map;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.talend.components.jdbc.dataset.OutputDataset;
+import org.talend.components.jdbc.output.OutputConfiguration;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
-public class UpdateStatementManager extends StatementManager {
+public class UpdateManager extends StatementManager {
 
-    private final OutputDataset dataset;
+    private final OutputConfiguration configuration;
 
     private final String[] updateKeys;
 
     private final String[] updateValues;
 
-    UpdateStatementManager(final OutputDataset dataset, final Connection connection, final I18nMessage i18nMessage) {
+    UpdateManager(final OutputConfiguration dataset, final Connection connection, final I18nMessage i18nMessage) {
         super(connection, i18nMessage);
-        this.dataset = dataset;
+        this.configuration = dataset;
         this.updateKeys = ofNullable(dataset.getUpdateOperationMapping()).orElse(emptyList()).stream()
-                .filter(OutputDataset.UpdateOperationMapping::isKey).map(OutputDataset.UpdateOperationMapping::getColumn)
-                .toArray(String[]::new);
+                .filter(OutputConfiguration.UpdateOperationMapping::isKey)
+                .map(OutputConfiguration.UpdateOperationMapping::getColumn).toArray(String[]::new);
         if (this.updateKeys.length == 0) {
             throw new IllegalStateException(i18n.errorNoKeyForUpdateQuery());
         }
 
         this.updateValues = ofNullable(dataset.getUpdateOperationMapping()).orElse(emptyList()).stream().filter(m -> !m.isKey())
-                .map(OutputDataset.UpdateOperationMapping::getColumn).toArray(String[]::new);
+                .map(OutputConfiguration.UpdateOperationMapping::getColumn).toArray(String[]::new);
         if (this.updateValues.length == 0) {
             throw new IllegalStateException(i18n.errorNoUpdatableColumnWasDefined());
         }
@@ -56,8 +56,9 @@ public class UpdateStatementManager extends StatementManager {
 
     @Override
     public String createQuery(final Record record) {
-        return "UPDATE " + dataset.getTableName() + " SET " + Stream.of(updateValues).map(c -> c + " = ?").collect(joining(","))
-                + " WHERE " + Stream.of(updateKeys).map(c -> c + " = ?").collect(joining(" AND "));
+        return "UPDATE " + configuration.getDataset().getTableName() + " SET "
+                + Stream.of(updateValues).map(c -> c + " = ?").collect(joining(",")) + " WHERE "
+                + Stream.of(updateKeys).map(c -> c + " = ?").collect(joining(" AND "));
     }
 
     @Override

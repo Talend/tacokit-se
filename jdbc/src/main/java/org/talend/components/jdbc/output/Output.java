@@ -19,7 +19,6 @@ import java.sql.SQLException;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.talend.components.jdbc.dataset.OutputDataset;
 import org.talend.components.jdbc.output.internal.StatementManager;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
@@ -43,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 @Documentation("JDBC Output component")
 public class Output implements Serializable {
 
-    private final OutputDataset dataset;
+    private final OutputConfiguration configuration;
 
     private final JdbcService jdbcDriversService;
 
@@ -51,23 +50,23 @@ public class Output implements Serializable {
 
     private transient StatementManager statementManager;
 
-    public Output(@Option("configuration") final OutputDataset dataset, final JdbcService jdbcDriversService,
+    public Output(@Option("configuration") final OutputConfiguration dataset, final JdbcService jdbcDriversService,
             final I18nMessage i18nMessage) {
-        this.dataset = dataset;
+        this.configuration = dataset;
         this.jdbcDriversService = jdbcDriversService;
         this.i18n = i18nMessage;
     }
 
     @PostConstruct
     public void init() {
-        final Connection connection = jdbcDriversService.connection(dataset.getConnection());
+        final Connection connection = jdbcDriversService.connection(configuration.getDataset().getConnection());
         try {
             connection.setAutoCommit(false);
         } catch (SQLException e) {
             log.error("Can't deactivate auto-commit, this may alter the performance if this batch");
         }
 
-        this.statementManager = StatementManager.get(dataset, connection, i18n);
+        this.statementManager = StatementManager.get(configuration, connection, i18n);
     }
 
     @BeforeGroup

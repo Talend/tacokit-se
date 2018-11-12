@@ -19,26 +19,25 @@ import static java.util.stream.Collectors.toMap;
 
 import java.sql.Connection;
 import java.util.AbstractMap;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.talend.components.jdbc.dataset.OutputDataset;
+import org.talend.components.jdbc.output.OutputConfiguration;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
-public class DeleteStatementManager extends StatementManager {
+public class DeleteManager extends StatementManager {
 
-    private final OutputDataset dataset;
+    private final OutputConfiguration configuration;
 
     private final String[] deleteKeys;
 
-    DeleteStatementManager(final OutputDataset dataset, final Connection connection, final I18nMessage i18nMessage) {
+    DeleteManager(final OutputConfiguration dataset, final Connection connection, final I18nMessage i18nMessage) {
         super(connection, i18nMessage);
-        this.dataset = dataset;
+        this.configuration = dataset;
         this.deleteKeys = ofNullable(dataset.getDeleteKeys()).orElse(emptyList()).stream().filter(Objects::nonNull)
                 .filter(key -> !key.isEmpty()).map(String::trim).toArray(String[]::new);
         if (this.deleteKeys.length == 0) {
@@ -49,7 +48,7 @@ public class DeleteStatementManager extends StatementManager {
 
     @Override
     public String createQuery(final Record record) {
-        return "DELETE FROM " + dataset.getTableName() + " WHERE "
+        return "DELETE FROM " + configuration.getDataset().getTableName() + " WHERE "
                 + Stream.of(deleteKeys).map(c -> c + " = ?").collect(joining(" AND "));
     }
 

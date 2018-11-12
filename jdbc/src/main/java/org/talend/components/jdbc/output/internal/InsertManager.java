@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.talend.components.jdbc.dataset.OutputDataset;
+import org.talend.components.jdbc.output.OutputConfiguration;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -30,20 +30,21 @@ import org.talend.sdk.component.api.record.Schema;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class InsertStatementManager extends StatementManager {
+public class InsertManager extends StatementManager {
 
-    private final OutputDataset dataset;
+    private final OutputConfiguration configuration;
 
-    InsertStatementManager(final OutputDataset dataset, final Connection connection, final I18nMessage i18nMessage) {
+    InsertManager(final OutputConfiguration dataset, final Connection connection, final I18nMessage i18nMessage) {
         super(connection, i18nMessage);
-        this.dataset = dataset;
+        this.configuration = dataset;
     }
 
     @Override
     public String createQuery(final Record record) {
         final String[] columns = record.getSchema().getEntries().stream().map(Schema.Entry::getName).toArray(String[]::new);
-        final String query = "INSERT INTO " + dataset.getTableName() + Stream.of(columns).collect(joining(",", "(", ")"))
-                + " VALUES" + Stream.of(columns).map(c -> "?").collect(joining(",", "(", ")"));
+        final String query = "INSERT INTO " + configuration.getDataset().getTableName()
+                + Stream.of(columns).collect(joining(",", "(", ")")) + " VALUES"
+                + Stream.of(columns).map(c -> "?").collect(joining(",", "(", ")"));
         log.debug("[query] : " + query);
         return query;
     }

@@ -23,7 +23,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.talend.components.jdbc.dataset.OutputDataset;
+import org.talend.components.jdbc.output.OutputConfiguration;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -50,14 +50,15 @@ public abstract class StatementManager implements AutoCloseable {
 
     public abstract Map<Schema.Entry, Integer> getSqlQueryParams(final Record record);
 
-    public static StatementManager get(final OutputDataset dataset, final Connection connection, final I18nMessage i18nMessage) {
+    public static StatementManager get(final OutputConfiguration dataset, final Connection connection,
+            final I18nMessage i18nMessage) {
         switch (dataset.getActionOnData()) {
         case INSERT:
-            return new InsertStatementManager(dataset, connection, i18nMessage);
+            return new InsertManager(dataset, connection, i18nMessage);
         case UPDATE:
-            return new UpdateStatementManager(dataset, connection, i18nMessage);
+            return new UpdateManager(dataset, connection, i18nMessage);
         case DELETE:
-            return new DeleteStatementManager(dataset, connection, i18nMessage);
+            return new DeleteManager(dataset, connection, i18nMessage);
         default:
             throw new IllegalStateException(i18nMessage.errorUnsupportedDatabaseAction());
         }
@@ -134,7 +135,7 @@ public abstract class StatementManager implements AutoCloseable {
 
     @Override
     public void close() {
-        log.info("closing statement manager: " + uuid + " from thread: " + Thread.currentThread().getName());
+        log.debug("closing statement manager: " + uuid + " from thread: " + Thread.currentThread().getName());
         statements.forEach((k, s) -> {
             try {
                 s.close();

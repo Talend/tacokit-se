@@ -10,16 +10,15 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.jdbc.dataset;
+package org.talend.components.jdbc.output;
 
 import java.io.Serializable;
 import java.util.List;
 
-import org.talend.components.jdbc.datastore.BasicDatastore;
+import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
-import org.talend.sdk.component.api.configuration.type.DataSet;
+import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.layout.AutoLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -29,20 +28,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@DataSet("JdbcOutputDataset")
-@GridLayout(value = { @GridLayout.Row("connection"), @GridLayout.Row({ "tableName" }), @GridLayout.Row({ "actionOnData" }),
-        @GridLayout.Row("updateOperationMapping"), @GridLayout.Row("deleteKeys"), })
+@GridLayout(value = { @GridLayout.Row("dataset"), @GridLayout.Row({ "actionOnData" }), @GridLayout.Row("updateOperationMapping"),
+        @GridLayout.Row("deleteKeys") })
 @Documentation("Those properties define an output data set for the JDBC output component.")
-public class OutputDataset implements Serializable {
+public class OutputConfiguration implements Serializable {
 
     @Option
-    @Documentation("Connection information")
-    private BasicDatastore connection;
-
-    @Option
-    @Suggestable(value = "tables.list", parameters = "connection")
-    @Documentation("Table to perform action on it")
-    private String tableName;
+    @Required
+    @Documentation("Dataset configuration")
+    private TableNameDataset dataset;
 
     @Option
     @Documentation("The action to be performed")

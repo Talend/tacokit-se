@@ -1,15 +1,3 @@
-/*
- * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
- * 
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package org.talend.components.jdbc.input;
 
 import java.io.Serializable;
@@ -24,44 +12,35 @@ import java.util.Date;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.talend.components.jdbc.dataset.InputDataset;
+import org.talend.components.jdbc.dataset.BaseDataSet;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
-import org.talend.sdk.component.api.component.Icon;
-import org.talend.sdk.component.api.component.Version;
-import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.input.Emitter;
 import org.talend.sdk.component.api.input.Producer;
-import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Version
-@Icon(value = Icon.IconType.CUSTOM, custom = "JDBCInput")
-@Emitter(name = "Input")
-@Documentation("JDBC query input")
-public class InputEmitter implements Serializable {
+public abstract class AbstractInputEmitter implements Serializable {
 
-    private final InputDataset queryDataset;
+    protected final BaseDataSet dataSet;
 
-    private RecordBuilderFactory recordBuilderFactory;
+    protected RecordBuilderFactory recordBuilderFactory;
 
-    private final JdbcService jdbcDriversService;
+    protected final JdbcService jdbcDriversService;
 
-    private final I18nMessage i18n;
+    protected final I18nMessage i18n;
 
-    private Connection connection;
+    protected Connection connection;
 
-    private Statement statement;
+    protected Statement statement;
 
-    private ResultSet resultSet;
+    protected ResultSet resultSet;
 
-    public InputEmitter(@Option("configuration") final InputDataset queryDataSet, final JdbcService jdbcDriversService,
+    public AbstractInputEmitter(final BaseDataSet queryDataSet, final JdbcService jdbcDriversService,
             final RecordBuilderFactory recordBuilderFactory, final I18nMessage i18nMessage) {
-        this.queryDataset = queryDataSet;
+        this.dataSet = queryDataSet;
         this.recordBuilderFactory = recordBuilderFactory;
         this.jdbcDriversService = jdbcDriversService;
         this.i18n = i18nMessage;
@@ -69,9 +48,9 @@ public class InputEmitter implements Serializable {
 
     @PostConstruct
     public void init() {
-        final String query = jdbcDriversService.createQuery(queryDataset);
+        final String query = jdbcDriversService.createQuery(dataSet);
         try {
-            connection = jdbcDriversService.connection(queryDataset.getConnection());
+            connection = jdbcDriversService.connection(dataSet.getConnection());
             try {
                 connection.setReadOnly(true);
             } catch (final Throwable e) {
@@ -190,4 +169,5 @@ public class InputEmitter implements Serializable {
             }
         }
     }
+
 }

@@ -37,7 +37,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.talend.components.jdbc.JdbcConfiguration;
-import org.talend.components.jdbc.dataset.InputDataset;
+import org.talend.components.jdbc.dataset.BaseDataSet;
 import org.talend.components.jdbc.datastore.BasicDatastore;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.Configuration;
@@ -134,18 +134,15 @@ public class JdbcService {
         });
     }
 
-    public String createQuery(final InputDataset queryDataset) {
-        if (InputDataset.SourceType.TABLE_NAME.equals(queryDataset.getSourceType())) {
-            return "select * from " + queryDataset.getTableName();
-        } else {
-            if (queryDataset.getSqlQuery() == null || queryDataset.getSqlQuery().isEmpty()) {
-                throw new IllegalStateException(i18n.errorEmptyQuery());
-            }
-            if (!READ_ONLY_QUERY_PATTERN.matcher(queryDataset.getSqlQuery().trim()).matches()) {
-                throw new UnsupportedOperationException(i18n.errorUnauthorizedQuery());
-            }
-            return queryDataset.getSqlQuery();
+    public String createQuery(final BaseDataSet dataSet) {
+
+        if (dataSet.getQuery() == null || dataSet.getQuery().trim().isEmpty()) {
+            throw new IllegalStateException(i18n.errorEmptyQuery());
         }
+        if (!READ_ONLY_QUERY_PATTERN.matcher(dataSet.getQuery().trim()).matches()) {
+            throw new UnsupportedOperationException(i18n.errorUnauthorizedQuery());
+        }
+        return dataSet.getQuery();
     }
 
     public Connection connection(final BasicDatastore datastore) {
