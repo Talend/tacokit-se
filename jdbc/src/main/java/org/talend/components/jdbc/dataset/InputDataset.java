@@ -16,6 +16,7 @@ import java.io.Serializable;
 
 import org.talend.components.jdbc.datastore.BasicDatastore;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -40,6 +41,7 @@ public class InputDataset implements Serializable {
 
     @Option
     @Documentation("The table name if the source type is a TABLE")
+    @Suggestable(value = "tables.list", parameters = "connection")
     @ActiveIf(target = "sourceType", value = { "TABLE_NAME" })
     private String tableName;
 
