@@ -12,8 +12,15 @@
  */
 package org.talend.components.jdbc.service;
 
-import static java.util.stream.Collectors.joining;
+import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.JdbcConfiguration;
+import org.talend.components.jdbc.datastore.BasicDatastore;
+import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.configuration.Configuration;
+import org.talend.sdk.component.api.service.dependency.Resolver;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -25,25 +32,11 @@ import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
-import org.talend.components.jdbc.JdbcConfiguration;
-import org.talend.components.jdbc.dataset.BaseDataSet;
-import org.talend.components.jdbc.datastore.BasicDatastore;
-import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.configuration.Configuration;
-import org.talend.sdk.component.api.service.dependency.Resolver;
-
-import lombok.extern.slf4j.Slf4j;
+import static java.util.stream.Collectors.joining;
 
 @Slf4j
 @Service
@@ -134,15 +127,11 @@ public class JdbcService {
         });
     }
 
-    public String createQuery(final BaseDataSet dataSet) {
-
-        if (dataSet.getQuery() == null || dataSet.getQuery().trim().isEmpty()) {
-            throw new IllegalStateException(i18n.errorEmptyQuery());
-        }
-        if (!READ_ONLY_QUERY_PATTERN.matcher(dataSet.getQuery().trim()).matches()) {
-            throw new UnsupportedOperationException(i18n.errorUnauthorizedQuery());
-        }
-        return dataSet.getQuery();
+    /**
+     * @return return true if the sql query is a read only query, false otherwise
+     */
+    public boolean isReadOnlySQLQuery(final String query) {
+        return READ_ONLY_QUERY_PATTERN.matcher(query.trim()).matches();
     }
 
     public Connection connection(final BasicDatastore datastore) {

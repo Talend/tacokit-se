@@ -12,27 +12,28 @@
  */
 package org.talend.components.jdbc.dataset;
 
-import java.io.Serializable;
-
+import lombok.Data;
 import org.talend.components.jdbc.datastore.BasicDatastore;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Validable;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import lombok.Data;
+import static org.talend.components.jdbc.service.ActionService.ACTION_VALIDATION_READONLY_QUERY;
 
 @Data
 @GridLayout({ @GridLayout.Row("connection"), @GridLayout.Row("sqlQuery") })
-@DataSet("query")
-@Documentation("A read only query to a database")
-public class QueryDataset implements BaseDataSet, Serializable {
+@DataSet("SqlQueryDataset")
+@Documentation("This configuration define a read only query")
+public class SqlQueryDataset implements BaseDataSet {
 
     @Option
     @Documentation("The connection information to execute the query")
     private BasicDatastore connection;
 
     @Option
+    @Validable(ACTION_VALIDATION_READONLY_QUERY)
     @Documentation("A valid read only query is the source type is Query")
     private String sqlQuery;
 

@@ -2,7 +2,9 @@ package org.talend.components.jdbc.dataset;
 
 import org.talend.components.jdbc.datastore.BasicDatastore;
 
-public interface BaseDataSet {
+import java.io.Serializable;
+
+public interface BaseDataSet extends Serializable {
 
     BasicDatastore getConnection();
 

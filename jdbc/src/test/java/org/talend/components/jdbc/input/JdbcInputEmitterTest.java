@@ -27,7 +27,7 @@ import org.talend.components.jdbc.BaseTest;
 import org.talend.components.jdbc.DerbyExtension;
 import org.talend.components.jdbc.WithDerby;
 import org.talend.components.jdbc.components.DataCollector;
-import org.talend.components.jdbc.dataset.QueryDataset;
+import org.talend.components.jdbc.dataset.SqlQueryDataset;
 import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.BasicDatastore;
 import org.talend.components.jdbc.service.JdbcService;
@@ -59,7 +59,7 @@ class JdbcInputEmitterTest extends BaseTest {
     @Test
     @DisplayName("Execute a valid query")
     void validQuery() {
-        final QueryDataset dataset = new QueryDataset();
+        final SqlQueryDataset dataset = new SqlQueryDataset();
         dataset.setConnection(datastore);
         dataset.setSqlQuery("select * from users");
 
@@ -76,7 +76,7 @@ class JdbcInputEmitterTest extends BaseTest {
     @Test
     @DisplayName("Execute a not valid query ")
     void invalidQuery() {
-        final QueryDataset dataset = new QueryDataset();
+        final SqlQueryDataset dataset = new SqlQueryDataset();
         dataset.setConnection(datastore);
         dataset.setSqlQuery("select from users");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
@@ -89,11 +89,11 @@ class JdbcInputEmitterTest extends BaseTest {
     @Test
     @DisplayName("Execute a non authorized query (drop table)")
     void unauthorizedDropQuery() {
-        final QueryDataset dataset = new QueryDataset();
+        final SqlQueryDataset dataset = new SqlQueryDataset();
         dataset.setConnection(datastore);
         dataset.setSqlQuery("drop table users");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
-        assertThrows(UnsupportedOperationException.class,
+        assertThrows(IllegalArgumentException.class,
                 () -> Job.components().component("jdbcInput", "Jdbc://QueryInput?" + config)
                         .component("collector", "jdbcTest://DataCollector").connections().from("jdbcInput").to("collector")
                         .build().run());
@@ -102,11 +102,11 @@ class JdbcInputEmitterTest extends BaseTest {
     @Test
     @DisplayName("Execute a non authorized query (insert into)")
     void unauthorizedInsertQuery() {
-        final QueryDataset dataset = new QueryDataset();
+        final SqlQueryDataset dataset = new SqlQueryDataset();
         dataset.setConnection(datastore);
         dataset.setSqlQuery("INSERT INTO users(id, name) VALUES (1, 'user1')");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
-        assertThrows(UnsupportedOperationException.class,
+        assertThrows(IllegalArgumentException.class,
                 () -> Job.components().component("jdbcInput", "Jdbc://QueryInput?" + config)
                         .component("collector", "jdbcTest://DataCollector").connections().from("jdbcInput").to("collector")
                         .build().run());
@@ -148,7 +148,7 @@ class JdbcInputEmitterTest extends BaseTest {
         connection.setPassword("sa");
         connection.setDbType("ORACLEXX");
         connection.setJdbcUrl("jdbc:derby://localhost:1234/foo");
-        final QueryDataset dataset = new QueryDataset();
+        final SqlQueryDataset dataset = new SqlQueryDataset();
         dataset.setConnection(connection);
         dataset.setSqlQuery("select * from users");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
@@ -166,7 +166,7 @@ class JdbcInputEmitterTest extends BaseTest {
         connection.setPassword("sa");
         connection.setDbType("ORACLE");
         connection.setJdbcUrl("jdbc:derby://localhost:1234/foo");
-        final QueryDataset dataset = new QueryDataset();
+        final SqlQueryDataset dataset = new SqlQueryDataset();
         dataset.setConnection(connection);
         dataset.setSqlQuery("select * from users");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();

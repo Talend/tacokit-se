@@ -34,7 +34,7 @@ import org.talend.components.jdbc.BaseTest;
 import org.talend.components.jdbc.DerbyExtension;
 import org.talend.components.jdbc.WithDerby;
 import org.talend.components.jdbc.components.DataCollector;
-import org.talend.components.jdbc.dataset.QueryDataset;
+import org.talend.components.jdbc.dataset.SqlQueryDataset;
 import org.talend.components.jdbc.datastore.BasicDatastore;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
@@ -79,7 +79,7 @@ class OutputTest extends BaseTest {
                 .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("userGenerator").to("jdbcOutput").build()
                 .run();
 
-        final QueryDataset in = new QueryDataset();
+        final SqlQueryDataset in = new SqlQueryDataset();
         in.setConnection(newConnection(derbyInfo));
         in.setSqlQuery("select * from users");
 
@@ -120,7 +120,7 @@ class OutputTest extends BaseTest {
                 .build().run();
 
         // check the update
-        final QueryDataset in = new QueryDataset();
+        final SqlQueryDataset in = new SqlQueryDataset();
         in.setConnection(connection);
         in.setSqlQuery("select * from users");
         final String inConfig = configurationByExample().forInstance(in).configured().toQueryString();
@@ -235,7 +235,7 @@ class OutputTest extends BaseTest {
                 .build().run();
 
         // check the update
-        final QueryDataset in = new QueryDataset();
+        final SqlQueryDataset in = new SqlQueryDataset();
         in.setConnection(connection);
         in.setSqlQuery("select * from users");
         final String inConfig = configurationByExample().forInstance(in).configured().toQueryString();

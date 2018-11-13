@@ -14,7 +14,7 @@ package org.talend.components.jdbc.input;
 
 import java.io.Serializable;
 
-import org.talend.components.jdbc.dataset.QueryDataset;
+import org.talend.components.jdbc.dataset.SqlQueryDataset;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.component.Icon;
@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @Documentation("JDBC query input")
 public class QueryInputEmitter extends AbstractInputEmitter implements Serializable {
 
-    public QueryInputEmitter(@Option("configuration") final QueryDataset queryDataSet, final JdbcService jdbcDriversService,
+    public QueryInputEmitter(@Option("configuration") final SqlQueryDataset queryDataSet, final JdbcService jdbcDriversService,
             final RecordBuilderFactory recordBuilderFactory, final I18nMessage i18nMessage) {
         super(queryDataSet, jdbcDriversService, recordBuilderFactory, i18nMessage);
     }

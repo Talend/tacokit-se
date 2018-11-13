@@ -24,19 +24,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class AbstractInputEmitter implements Serializable {
 
-    protected final BaseDataSet dataSet;
+    private final BaseDataSet dataSet;
 
-    protected RecordBuilderFactory recordBuilderFactory;
+    private RecordBuilderFactory recordBuilderFactory;
 
-    protected final JdbcService jdbcDriversService;
+    private final JdbcService jdbcDriversService;
 
-    protected final I18nMessage i18n;
+    private final I18nMessage i18n;
 
     protected Connection connection;
 
-    protected Statement statement;
+    private Statement statement;
 
-    protected ResultSet resultSet;
+    private ResultSet resultSet;
 
     public AbstractInputEmitter(final BaseDataSet queryDataSet, final JdbcService jdbcDriversService,
             final RecordBuilderFactory recordBuilderFactory, final I18nMessage i18nMessage) {
@@ -48,7 +48,14 @@ public abstract class AbstractInputEmitter implements Serializable {
 
     @PostConstruct
     public void init() {
-        final String query = jdbcDriversService.createQuery(dataSet);
+        if (dataSet.getQuery() == null || dataSet.getQuery().trim().isEmpty()) {
+            throw new IllegalArgumentException(i18n.errorEmptyQuery());
+        }
+
+        if (!jdbcDriversService.isReadOnlySQLQuery(dataSet.getQuery())) {
+            throw new IllegalArgumentException(i18n.errorUnauthorizedQuery());
+        }
+
         try {
             connection = jdbcDriversService.connection(dataSet.getConnection());
             try {
@@ -69,7 +76,7 @@ public abstract class AbstractInputEmitter implements Serializable {
             } else {
                 statement = connection.createStatement();
             }
-            resultSet = statement.executeQuery(query);
+            resultSet = statement.executeQuery(dataSet.getQuery());
         } catch (SQLException e) {
             throw new IllegalStateException(e);
         }
