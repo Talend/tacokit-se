@@ -16,7 +16,7 @@
 #  limitations under the License.
 #
 
-export COMPONENT_SERVER_IMAGE_VERSION=1.1.2_20181024155243
+export COMPONENT_SERVER_IMAGE_VERSION=1.1.2_20181107155832
 
 export BASEDIR=$(cd "$(dirname "$0")" ; pwd -P)/../../../..
 export CONNECTOR_VERSION=$(grep "<version>" "$BASEDIR/pom.xml" | head -n 1 | sed "s/.*>\\(.*\\)<.*/\\1/")
@@ -59,7 +59,7 @@ function pushImage() {
         echo "$DOCKER_PASSWORD" | docker login "$TALEND_REGISTRY" -u "$DOCKER_LOGIN" --password-stdin
         set -x
         for i in {1..5}; do
-            docker push "$TALEND_REGISTRY/$1" && break || sleep 15
+            docker push "$TALEND_REGISTRY/$1" && break || sleep 5
         done
     else
         echo "No DOCKER_LOGIN set so skipping push of >$1<"
@@ -87,3 +87,11 @@ echo " - TALEND_REGISTRY=$TALEND_REGISTRY"
 echo " - DOCKER_IMAGE_VERSION=$DOCKER_IMAGE_VERSION"
 echo ""
 echo "-----------------------------------------------------"
+
+if [ ! -z "$DOCKER_SCRIPT_CONFIGURATION_DUMP" ]; then
+    mkdir -p $(dirname "$DOCKER_SCRIPT_CONFIGURATION_DUMP")
+    echo "dockerImageVersion=$DOCKER_IMAGE_VERSION" > "$DOCKER_SCRIPT_CONFIGURATION_DUMP"
+    echo "Created >$DOCKER_SCRIPT_CONFIGURATION_DUMP<"
+else
+    echo "DOCKER_SCRIPT_CONFIGURATION_DUMP not set"
+fi
