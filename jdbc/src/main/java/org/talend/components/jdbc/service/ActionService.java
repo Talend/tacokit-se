@@ -12,7 +12,24 @@
  */
 package org.talend.components.jdbc.service;
 
-import lombok.extern.slf4j.Slf4j;
+import static java.util.Collections.emptyList;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.IntStream;
 
 import org.talend.components.jdbc.JdbcConfiguration;
 import org.talend.components.jdbc.dataset.TableNameDataset;
@@ -29,21 +46,7 @@ import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.*;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import static java.util.Collections.emptyList;
-import static java.util.Optional.empty;
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -94,37 +97,8 @@ public class ActionService {
         return new ValidationResult(ValidationResult.Status.OK, "the query is valid");
     }
 
-    @Suggestions(ACTION_SUGGESTION_TABLE_NAMES)
-    public SuggestionValues getTableFromDatabase(@Option final BasicDatastore datastore) {
-        final Collection<SuggestionValues.Item> items = new HashSet<>();
-        try (Connection conn = jdbcDriversService.connection(datastore)) {
-            DatabaseMetaData dbMetaData = conn.getMetaData();
-            Set<String> tableTypes = getAvailableTableTypes(dbMetaData);
-            final String schema = (datastore.getJdbcUrl().contains("oracle") && datastore.getUserId() != null)
-                    ? datastore.getUserId().toUpperCase()
-                    : null;
-            try (ResultSet tables = dbMetaData.getTables(null, schema, null, tableTypes.toArray(new String[0]))) {
-                while (tables.next()) {
-                    ofNullable(ofNullable(tables.getString("TABLE_NAME")).orElseGet(() -> {
-                        try {
-                            return tables.getString("SYNONYM_NAME");
-                        } catch (SQLException e) {
-                            // no-op
-                            return null;
-                        }
-                    })).ifPresent(t -> items.add(new SuggestionValues.Item(t, t)));
-
-                }
-            }
-        } catch (final Exception unexpected) { // catch all exceptions for this ui action to return empty list
-            log.error(i18n.errorCantLoadTableSuggestions(), unexpected);
-        }
-        return new SuggestionValues(true, items);
-    }
-
     @Suggestions(ACTION_SUGGESTION_TABLE_COLUMNS_NAMES)
     public SuggestionValues getTableColumns(@Option final TableNameDataset dataset) {
-        final Collection<SuggestionValues.Item> items;
         try (Connection conn = jdbcDriversService.connection(dataset.getConnection())) {
             try (final Statement statement = conn.createStatement()) {
                 statement.setMaxRows(1);
@@ -148,6 +122,31 @@ public class ActionService {
         }
 
         return new SuggestionValues(false, emptyList());
+    }
+
+    @Suggestions(ACTION_SUGGESTION_TABLE_NAMES)
+    public SuggestionValues getTableFromDatabase(@Option final BasicDatastore datastore) {
+        final Collection<SuggestionValues.Item> items = new HashSet<>();
+        try (Connection connection = jdbcDriversService.connection(datastore)) {
+            DatabaseMetaData dbMetaData = connection.getMetaData();
+            try (ResultSet tables = dbMetaData.getTables(connection.getCatalog(), connection.getSchema(), null,
+                    getAvailableTableTypes(dbMetaData).toArray(new String[0]))) {
+                while (tables.next()) {
+                    ofNullable(ofNullable(tables.getString("TABLE_NAME")).orElseGet(() -> {
+                        try {
+                            return tables.getString("SYNONYM_NAME");
+                        } catch (SQLException e) {
+                            // no-op
+                            return null;
+                        }
+                    })).ifPresent(t -> items.add(new SuggestionValues.Item(t, t)));
+
+                }
+            }
+        } catch (final Exception unexpected) { // catch all exceptions for this ui action to return empty list
+            log.error(i18n.errorCantLoadTableSuggestions(), unexpected);
+        }
+        return new SuggestionValues(true, items);
     }
 
     private Set<String> getAvailableTableTypes(DatabaseMetaData dbMetaData) throws SQLException {

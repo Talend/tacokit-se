@@ -9,19 +9,14 @@ public class BaseTest {
         final BasicDatastore connection = new BasicDatastore();
         connection.setUserId("sa");
         connection.setPassword("sa");
-        connection.setDbType("DERBY");
+        connection.setDbType("Derby");
         connection.setJdbcUrl("jdbc:derby://localhost:" + derbyInfo.getPort() + "/" + derbyInfo.getDbName());
         return connection;
     }
 
     public TableNameDataset newTableNameDataset(final DerbyExtension.DerbyInfo derbyInfo, final String tableName) {
-        final BasicDatastore connection = new BasicDatastore();
-        connection.setUserId("sa");
-        connection.setPassword("sa");
-        connection.setDbType("DERBY");
-        connection.setJdbcUrl("jdbc:derby://localhost:" + derbyInfo.getPort() + "/" + derbyInfo.getDbName());
         TableNameDataset dataset = new TableNameDataset();
-        dataset.setConnection(connection);
+        dataset.setConnection(newConnection(derbyInfo));
         dataset.setTableName(tableName);
         return dataset;
     }

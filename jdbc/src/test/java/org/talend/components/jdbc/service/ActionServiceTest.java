@@ -19,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
@@ -28,7 +27,6 @@ import org.talend.components.jdbc.DerbyExtension;
 import org.talend.components.jdbc.WithDerby;
 import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.BasicDatastore;
-import org.talend.components.jdbc.output.OutputConfiguration;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.asyncvalidation.ValidationResult;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
@@ -53,15 +51,16 @@ class ActionServiceTest {
     void loadSupportedDataBaseTypes() {
         final Values values = myService.loadSupportedDataBaseTypes();
         assertNotNull(values);
-        assertEquals(3, values.getItems().size());
-        assertEquals(asList("MySQL", "DERBY", "ORACLE"), values.getItems().stream().map(Values.Item::getId).collect(toList()));
+        assertEquals(4, values.getItems().size());
+        assertEquals(Stream.of("MySQL", "Derby", "Oracle", "Snowflake").collect(toSet()),
+                values.getItems().stream().map(Values.Item::getId).collect(toSet()));
     }
 
     @Test
     @DisplayName("Datastore HealthCheck - Valid user")
     void validateBasicDatastore(final DerbyExtension.DerbyInfo info) {
         final BasicDatastore datastore = new BasicDatastore();
-        datastore.setDbType("DERBY");
+        datastore.setDbType("Derby");
         datastore.setJdbcUrl("jdbc:derby://localhost:" + info.getPort() + "/" + info.getDbName());
         datastore.setUserId("sa");
         datastore.setPassword("sa");
@@ -74,7 +73,7 @@ class ActionServiceTest {
     @DisplayName("Datastore HealthCheck - Bad credentials")
     void healthCheckWithBadCredentials(final DerbyExtension.DerbyInfo info) {
         final BasicDatastore datastore = new BasicDatastore();
-        datastore.setDbType("DERBY");
+        datastore.setDbType("Derby");
         datastore.setJdbcUrl("jdbc:derby://localhost:" + info.getPort() + "/" + info.getDbName());
         datastore.setUserId("bad");
         datastore.setPassword("az");
@@ -87,7 +86,7 @@ class ActionServiceTest {
     @DisplayName("Datastore HealthCheck - Bad Database Name")
     void healthCheckWithBadDataBaseName(final DerbyExtension.DerbyInfo info) {
         final BasicDatastore datastore = new BasicDatastore();
-        datastore.setDbType("DERBY");
+        datastore.setDbType("Derby");
         datastore.setJdbcUrl("jdbc:derby://localhost:" + info.getPort() + "/DontExistUnlessyouCreatedDB");
         datastore.setUserId("bad");
         datastore.setPassword("az");
@@ -100,7 +99,7 @@ class ActionServiceTest {
     @DisplayName("Datastore HealthCheck - Bad Jdbc sub Protocol")
     void healthCheckWithBadSubProtocol() {
         final BasicDatastore datastore = new BasicDatastore();
-        datastore.setDbType("DERBY");
+        datastore.setDbType("Derby");
         datastore.setJdbcUrl("jdbc:darby/DB");
         datastore.setUserId("bad");
         datastore.setPassword("az");
@@ -124,7 +123,7 @@ class ActionServiceTest {
     @DisplayName("Datastore Get Table list - valid connection")
     void getTableFromDatabase(final DerbyExtension.DerbyInfo info) {
         final BasicDatastore datastore = new BasicDatastore();
-        datastore.setDbType("DERBY");
+        datastore.setDbType("Derby");
         datastore.setJdbcUrl("jdbc:derby://localhost:" + info.getPort() + "/" + info.getDbName());
         datastore.setUserId("sa");
         datastore.setPassword("sa");
@@ -138,7 +137,7 @@ class ActionServiceTest {
     @DisplayName("Datastore Get Table list - invalid connection")
     void getTableFromDatabaseWithInvalidConnection(final DerbyExtension.DerbyInfo info) {
         final BasicDatastore datastore = new BasicDatastore();
-        datastore.setDbType("DERBY");
+        datastore.setDbType("Derby");
         datastore.setJdbcUrl("jdbc:derby://localhost:" + info.getPort() + "/" + info.getDbName());
         datastore.setUserId("wrong");
         datastore.setPassword("wrong");
@@ -151,7 +150,7 @@ class ActionServiceTest {
     @DisplayName("Get Table columns list - valid connection")
     void getTableColumnFromDatabase(final DerbyExtension.DerbyInfo info) {
         final BasicDatastore datastore = new BasicDatastore();
-        datastore.setDbType("DERBY");
+        datastore.setDbType("Derby");
         datastore.setJdbcUrl("jdbc:derby://localhost:" + info.getPort() + "/" + info.getDbName());
         datastore.setUserId("sa");
         datastore.setPassword("sa");
@@ -169,7 +168,7 @@ class ActionServiceTest {
     @DisplayName("Get Table Columns list - invalid connection")
     void getTableColumnsFromDatabaseWithInvalidConnection(final DerbyExtension.DerbyInfo info) {
         final BasicDatastore datastore = new BasicDatastore();
-        datastore.setDbType("DERBY");
+        datastore.setDbType("Derby");
         datastore.setJdbcUrl("jdbc:derby://localhost:" + info.getPort() + "/" + info.getDbName());
         datastore.setUserId("wrong");
         datastore.setPassword("wrong");
@@ -185,7 +184,7 @@ class ActionServiceTest {
     @DisplayName("Get Table Columns list - invalid table name")
     void getTableColumnsFromDatabaseWithInvalidTableName(final DerbyExtension.DerbyInfo info) {
         final BasicDatastore datastore = new BasicDatastore();
-        datastore.setDbType("DERBY");
+        datastore.setDbType("Derby");
         datastore.setJdbcUrl("jdbc:derby://localhost:" + info.getPort() + "/" + info.getDbName());
         datastore.setUserId("sa");
         datastore.setPassword("sa");
