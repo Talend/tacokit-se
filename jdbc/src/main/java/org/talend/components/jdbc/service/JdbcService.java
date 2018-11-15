@@ -13,6 +13,7 @@
 package org.talend.components.jdbc.service;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.talend.components.jdbc.JdbcConfiguration;
 import org.talend.components.jdbc.datastore.BasicDatastore;
 import org.talend.sdk.component.api.service.Service;
@@ -21,6 +22,7 @@ import org.talend.sdk.component.api.service.dependency.Resolver;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +38,7 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 
 @Slf4j
@@ -128,10 +131,10 @@ public class JdbcService {
     }
 
     /**
-     * @return return true if the sql query is a read only query, false otherwise
+     * @return return false if the sql query is not a read only query, true otherwise
      */
-    public boolean isReadOnlySQLQuery(final String query) {
-        return READ_ONLY_QUERY_PATTERN.matcher(query.trim()).matches();
+    public boolean isNotReadOnlySQLQuery(final String query) {
+        return !READ_ONLY_QUERY_PATTERN.matcher(query.trim()).matches();
     }
 
     public Connection connection(final BasicDatastore datastore) {
@@ -159,20 +162,25 @@ public class JdbcService {
                 throw new IllegalStateException(e);
             }
 
-            if (!connection.isValid(30)) {
+            if (!isConnectionValid(connection)) {
                 try {
                     connection.close();
                 } catch (SQLException e) {
-                    log.error(i18n.errorCantCloseJdbcConnectionProperly());
+                    log.error(i18n.errorCantCloseJdbcConnectionProperly(), e);
                 }
                 throw new IllegalStateException(i18n.errorInvalidConnection());
             }
+
             return connection;
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            throw new IllegalStateException(i18n.errorCantLoadDriver(datastore.getDbType()));
+            throw new IllegalStateException(i18n.errorCantLoadDriver(datastore.getDbType()), e);
         } catch (SQLException e) {
-            throw new IllegalStateException(i18n.errorSQL(e.getErrorCode(), e.getMessage()));
+            throw new IllegalStateException(i18n.errorSQL(e.getErrorCode(), e.getMessage()), e);
         }
+    }
+
+    public boolean isConnectionValid(final Connection connection) throws SQLException {
+        return connection.isValid(ofNullable(jdbcConfiguration.get().getConnection().getValidationTimeout()).orElse(5));
     }
 
     private JdbcConfiguration.Driver getDriver(final BasicDatastore datastore) {

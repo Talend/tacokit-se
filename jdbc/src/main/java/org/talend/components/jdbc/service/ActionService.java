@@ -67,7 +67,7 @@ public class ActionService {
     }
 
     @HealthCheck(ACTION_BASIC_HEALTH_CHECK)
-    public HealthCheckStatus validateBasicDatastore(@Option final BasicDatastore datastore) {
+    public HealthCheckStatus validateBasicDataStore(@Option final BasicDatastore datastore) {
         try (final Connection ignored = this.jdbcDriversService.connection(datastore)) {
         } catch (final Exception e) {
             return new HealthCheckStatus(HealthCheckStatus.Status.KO, e.getMessage());
@@ -78,7 +78,7 @@ public class ActionService {
 
     @AsyncValidation(ACTION_VALIDATION_READONLY_QUERY)
     public ValidationResult validateReadOnlySQLQuery(final String query) {
-        if (!jdbcDriversService.isReadOnlySQLQuery(query)) {
+        if (jdbcDriversService.isNotReadOnlySQLQuery(query)) {
             return new ValidationResult(ValidationResult.Status.KO, i18n.errorUnauthorizedQuery());
         }
         return new ValidationResult(ValidationResult.Status.OK, "the query is valid");

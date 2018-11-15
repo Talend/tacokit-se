@@ -23,6 +23,7 @@ import org.talend.components.jdbc.DerbyExtension;
 import org.talend.components.jdbc.WithDerby;
 import org.talend.components.jdbc.datastore.BasicDatastore;
 import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.asyncvalidation.ValidationResult;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.completion.Values;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
@@ -57,7 +58,7 @@ class ActionServiceTest {
         datastore.setJdbcUrl("jdbc:derby://localhost:" + info.getPort() + "/" + info.getDbName());
         datastore.setUserId("sa");
         datastore.setPassword("sa");
-        final HealthCheckStatus status = myService.validateBasicDatastore(datastore);
+        final HealthCheckStatus status = myService.validateBasicDataStore(datastore);
         assertNotNull(status);
         assertEquals(HealthCheckStatus.Status.OK, status.getStatus());
     }
@@ -70,7 +71,7 @@ class ActionServiceTest {
         datastore.setJdbcUrl("jdbc:derby://localhost:" + info.getPort() + "/" + info.getDbName());
         datastore.setUserId("bad");
         datastore.setPassword("az");
-        final HealthCheckStatus status = myService.validateBasicDatastore(datastore);
+        final HealthCheckStatus status = myService.validateBasicDataStore(datastore);
         assertNotNull(status);
         assertEquals(HealthCheckStatus.Status.KO, status.getStatus());
     }
@@ -83,7 +84,7 @@ class ActionServiceTest {
         datastore.setJdbcUrl("jdbc:derby://localhost:" + info.getPort() + "/DontExistUnlessyouCreatedDB");
         datastore.setUserId("bad");
         datastore.setPassword("az");
-        final HealthCheckStatus status = myService.validateBasicDatastore(datastore);
+        final HealthCheckStatus status = myService.validateBasicDataStore(datastore);
         assertNotNull(status);
         assertEquals(HealthCheckStatus.Status.KO, status.getStatus());
     }
@@ -96,9 +97,20 @@ class ActionServiceTest {
         datastore.setJdbcUrl("jdbc:darby/DB");
         datastore.setUserId("bad");
         datastore.setPassword("az");
-        final HealthCheckStatus status = myService.validateBasicDatastore(datastore);
+        final HealthCheckStatus status = myService.validateBasicDataStore(datastore);
         assertNotNull(status);
         assertEquals(HealthCheckStatus.Status.KO, status.getStatus());
+    }
+
+    @Test
+    @DisplayName("Datastore Query - Validate select query")
+    void validateReadOnlyQuery() {
+        assertEquals(ValidationResult.Status.KO, myService.validateReadOnlySQLQuery("update table").getStatus());
+        assertEquals(ValidationResult.Status.KO, myService.validateReadOnlySQLQuery("delete table").getStatus());
+        assertEquals(ValidationResult.Status.KO, myService.validateReadOnlySQLQuery("insert table").getStatus());
+        assertEquals(ValidationResult.Status.KO,
+                myService.validateReadOnlySQLQuery("some other command other than select").getStatus());
+        assertEquals(ValidationResult.Status.OK, myService.validateReadOnlySQLQuery("select * ").getStatus());
     }
 
     @Test

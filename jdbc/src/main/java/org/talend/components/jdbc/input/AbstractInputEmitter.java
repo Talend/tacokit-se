@@ -52,7 +52,7 @@ public abstract class AbstractInputEmitter implements Serializable {
             throw new IllegalArgumentException(i18n.errorEmptyQuery());
         }
 
-        if (!jdbcDriversService.isReadOnlySQLQuery(dataSet.getQuery())) {
+        if (jdbcDriversService.isNotReadOnlySQLQuery(dataSet.getQuery())) {
             throw new IllegalArgumentException(i18n.errorUnauthorizedQuery());
         }
 
@@ -63,6 +63,10 @@ public abstract class AbstractInputEmitter implements Serializable {
             } catch (final Throwable e) {
                 log.warn(i18n.warnReadOnlyOptimisationFailure(), e); // not supported in some database
             }
+
+            /*
+             * Add some optimization for mysql by activating read only and enabling streaming
+             */
             if (connection.getMetaData().getDriverName().toLowerCase().contains("mysql")) {
                 statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
                 final Class<?> clazz = statement.getClass();

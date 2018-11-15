@@ -35,8 +35,8 @@ public class DeleteManager extends StatementManager {
 
     private final String[] deleteKeys;
 
-    DeleteManager(final OutputConfiguration dataset, final Connection connection, final I18nMessage i18nMessage) {
-        super(connection, i18nMessage);
+    DeleteManager(final OutputConfiguration dataset, final I18nMessage i18nMessage, final Connection connection) {
+        super(i18nMessage, connection);
         this.configuration = dataset;
         this.deleteKeys = ofNullable(dataset.getDeleteKeys()).orElse(emptyList()).stream().filter(Objects::nonNull)
                 .filter(key -> !key.isEmpty()).map(String::trim).toArray(String[]::new);

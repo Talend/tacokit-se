@@ -35,14 +35,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class StatementManager implements AutoCloseable {
 
-    private String uuid = UUID.randomUUID().toString();
-
-    private final Connection connection;
+    private final String uuid = UUID.randomUUID().toString();
 
     protected final I18nMessage i18n;
 
+    private final Connection connection;
+
     /**
-     * Statement indexed by there parameter separated by ,
+     * Statement indexed by there parameter separated by ','
      */
     private Map<String, PreparedStatement> statements = new HashMap<>();
 
@@ -50,15 +50,15 @@ public abstract class StatementManager implements AutoCloseable {
 
     public abstract Map<Schema.Entry, Integer> getSqlQueryParams(final Record record);
 
-    public static StatementManager get(final OutputConfiguration dataset, final Connection connection,
-            final I18nMessage i18nMessage) {
+    public static StatementManager get(final OutputConfiguration dataset, final I18nMessage i18nMessage,
+            final Connection connection) {
         switch (dataset.getActionOnData()) {
         case INSERT:
-            return new InsertManager(dataset, connection, i18nMessage);
+            return new InsertManager(dataset, i18nMessage, connection);
         case UPDATE:
-            return new UpdateManager(dataset, connection, i18nMessage);
+            return new UpdateManager(dataset, i18nMessage, connection);
         case DELETE:
-            return new DeleteManager(dataset, connection, i18nMessage);
+            return new DeleteManager(dataset, i18nMessage, connection);
         default:
             throw new IllegalStateException(i18nMessage.errorUnsupportedDatabaseAction());
         }
@@ -98,15 +98,22 @@ public abstract class StatementManager implements AutoCloseable {
                 if (!connection.getAutoCommit()) {
                     connection.commit();
                 }
+
+                s.clearBatch();
                 return null;
             } catch (final SQLException e) {
+                // todo add a retry strategy if deadlock
                 // fixme : should we transform this component to a processor and emit rejected records
+                try {
+                    s.clearBatch();
+                } catch (final SQLException clearBatchException) {
+                    log.error("Can't clear batch statement", clearBatchException);
+                }
                 try {
                     connection.rollback(); // rollback the group
                 } catch (final SQLException rollbackError) {
                     log.error("Can't rollback statements", rollbackError);
                 }
-
                 final StringBuilder msg = new StringBuilder("[" + e.getErrorCode() + "] " + e.getMessage());
                 SQLException batchError = e;
                 while (batchError.getNextException() != null) {
@@ -122,20 +129,10 @@ public abstract class StatementManager implements AutoCloseable {
         }
     }
 
-    public void clear() {
-        statements.forEach((k, s) -> {
-            try {
-                s.clearParameters();
-                s.clearBatch();
-            } catch (SQLException e) {
-                throw new IllegalStateException(i18n.errorCantClearPreparedStatement());
-            }
-        });
-    }
-
     @Override
     public void close() {
-        log.debug("closing statement manager: " + uuid + " from thread: " + Thread.currentThread().getName());
+        log.trace("closing statement manager: " + uuid + " from thread: " + Thread.currentThread().getName() + " - "
+                + Thread.currentThread().getId());
         statements.forEach((k, s) -> {
             try {
                 s.close();
@@ -143,13 +140,5 @@ public abstract class StatementManager implements AutoCloseable {
                 log.warn(i18n.errorCantClosePreparedStatement(), e);
             }
         });
-
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                log.warn(i18n.errorCantCloseJdbcConnectionProperly(), e);
-            }
-        }
     }
 }

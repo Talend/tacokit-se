@@ -12,13 +12,20 @@
  */
 package org.talend.components.jdbc.output;
 
+import static java.util.Optional.ofNullable;
+
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.talend.components.jdbc.JdbcConfiguration;
 import org.talend.components.jdbc.output.internal.StatementManager;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
@@ -32,6 +39,8 @@ import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.service.configuration.Configuration;
+import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,7 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 @Documentation("JDBC Output component")
 public class Output implements Serializable {
 
-    private final OutputConfiguration configuration;
+    private final OutputConfiguration outputConfiguration;
 
     private final JdbcService jdbcDriversService;
 
@@ -50,27 +59,31 @@ public class Output implements Serializable {
 
     private transient StatementManager statementManager;
 
-    public Output(@Option("configuration") final OutputConfiguration dataset, final JdbcService jdbcDriversService,
+    private transient int initPoolSize = 1;
+
+    private transient List<Connection> connectionPool;
+
+    private transient List<Connection> usedConnections;
+
+    public Output(@Option("configuration") final OutputConfiguration outputConfiguration, final JdbcService jdbcDriversService,
             final I18nMessage i18nMessage) {
-        this.configuration = dataset;
+        this.outputConfiguration = outputConfiguration;
         this.jdbcDriversService = jdbcDriversService;
         this.i18n = i18nMessage;
     }
 
     @PostConstruct
     public void init() {
-        final Connection connection = jdbcDriversService.connection(configuration.getDataset().getConnection());
-        try {
-            connection.setAutoCommit(false);
-        } catch (SQLException e) {
-            log.error("Can't deactivate auto-commit, this may alter the performance if this batch");
+        connectionPool = new ArrayList<>();
+        usedConnections = new ArrayList<>();
+        for (int i = 0; i < initPoolSize; i++) {
+            connectionPool.add(getConnection());
         }
-
-        this.statementManager = StatementManager.get(configuration, connection, i18n);
     }
 
     @BeforeGroup
     public void beforeGroup() {
+        this.statementManager = StatementManager.get(outputConfiguration, i18n, getConnection());
     }
 
     @ElementListener
@@ -81,15 +94,65 @@ public class Output implements Serializable {
     @AfterGroup
     public void afterGroup() {
         statementManager.executeBatch();
-        this.statementManager.clear();
-
+        statementManager.close();
+        releaseConnection(statementManager.getConnection());
     }
 
     @PreDestroy
     public void preDestroy() {
-        if (statementManager != null) {
-            statementManager.close();
-        }
+        connectionPool.forEach(connection -> {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                log.error(i18n.errorCantCloseJdbcConnectionProperly(), e);
+            }
+        });
     }
 
+    private Connection getConnection() {
+        final Connection connection = new ArrayList<>(connectionPool).stream().filter(c -> {
+            connectionPool.remove(c);
+            try {
+                if (!jdbcDriversService.isConnectionValid(c)) {
+                    log.debug("Invalid connection from connection pool. recreating a new one");
+                    try {
+                        c.close();
+                    } catch (final SQLException e) {
+                        log.warn(i18n.errorCantCloseJdbcConnectionProperly(), e);
+                    }
+                }
+                return true;
+            } catch (final SQLException e) {
+                log.debug("Can't validate connection state from connection pool. recreating a new one", e);
+                try {
+                    c.close();
+                } catch (SQLException e1) {
+                    log.warn(i18n.errorCantCloseJdbcConnectionProperly(), e1);
+                }
+            }
+            return false;
+        }).findFirst().orElseGet(() -> {
+            final Connection c = jdbcDriversService.connection(outputConfiguration.getDataset().getConnection());
+            try {
+                c.setAutoCommit(false);
+            } catch (SQLException e) {
+                log.error("Can't deactivate auto-commit, this may alter the performance if this batch");
+            }
+            return c;
+        });
+        usedConnections.add(connection);
+        return connection;
+    }
+
+    private void releaseConnection(final Connection connection) {
+        if (usedConnections.remove(connection)) {
+            connectionPool.add(connection);
+        } else {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                log.warn(i18n.errorCantCloseJdbcConnectionProperly(), e);
+            }
+        }
+    }
 }

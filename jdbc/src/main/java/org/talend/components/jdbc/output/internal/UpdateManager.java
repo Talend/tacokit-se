@@ -36,8 +36,8 @@ public class UpdateManager extends StatementManager {
 
     private final String[] updateValues;
 
-    UpdateManager(final OutputConfiguration dataset, final Connection connection, final I18nMessage i18nMessage) {
-        super(connection, i18nMessage);
+    UpdateManager(final OutputConfiguration dataset, final I18nMessage i18nMessage, final Connection connection) {
+        super(i18nMessage, connection);
         this.configuration = dataset;
         this.updateKeys = ofNullable(dataset.getUpdateOperationMapping()).orElse(emptyList()).stream()
                 .filter(OutputConfiguration.UpdateOperationMapping::isKey)

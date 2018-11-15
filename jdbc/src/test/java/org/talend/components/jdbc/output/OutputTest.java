@@ -24,7 +24,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -71,11 +73,14 @@ class OutputTest extends BaseTest {
         final OutputConfiguration configuration = new OutputConfiguration();
         configuration.setDataset(newTableNameDataset(derbyInfo, "users"));
         configuration.setActionOnData(OutputConfiguration.ActionOnData.INSERT);
-
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
+
+        final int rowCount = new Random(10).nextInt(200);
+        final int nullEvery = 7;
         Job.components()
                 .component("userGenerator",
-                        "jdbcTest://UserGenerator?config.rowCount=4&config.namePrefix=user&config.nullEvery=2&config.nameIsNull")
+                        "jdbcTest://UserGenerator?config.rowCount=" + rowCount + "&config.namePrefix=user&config.nullEvery="
+                                + nullEvery + "&config.nameIsNull")
                 .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("userGenerator").to("jdbcOutput").build()
                 .run();
 
@@ -87,10 +92,13 @@ class OutputTest extends BaseTest {
         Job.components().component("jdbcInput", "Jdbc://QueryInput?" + inConfig)
                 .component("collector", "jdbcTest://DataCollector").connections().from("jdbcInput").to("collector").build().run();
 
-        assertEquals(4, DataCollector.getData().size());
-        assertEquals(1 + 2 + 3 + 4, DataCollector.getData().stream().mapToInt(r -> r.getInt("ID")).sum());
-        assertEquals(Stream.of("user1", "user3").collect(toSet()), DataCollector.getData().stream()
-                .filter(r -> r.getString("NAME") != null).map(r -> r.getString("NAME")).collect(Collectors.toSet()));
+        assertEquals(rowCount, DataCollector.getData().size());
+        assertEquals(IntStream.rangeClosed(1, rowCount).sum(),
+                DataCollector.getData().stream().mapToInt(r -> r.getInt("ID")).sum());
+        assertEquals(
+                IntStream.rangeClosed(1, rowCount).filter(i -> i % nullEvery != 0).mapToObj(i -> "user" + i).collect(toSet()),
+                DataCollector.getData().stream().filter(r -> r.getString("NAME") != null).map(r -> r.getString("NAME"))
+                        .collect(Collectors.toSet()));
     }
 
     @Test

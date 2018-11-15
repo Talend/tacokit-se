@@ -64,13 +64,12 @@ class JdbcInputEmitterTest extends BaseTest {
         dataset.setSqlQuery("select * from users");
 
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
-        Job.components().component("jdbcInput", "Jdbc://QueryInput?" + config).component("collector", "test://collector")
+        Job.components().component("jdbcInput", "Jdbc://QueryInput?" + config).component("collector", "jdbcTest://DataCollector")
                 .connections().from("jdbcInput").to("collector").build().run();
 
-        final List<Record> collectedData = componentsHandler.getCollectedData(Record.class);
-        assertEquals(4, collectedData.size());
+        assertEquals(4, DataCollector.getData().size());
         assertEquals(Stream.of("user1", "user2", "user3", "user4").collect(toSet()),
-                collectedData.stream().map(r -> r.getString("NAME")).collect(toSet()));
+                DataCollector.getData().stream().map(r -> r.getString("NAME")).collect(toSet()));
     }
 
     @Test

@@ -23,8 +23,6 @@ import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.talend.sdk.component.api.component.Icon;
-import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.record.Record;
@@ -32,8 +30,6 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import lombok.Data;
 
-@Version
-@Icon(Icon.IconType.SAMPLE)
 public class UserGeneratorSource implements Serializable {
 
     private final Config config;
@@ -49,7 +45,7 @@ public class UserGeneratorSource implements Serializable {
 
     @PostConstruct
     public void init() {
-        data.addAll(IntStream.range(1, config.rowCount + 1).mapToObj(i -> {
+        data.addAll(IntStream.range(config.startIndex + 1, config.rowCount + 1).mapToObj(i -> {
             final Record.Builder builder = recordBuilderFactory.newRecordBuilder();
             if (config.nullEvery != -1 && i % config.nullEvery == 0) {
                 if (!config.idIsNull) {
@@ -79,6 +75,9 @@ public class UserGeneratorSource implements Serializable {
 
     @Data
     public static class Config implements Serializable {
+
+        @Option
+        private int startIndex;
 
         @Option
         private int rowCount;

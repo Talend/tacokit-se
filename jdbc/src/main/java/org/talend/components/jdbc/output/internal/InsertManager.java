@@ -34,8 +34,8 @@ public class InsertManager extends StatementManager {
 
     private final OutputConfiguration configuration;
 
-    InsertManager(final OutputConfiguration dataset, final Connection connection, final I18nMessage i18nMessage) {
-        super(connection, i18nMessage);
+    InsertManager(final OutputConfiguration dataset, final I18nMessage i18nMessage, final Connection connection) {
+        super(i18nMessage, connection);
         this.configuration = dataset;
     }
 
