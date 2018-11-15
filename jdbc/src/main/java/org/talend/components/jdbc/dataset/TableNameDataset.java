@@ -1,5 +1,7 @@
 package org.talend.components.jdbc.dataset;
 
+import static org.talend.components.jdbc.service.ActionService.ACTION_SUGGESTION_TABLE_NAMES;
+
 import lombok.Data;
 import org.talend.components.jdbc.datastore.BasicDatastore;
 import org.talend.sdk.component.api.configuration.Option;
@@ -22,7 +24,7 @@ public class TableNameDataset implements BaseDataSet {
     @Option
     @Required
     @Documentation("The table name if the source type is a TABLE")
-    @Suggestable(value = "tables.list", parameters = "connection")
+    @Suggestable(value = ACTION_SUGGESTION_TABLE_NAMES, parameters = "connection")
     private String tableName;
 
     @Override

@@ -26,7 +26,6 @@ import javax.annotation.PreDestroy;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.input.Emitter;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -35,8 +34,7 @@ import lombok.Data;
 
 @Version
 @Icon(Icon.IconType.SAMPLE)
-@Emitter(name = "UserGenerator", family = "jdbcTest")
-public class UserGenerator implements Serializable {
+public class UserGeneratorSource implements Serializable {
 
     private final Config config;
 
@@ -44,7 +42,7 @@ public class UserGenerator implements Serializable {
 
     private Queue<Record> data = new LinkedList<>();
 
-    public UserGenerator(@Option("config") final Config config, final RecordBuilderFactory recordBuilderFactory) {
+    public UserGeneratorSource(final Config config, final RecordBuilderFactory recordBuilderFactory) {
         this.recordBuilderFactory = recordBuilderFactory;
         this.config = config;
     }
