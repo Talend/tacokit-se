@@ -12,11 +12,14 @@
  */
 package org.talend.components.jdbc.output;
 
+import static org.talend.components.jdbc.service.ActionService.ACTION_SUGGESTION_TABLE_COLUMNS_NAMES;
+
 import java.io.Serializable;
 import java.util.List;
 
 import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.layout.AutoLayout;
@@ -64,8 +67,8 @@ public class OutputConfiguration implements Serializable {
     @AutoLayout
     public static class UpdateOperationMapping implements Serializable {
 
-        // fixme : use the values from schema when available in tacokit
         @Option
+        @Suggestable(value = ACTION_SUGGESTION_TABLE_COLUMNS_NAMES, parameters = { "../../dataset" })
         @Documentation("The column name")
         private String column;
 

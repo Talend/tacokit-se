@@ -13,7 +13,9 @@
 package org.talend.components.jdbc.service;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.talend.components.jdbc.JdbcConfiguration;
+import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.BasicDatastore;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
@@ -31,11 +33,17 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import static java.util.Collections.emptyList;
+import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 @Slf4j
 @Service
@@ -48,6 +56,8 @@ public class ActionService {
     public static final String ACTION_VALIDATION_READONLY_QUERY = "ACTION_VALIDATION_READONLY_QUERY";
 
     public static final String ACTION_SUGGESTION_TABLE_NAMES = "ACTION_SUGGESTION_TABLE_NAMES";
+
+    public static final String ACTION_SUGGESTION_TABLE_COLUMNS_NAMES = "ACTION_SUGGESTION_TABLE_COLUMNS_NAMES";
 
     private static List<String> SUPPORTED_TYPES = Arrays.asList("TABLE", "VIEW", "SYNONYM");
 
@@ -110,6 +120,34 @@ public class ActionService {
             log.error(i18n.errorCantLoadTableSuggestions(), unexpected);
         }
         return new SuggestionValues(true, items);
+    }
+
+    @Suggestions(ACTION_SUGGESTION_TABLE_COLUMNS_NAMES)
+    public SuggestionValues getTableColumns(@Option final TableNameDataset dataset) {
+        final Collection<SuggestionValues.Item> items;
+        try (Connection conn = jdbcDriversService.connection(dataset.getConnection())) {
+            try (final Statement statement = conn.createStatement()) {
+                statement.setMaxRows(1);
+                try (final ResultSet result = statement.executeQuery(dataset.getQuery())) {
+                    return new SuggestionValues(true,
+                            IntStream.rangeClosed(1, result.getMetaData().getColumnCount()).mapToObj(i -> {
+                                try {
+                                    return result.getMetaData().getColumnName(i);
+                                } catch (SQLException e) {
+                                    e.printStackTrace();
+                                }
+
+                                return null;
+                            }).filter(Objects::nonNull).map(columnName -> new SuggestionValues.Item(columnName, columnName))
+                                    .collect(toSet()));
+                }
+            }
+        } catch (final Exception unexpected) {
+            // catch all exceptions for this ui action to return empty list
+            log.error(i18n.errorCantLoadTableSuggestions(), unexpected);
+        }
+
+        return new SuggestionValues(false, emptyList());
     }
 
     private Set<String> getAvailableTableTypes(DatabaseMetaData dbMetaData) throws SQLException {

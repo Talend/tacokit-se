@@ -1,11 +1,11 @@
 /*
  * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -14,14 +14,21 @@ package org.talend.components.jdbc.service;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.talend.components.jdbc.DerbyExtension;
 import org.talend.components.jdbc.WithDerby;
+import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.BasicDatastore;
+import org.talend.components.jdbc.output.OutputConfiguration;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.asyncvalidation.ValidationResult;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
@@ -138,6 +145,56 @@ class ActionServiceTest {
         final SuggestionValues values = myService.getTableFromDatabase(datastore);
         assertNotNull(values);
         assertEquals(0, values.getItems().size());
+    }
+
+    @Test
+    @DisplayName("Get Table columns list - valid connection")
+    void getTableColumnFromDatabase(final DerbyExtension.DerbyInfo info) {
+        final BasicDatastore datastore = new BasicDatastore();
+        datastore.setDbType("DERBY");
+        datastore.setJdbcUrl("jdbc:derby://localhost:" + info.getPort() + "/" + info.getDbName());
+        datastore.setUserId("sa");
+        datastore.setPassword("sa");
+        final TableNameDataset tableNameDataset = new TableNameDataset();
+        tableNameDataset.setTableName("users");
+        tableNameDataset.setConnection(datastore);
+        final SuggestionValues values = myService.getTableColumns(tableNameDataset);
+        assertNotNull(values);
+        assertEquals(2, values.getItems().size());
+        assertEquals(Stream.of("ID", "NAME").collect(toSet()),
+                values.getItems().stream().map(SuggestionValues.Item::getLabel).collect(toSet()));
+    }
+
+    @Test
+    @DisplayName("Get Table Columns list - invalid connection")
+    void getTableColumnsFromDatabaseWithInvalidConnection(final DerbyExtension.DerbyInfo info) {
+        final BasicDatastore datastore = new BasicDatastore();
+        datastore.setDbType("DERBY");
+        datastore.setJdbcUrl("jdbc:derby://localhost:" + info.getPort() + "/" + info.getDbName());
+        datastore.setUserId("wrong");
+        datastore.setPassword("wrong");
+        final TableNameDataset tableNameDataset = new TableNameDataset();
+        tableNameDataset.setTableName("users");
+        tableNameDataset.setConnection(datastore);
+        final SuggestionValues values = myService.getTableColumns(tableNameDataset);
+        assertNotNull(values);
+        assertTrue(values.getItems().isEmpty());
+    }
+
+    @Test
+    @DisplayName("Get Table Columns list - invalid table name")
+    void getTableColumnsFromDatabaseWithInvalidTableName(final DerbyExtension.DerbyInfo info) {
+        final BasicDatastore datastore = new BasicDatastore();
+        datastore.setDbType("DERBY");
+        datastore.setJdbcUrl("jdbc:derby://localhost:" + info.getPort() + "/" + info.getDbName());
+        datastore.setUserId("sa");
+        datastore.setPassword("sa");
+        final TableNameDataset tableNameDataset = new TableNameDataset();
+        tableNameDataset.setTableName("tableNeverExist159");
+        tableNameDataset.setConnection(datastore);
+        final SuggestionValues values = myService.getTableColumns(tableNameDataset);
+        assertNotNull(values);
+        assertTrue(values.getItems().isEmpty());
     }
 
 }
