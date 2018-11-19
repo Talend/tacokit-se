@@ -60,7 +60,7 @@ public class DerbyExtension implements BeforeAllCallback, AfterAllCallback, Para
         }
 
         if (port == 0) {
-            throw new IllegalStateException("Can't get a free port for derby database");
+            throw new IllegalStateException("Can't execute a free port for derby database");
         }
 
         System.setProperty("derby.stream.error.file", element.logFile());

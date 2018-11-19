@@ -18,7 +18,7 @@ import java.sql.SQLException;
 
 import org.talend.sdk.component.api.record.Record;
 
-public enum RecordSQLTypes {
+public enum RecordToSQLTypeConverter {
     RECORD {
 
         @Override

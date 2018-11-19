@@ -48,10 +48,12 @@ public class UserGeneratorSource implements Serializable {
         data.addAll(IntStream.range(config.startIndex + 1, config.rowCount + 1).mapToObj(i -> {
             final Record.Builder builder = recordBuilderFactory.newRecordBuilder();
             if (config.nullEvery != -1 && i % config.nullEvery == 0) {
-                if (!config.idIsNull) {
+                if (!config.withNullIds) {
                     builder.withInt("id", i);
                 }
-                if (!config.nameIsNull) {
+                if (config.withNullNames) {
+                    builder.withString("name", null);
+                } else {
                     builder.withString("name", ofNullable(config.namePrefix).orElse("user") + i);
                 }
             } else {
@@ -86,10 +88,10 @@ public class UserGeneratorSource implements Serializable {
         private String namePrefix;
 
         @Option
-        private boolean nameIsNull = false;
+        private boolean withNullNames = false;
 
         @Option
-        private boolean idIsNull = false;
+        private boolean withNullIds = false;
 
         @Option
         private int nullEvery = -1;

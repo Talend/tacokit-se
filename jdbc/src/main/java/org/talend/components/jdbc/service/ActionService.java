@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
-import org.talend.components.jdbc.JdbcConfiguration;
+import org.talend.components.jdbc.configuration.JdbcConfiguration;
 import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.BasicDatastore;
 import org.talend.sdk.component.api.configuration.Option;
@@ -65,7 +65,7 @@ public class ActionService {
     private static List<String> SUPPORTED_TYPES = Arrays.asList("TABLE", "VIEW", "SYNONYM");
 
     @Service
-    private JdbcService jdbcDriversService;
+    private JdbcService jdbcService;
 
     @Service
     private I18nMessage i18n;
@@ -81,7 +81,10 @@ public class ActionService {
 
     @HealthCheck(ACTION_BASIC_HEALTH_CHECK)
     public HealthCheckStatus validateBasicDataStore(@Option final BasicDatastore datastore) {
-        try (final Connection ignored = this.jdbcDriversService.connection(datastore)) {
+        try (final Connection connection = this.jdbcService.connection(datastore)) {
+            if (!jdbcService.isConnectionValid(connection)) {
+                return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.errorInvalidConnection());
+            }
         } catch (final Exception e) {
             return new HealthCheckStatus(HealthCheckStatus.Status.KO, e.getMessage());
         }
@@ -91,7 +94,7 @@ public class ActionService {
 
     @AsyncValidation(ACTION_VALIDATION_READONLY_QUERY)
     public ValidationResult validateReadOnlySQLQuery(final String query) {
-        if (jdbcDriversService.isNotReadOnlySQLQuery(query)) {
+        if (jdbcService.isNotReadOnlySQLQuery(query)) {
             return new ValidationResult(ValidationResult.Status.KO, i18n.errorUnauthorizedQuery());
         }
         return new ValidationResult(ValidationResult.Status.OK, "the query is valid");
@@ -99,7 +102,7 @@ public class ActionService {
 
     @Suggestions(ACTION_SUGGESTION_TABLE_COLUMNS_NAMES)
     public SuggestionValues getTableColumns(@Option final TableNameDataset dataset) {
-        try (Connection conn = jdbcDriversService.connection(dataset.getConnection())) {
+        try (Connection conn = jdbcService.connection(dataset.getConnection())) {
             try (final Statement statement = conn.createStatement()) {
                 statement.setMaxRows(1);
                 try (final ResultSet result = statement.executeQuery(dataset.getQuery())) {
@@ -127,7 +130,7 @@ public class ActionService {
     @Suggestions(ACTION_SUGGESTION_TABLE_NAMES)
     public SuggestionValues getTableFromDatabase(@Option final BasicDatastore datastore) {
         final Collection<SuggestionValues.Item> items = new HashSet<>();
-        try (Connection connection = jdbcDriversService.connection(datastore)) {
+        try (Connection connection = jdbcService.connection(datastore)) {
             DatabaseMetaData dbMetaData = connection.getMetaData();
             try (ResultSet tables = dbMetaData.getTables(connection.getCatalog(), connection.getSchema(), null,
                     getAvailableTableTypes(dbMetaData).toArray(new String[0]))) {

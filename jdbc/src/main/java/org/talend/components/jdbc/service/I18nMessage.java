@@ -55,7 +55,7 @@ public interface I18nMessage {
 
     String errorNoKeyForUpdateQuery();
 
-    String errorNoFieldForQueryParam(final String deleteKey);
+    String errorNoFieldForQueryParam(final String field);
 
     String errorNoUpdatableColumnWasDefined();
 

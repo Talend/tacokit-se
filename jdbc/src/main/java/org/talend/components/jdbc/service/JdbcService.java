@@ -12,16 +12,8 @@
  */
 package org.talend.components.jdbc.service;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.talend.components.jdbc.JdbcConfiguration;
-import org.talend.components.jdbc.datastore.BasicDatastore;
-import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.configuration.Configuration;
-import org.talend.sdk.component.api.service.dependency.Resolver;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.joining;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -34,12 +26,24 @@ import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.joining;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
+import org.talend.components.jdbc.configuration.JdbcConfiguration;
+import org.talend.components.jdbc.datastore.BasicDatastore;
+import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.configuration.Configuration;
+import org.talend.sdk.component.api.service.dependency.Resolver;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -75,14 +79,14 @@ public class JdbcService {
         driversClassLoaders.forEach((driver, classLoader) -> {
             while (initialRegisteredDrivers.hasMoreElements()) {
                 if (!driver.getClassName().equals(initialRegisteredDrivers.nextElement().getClass().getName())) {
-                    diregisterDriver(driver);
+                    deregisterDriver(driver);
                 }
             }
         });
         initialRegisteredDrivers = null;
     }
 
-    private void diregisterDriver(final JdbcConfiguration.Driver driver) {
+    private void deregisterDriver(final JdbcConfiguration.Driver driver) {
         final URLClassLoader loader = driversClassLoaders.get(driver);
         try {
             Driver d = (Driver) loader.loadClass(driver.getClassName()).newInstance();
@@ -105,7 +109,7 @@ public class JdbcService {
         if (!driversClassLoaders.containsKey(driver)) {
             driversClassLoaders.entrySet().stream().filter(entry -> entry.getKey().getId().equals(driver.getId()))
                     .forEach(entry -> {
-                        diregisterDriver(entry.getKey());
+                        deregisterDriver(entry.getKey());
                         driversClassLoaders.remove(entry.getKey());
                     });
         }
@@ -138,14 +142,14 @@ public class JdbcService {
     }
 
     public Connection connection(final BasicDatastore datastore) {
-        if (datastore.getJdbcUrl() == null || datastore.getJdbcUrl().isEmpty()) {
+        if (datastore.getJdbcUrl() == null || datastore.getJdbcUrl().trim().isEmpty()) {
             throw new IllegalArgumentException(i18n.errorEmptyJdbcURL());
         }
         final JdbcConfiguration.Driver driver = getDriver(datastore);
         final URLClassLoader driverLoader = getDriverClassLoader(driver);
         try {
             final Driver driverInstance = (Driver) driverLoader.loadClass(driver.getClassName()).newInstance();
-            if (!driverInstance.acceptsURL(datastore.getJdbcUrl())) {
+            if (!driverInstance.acceptsURL(datastore.getJdbcUrl().trim())) {
                 throw new IllegalStateException(i18n.errorUnsupportedSubProtocol());
             }
             final Properties info = new Properties() {
@@ -155,23 +159,12 @@ public class JdbcService {
                     setProperty("password", datastore.getPassword());
                 }
             };
-            final Connection connection;
+
             try {
-                connection = driverInstance.connect(datastore.getJdbcUrl(), info);
+                return driverInstance.connect(datastore.getJdbcUrl().trim(), info);
             } catch (SQLException e) {
                 throw new IllegalStateException(e);
             }
-
-            if (!isConnectionValid(connection)) {
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    log.error(i18n.errorCantCloseJdbcConnectionProperly(), e);
-                }
-                throw new IllegalStateException(i18n.errorInvalidConnection());
-            }
-
-            return connection;
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
             throw new IllegalStateException(i18n.errorCantLoadDriver(datastore.getDbType()), e);
         } catch (SQLException e) {
@@ -183,8 +176,8 @@ public class JdbcService {
         return connection.isValid(ofNullable(jdbcConfiguration.get().getConnection().getValidationTimeout()).orElse(5));
     }
 
-    private JdbcConfiguration.Driver getDriver(final BasicDatastore datastore) {
-        return jdbcConfiguration.get().getDrivers().stream().filter(d -> d.getId().equals(datastore.getDbType())).findFirst()
-                .orElseThrow(() -> new IllegalStateException(i18n.errorDriverNotFound(datastore.getDbType())));
+    private JdbcConfiguration.Driver getDriver(final BasicDatastore dataStore) {
+        return jdbcConfiguration.get().getDrivers().stream().filter(d -> d.getId().equals(dataStore.getDbType())).findFirst()
+                .orElseThrow(() -> new IllegalStateException(i18n.errorDriverNotFound(dataStore.getDbType())));
     }
 }

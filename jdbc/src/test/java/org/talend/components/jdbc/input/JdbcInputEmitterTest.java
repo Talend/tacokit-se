@@ -26,24 +26,18 @@ import org.junit.jupiter.api.Test;
 import org.talend.components.jdbc.BaseTest;
 import org.talend.components.jdbc.DerbyExtension;
 import org.talend.components.jdbc.WithDerby;
-import org.talend.components.jdbc.components.DataCollector;
 import org.talend.components.jdbc.dataset.SqlQueryDataset;
 import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.BasicDatastore;
 import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.junit.BaseComponentsHandler;
-import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
 @WithDerby(onStartSQLScript = "derby/input_create.sql", onShutdownSQLScript = "derby/delete.sql")
 @WithComponents("org.talend.components.jdbc") // component package
 class JdbcInputEmitterTest extends BaseTest {
-
-    @Injected
-    private BaseComponentsHandler componentsHandler;
 
     @Service
     private JdbcService jdbcService;
@@ -52,7 +46,6 @@ class JdbcInputEmitterTest extends BaseTest {
 
     @BeforeEach
     void clearTable(final DerbyExtension.DerbyInfo derbyInfo) {
-        DataCollector.reset();
         datastore = newConnection(derbyInfo);
     }
 
@@ -64,25 +57,24 @@ class JdbcInputEmitterTest extends BaseTest {
         dataset.setSqlQuery("select * from users");
 
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
-        Job.components().component("jdbcInput", "Jdbc://QueryInput?" + config).component("collector", "jdbcTest://DataCollector")
+        Job.components().component("jdbcInput", "Jdbc://QueryInput?" + config).component("collector", "test://collector")
                 .connections().from("jdbcInput").to("collector").build().run();
 
-        assertEquals(4, DataCollector.getData().size());
+        final List<Record> collectedData = componentsHandler.getCollectedData(Record.class);
+        assertEquals(4, collectedData.size());
         assertEquals(Stream.of("user1", "user2", "user3", "user4").collect(toSet()),
-                DataCollector.getData().stream().map(r -> r.getString("NAME")).collect(toSet()));
+                collectedData.stream().map(r -> r.getString("NAME")).collect(toSet()));
     }
 
     @Test
-    @DisplayName("Execute a not valid query ")
+    @DisplayName("Execute an unvalid query ")
     void invalidQuery() {
         final SqlQueryDataset dataset = new SqlQueryDataset();
         dataset.setConnection(datastore);
         dataset.setSqlQuery("select from users");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
-        assertThrows(IllegalStateException.class,
-                () -> Job.components().component("jdbcInput", "Jdbc://QueryInput?" + config)
-                        .component("collector", "jdbcTest://DataCollector").connections().from("jdbcInput").to("collector")
-                        .build().run());
+        assertThrows(IllegalStateException.class, () -> Job.components().component("jdbcInput", "Jdbc://QueryInput?" + config)
+                .component("collector", "test://collector").connections().from("jdbcInput").to("collector").build().run());
     }
 
     @Test
@@ -92,10 +84,8 @@ class JdbcInputEmitterTest extends BaseTest {
         dataset.setConnection(datastore);
         dataset.setSqlQuery("drop table users");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
-        assertThrows(IllegalArgumentException.class,
-                () -> Job.components().component("jdbcInput", "Jdbc://QueryInput?" + config)
-                        .component("collector", "jdbcTest://DataCollector").connections().from("jdbcInput").to("collector")
-                        .build().run());
+        assertThrows(IllegalArgumentException.class, () -> Job.components().component("jdbcInput", "Jdbc://QueryInput?" + config)
+                .component("collector", "test://collector").connections().from("jdbcInput").to("collector").build().run());
     }
 
     @Test
@@ -105,10 +95,8 @@ class JdbcInputEmitterTest extends BaseTest {
         dataset.setConnection(datastore);
         dataset.setSqlQuery("INSERT INTO users(id, name) VALUES (1, 'user1')");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
-        assertThrows(IllegalArgumentException.class,
-                () -> Job.components().component("jdbcInput", "Jdbc://QueryInput?" + config)
-                        .component("collector", "jdbcTest://DataCollector").connections().from("jdbcInput").to("collector")
-                        .build().run());
+        assertThrows(IllegalArgumentException.class, () -> Job.components().component("jdbcInput", "Jdbc://QueryInput?" + config)
+                .component("collector", "test://collector").connections().from("jdbcInput").to("collector").build().run());
     }
 
     @Test
@@ -118,12 +106,13 @@ class JdbcInputEmitterTest extends BaseTest {
         dataset.setConnection(datastore);
         dataset.setTableName("users");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
-        Job.components().component("jdbcInput", "Jdbc://TableNameInput?" + config)
-                .component("collector", "jdbcTest://DataCollector").connections().from("jdbcInput").to("collector").build().run();
+        Job.components().component("jdbcInput", "Jdbc://TableNameInput?" + config).component("collector", "test://collector")
+                .connections().from("jdbcInput").to("collector").build().run();
 
-        assertEquals(4, DataCollector.getData().size());
+        final List<Record> collectedData = componentsHandler.getCollectedData(Record.class);
+        assertEquals(4, collectedData.size());
         assertEquals(Stream.of("user1", "user2", "user3", "user4").collect(toSet()),
-                DataCollector.getData().stream().map(r -> r.getString("NAME")).collect(toSet()));
+                collectedData.stream().map(r -> r.getString("NAME")).collect(toSet()));
     }
 
     @Test
@@ -133,10 +122,8 @@ class JdbcInputEmitterTest extends BaseTest {
         dataset.setConnection(datastore);
         dataset.setTableName("xxx");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
-        assertThrows(IllegalStateException.class,
-                () -> Job.components().component("jdbcInput", "Jdbc://TableNameInput?" + config)
-                        .component("collector", "jdbcTest://DataCollector").connections().from("jdbcInput").to("collector")
-                        .build().run());
+        assertThrows(IllegalStateException.class, () -> Job.components().component("jdbcInput", "Jdbc://TableNameInput?" + config)
+                .component("collector", "test://collector").connections().from("jdbcInput").to("collector").build().run());
     }
 
     @Test
@@ -151,10 +138,8 @@ class JdbcInputEmitterTest extends BaseTest {
         dataset.setConnection(connection);
         dataset.setSqlQuery("select * from users");
         final String config = configurationByExample().forInstance(dataset).configured().toQueryString();
-        assertThrows(IllegalStateException.class,
-                () -> Job.components().component("jdbcInput", "Jdbc://QueryInput?" + config)
-                        .component("collector", "jdbcTest://DataCollector").connections().from("jdbcInput").to("collector")
-                        .build().run());
+        assertThrows(IllegalStateException.class, () -> Job.components().component("jdbcInput", "Jdbc://QueryInput?" + config)
+                .component("collector", "test://collector").connections().from("jdbcInput").to("collector").build().run());
     }
 
     @Test

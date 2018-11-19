@@ -52,8 +52,8 @@ public class UserGeneratorMapper implements Serializable {
             final UserGeneratorSource.Config dataSetChunk = new UserGeneratorSource.Config();
             dataSetChunk.setStartIndex(from);
             dataSetChunk.setRowCount(to);
-            dataSetChunk.setIdIsNull(config.isIdIsNull());
-            dataSetChunk.setNameIsNull(config.isNameIsNull());
+            dataSetChunk.setWithNullIds(config.isWithNullIds());
+            dataSetChunk.setWithNullNames(config.isWithNullNames());
             dataSetChunk.setNamePrefix(config.getNamePrefix());
             dataSetChunk.setNullEvery(config.getNullEvery());
             return new UserGeneratorMapper(dataSetChunk, recordBuilderFactory);
