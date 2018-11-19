@@ -19,7 +19,6 @@ import java.util.List;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -51,12 +50,12 @@ public class JdbcConfiguration implements Serializable {
         private String id;
 
         @Option
-        @Documentation("Jdbc driver class")
-        private String className;
+        @Documentation("Jdbc driver order in the list")
+        private Integer order = Integer.MAX_VALUE;
 
         @Option
-        @Documentation("Jdbc url example")
-        private String url;
+        @Documentation("Jdbc driver class")
+        private String className;
 
         @Option
         @Documentation("Jdbc driver and driver dependencies jar locations")

@@ -13,6 +13,7 @@
 package org.talend.components.jdbc.service;
 
 import static java.util.Collections.emptyList;
+import static java.util.Comparator.comparingInt;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -33,7 +34,7 @@ import java.util.stream.IntStream;
 
 import org.talend.components.jdbc.configuration.JdbcConfiguration;
 import org.talend.components.jdbc.dataset.TableNameDataset;
-import org.talend.components.jdbc.datastore.BasicDatastore;
+import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.asyncvalidation.AsyncValidation;
@@ -50,7 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-public class ActionService {
+public class UIActionService {
 
     public static final String ACTION_LIST_SUPPORTED_DB = "ACTION_LIST_SUPPORTED_DB";
 
@@ -75,12 +76,12 @@ public class ActionService {
 
     @DynamicValues(ACTION_LIST_SUPPORTED_DB)
     public Values loadSupportedDataBaseTypes() {
-        return new Values(jdbcConfiguration.get().getDrivers().stream()
+        return new Values(jdbcConfiguration.get().getDrivers().stream().sorted(comparingInt(JdbcConfiguration.Driver::getOrder))
                 .map(driver -> new Values.Item(driver.getId(), driver.getId())).collect(toList()));
     }
 
     @HealthCheck(ACTION_BASIC_HEALTH_CHECK)
-    public HealthCheckStatus validateBasicDataStore(@Option final BasicDatastore datastore) {
+    public HealthCheckStatus validateBasicDataStore(@Option final JdbcConnection datastore) {
         try (final Connection connection = this.jdbcService.connection(datastore)) {
             if (!jdbcService.isConnectionValid(connection)) {
                 return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.errorInvalidConnection());
@@ -128,7 +129,7 @@ public class ActionService {
     }
 
     @Suggestions(ACTION_SUGGESTION_TABLE_NAMES)
-    public SuggestionValues getTableFromDatabase(@Option final BasicDatastore datastore) {
+    public SuggestionValues getTableFromDatabase(@Option final JdbcConnection datastore) {
         final Collection<SuggestionValues.Item> items = new HashSet<>();
         try (Connection connection = jdbcService.connection(datastore)) {
             DatabaseMetaData dbMetaData = connection.getMetaData();

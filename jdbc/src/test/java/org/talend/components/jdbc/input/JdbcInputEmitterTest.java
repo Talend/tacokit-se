@@ -28,7 +28,7 @@ import org.talend.components.jdbc.DerbyExtension;
 import org.talend.components.jdbc.WithDerby;
 import org.talend.components.jdbc.dataset.SqlQueryDataset;
 import org.talend.components.jdbc.dataset.TableNameDataset;
-import org.talend.components.jdbc.datastore.BasicDatastore;
+import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
@@ -42,7 +42,7 @@ class JdbcInputEmitterTest extends BaseTest {
     @Service
     private JdbcService jdbcService;
 
-    private BasicDatastore datastore;
+    private JdbcConnection datastore;
 
     @BeforeEach
     void clearTable(final DerbyExtension.DerbyInfo derbyInfo) {
@@ -129,7 +129,7 @@ class JdbcInputEmitterTest extends BaseTest {
     @Test
     @DisplayName("Execute query using missing driver")
     void missingDriverConfig() {
-        final BasicDatastore connection = new BasicDatastore();
+        final JdbcConnection connection = new JdbcConnection();
         connection.setUserId("sa");
         connection.setPassword("sa");
         connection.setDbType("ORACLEXX");
@@ -145,7 +145,7 @@ class JdbcInputEmitterTest extends BaseTest {
     @Test
     @DisplayName("Execute query using missing driver file")
     void missingDriverFile() {
-        final BasicDatastore connection = new BasicDatastore();
+        final JdbcConnection connection = new JdbcConnection();
         connection.setUserId("sa");
         connection.setPassword("sa");
         connection.setDbType("ORACLE");

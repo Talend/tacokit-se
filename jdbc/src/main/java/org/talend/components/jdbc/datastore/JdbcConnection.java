@@ -14,10 +14,11 @@ package org.talend.components.jdbc.datastore;
 
 import java.io.Serializable;
 
-import org.talend.components.jdbc.service.ActionService;
+import org.talend.components.jdbc.service.UIActionService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.action.Proposable;
+import org.talend.sdk.component.api.configuration.constraint.Pattern;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataStore;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -28,15 +29,15 @@ import lombok.Data;
 
 @Data
 @GridLayout({ @GridLayout.Row("dbType"), @GridLayout.Row("jdbcUrl"), @GridLayout.Row("userId"), @GridLayout.Row("password") })
-@DataStore("basic")
-@Checkable(ActionService.ACTION_BASIC_HEALTH_CHECK)
+@DataStore("JdbcConnection")
+@Checkable(UIActionService.ACTION_BASIC_HEALTH_CHECK)
 @Documentation("A connection to a data base")
-public class BasicDatastore implements Serializable {
+public class JdbcConnection implements Serializable {
 
     @Option
     @Required
     @Documentation("Data base type from the supported data base list")
-    @Proposable(ActionService.ACTION_LIST_SUPPORTED_DB)
+    @Proposable(UIActionService.ACTION_LIST_SUPPORTED_DB)
     private String dbType;
 
     @Option

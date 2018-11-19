@@ -13,14 +13,14 @@
 package org.talend.components.jdbc.dataset;
 
 import lombok.Data;
-import org.talend.components.jdbc.datastore.BasicDatastore;
+import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Validable;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import static org.talend.components.jdbc.service.ActionService.ACTION_VALIDATION_READONLY_QUERY;
+import static org.talend.components.jdbc.service.UIActionService.ACTION_VALIDATION_READONLY_QUERY;
 
 @Data
 @GridLayout({ @GridLayout.Row("connection"), @GridLayout.Row("sqlQuery") })
@@ -30,7 +30,7 @@ public class SqlQueryDataset implements BaseDataSet {
 
     @Option
     @Documentation("The connection information to execute the query")
-    private BasicDatastore connection;
+    private JdbcConnection connection;
 
     @Option
     @Validable(ACTION_VALIDATION_READONLY_QUERY)

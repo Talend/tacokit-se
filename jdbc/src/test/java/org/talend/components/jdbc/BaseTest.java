@@ -8,7 +8,7 @@ import java.util.List;
 import org.talend.components.jdbc.configuration.OutputConfiguration;
 import org.talend.components.jdbc.dataset.SqlQueryDataset;
 import org.talend.components.jdbc.dataset.TableNameDataset;
-import org.talend.components.jdbc.datastore.BasicDatastore;
+import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
@@ -19,8 +19,8 @@ public abstract class BaseTest {
     @Injected
     protected BaseComponentsHandler componentsHandler;
 
-    public BasicDatastore newConnection(final DerbyExtension.DerbyInfo derbyInfo) {
-        final BasicDatastore connection = new BasicDatastore();
+    public JdbcConnection newConnection(final DerbyExtension.DerbyInfo derbyInfo) {
+        final JdbcConnection connection = new JdbcConnection();
         connection.setUserId("sa");
         connection.setPassword("sa");
         connection.setDbType("Derby");

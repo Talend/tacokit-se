@@ -35,7 +35,7 @@ import org.talend.components.jdbc.DerbyExtension;
 import org.talend.components.jdbc.WithDerby;
 import org.talend.components.jdbc.configuration.OutputConfiguration;
 import org.talend.components.jdbc.dataset.TableNameDataset;
-import org.talend.components.jdbc.datastore.BasicDatastore;
+import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.record.Record;
@@ -55,7 +55,7 @@ class OutputTest extends BaseTest {
 
     @BeforeEach
     void clearTable(final DerbyExtension.DerbyInfo derbyInfo) {
-        final BasicDatastore datastore = newConnection(derbyInfo);
+        final JdbcConnection datastore = newConnection(derbyInfo);
         try (final Connection connection = jdbcService.connection(datastore);) {
             try (final PreparedStatement stm = connection.prepareStatement("truncate table users")) {
                 stm.execute();

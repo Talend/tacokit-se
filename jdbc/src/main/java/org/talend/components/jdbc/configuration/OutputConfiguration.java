@@ -12,7 +12,7 @@
  */
 package org.talend.components.jdbc.configuration;
 
-import static org.talend.components.jdbc.service.ActionService.ACTION_SUGGESTION_TABLE_COLUMNS_NAMES;
+import static org.talend.components.jdbc.service.UIActionService.ACTION_SUGGESTION_TABLE_COLUMNS_NAMES;
 
 import java.io.Serializable;
 import java.util.List;

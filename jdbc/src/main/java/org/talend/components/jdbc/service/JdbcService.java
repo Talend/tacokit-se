@@ -38,7 +38,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.talend.components.jdbc.configuration.JdbcConfiguration;
-import org.talend.components.jdbc.datastore.BasicDatastore;
+import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.dependency.Resolver;
@@ -141,7 +141,7 @@ public class JdbcService {
         return !READ_ONLY_QUERY_PATTERN.matcher(query.trim()).matches();
     }
 
-    public Connection connection(final BasicDatastore datastore) {
+    public Connection connection(final JdbcConnection datastore) {
         if (datastore.getJdbcUrl() == null || datastore.getJdbcUrl().trim().isEmpty()) {
             throw new IllegalArgumentException(i18n.errorEmptyJdbcURL());
         }
@@ -176,7 +176,7 @@ public class JdbcService {
         return connection.isValid(ofNullable(jdbcConfiguration.get().getConnection().getValidationTimeout()).orElse(5));
     }
 
-    private JdbcConfiguration.Driver getDriver(final BasicDatastore dataStore) {
+    private JdbcConfiguration.Driver getDriver(final JdbcConnection dataStore) {
         return jdbcConfiguration.get().getDrivers().stream().filter(d -> d.getId().equals(dataStore.getDbType())).findFirst()
                 .orElseThrow(() -> new IllegalStateException(i18n.errorDriverNotFound(dataStore.getDbType())));
     }
