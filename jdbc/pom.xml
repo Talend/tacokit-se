@@ -57,12 +57,10 @@
       <scope>test</scope>
     </dependency>
 
-
-    <!-- test drivers-->
     <dependency>
-      <groupId>net.snowflake</groupId>
-      <artifactId>snowflake-jdbc</artifactId>
-      <version>3.6.15</version>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>5.1.38</version>
     </dependency>
   </dependencies>
 

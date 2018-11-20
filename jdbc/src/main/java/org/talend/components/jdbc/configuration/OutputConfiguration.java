@@ -43,20 +43,21 @@ public class OutputConfiguration implements Serializable {
     private ActionOnData actionOnData = ActionOnData.INSERT;
 
     @Option
-    @ActiveIf(target = "actionOnData", value = { "DELETE", "UPDATE" })
+    @ActiveIf(target = "actionOnData", negate = true, value = { "INSERT" })
     @Suggestable(value = ACTION_SUGGESTION_TABLE_COLUMNS_NAMES, parameters = { "dataset" })
     @Documentation("List of columns to be used as keys for this operation")
     private List<String> keys;
 
     @Option
     @Suggestable(value = ACTION_SUGGESTION_TABLE_COLUMNS_NAMES, parameters = { "dataset" })
-    @ActiveIf(target = "actionOnData", value = "UPDATE")
+    @ActiveIf(target = "actionOnData", value = { "UPDATE", "UPSERT" })
     @Documentation("List of columns to be ignored from update")
     private List<String> ignoreUpdate;
 
     public enum ActionOnData {
         INSERT,
         UPDATE,
-        DELETE
+        DELETE,
+        UPSERT
     }
 }

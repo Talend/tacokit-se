@@ -24,7 +24,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +33,6 @@ import org.talend.components.jdbc.BaseTest;
 import org.talend.components.jdbc.DerbyExtension;
 import org.talend.components.jdbc.WithDerby;
 import org.talend.components.jdbc.configuration.OutputConfiguration;
-import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
@@ -43,9 +41,10 @@ import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
+@DisplayName("Output [Update] - Test cases")
 @WithDerby(onStartSQLScript = "derby/output_create.sql", onShutdownSQLScript = "derby/delete.sql")
 @WithComponents(value = "org.talend.components.jdbc")
-class OutputTest extends BaseTest {
+class OutputUpdateTest extends BaseTest {
 
     @Service
     private JdbcService jdbcService;
@@ -63,22 +62,6 @@ class OutputTest extends BaseTest {
         } catch (SQLException e) {
             throw new IllegalStateException(e);
         }
-    }
-
-    @Test
-    @DisplayName("Insert - valid query")
-    void insert(final DerbyExtension.DerbyInfo derbyInfo) {
-        final OutputConfiguration configuration = new OutputConfiguration();
-        configuration.setDataset(newTableNameDataset(derbyInfo, "users"));
-        configuration.setActionOnData(OutputConfiguration.ActionOnData.INSERT);
-        final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
-        final int rowCount = new Random(10).nextInt(200);
-        Job.components().component("userGenerator", "jdbcTest://UserGenerator?config.rowCount=" + rowCount)
-                .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("userGenerator").to("jdbcOutput").build()
-                .run();
-
-        final List<Record> users = readAllUsers(derbyInfo);
-        assertEquals(rowCount, users.size());
     }
 
     @Test
@@ -130,7 +113,7 @@ class OutputTest extends BaseTest {
         // 1) insert some data
         insertUsers(derbyInfo, rowCount);
         // 2) try the update
-        final int nullEvery = 3;
+        final int nullEvery = 5;
         final OutputConfiguration updateConfiguration = new OutputConfiguration();
         updateConfiguration.setDataset(newTableNameDataset(derbyInfo, "users"));
         updateConfiguration.setActionOnData(OutputConfiguration.ActionOnData.UPDATE);
@@ -150,68 +133,5 @@ class OutputTest extends BaseTest {
         assertEquals(rowCount - notUpdated,
                 users.stream().filter(user -> user.getString("NAME").startsWith("updatedUser")).count());
         assertEquals(notUpdated, users.stream().filter(user -> user.getString("NAME").startsWith("user")).count());
-    }
-
-    @Test
-    @DisplayName("Delete - valid query")
-    void delete(final DerbyExtension.DerbyInfo derbyInfo) {
-        // insert some initial data
-        final int rowCount = 4;
-        insertUsers(derbyInfo, rowCount);
-        // delete the inserted data data
-        final OutputConfiguration deleteConfig = new OutputConfiguration();
-        deleteConfig.setDataset(newTableNameDataset(derbyInfo, "users"));
-        deleteConfig.setActionOnData(OutputConfiguration.ActionOnData.DELETE);
-        deleteConfig.setKeys(asList("id"));
-        final String updateConfig = configurationByExample().forInstance(deleteConfig).configured().toQueryString();
-        Job.components().component("userGenerator", "jdbcTest://UserGenerator?config.rowCount=" + rowCount)
-                .component("jdbcOutput", "Jdbc://Output?" + updateConfig).connections().from("userGenerator").to("jdbcOutput")
-                .build().run();
-
-        // check the update
-        assertTrue(readAllUsers(derbyInfo).isEmpty());
-    }
-
-    @Test
-    @DisplayName("Delete - No keys")
-    void deleteWithNoKeys(final DerbyExtension.DerbyInfo derbyInfo) {
-        final int rowCount = 3;
-        insertUsers(derbyInfo, rowCount);
-        final Exception error = assertThrows(Exception.class, () -> {
-            final OutputConfiguration deleteConfig = new OutputConfiguration();
-            deleteConfig.setDataset(newTableNameDataset(derbyInfo, "users"));
-            deleteConfig.setActionOnData(OutputConfiguration.ActionOnData.DELETE);
-            final String updateConfig = configurationByExample().forInstance(deleteConfig).configured().toQueryString();
-            Job.components().component("userGenerator", "jdbcTest://UserGenerator?config.rowCount=" + rowCount)
-                    .component("jdbcOutput", "Jdbc://Output?" + updateConfig).connections().from("userGenerator").to("jdbcOutput")
-                    .build().run();
-        });
-        assertTrue(error.getMessage().contains(i18nMessage.errorNoKeyForDeleteQuery()));
-        assertEquals(rowCount, readAllUsers(derbyInfo).size());
-    }
-
-    @Test
-    @DisplayName("Delete - Missing defined key in incoming record")
-    void deleteWithMissingDefinedKeys(final DerbyExtension.DerbyInfo derbyInfo) {
-        // 1) insert some data.
-        final int rowCount = 100;
-        insertUsers(derbyInfo, rowCount);
-        // 2) perform delete test with some record with missing delete key (id)
-        final TableNameDataset tableNameDataset = newTableNameDataset(derbyInfo, "users");
-        final OutputConfiguration deleteConfig = new OutputConfiguration();
-        deleteConfig.setDataset(tableNameDataset);
-        deleteConfig.setActionOnData(OutputConfiguration.ActionOnData.DELETE);
-        deleteConfig.setKeys(asList("id"));
-        final String updateConfig = configurationByExample().forInstance(deleteConfig).configured().toQueryString();
-        final int nullEvery = 11; // generate corrupted records
-        Job.components()
-                .component("userGenerator",
-                        "jdbcTest://UserGenerator?config.rowCount=" + rowCount + "&config.withNullIds=true" + "&config.nullEvery="
-                                + nullEvery)
-                .component("jdbcOutput", "Jdbc://Output?" + updateConfig).connections().from("userGenerator").to("jdbcOutput")
-                .build().run();
-
-        // 3) check the remaining records
-        assertEquals(IntStream.rangeClosed(1, rowCount).filter(r -> r % nullEvery == 0).count(), readAllUsers(derbyInfo).size());
     }
 }

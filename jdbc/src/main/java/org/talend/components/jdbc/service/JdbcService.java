@@ -66,9 +66,12 @@ public class JdbcService {
     @Configuration("jdbc")
     private Supplier<JdbcConfiguration> jdbcConfiguration;
 
+    private Integer connectionValidationTimeout;
+
     @PostConstruct
     public void init() {
         initialRegisteredDrivers = DriverManager.getDrivers();
+        connectionValidationTimeout = ofNullable(jdbcConfiguration.get().getConnection().getValidationTimeout()).orElse(5);
     }
 
     /**
@@ -149,31 +152,44 @@ public class JdbcService {
         final URLClassLoader driverLoader = getDriverClassLoader(driver);
         try {
             final Driver driverInstance = (Driver) driverLoader.loadClass(driver.getClassName()).newInstance();
-            if (!driverInstance.acceptsURL(datastore.getJdbcUrl().trim())) {
-                throw new IllegalStateException(i18n.errorUnsupportedSubProtocol());
-            }
             final Properties info = new Properties() {
 
                 {
                     setProperty("user", datastore.getUserId());
-                    setProperty("password", datastore.getPassword());
+                    if (datastore.getPassword() != null && !datastore.getPassword().trim().isEmpty()) {
+                        setProperty("password", datastore.getPassword());
+                    }
+                    if ("mysql".equalsIgnoreCase(datastore.getDbType())) {
+                        setProperty("rewriteBatchedStatements", "true");
+                    }
                 }
             };
-
-            try {
-                return driverInstance.connect(datastore.getJdbcUrl().trim(), info);
-            } catch (SQLException e) {
-                throw new IllegalStateException(e);
-            }
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            return driverInstance.connect(datastore.getJdbcUrl().trim(), info);
+        } catch (final InstantiationException | IllegalAccessException | ClassNotFoundException e) {
             throw new IllegalStateException(i18n.errorCantLoadDriver(datastore.getDbType()), e);
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             throw new IllegalStateException(i18n.errorSQL(e.getErrorCode(), e.getMessage()), e);
         }
     }
 
     public boolean isConnectionValid(final Connection connection) throws SQLException {
-        return connection.isValid(ofNullable(jdbcConfiguration.get().getConnection().getValidationTimeout()).orElse(5));
+        return connection.isValid(connectionValidationTimeout);
+    }
+
+    public void acceptsURL(final JdbcConnection connection) {
+        final JdbcConfiguration.Driver driver = getDriver(connection);
+        final URLClassLoader driverLoader = getDriverClassLoader(driver);
+        try {
+            final Driver driverInstance = (Driver) driverLoader.loadClass(driver.getClassName()).newInstance();
+
+            if (!driverInstance.acceptsURL(connection.getJdbcUrl().trim())) {
+                throw new IllegalStateException(i18n.errorUnsupportedSubProtocol());
+            }
+        } catch (IllegalAccessException | InstantiationException | ClassNotFoundException e) {
+            throw new IllegalStateException(i18n.errorCantLoadDriver(connection.getDbType()), e);
+        } catch (SQLException e) {
+            throw new IllegalStateException(i18n.errorSQL(e.getErrorCode(), e.getMessage()), e);
+        }
     }
 
     private JdbcConfiguration.Driver getDriver(final JdbcConnection dataStore) {

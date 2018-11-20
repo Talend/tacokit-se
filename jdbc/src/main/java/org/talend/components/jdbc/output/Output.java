@@ -22,7 +22,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.talend.components.jdbc.configuration.OutputConfiguration;
-import org.talend.components.jdbc.output.internal.StatementExecutor;
+import org.talend.components.jdbc.output.statement.StatementExecutorFactory;
+import org.talend.components.jdbc.output.statement.operations.JdbcAction;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.component.Icon;
@@ -55,7 +56,7 @@ public class Output implements Serializable {
 
     private transient List<Record> records;
 
-    private transient StatementExecutor statementManager;
+    private transient JdbcAction jdbcAction;
 
     public Output(@Option("configuration") final OutputConfiguration outputConfiguration, final JdbcService jdbcDriversService,
             final I18nMessage i18nMessage) {
@@ -66,8 +67,9 @@ public class Output implements Serializable {
 
     @PostConstruct
     public void init() {
-        statementManager = new StatementExecutor(configuration, i18n, this::getConnection);
-        records = new ArrayList<>();
+        this.connection = jdbcDriversService.connection(configuration.getDataset().getConnection());
+        this.jdbcAction = new StatementExecutorFactory(i18n, this::getConnection, configuration).createAction();
+        this.records = new ArrayList<>();
     }
 
     @BeforeGroup
@@ -84,7 +86,7 @@ public class Output implements Serializable {
     public void afterGroup() throws SQLException {
         // TODO : handle discarded records
         try {
-            final List<Record> discards = statementManager.execute(records);
+            final List<Record> discards = jdbcAction.execute(records);
             discards.stream().map(Object::toString).forEach(r -> log.info("[rejected] - " + r));
         } catch (final Throwable e) {
             records.stream().map(Object::toString).forEach(r -> log.info("[rejected] - " + r));
@@ -112,7 +114,7 @@ public class Output implements Serializable {
     private Connection getConnection() {
         try {
             if (this.connection == null) {
-                this.connection = connect();// first lazy connection
+                this.connection = jdbcDriversService.connection(configuration.getDataset().getConnection());
             } else if (!jdbcDriversService.isConnectionValid(this.connection)) {
                 log.debug("Invalid connection from connection pool. recreating a new one");
                 try {
@@ -120,7 +122,7 @@ public class Output implements Serializable {
                 } catch (final SQLException e) {
                     log.warn(i18n.errorCantCloseJdbcConnectionProperly(), e);
                 }
-                this.connection = connect();
+                this.connection = jdbcDriversService.connection(configuration.getDataset().getConnection());
             }
         } catch (final SQLException e) {
             log.debug("Can't validate connection state from connection pool. recreating a new one", e);
@@ -130,19 +132,14 @@ public class Output implements Serializable {
                 log.warn(i18n.errorCantCloseJdbcConnectionProperly(), e1);
             }
 
-            this.connection = connect();
+            this.connection = jdbcDriversService.connection(configuration.getDataset().getConnection());
         }
 
-        return this.connection;
-    }
-
-    private Connection connect() {
-        final Connection c = jdbcDriversService.connection(configuration.getDataset().getConnection());
         try {
-            c.setAutoCommit(false);
+            this.connection.setAutoCommit(false);
         } catch (final SQLException e) {
             throw new IllegalStateException("can't deactivate auto commit for this database", e);
         }
-        return c;
+        return this.connection;
     }
 }

@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.jdbc.output.internal;
+package org.talend.components.jdbc.output.statement.operations;
 
 import static java.util.Collections.emptyList;
 import static java.util.Optional.ofNullable;
@@ -18,14 +18,15 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 import org.talend.components.jdbc.configuration.OutputConfiguration;
 import org.talend.components.jdbc.service.I18nMessage;
@@ -35,9 +36,7 @@ import org.talend.sdk.component.api.record.Schema;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class QueryBuilderDelete implements QueryBuilder {
-
-    private final I18nMessage i18n;
+public class Delete extends JdbcAction {
 
     private final List<String> keys;
 
@@ -47,11 +46,11 @@ public class QueryBuilderDelete implements QueryBuilder {
 
     private boolean namedParamsResolved;
 
-    public QueryBuilderDelete(final OutputConfiguration configuration, final I18nMessage i18n) {
-        this.i18n = i18n;
+    public Delete(final OutputConfiguration configuration, final I18nMessage i18n, final Supplier<Connection> connection) {
+        super(configuration, i18n, connection);
         this.keys = new ArrayList<>(ofNullable(configuration.getKeys()).orElse(emptyList()));
         if (this.keys.isEmpty()) {
-            throw new IllegalArgumentException(this.i18n.errorNoKeyForDeleteQuery());
+            throw new IllegalArgumentException(getI18n().errorNoKeyForDeleteQuery());
         }
         this.query = "DELETE FROM " + configuration.getDataset().getTableName() + " WHERE "
                 + keys.stream().map(c -> c + " = ?").collect(joining(" AND "));
@@ -73,7 +72,7 @@ public class QueryBuilderDelete implements QueryBuilder {
                 final String missingParams = keys.stream()
                         .filter(key -> queryParams.values().stream().noneMatch(e -> e.getName().equals(key)))
                         .collect(joining(","));
-                throw new IllegalStateException(new IllegalStateException(i18n.errorNoFieldForQueryParam(missingParams)));
+                throw new IllegalStateException(new IllegalStateException(getI18n().errorNoFieldForQueryParam(missingParams)));
             }
 
             namedParamsResolved = true;

@@ -15,13 +15,8 @@ package org.talend.components.jdbc.components;
 import static java.util.Optional.ofNullable;
 
 import java.io.Serializable;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
@@ -36,7 +31,7 @@ public class UserGeneratorSource implements Serializable {
 
     private RecordBuilderFactory recordBuilderFactory;
 
-    private Queue<Record> data = new LinkedList<>();
+    private int currentCount;
 
     public UserGeneratorSource(final Config config, final RecordBuilderFactory recordBuilderFactory) {
         this.recordBuilderFactory = recordBuilderFactory;
@@ -45,34 +40,32 @@ public class UserGeneratorSource implements Serializable {
 
     @PostConstruct
     public void init() {
-        data.addAll(IntStream.range(config.startIndex + 1, config.rowCount + 1).mapToObj(i -> {
-            final Record.Builder builder = recordBuilderFactory.newRecordBuilder();
-            if (config.nullEvery != -1 && i % config.nullEvery == 0) {
-                if (!config.withNullIds) {
-                    builder.withInt("id", i);
-                }
-                if (config.withNullNames) {
-                    builder.withString("name", null);
-                } else {
-                    builder.withString("name", ofNullable(config.namePrefix).orElse("user") + i);
-                }
-            } else {
-                builder.withInt("id", i);
-                builder.withString("name", ofNullable(config.namePrefix).orElse("user") + i);
-            }
-
-            return builder;
-        }).map(Record.Builder::build).collect(Collectors.toList()));
+        currentCount = config.startIndex + 1;
     }
 
     @Producer
     public Record next() {
-        return data.poll();
-    }
+        if (currentCount > config.rowCount) {
+            return null;
+        }
 
-    @PreDestroy
-    public void close() {
-        data = new LinkedList<>();
+        final Record.Builder builder = recordBuilderFactory.newRecordBuilder();
+        if (config.nullEvery != -1 && currentCount % config.nullEvery == 0) {
+            if (!config.withNullIds) {
+                builder.withInt("id", currentCount);
+            }
+            if (config.withNullNames) {
+                builder.withString("name", null);
+            } else {
+                builder.withString("name", ofNullable(config.namePrefix).orElse("user") + currentCount);
+            }
+        } else {
+            builder.withInt("id", currentCount);
+            builder.withString("name", ofNullable(config.namePrefix).orElse("user") + currentCount);
+        }
+
+        currentCount++;
+        return builder.build();
     }
 
     @Data
@@ -96,5 +89,4 @@ public class UserGeneratorSource implements Serializable {
         @Option
         private int nullEvery = -1;
     }
-
 }

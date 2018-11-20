@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.jdbc.output.internal;
+package org.talend.components.jdbc.output.statement.operations;
 
 import static java.util.Collections.emptyList;
 
@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import org.talend.components.jdbc.configuration.OutputConfiguration;
+import org.talend.components.jdbc.output.statement.RecordToSQLTypeConverter;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -32,57 +33,36 @@ import lombok.extern.slf4j.Slf4j;
 
 @Data
 @Slf4j
-public class StatementExecutor {
+public abstract class JdbcAction {
 
     private final OutputConfiguration configuration;
 
-    protected final I18nMessage i18n;
+    private final I18nMessage i18n;
 
     private final Supplier<Connection> connection;
 
-    private final Supplier<QueryBuilder> queryBuilderSupplier = new Supplier<QueryBuilder>() {
+    protected abstract String buildQuery(List<Record> records);
 
-        private QueryBuilder queryBuilder;
+    protected abstract Map<Integer, Schema.Entry> getQueryParams();
 
-        @Override
-        public QueryBuilder get() {
-            if (queryBuilder == null) {
-                switch (configuration.getActionOnData()) {
-                case INSERT:
-                    queryBuilder = new QueryBuilderInsert(configuration.getDataset());
-                    break;
-                case UPDATE:
-                    queryBuilder = new QueryBuilderUpdate(configuration, i18n);
-                    break;
-                case DELETE:
-                    queryBuilder = new QueryBuilderDelete(configuration, i18n);
-                    break;
-                default:
-                    throw new IllegalStateException(i18n.errorUnsupportedDatabaseAction());
-                }
-            }
-
-            return queryBuilder;
-        }
-    };
+    protected abstract boolean validateQueryParam(Record record);
 
     public List<Record> execute(final List<Record> records) {
         if (records.isEmpty()) {
             return emptyList();
         }
 
-        final QueryBuilder queryBuilder = queryBuilderSupplier.get();
-        final String query = queryBuilder.buildQuery(records);
+        final String query = buildQuery(records);
         final Connection connection = this.connection.get();
         try (final PreparedStatement statement = connection.prepareStatement(query)) {
             final List<Record> discards = new ArrayList<>();
             for (final Record record : records) {
                 statement.clearParameters();
-                if (!queryBuilder.validateQueryParam(record)) {
+                if (!validateQueryParam(record)) {
                     discards.add(record);
                     continue;
                 }
-                for (final Map.Entry<Integer, Schema.Entry> entry : queryBuilder.getQueryParams().entrySet()) {
+                for (final Map.Entry<Integer, Schema.Entry> entry : getQueryParams().entrySet()) {
                     RecordToSQLTypeConverter.valueOf(entry.getValue().getType().name()).setValue(statement, entry.getKey(),
                             entry.getValue().getName(), record);
                 }

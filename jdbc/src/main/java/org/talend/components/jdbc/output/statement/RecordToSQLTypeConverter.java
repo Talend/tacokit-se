@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.jdbc.output.internal;
+package org.talend.components.jdbc.output.statement;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -22,7 +22,7 @@ public enum RecordToSQLTypeConverter {
     RECORD {
 
         @Override
-        void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
+        public void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
                 throws SQLException {
             statement.setObject(index, record.get(Record.class, column).toString());
         }
@@ -30,7 +30,7 @@ public enum RecordToSQLTypeConverter {
     ARRAY {
 
         @Override
-        void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
+        public void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
                 throws SQLException {
             statement.setArray(index,
                     statement.getConnection().createArrayOf(column, record.getArray(Object.class, column).toArray()));
@@ -39,7 +39,7 @@ public enum RecordToSQLTypeConverter {
     STRING {
 
         @Override
-        void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
+        public void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
                 throws SQLException {
             statement.setString(index, record.getString(column));
         }
@@ -47,7 +47,7 @@ public enum RecordToSQLTypeConverter {
     BYTES {
 
         @Override
-        void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
+        public void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
                 throws SQLException {
             statement.setBytes(index, record.getBytes(column));
         }
@@ -55,7 +55,7 @@ public enum RecordToSQLTypeConverter {
     INT {
 
         @Override
-        void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
+        public void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
                 throws SQLException {
             statement.setInt(index, record.getInt(column));
         }
@@ -63,7 +63,7 @@ public enum RecordToSQLTypeConverter {
     LONG {
 
         @Override
-        void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
+        public void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
                 throws SQLException {
             statement.setLong(index, record.getLong(column));
         }
@@ -71,7 +71,7 @@ public enum RecordToSQLTypeConverter {
     FLOAT {
 
         @Override
-        void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
+        public void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
                 throws SQLException {
             statement.setFloat(index, record.getFloat(column));
         }
@@ -79,7 +79,7 @@ public enum RecordToSQLTypeConverter {
     DOUBLE {
 
         @Override
-        void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
+        public void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
                 throws SQLException {
             statement.setDouble(index, record.getDouble(column));
         }
@@ -87,7 +87,7 @@ public enum RecordToSQLTypeConverter {
     BOOLEAN {
 
         @Override
-        void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
+        public void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
                 throws SQLException {
             statement.setBoolean(index, record.getBoolean(column));
         }
@@ -95,12 +95,12 @@ public enum RecordToSQLTypeConverter {
     DATETIME {
 
         @Override
-        void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
+        public void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
                 throws SQLException {
             statement.setDate(index, Date.valueOf(record.getDateTime(column).toLocalDate()));
         }
     };
 
-    abstract void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
+    public abstract void setValue(final PreparedStatement statement, final int index, final String column, final Record record)
             throws SQLException;
 }

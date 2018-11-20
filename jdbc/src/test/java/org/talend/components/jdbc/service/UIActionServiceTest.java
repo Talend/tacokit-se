@@ -14,6 +14,7 @@ package org.talend.components.jdbc.service;
 
 import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -106,6 +107,7 @@ class UIActionServiceTest {
         final HealthCheckStatus status = myService.validateBasicDataStore(datastore);
         assertNotNull(status);
         assertEquals(HealthCheckStatus.Status.KO, status.getStatus());
+        assertFalse(status.getComment().isEmpty());
     }
 
     @Test

@@ -35,6 +35,7 @@ import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
+@DisplayName("Input - Test cases")
 @WithDerby(onStartSQLScript = "derby/input_create.sql", onShutdownSQLScript = "derby/delete.sql")
 @WithComponents("org.talend.components.jdbc") // component package
 class JdbcInputEmitterTest extends BaseTest {

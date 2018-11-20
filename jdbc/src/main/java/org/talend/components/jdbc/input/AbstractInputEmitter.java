@@ -61,7 +61,7 @@ public abstract class AbstractInputEmitter implements Serializable {
             try {
                 connection.setReadOnly(true);
             } catch (final Throwable e) {
-                log.warn(i18n.warnReadOnlyOptimisationFailure(), e); // not supported in some database
+                log.info(i18n.warnReadOnlyOptimisationFailure(), e); // not supported in some database
             }
 
             /*
