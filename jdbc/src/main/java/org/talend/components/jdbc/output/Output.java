@@ -22,7 +22,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.talend.components.jdbc.configuration.OutputConfiguration;
-import org.talend.components.jdbc.output.statement.StatementExecutorFactory;
+import org.talend.components.jdbc.output.statement.JdbcActionFactory;
 import org.talend.components.jdbc.output.statement.operations.JdbcAction;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
@@ -68,7 +68,7 @@ public class Output implements Serializable {
     @PostConstruct
     public void init() {
         this.connection = jdbcDriversService.connection(configuration.getDataset().getConnection());
-        this.jdbcAction = new StatementExecutorFactory(i18n, this::getConnection, configuration).createAction();
+        this.jdbcAction = new JdbcActionFactory(i18n, this::getConnection, configuration).createAction();
         this.records = new ArrayList<>();
     }
 

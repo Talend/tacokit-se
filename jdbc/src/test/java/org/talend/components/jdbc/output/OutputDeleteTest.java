@@ -103,7 +103,7 @@ class OutputDeleteTest extends BaseTest {
     @DisplayName("Delete - Missing defined key in incoming record")
     void deleteWithMissingDefinedKeys(final DerbyExtension.DerbyInfo derbyInfo) {
         // 1) insert some data.
-        final int rowCount = 20;
+        final int rowCount = 50;
         insertUsers(derbyInfo, rowCount);
         // 2) perform delete test with some record with missing delete key (id)
         final TableNameDataset tableNameDataset = newTableNameDataset(derbyInfo, "users");
@@ -112,7 +112,7 @@ class OutputDeleteTest extends BaseTest {
         deleteConfig.setActionOnData(OutputConfiguration.ActionOnData.DELETE);
         deleteConfig.setKeys(asList("id"));
         final String updateConfig = configurationByExample().forInstance(deleteConfig).configured().toQueryString();
-        final int nullEvery = 3; // generate corrupted records
+        final int nullEvery = 6; // generate corrupted records
         Job.components()
                 .component("userGenerator",
                         "jdbcTest://UserGenerator?config.rowCount=" + rowCount + "&config.withNullIds=true" + "&config.nullEvery="

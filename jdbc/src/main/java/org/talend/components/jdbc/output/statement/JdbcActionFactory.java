@@ -14,7 +14,7 @@ import org.talend.components.jdbc.service.I18nMessage;
 import lombok.Data;
 
 @Data
-public class StatementExecutorFactory {
+public class JdbcActionFactory {
 
     private final I18nMessage i18n;
 
