@@ -1,1 +1,0 @@
-CREATE TABLE users (id int NOT NULL,  name varchar(15) DEFAULT NULL,  PRIMARY KEY (id))

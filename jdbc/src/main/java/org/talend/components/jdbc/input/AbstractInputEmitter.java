@@ -1,17 +1,6 @@
 package org.talend.components.jdbc.input;
 
-import java.io.Serializable;
-import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
-import java.util.Date;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
+import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.dataset.BaseDataSet;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
@@ -19,7 +8,12 @@ import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import lombok.extern.slf4j.Slf4j;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.io.Serializable;
+import java.lang.reflect.Method;
+import java.sql.*;
+import java.util.Date;
 
 @Slf4j
 public abstract class AbstractInputEmitter implements Serializable {
@@ -113,19 +107,23 @@ public abstract class AbstractInputEmitter implements Serializable {
         }
 
         switch (sqlType) {
-        case java.sql.Types.INTEGER:
         case java.sql.Types.SMALLINT:
         case java.sql.Types.TINYINT:
             builder.withInt(name, (Integer) value);
             break;
+        case java.sql.Types.INTEGER:
         case java.sql.Types.BIGINT:
-            builder.withLong(name, (Long) value);
+            if (value instanceof Integer) { // mysql INT can be a java Long
+                builder.withInt(name, (Integer) value);
+            } else {
+                builder.withLong(name, (Long) value);
+            }
             break;
         case java.sql.Types.FLOAT:
+        case java.sql.Types.REAL:
             builder.withFloat(name, (Float) value);
             break;
         case java.sql.Types.DOUBLE:
-        case java.sql.Types.REAL:
             builder.withDouble(name, (Double) value);
             break;
         case java.sql.Types.BOOLEAN:

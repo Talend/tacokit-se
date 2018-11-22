@@ -12,35 +12,35 @@
  */
 package org.talend.components.jdbc.components;
 
-import static java.util.Optional.ofNullable;
-
-import java.io.Serializable;
-
-import javax.annotation.PostConstruct;
-
+import lombok.Data;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import lombok.Data;
+import javax.annotation.PostConstruct;
+import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
 
-public class UserGeneratorSource implements Serializable {
+import static java.util.Optional.ofNullable;
+
+public class RowGeneratorSource implements Serializable {
 
     private final Config config;
 
-    private RecordBuilderFactory recordBuilderFactory;
-
     private int currentCount;
 
-    public UserGeneratorSource(final Config config, final RecordBuilderFactory recordBuilderFactory) {
+    private RecordBuilderFactory recordBuilderFactory;
+
+    public RowGeneratorSource(final Config config, final RecordBuilderFactory recordBuilderFactory) {
         this.recordBuilderFactory = recordBuilderFactory;
         this.config = config;
     }
 
     @PostConstruct
     public void init() {
-        currentCount = config.startIndex + 1;
+        currentCount = config.start + 1;
     }
 
     @Producer
@@ -50,18 +50,23 @@ public class UserGeneratorSource implements Serializable {
         }
 
         final Record.Builder builder = recordBuilderFactory.newRecordBuilder();
-        if (config.nullEvery != -1 && currentCount % config.nullEvery == 0) {
-            if (!config.withNullIds) {
-                builder.withInt("id", currentCount);
-            }
-            if (config.withNullNames) {
-                builder.withString("name", null);
-            } else {
-                builder.withString("name", ofNullable(config.namePrefix).orElse("user") + currentCount);
-            }
-        } else {
+        if (config.withMissingIdEvery <= 0 || currentCount % config.withMissingIdEvery != 0) {
             builder.withInt("id", currentCount);
-            builder.withString("name", ofNullable(config.namePrefix).orElse("user") + currentCount);
+        }
+
+        if (config.withNullValues) {
+            builder.withString("t_string", null);
+            builder.withDateTime("t_date", (Date) null);
+            builder.withBytes("t_bytes", null);
+        } else {
+            builder.withString("t_string", ofNullable(config.stringPrefix).orElse("customer") + currentCount);
+            builder.withBoolean("t_boolean", true);
+            builder.withLong("t_long", 10000000000L);
+            builder.withDouble("t_double", 1000.85d);
+            builder.withFloat("t_float", 15.50f);
+            builder.withDateTime("t_date", new Date());
+            builder.withBytes("t_bytes", "some data in bytes".getBytes(StandardCharsets.UTF_8));
+
         }
 
         currentCount++;
@@ -72,21 +77,19 @@ public class UserGeneratorSource implements Serializable {
     public static class Config implements Serializable {
 
         @Option
-        private int startIndex;
+        private int start;
 
         @Option
         private int rowCount;
 
         @Option
-        private String namePrefix;
+        private String stringPrefix;
 
         @Option
-        private boolean withNullNames = false;
+        private boolean withNullValues;
 
         @Option
-        private boolean withNullIds = false;
+        private int withMissingIdEvery;
 
-        @Option
-        private int nullEvery = -1;
     }
 }

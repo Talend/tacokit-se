@@ -12,7 +12,13 @@
  */
 package org.talend.components.jdbc.output.statement.operations;
 
-import static java.util.Collections.emptyList;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.configuration.OutputConfiguration;
+import org.talend.components.jdbc.output.statement.RecordToSQLTypeConverter;
+import org.talend.components.jdbc.service.I18nMessage;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -22,14 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import org.talend.components.jdbc.configuration.OutputConfiguration;
-import org.talend.components.jdbc.output.statement.RecordToSQLTypeConverter;
-import org.talend.components.jdbc.service.I18nMessage;
-import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
-
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import static java.util.Collections.emptyList;
 
 @Data
 @Slf4j
@@ -47,7 +46,7 @@ public abstract class JdbcAction {
 
     protected abstract boolean validateQueryParam(Record record);
 
-    public List<Record> execute(final List<Record> records) {
+    public List<Record> execute(final List<Record> records) throws SQLException {
         if (records.isEmpty()) {
             return emptyList();
         }
@@ -64,7 +63,7 @@ public abstract class JdbcAction {
                 }
                 for (final Map.Entry<Integer, Schema.Entry> entry : getQueryParams().entrySet()) {
                     RecordToSQLTypeConverter.valueOf(entry.getValue().getType().name()).setValue(statement, entry.getKey(),
-                            entry.getValue().getName(), record);
+                            entry.getValue(), record);
                 }
                 statement.addBatch();
             }
@@ -75,11 +74,11 @@ public abstract class JdbcAction {
             } catch (final SQLException e) {
                 statement.clearBatch();
                 connection.rollback();
+
+                throw e;
             }
 
             return discards;
-        } catch (final SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 

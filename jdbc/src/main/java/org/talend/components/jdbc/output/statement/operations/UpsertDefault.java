@@ -1,28 +1,22 @@
 package org.talend.components.jdbc.output.statement.operations;
 
-import static java.util.Collections.emptyList;
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
-
 import org.talend.components.jdbc.configuration.OutputConfiguration;
 import org.talend.components.jdbc.output.statement.RecordToSQLTypeConverter;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
+
+import static java.util.Collections.emptyList;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.*;
 
 public class UpsertDefault extends JdbcAction {
 
@@ -71,7 +65,7 @@ public class UpsertDefault extends JdbcAction {
     }
 
     @Override
-    public List<Record> execute(final List<Record> records) {
+    public List<Record> execute(final List<Record> records) throws SQLException {
         if (records.isEmpty()) {
             return emptyList();
         }
@@ -89,7 +83,7 @@ public class UpsertDefault extends JdbcAction {
                 }
                 for (final Map.Entry<Integer, Schema.Entry> entry : getQueryParams().entrySet()) {
                     RecordToSQLTypeConverter.valueOf(entry.getValue().getType().name()).setValue(statement, entry.getKey(),
-                            entry.getValue().getName(), record);
+                            entry.getValue(), record);
                 }
                 try (final ResultSet result = statement.executeQuery()) {
                     if (result.next() && result.getInt("RECORD_EXIST") > 0) {
@@ -102,6 +96,8 @@ public class UpsertDefault extends JdbcAction {
         } catch (final SQLException e) {
             throw new RuntimeException(e);
         }
+
+        // fixme handle the update and insert in the same transaction
         if (!needInsert.isEmpty()) {
             insert.buildQuery(needInsert);
             discards.addAll(insert.execute(needInsert));
