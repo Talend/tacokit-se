@@ -1,1 +1,0 @@
-package org.talend.components.jdbc.integration;

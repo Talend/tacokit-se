@@ -1,7 +1,9 @@
 package org.talend.components.jdbc;
 
 import lombok.Data;
+import org.junit.jupiter.api.BeforeEach;
 import org.talend.components.jdbc.configuration.OutputConfiguration;
+import org.talend.components.jdbc.containers.JdbcTestContainer;
 import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.service.I18nMessage;
@@ -16,10 +18,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import static java.util.Optional.ofNullable;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @Data
-public abstract class BaseJdbcTest implements JdbcContainer, BaseTest {
+public abstract class BaseJdbcTest {
 
     @Injected
     private BaseComponentsHandler componentsHandler;
@@ -30,25 +33,13 @@ public abstract class BaseJdbcTest implements JdbcContainer, BaseTest {
     @Service
     private I18nMessage i18nMessage;
 
-    @Override
-    public JdbcConnection newConnection() {
-        final JdbcConnection connection = new JdbcConnection();
-        connection.setUserId(getUsername());
-        connection.setPassword(getPassword());
-        connection.setDbType(getDatabaseType());
-        connection.setJdbcUrl(getJdbcUrl());
-        return connection;
+    @BeforeEach
+    void beforEach(final JdbcTestContainer container) {
+        container.createOrTruncateTable(getJdbcService());
     }
 
-    public TableNameDataset newTableNameDataset(final String table) {
-        TableNameDataset dataset = new TableNameDataset();
-        dataset.setConnection(newConnection());
-        dataset.setTableName(table);
-        return dataset;
-    }
-
-    public List<Record> readAll(final String table) {
-        final TableNameDataset dataset = newTableNameDataset(table);
+    public List<Record> readAll(final JdbcTestContainer container) {
+        final TableNameDataset dataset = newTableNameDataset(container.getTestTableName(), container);
         final String inConfig = configurationByExample().forInstance(dataset).configured().toQueryString();
         Job.components().component("jdbcInput", "Jdbc://TableNameInput?" + inConfig).component("collector", "test://collector")
                 .connections().from("jdbcInput").to("collector").build().run();
@@ -57,10 +48,10 @@ public abstract class BaseJdbcTest implements JdbcContainer, BaseTest {
         return data;
     }
 
-    protected void insertRows(final int rowCount, final boolean withNullValues, final int withMissingIdEvery,
-            final String stringPrefix) {
+    public static void insertRows(final JdbcTestContainer container, final int rowCount, final boolean withNullValues,
+            final int withMissingIdEvery, final String stringPrefix) {
         final OutputConfiguration configuration = new OutputConfiguration();
-        configuration.setDataset(newTableNameDataset(getTestTableName()));
+        configuration.setDataset(newTableNameDataset(container.getTestTableName(), container));
         configuration.setActionOnData(OutputConfiguration.ActionOnData.INSERT);
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
         Job.components()
@@ -71,17 +62,34 @@ public abstract class BaseJdbcTest implements JdbcContainer, BaseTest {
                 .run();
     }
 
+    public static JdbcConnection newConnection(final JdbcTestContainer container) {
+        final JdbcConnection connection = new JdbcConnection();
+        connection.setUserId(container.getUsername());
+        connection.setPassword(container.getPassword());
+        connection.setDbType(container.getDatabaseType());
+        connection.setJdbcUrl(container.getJdbcUrl());
+        return connection;
+    }
+
+    public static TableNameDataset newTableNameDataset(final String table, final JdbcTestContainer container) {
+        TableNameDataset dataset = new TableNameDataset();
+        dataset.setConnection(newConnection(container));
+        dataset.setTableName(table);
+        return dataset;
+    }
+
     /**
      * @return random count between available processor count and available processor *100
      */
-    public int getRandomRowCount() {
+    public static int getRandomRowCount() {
         final int availableProcessors = Runtime.getRuntime().availableProcessors();
         return new Random().nextInt(((availableProcessors * 100) - availableProcessors)) + availableProcessors;
     }
 
-    public String rowGeneratorConfig(final int rowCount, final boolean withNullValues, final int withMissingIdEvery,
+    public static String rowGeneratorConfig(final int rowCount, final boolean withNullValues, final int withMissingIdEvery,
             final String stringPrefix) {
-        return "config.rowCount=" + rowCount + "&config.withNullValues=" + withNullValues + "&config.stringPrefix=" + stringPrefix
+        return "config.rowCount=" + rowCount + "&config.withNullValues=" + withNullValues
+                + ofNullable(stringPrefix).map(p -> "&config.stringPrefix=" + stringPrefix).orElse("")
                 + "&config.withMissingIdEvery=" + withMissingIdEvery;
     }
 

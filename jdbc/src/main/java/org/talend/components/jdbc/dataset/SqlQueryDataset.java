@@ -18,6 +18,7 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Validable;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.widget.Code;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import static org.talend.components.jdbc.service.UIActionService.ACTION_VALIDATION_READONLY_QUERY;
@@ -33,6 +34,7 @@ public class SqlQueryDataset implements BaseDataSet {
     private JdbcConnection connection;
 
     @Option
+    @Code("sql")
     @Validable(ACTION_VALIDATION_READONLY_QUERY)
     @Documentation("A valid read only query is the source type is Query")
     private String sqlQuery;

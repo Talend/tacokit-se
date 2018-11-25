@@ -12,9 +12,15 @@
  */
 package org.talend.components.jdbc.service;
 
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.joining;
+import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.configuration.JdbcConfiguration;
+import org.talend.components.jdbc.datastore.JdbcConnection;
+import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.configuration.Configuration;
+import org.talend.sdk.component.api.service.dependency.Resolver;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -26,24 +32,12 @@ import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
-import org.talend.components.jdbc.configuration.JdbcConfiguration;
-import org.talend.components.jdbc.datastore.JdbcConnection;
-import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.configuration.Configuration;
-import org.talend.sdk.component.api.service.dependency.Resolver;
-
-import lombok.extern.slf4j.Slf4j;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.joining;
 
 @Slf4j
 @Service
@@ -141,10 +135,10 @@ public class JdbcService {
      * @return return false if the sql query is not a read only query, true otherwise
      */
     public boolean isNotReadOnlySQLQuery(final String query) {
-        return !READ_ONLY_QUERY_PATTERN.matcher(query.trim()).matches();
+        return query != null && !READ_ONLY_QUERY_PATTERN.matcher(query.trim()).matches();
     }
 
-    public Connection connection(final JdbcConnection datastore) {
+    public Connection connection(final JdbcConnection datastore, final boolean rewriteBatchedStatements) {
         if (datastore.getJdbcUrl() == null || datastore.getJdbcUrl().trim().isEmpty()) {
             throw new IllegalArgumentException(i18n.errorEmptyJdbcURL());
         }
@@ -160,7 +154,7 @@ public class JdbcService {
                         setProperty("password", datastore.getPassword());
                     }
                     if ("mysql".equalsIgnoreCase(datastore.getDbType())) {
-                        setProperty("rewriteBatchedStatements", "true");
+                        setProperty("rewriteBatchedStatements", String.valueOf(rewriteBatchedStatements));
                     }
                 }
             };
@@ -170,6 +164,10 @@ public class JdbcService {
         } catch (final SQLException e) {
             throw new IllegalStateException(i18n.errorSQL(e.getErrorCode(), e.getMessage()), e);
         }
+    }
+
+    public Connection connection(final JdbcConnection datastore) {
+        return connection(datastore, false);
     }
 
     public boolean isConnectionValid(final Connection connection) throws SQLException {
@@ -193,7 +191,10 @@ public class JdbcService {
     }
 
     private JdbcConfiguration.Driver getDriver(final JdbcConnection dataStore) {
-        return jdbcConfiguration.get().getDrivers().stream().filter(d -> d.getId().equals(dataStore.getDbType())).findFirst()
+        return jdbcConfiguration.get().getDrivers().stream()
+                .filter(d -> d.getId()
+                        .equals(ofNullable(dataStore.getHandler()).filter(h -> !h.isEmpty()).orElse(dataStore.getDbType())))
+                .filter(d -> d.getHandlers() == null || d.getHandlers().isEmpty()).findFirst()
                 .orElseThrow(() -> new IllegalStateException(i18n.errorDriverNotFound(dataStore.getDbType())));
     }
 }

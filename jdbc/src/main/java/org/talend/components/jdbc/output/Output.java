@@ -12,15 +12,7 @@
  */
 package org.talend.components.jdbc.output;
 
-import java.io.Serializable;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
+import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfiguration;
 import org.talend.components.jdbc.output.statement.JdbcActionFactory;
 import org.talend.components.jdbc.output.statement.operations.JdbcAction;
@@ -30,14 +22,16 @@ import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
-import org.talend.sdk.component.api.processor.AfterGroup;
-import org.talend.sdk.component.api.processor.BeforeGroup;
-import org.talend.sdk.component.api.processor.ElementListener;
-import org.talend.sdk.component.api.processor.Input;
-import org.talend.sdk.component.api.processor.Processor;
+import org.talend.sdk.component.api.processor.*;
 import org.talend.sdk.component.api.record.Record;
 
-import lombok.extern.slf4j.Slf4j;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Processor(name = "Output")
@@ -86,11 +80,28 @@ public class Output implements Serializable {
     public void afterGroup() throws SQLException {
         // TODO : handle discarded records
         try {
-            final List<Record> discards = jdbcAction.execute(records);
-            discards.stream().map(Object::toString).forEach(r -> log.info("[rejected] - " + r));
+            final List<Reject> discards = jdbcAction.execute(records);
+            discards.stream().map(Object::toString).forEach(log::info);
         } catch (final Throwable e) {
-            records.stream().map(Object::toString).forEach(r -> log.info("[rejected] - " + r));
+            records.stream().map(Object::toString).forEach(log::info);
+            quiteRollback();
             throw e;
+        }
+
+        try {
+            connection.commit();
+        } catch (final SQLException e) {
+            log.error("Can't commit the transaction", e);
+            quiteRollback();
+        }
+    }
+
+    private void quiteRollback() {
+        try {
+            log.info("Rollback transaction");
+            connection.rollback();
+        } catch (SQLException e) {
+            log.error("Can't rollback the transaction", e);
         }
     }
 
@@ -122,7 +133,8 @@ public class Output implements Serializable {
                 } catch (final SQLException e) {
                     log.warn(i18n.errorCantCloseJdbcConnectionProperly(), e);
                 }
-                this.connection = jdbcDriversService.connection(configuration.getDataset().getConnection());
+                this.connection = jdbcDriversService.connection(configuration.getDataset().getConnection(),
+                        configuration.isRewriteBatchedStatements());
             }
         } catch (final SQLException e) {
             log.debug("Can't validate connection state from connection pool. recreating a new one", e);

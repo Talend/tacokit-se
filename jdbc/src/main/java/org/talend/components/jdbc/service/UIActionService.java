@@ -55,6 +55,8 @@ public class UIActionService {
 
     public static final String ACTION_LIST_SUPPORTED_DB = "ACTION_LIST_SUPPORTED_DB";
 
+    public static final String ACTION_LIST_HANDLERS_DB = "ACTION_LIST_HANDLERS_DB";
+
     public static final String ACTION_BASIC_HEALTH_CHECK = "ACTION_BASIC_HEALTH_CHECK";
 
     public static final String ACTION_VALIDATION_READONLY_QUERY = "ACTION_VALIDATION_READONLY_QUERY";
@@ -62,8 +64,6 @@ public class UIActionService {
     public static final String ACTION_SUGGESTION_TABLE_NAMES = "ACTION_SUGGESTION_TABLE_NAMES";
 
     public static final String ACTION_SUGGESTION_TABLE_COLUMNS_NAMES = "ACTION_SUGGESTION_TABLE_COLUMNS_NAMES";
-
-    private static List<String> SUPPORTED_TYPES = Arrays.asList("TABLE", "VIEW", "SYNONYM");
 
     @Service
     private JdbcService jdbcService;
@@ -77,7 +77,18 @@ public class UIActionService {
     @DynamicValues(ACTION_LIST_SUPPORTED_DB)
     public Values loadSupportedDataBaseTypes() {
         return new Values(jdbcConfiguration.get().getDrivers().stream().sorted(comparingInt(JdbcConfiguration.Driver::getOrder))
-                .map(driver -> new Values.Item(driver.getId(), driver.getId())).collect(toList()));
+                .map(driver -> new Values.Item(driver.getId(), driver.getDisplayName())).collect(toList()));
+    }
+
+    @Suggestions(ACTION_LIST_HANDLERS_DB)
+    public SuggestionValues getHandlersDataBaseTypes(@Option final String dbType) {
+        List<JdbcConfiguration.Driver> drivers = jdbcConfiguration.get().getDrivers();
+        return new SuggestionValues(false,
+                drivers.stream().filter(db -> db.getId().equals(dbType) && !db.getHandlers().isEmpty())
+                        .flatMap(db -> db.getHandlers().stream())
+                        .flatMap(handler -> drivers.stream().filter(d -> d.getId().equals(handler))).distinct()
+                        .sorted(comparingInt(JdbcConfiguration.Driver::getOrder))
+                        .map(driver -> new SuggestionValues.Item(driver.getId(), driver.getDisplayName())).collect(toList()));
     }
 
     @HealthCheck(ACTION_BASIC_HEALTH_CHECK)
@@ -135,7 +146,7 @@ public class UIActionService {
     public SuggestionValues getTableFromDatabase(@Option final JdbcConnection datastore) {
         final Collection<SuggestionValues.Item> items = new HashSet<>();
         try (Connection connection = jdbcService.connection(datastore)) {
-            DatabaseMetaData dbMetaData = connection.getMetaData();
+            final DatabaseMetaData dbMetaData = connection.getMetaData();
             try (ResultSet tables = dbMetaData.getTables(connection.getCatalog(), connection.getSchema(), null,
                     getAvailableTableTypes(dbMetaData).toArray(new String[0]))) {
                 while (tables.next()) {
@@ -161,8 +172,8 @@ public class UIActionService {
         try (ResultSet tables = dbMetaData.getTableTypes()) {
             while (tables.next()) {
                 ofNullable(tables.getString("TABLE_TYPE")).map(String::trim)
-                        .map(t -> ("BASE TABLE".equalsIgnoreCase(t)) ? "TABLE" : t).filter(t -> SUPPORTED_TYPES.contains(t))
-                        .ifPresent(result::add);
+                        .map(t -> ("BASE TABLE".equalsIgnoreCase(t)) ? "TABLE" : t)
+                        .filter(t -> jdbcConfiguration.get().getSupportedTableTypes().contains(t)).ifPresent(result::add);
             }
         }
         return result;

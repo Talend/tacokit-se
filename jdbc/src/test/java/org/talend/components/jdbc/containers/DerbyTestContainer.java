@@ -1,15 +1,11 @@
-package org.talend.components.jdbc.derby;
+package org.talend.components.jdbc.containers;
 
 import lombok.Data;
+import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.derby.drda.NetworkServerControl;
 import org.apache.derby.jdbc.ClientDataSource;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.TestInstance;
-import org.talend.components.jdbc.BaseTest;
-import org.talend.components.jdbc.JdbcContainer;
+import org.talend.components.jdbc.service.JdbcService;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -22,26 +18,19 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.UUID;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public interface DerbyTestInstance extends JdbcContainer, BaseTest {
+import static org.talend.components.jdbc.BaseJdbcTest.newConnection;
 
-    String tableName = "test_" + UUID.randomUUID().toString().substring(0, 8);
+@Data
+public class DerbyTestContainer implements JdbcTestContainer {
 
-    DerbyContainer container = new DerbyContainer();
+    @Delegate
+    private final DerbyContainer container = new DerbyContainer();
 
-    @BeforeAll
-    default void start() throws Exception {
-        container.start();
-    }
+    private final String testTableName = "test_" + UUID.randomUUID().toString().substring(0, 8);
 
-    @AfterAll
-    default void stop() throws Exception {
-        container.close();
-    }
-
-    @BeforeEach
-    default void beforeEach() {
-        try (final Connection connection = getJdbcService().connection(newConnection())) {
+    @Override
+    public void createOrTruncateTable(final JdbcService jdbcService) {
+        try (final Connection connection = jdbcService.connection(newConnection(this))) {
             final String createTableQuery = "CREATE TABLE " + getTestTableName()
                     + " (id INT, t_string VARCHAR(30), t_boolean BOOLEAN, t_float FLOAT, t_double DOUBLE, t_bytes BLOB, t_date DATE, "
                     + "t_long BIGINT," + " PRIMARY KEY (id))";
@@ -61,29 +50,14 @@ public interface DerbyTestInstance extends JdbcContainer, BaseTest {
         }
     }
 
-    default String getTestTableName() {
-        return tableName;
-    }
-
-    default String getDatabaseType() {
+    @Override
+    public String getDatabaseType() {
         return "Derby";
-    }
-
-    default String getUsername() {
-        return container.getUsername();
-    }
-
-    default String getPassword() {
-        return container.getPassword();
-    }
-
-    default String getJdbcUrl() {
-        return container.getJdbcURL();
     }
 
     @Slf4j
     @Data
-    class DerbyContainer {
+    public static class DerbyContainer {
 
         private NetworkServerControl serverControl;
 
@@ -105,11 +79,25 @@ public interface DerbyTestInstance extends JdbcContainer, BaseTest {
             }
         }
 
-        private String getJdbcURL() {
+        public boolean isRunning() {
+            if (serverControl == null) {
+                return false;
+            }
+
+            try {
+                serverControl.ping();
+                return true;
+            } catch (final Exception e) {
+                log.warn("Can't ping derby server. the database is starting...", e);
+            }
+            return false;
+        }
+
+        public String getJdbcUrl() {
             return "jdbc:derby://" + serverAdress.getHostAddress() + ":" + port + "/" + dbName;
         }
 
-        void start() throws Exception {
+        public void start() {
             System.setProperty("DDL.stream.error.file", "target/derby.log");
             try {
                 serverAdress = InetAddress.getByName("localhost");
@@ -119,31 +107,20 @@ public interface DerbyTestInstance extends JdbcContainer, BaseTest {
             } catch (final IOException e) {
                 throw new IllegalStateException(e);
             }
-            serverControl = new NetworkServerControl(serverAdress, port);
-            serverControl.start(new PrintWriter(System.out) {
+            try {
+                serverControl = new NetworkServerControl(serverAdress, port);
+                serverControl.start(new PrintWriter(System.out) {
 
-                @Override
-                public void close() {
-                    super.flush();
-                }
-            });
-            int tryCount = 10;
-            while (tryCount > 0) {
-                tryCount--;
-                try {
-                    serverControl.ping();
-                    break;
-                } catch (final Exception e) {
-                    if (tryCount == 0) {
-                        throw e;
+                    @Override
+                    public void close() {
+                        super.flush();
                     }
-                }
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
+                });
+            } catch (final Exception e) {
+                throw new IllegalStateException(e);
             }
+
+            waitUntilStart();
 
             final ClientDataSource dataSource = new ClientDataSource();
             dataSource.setCreateDatabase("create");
@@ -157,12 +134,34 @@ public interface DerbyTestInstance extends JdbcContainer, BaseTest {
                     throw new IllegalStateException("Error while starting Derby server");
                 }
                 turnOnBuiltInUsers(c);
+            } catch (final Exception e) {
+                throw new IllegalStateException(e);
             }
         }
 
-        void close() throws Exception {
+        private void waitUntilStart() {
+            int retry = 10;
+            do {
+                retry--;
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            } while (!isRunning() && retry > 0);
+
+            if (!isRunning()) {
+                throw new IllegalStateException("Can't start derby database, check the logs");
+            }
+        }
+
+        public void stop() {
             if (serverControl != null) {
-                serverControl.shutdown();
+                try {
+                    serverControl.shutdown();
+                } catch (final Exception e) {
+                    throw new IllegalStateException(e);
+                }
             }
         }
 

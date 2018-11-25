@@ -1,6 +1,7 @@
 package org.talend.components.jdbc.output.statement.operations;
 
 import org.talend.components.jdbc.configuration.OutputConfiguration;
+import org.talend.components.jdbc.output.Reject;
 import org.talend.components.jdbc.output.statement.RecordToSQLTypeConverter;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
@@ -65,7 +66,7 @@ public class UpsertDefault extends JdbcAction {
     }
 
     @Override
-    public List<Record> execute(final List<Record> records) throws SQLException {
+    public List<Reject> execute(final List<Record> records) throws SQLException {
         if (records.isEmpty()) {
             return emptyList();
         }
@@ -73,12 +74,12 @@ public class UpsertDefault extends JdbcAction {
         final List<Record> needInsert = new ArrayList<>();
         final String query = buildQuery(records);
         final Connection connection = getConnection().get();
-        final List<Record> discards = new ArrayList<>();
+        final List<Reject> discards = new ArrayList<>();
         try (final PreparedStatement statement = connection.prepareStatement(query)) {
             for (final Record record : records) {
                 statement.clearParameters();
                 if (!validateQueryParam(record)) {
-                    discards.add(record);
+                    discards.add(new Reject("missing required query param in this record", record));
                     continue;
                 }
                 for (final Map.Entry<Integer, Schema.Entry> entry : getQueryParams().entrySet()) {

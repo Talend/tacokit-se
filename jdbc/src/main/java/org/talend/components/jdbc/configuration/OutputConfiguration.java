@@ -13,14 +13,18 @@
 package org.talend.components.jdbc.configuration;
 
 import static org.talend.components.jdbc.service.UIActionService.ACTION_SUGGESTION_TABLE_COLUMNS_NAMES;
+import static org.talend.sdk.component.api.configuration.condition.ActiveIf.EvaluationStrategy.CONTAINS;
+import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.OR;
 
 import java.io.Serializable;
 import java.util.List;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.condition.ActiveIfs;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -30,6 +34,7 @@ import lombok.Data;
 @Data
 @GridLayout(value = { @GridLayout.Row("dataset"), @GridLayout.Row({ "actionOnData" }), @GridLayout.Row("keys"),
         @GridLayout.Row("ignoreUpdate") })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("rewriteBatchedStatements") })
 @Documentation("Those properties define an output data set for the JDBC output component")
 public class OutputConfiguration implements Serializable {
 
@@ -53,6 +58,12 @@ public class OutputConfiguration implements Serializable {
     @ActiveIf(target = "actionOnData", value = { "UPDATE", "UPSERT" })
     @Documentation("List of columns to be ignored from update")
     private List<String> ignoreUpdate;
+
+    @Option
+    @ActiveIfs(operator = OR, value = { @ActiveIf(target = "../dataset.connection.dbType", value = { "MySQL" }),
+            @ActiveIf(target = "../dataset.connection.handler", evaluationStrategy = CONTAINS, value = { "MySQL" }) })
+    @Documentation("Rewrite batched statements, to execute one statement per batch combining values in the sql query")
+    private boolean rewriteBatchedStatements = true;
 
     public enum ActionOnData {
         INSERT,
