@@ -12,26 +12,7 @@
  */
 package org.talend.components.jdbc.service;
 
-import static java.util.Collections.emptyList;
-import static java.util.Comparator.comparingInt;
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Supplier;
-import java.util.stream.IntStream;
-
+import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.JdbcConfiguration;
 import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.JdbcConnection;
@@ -47,7 +28,16 @@ import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 
-import lombok.extern.slf4j.Slf4j;
+import java.sql.*;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.IntStream;
+
+import static java.util.Collections.emptyList;
+import static java.util.Comparator.comparingInt;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 @Slf4j
 @Service
@@ -93,13 +83,8 @@ public class UIActionService {
 
     @HealthCheck(ACTION_BASIC_HEALTH_CHECK)
     public HealthCheckStatus validateBasicDataStore(@Option final JdbcConnection datastore) {
-        try {
-            jdbcService.acceptsURL(datastore);
-            try (final Connection connection = this.jdbcService.connection(datastore)) {
-                if (!jdbcService.isConnectionValid(connection)) {
-                    return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.errorInvalidConnection());
-                }
-            }
+        try (final Connection ignored = this.jdbcService.createDataSource(datastore).getConnection()) {
+            // no-op
         } catch (final Exception e) {
             return new HealthCheckStatus(HealthCheckStatus.Status.KO, e.getMessage());
         }
@@ -117,7 +102,7 @@ public class UIActionService {
 
     @Suggestions(ACTION_SUGGESTION_TABLE_COLUMNS_NAMES)
     public SuggestionValues getTableColumns(@Option final TableNameDataset dataset) {
-        try (Connection conn = jdbcService.connection(dataset.getConnection())) {
+        try (Connection conn = jdbcService.createDataSource(dataset.getConnection()).getConnection()) {
             try (final Statement statement = conn.createStatement()) {
                 statement.setMaxRows(1);
                 try (final ResultSet result = statement.executeQuery(dataset.getQuery())) {
@@ -145,7 +130,7 @@ public class UIActionService {
     @Suggestions(ACTION_SUGGESTION_TABLE_NAMES)
     public SuggestionValues getTableFromDatabase(@Option final JdbcConnection datastore) {
         final Collection<SuggestionValues.Item> items = new HashSet<>();
-        try (Connection connection = jdbcService.connection(datastore)) {
+        try (Connection connection = jdbcService.createDataSource(datastore).getConnection()) {
             final DatabaseMetaData dbMetaData = connection.getMetaData();
             try (ResultSet tables = dbMetaData.getTables(connection.getCatalog(), connection.getSchema(), null,
                     getAvailableTableTypes(dbMetaData).toArray(new String[0]))) {
@@ -168,7 +153,7 @@ public class UIActionService {
     }
 
     private Set<String> getAvailableTableTypes(DatabaseMetaData dbMetaData) throws SQLException {
-        Set<String> result = new HashSet<String>();
+        Set<String> result = new HashSet<>();
         try (ResultSet tables = dbMetaData.getTableTypes()) {
             while (tables.next()) {
                 ofNullable(tables.getString("TABLE_TYPE")).map(String::trim)

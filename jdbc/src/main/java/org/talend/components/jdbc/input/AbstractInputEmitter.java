@@ -1,5 +1,6 @@
 package org.talend.components.jdbc.input;
 
+import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.dataset.BaseDataSet;
 import org.talend.components.jdbc.service.I18nMessage;
@@ -32,6 +33,8 @@ public abstract class AbstractInputEmitter implements Serializable {
 
     private ResultSet resultSet;
 
+    private HikariDataSource dataSource;
+
     public AbstractInputEmitter(final BaseDataSet queryDataSet, final JdbcService jdbcDriversService,
             final RecordBuilderFactory recordBuilderFactory, final I18nMessage i18nMessage) {
         this.dataSet = queryDataSet;
@@ -51,13 +54,8 @@ public abstract class AbstractInputEmitter implements Serializable {
         }
 
         try {
-            connection = jdbcDriversService.connection(dataSet.getConnection());
-            try {
-                connection.setReadOnly(true);
-            } catch (final Throwable e) {
-                log.info(i18n.warnReadOnlyOptimisationFailure(), e); // not supported in some database
-            }
-
+            dataSource = jdbcDriversService.createDataSourceReadOnly(dataSet.getConnection());
+            connection = dataSource.getConnection();
             /*
              * Add some optimization for mysql by activating read only and enabling streaming
              */
@@ -105,7 +103,6 @@ public abstract class AbstractInputEmitter implements Serializable {
         if (value == null) {
             return;
         }
-
         switch (sqlType) {
         case java.sql.Types.SMALLINT:
         case java.sql.Types.TINYINT:
@@ -155,7 +152,7 @@ public abstract class AbstractInputEmitter implements Serializable {
     }
 
     @PreDestroy
-    public void close() {
+    public void preDestroy() {
         if (resultSet != null) {
             try {
                 resultSet.close();
@@ -176,6 +173,9 @@ public abstract class AbstractInputEmitter implements Serializable {
             } catch (SQLException e) {
                 log.warn(i18n.warnConnectionCantBeClosed(), e);
             }
+        }
+        if (dataSource != null) {
+            dataSource.close();
         }
     }
 

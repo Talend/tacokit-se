@@ -1,5 +1,6 @@
 package org.talend.components.jdbc.containers;
 
+import com.zaxxer.hikari.HikariDataSource;
 import lombok.Data;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
@@ -30,23 +31,27 @@ public class DerbyTestContainer implements JdbcTestContainer {
 
     @Override
     public void createOrTruncateTable(final JdbcService jdbcService) {
-        try (final Connection connection = jdbcService.connection(newConnection(this))) {
-            final String createTableQuery = "CREATE TABLE " + getTestTableName()
-                    + " (id INT, t_string VARCHAR(30), t_boolean BOOLEAN, t_float FLOAT, t_double DOUBLE, t_bytes BLOB, t_date DATE, "
-                    + "t_long BIGINT," + " PRIMARY KEY (id))";
-            try (final PreparedStatement stm = connection.prepareStatement(createTableQuery)) {
-                stm.execute();
-            } catch (final SQLException e) {
-                if (!"X0Y32".equals(e.getSQLState())) { // ignore if table already exist
-                    throw e;
-                }
-                // truncate existing table
-                try (final PreparedStatement stm = connection.prepareStatement("truncate table " + getTestTableName())) {
+        try (HikariDataSource dataSource = jdbcService.createDataSource(newConnection(this))) {
+            try (final Connection connection = dataSource.getConnection()) {
+                final String createTableQuery = "CREATE TABLE " + getTestTableName()
+                        + " (id INT, t_string VARCHAR(30), t_boolean BOOLEAN, t_float FLOAT, t_double DOUBLE, t_bytes BLOB, t_date DATE, "
+                        + "t_long BIGINT," + " PRIMARY KEY (id))";
+                try (final PreparedStatement stm = connection.prepareStatement(createTableQuery)) {
                     stm.execute();
+                } catch (final SQLException e) {
+                    if (!"X0Y32".equals(e.getSQLState())) { // ignore if table already exist
+                        throw e;
+                    }
+                    // truncate existing table
+                    try (final PreparedStatement stm = connection.prepareStatement("truncate table " + getTestTableName())) {
+                        stm.execute();
+                    }
+                } finally {
+                    connection.commit();
                 }
+            } catch (SQLException e) {
+                throw new IllegalStateException(e);
             }
-        } catch (SQLException e) {
-            throw new IllegalStateException(e);
         }
     }
 

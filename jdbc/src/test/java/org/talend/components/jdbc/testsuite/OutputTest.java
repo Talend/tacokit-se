@@ -16,13 +16,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.talend.components.jdbc.BaseJdbcTest;
-import org.talend.components.jdbc.BeamDirectRunner;
 import org.talend.components.jdbc.JdbcInvocationContextProvider;
 import org.talend.components.jdbc.configuration.OutputConfiguration;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit.environment.Environment;
 import org.talend.sdk.component.junit.environment.builtin.ContextualEnvironment;
+import org.talend.sdk.component.junit.environment.builtin.beam.DirectRunnerEnvironment;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
@@ -38,8 +38,8 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 @DisplayName("Output")
 @WithComponents("org.talend.components.jdbc")
 @ExtendWith({ JdbcInvocationContextProvider.class })
-// @Environment(ContextualEnvironment.class)
-@Environment(BeamDirectRunner.class)
+@Environment(ContextualEnvironment.class)
+@Environment(DirectRunnerEnvironment.class)
 class OutputTest extends BaseJdbcTest {
 
     @TestTemplate
@@ -53,9 +53,7 @@ class OutputTest extends BaseJdbcTest {
         Job.components().component("rowGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, false, 0, null))
                 .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput").build()
                 .run();
-        final List<Record> records = readAll(container);
-        assertNotNull(records);
-        assertEquals(rowCount, records.size());
+        assertEquals(rowCount, countAll(container));
     }
 
     @TestTemplate
@@ -69,9 +67,7 @@ class OutputTest extends BaseJdbcTest {
         Job.components().component("rowGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, true, 0, null))
                 .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput").build()
                 .run();
-        final List<Record> records = readAll(container);
-        assertNotNull(records);
-        assertEquals(rowCount, records.size());
+        assertEquals(rowCount, countAll(container));
     }
 
     /*
@@ -94,7 +90,7 @@ class OutputTest extends BaseJdbcTest {
                 .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput").build()
                 .run();
 
-        int size = readAll(container).size();
+        long size = countAll(container);
         // some drivers will reject all records and others will reject only duplicated one
         assertTrue(rowCount * 2 == size || rowCount == size);
     }
@@ -116,13 +112,13 @@ class OutputTest extends BaseJdbcTest {
                 .build().run();
 
         // check the update
-        assertTrue(readAll(container).isEmpty());
+        assertEquals(0L, countAll(container));
     }
 
     @TestTemplate
     @DisplayName("Delete - No keys")
     void deleteWithNoKeys(final JdbcTestContainer container) {
-        final int rowCount = 3;
+        final long rowCount = 3;
         insertRows(container, rowCount, false, 0, null);
         final Exception error = assertThrows(Exception.class, () -> {
             final OutputConfiguration deleteConfig = new OutputConfiguration();
@@ -134,7 +130,7 @@ class OutputTest extends BaseJdbcTest {
                     .build().run();
         });
         assertTrue(error.getMessage().contains(getI18nMessage().errorNoKeyForDeleteQuery()));
-        assertEquals(rowCount, readAll(container).size());
+        assertEquals(rowCount, countAll(container));
     }
 
     @TestTemplate
@@ -203,16 +199,15 @@ class OutputTest extends BaseJdbcTest {
     @DisplayName("Upsert - valid query")
     void upsert(final JdbcTestContainer container) {
         // insert some initial data
-        final int existingRecords = 50;
+        final int existingRecords = getRandomRowCount();
         insertRows(container, existingRecords, false, 0, null);
-
         // update the inserted data data
         final OutputConfiguration configuration = new OutputConfiguration();
         configuration.setDataset(newTableNameDataset(container.getTestTableName(), container));
         configuration.setActionOnData(OutputConfiguration.ActionOnData.UPSERT);
         configuration.setKeys(singletonList("id"));
         final String updateConfig = configurationByExample().forInstance(configuration).configured().toQueryString();
-        final int newRecords = 100;
+        final int newRecords = existingRecords * 2;
         Job.components()
                 .component("rowGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(newRecords, false, 0, "updated"))
                 .component("jdbcOutput", "Jdbc://Output?" + updateConfig).connections().from("rowGenerator").to("jdbcOutput")

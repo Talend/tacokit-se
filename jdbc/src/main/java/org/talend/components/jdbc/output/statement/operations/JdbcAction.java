@@ -21,11 +21,11 @@ import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 
 import static java.util.Collections.emptyList;
 
@@ -37,7 +37,7 @@ public abstract class JdbcAction {
 
     private final I18nMessage i18n;
 
-    private final Supplier<Connection> connection;
+    private final DataSource dataSource;
 
     protected abstract String buildQuery(List<Record> records);
 
@@ -49,59 +49,84 @@ public abstract class JdbcAction {
         if (records.isEmpty()) {
             return emptyList();
         }
-
         final String query = buildQuery(records);
-        final Connection connection = this.connection.get();
-        try (final PreparedStatement statement = connection.prepareStatement(query)) {
-            final List<Reject> discards = new ArrayList<>();
-            for (final Record record : records) {
-                statement.clearParameters();
-                if (!validateQueryParam(record)) {
-                    discards.add(new Reject("missing required query param in this record", record));
-                    continue;
-                }
-                for (final Map.Entry<Integer, Schema.Entry> entry : getQueryParams().entrySet()) {
-                    RecordToSQLTypeConverter.valueOf(entry.getValue().getType().name()).setValue(statement, entry.getKey(),
-                            entry.getValue(), record);
-                }
-                statement.addBatch();
+        final List<Reject> discards = new ArrayList<>();
+        try (final Connection connection = dataSource.getConnection()) {
+            try (final PreparedStatement statement = connection.prepareStatement(query)) {
+                discards.addAll(processRecords(records, statement));
+            } catch (final SQLException e) {
+                quiteRollback(connection);
+                throw e;
             }
 
             try {
-                statement.executeBatch();
+                connection.commit();
             } catch (final SQLException e) {
-                statement.clearBatch();
-                if (!(e instanceof BatchUpdateException)) {
-                    throw e;
-                }
-                final BatchUpdateException batchUpdateException = (BatchUpdateException) e;
-                int[] result = batchUpdateException.getUpdateCounts();
-                if (result.length == records.size()) {
-                    /* driver has executed all the batch statements */
-                    for (int i = 0; i < result.length; i++) {
-                        switch (result[i]) {
-                        case Statement.EXECUTE_FAILED:
-                            final SQLException error = (SQLException) batchUpdateException.iterator().next();
-                            discards.add(
-                                    new Reject(error.getMessage(), error.getSQLState(), error.getErrorCode(), records.get(i)));
-                            break;
-                        }
-                    }
-                } else {
-                    /*
-                     * driver stopped executing batch statements after the failing one
-                     * all record after failure point need to be reprocessed
-                     */
-                    int failurePoint = result.length;
-                    final SQLException error = (SQLException) batchUpdateException.iterator().next();
-                    discards.add(
-                            new Reject(error.getMessage(), error.getSQLState(), error.getErrorCode(), records.get(failurePoint)));
-                    discards.addAll(execute(records.subList(failurePoint + 1, records.size())));
-                }
+                quiteRollback(connection);
+                throw e;
             }
 
             return discards;
         }
+    }
+
+    public void quiteRollback(final Connection connection) {
+        try {
+            log.debug("Rollback connection " + connection);
+            connection.rollback();
+        } catch (SQLException rollbackException) {
+            log.error("Can't rollback the connection " + connection, rollbackException);
+        }
+    }
+
+    private List<Reject> processRecords(final List<Record> records, final PreparedStatement statement) throws SQLException {
+        final List<Reject> discards = new ArrayList<>();
+        for (final Record record : records) {
+            statement.clearParameters();
+            if (!validateQueryParam(record)) {
+                discards.add(new Reject("missing required query param in this record", record));
+                continue;
+            }
+            for (final Map.Entry<Integer, Schema.Entry> entry : getQueryParams().entrySet()) {
+                RecordToSQLTypeConverter.valueOf(entry.getValue().getType().name()).setValue(statement, entry.getKey(),
+                        entry.getValue(), record);
+            }
+            statement.addBatch();
+        }
+
+        try {
+            statement.executeBatch();
+        } catch (final SQLException e) {
+            statement.clearBatch();
+            if (!(e instanceof BatchUpdateException)) {
+                throw e;
+            }
+            final BatchUpdateException batchUpdateException = (BatchUpdateException) e;
+            int[] result = batchUpdateException.getUpdateCounts();
+            if (result.length == records.size()) {
+                /* driver has executed all the batch statements */
+                for (int i = 0; i < result.length; i++) {
+                    switch (result[i]) {
+                    case Statement.EXECUTE_FAILED:
+                        final SQLException error = (SQLException) batchUpdateException.iterator().next();
+                        discards.add(new Reject(error.getMessage(), error.getSQLState(), error.getErrorCode(), records.get(i)));
+                        break;
+                    }
+                }
+            } else {
+                /*
+                 * driver stopped executing batch statements after the failing one
+                 * all record after failure point need to be reprocessed
+                 */
+                int failurePoint = result.length;
+                final SQLException error = (SQLException) batchUpdateException.iterator().next();
+                discards.add(
+                        new Reject(error.getMessage(), error.getSQLState(), error.getErrorCode(), records.get(failurePoint)));
+                discards.addAll(processRecords(records.subList(failurePoint + 1, records.size()), statement));
+            }
+        }
+
+        return discards;
     }
 
 }

@@ -12,24 +12,20 @@
  */
 package org.talend.components.jdbc.output.statement.operations;
 
-import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-
-import java.sql.Connection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
-
+import com.zaxxer.hikari.HikariDataSource;
+import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfiguration;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.*;
 
 @Slf4j
 public class Insert extends JdbcAction {
@@ -38,8 +34,8 @@ public class Insert extends JdbcAction {
 
     private final Map<String, String> queries = new HashMap<>();
 
-    public Insert(final OutputConfiguration configuration, final I18nMessage i18n, final Supplier<Connection> connection) {
-        super(configuration, i18n, connection);
+    public Insert(final OutputConfiguration configuration, final I18nMessage i18n, final HikariDataSource dataSource) {
+        super(configuration, i18n, dataSource);
     }
 
     @Override
@@ -56,7 +52,6 @@ public class Insert extends JdbcAction {
             query.append(params.stream().map(e -> e.getValue().getName()).collect(joining(",", "(", ")")));
             query.append(" VALUES");
             query.append(params.stream().map(e -> "?").collect((joining(",", "(", ")"))));
-            log.debug("[query] : " + query);
             return query.toString();
         });
     }

@@ -1,7 +1,7 @@
 package org.talend.components.jdbc.containers;
 
+import com.zaxxer.hikari.HikariDataSource;
 import lombok.experimental.Delegate;
-import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.service.JdbcService;
 import org.testcontainers.containers.ContainerState;
 import org.testcontainers.containers.GenericContainer;
@@ -21,24 +21,27 @@ public class OracleTestContainer implements JdbcTestContainer {
 
     @Override
     public void createOrTruncateTable(JdbcService jdbcService) {
-        final JdbcConnection datastore = newConnection(this);
-        try (final Connection connection = jdbcService.connection(datastore)) {
-            final String sql = "CREATE TABLE " + getTestTableName() + "(id NUMBER(6) PRIMARY KEY," + "t_string VARCHAR(30),"
-                    + "t_boolean NUMBER(1) default 1," + "t_float NUMBER(10,2), " + "t_double NUMBER(10,2), " + "t_bytes BLOB, "
-                    + "t_date DATE, " + "t_long NUMBER(20,2))";
-            try (final PreparedStatement stm = connection.prepareStatement(sql)) {
-                stm.execute();
-            } catch (final SQLException e) {
-                if (!("42000".equals(e.getSQLState()) && 955 == e.getErrorCode())) {
-                    throw e;
-                }
-
-                try (final PreparedStatement stm = connection.prepareStatement("TRUNCATE TABLE " + getTestTableName())) {
+        try (HikariDataSource dataSource = jdbcService.createDataSource(newConnection(this))) {
+            try (final Connection connection = dataSource.getConnection()) {
+                final String sql = "CREATE TABLE " + getTestTableName() + "(id NUMBER(7) PRIMARY KEY," + "t_string VARCHAR(30),"
+                        + "t_boolean NUMBER(1) default 1," + "t_float NUMBER(10,2), " + "t_double NUMBER(10,2), "
+                        + "t_bytes BLOB, " + "t_date DATE, " + "t_long NUMBER(20,2))";
+                try (final PreparedStatement stm = connection.prepareStatement(sql)) {
                     stm.execute();
+                } catch (final SQLException e) {
+                    if (!("42000".equals(e.getSQLState()) && 955 == e.getErrorCode())) {
+                        throw e;
+                    }
+
+                    try (final PreparedStatement stm = connection.prepareStatement("TRUNCATE TABLE " + getTestTableName())) {
+                        stm.execute();
+                    }
+                } finally {
+                    connection.commit();
                 }
+            } catch (SQLException e) {
+                throw new IllegalStateException(e);
             }
-        } catch (SQLException e) {
-            throw new IllegalStateException(e);
         }
     }
 

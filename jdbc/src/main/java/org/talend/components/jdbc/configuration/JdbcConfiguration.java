@@ -34,10 +34,6 @@ import static java.util.Optional.ofNullable;
 public class JdbcConfiguration implements Serializable {
 
     @Option
-    @Documentation("connection configuration. like timeouts")
-    private Connection connection;
-
-    @Option
     @Documentation("supported table types. used in table name suggestions")
     private Set<String> supportedTableTypes;
 
@@ -69,33 +65,15 @@ public class JdbcConfiguration implements Serializable {
 
         @Option
         @Documentation("Jdbc driver that can handle this db also")
-        private List<String> handlers;
+        private List<String> handlers = new ArrayList<>();
 
         @Option
-        @Documentation("Jdbc driver and driver dependencies jar locations")
-        private final List<Path> paths = new ArrayList<>();
-
-        @Data
-        @NoArgsConstructor
-        public static class Path implements Serializable {
-
-            @Option
-            @Documentation("Jdbc driver and driver dependencies jar locations in mvn format")
-            private String path;
-        }
+        @Documentation("Jdbc driver and driver dependencies jar locations in mvn format")
+        private final List<String> paths = new ArrayList<>();
 
         public String getDisplayName() {
             return ofNullable(displayName).filter(d -> !d.isEmpty()).orElse(id);
         }
-    }
-
-    @Data
-    @NoArgsConstructor
-    public static class Connection implements Serializable {
-
-        @Option
-        @Documentation("Connection validation timeout in seconds")
-        private Integer validationTimeout;
     }
 
 }

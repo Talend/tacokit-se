@@ -12,27 +12,19 @@
  */
 package org.talend.components.jdbc.output.statement.operations;
 
-import static java.util.Collections.emptyList;
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-
-import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
-
+import com.zaxxer.hikari.HikariDataSource;
+import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfiguration;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.util.Collections.emptyList;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.*;
 
 @Slf4j
 public class Update extends JdbcAction {
@@ -43,8 +35,8 @@ public class Update extends JdbcAction {
 
     private Map<Integer, Schema.Entry> queryParams;
 
-    public Update(final OutputConfiguration configuration, final I18nMessage i18n, final Supplier<Connection> connection) {
-        super(configuration, i18n, connection);
+    public Update(final OutputConfiguration configuration, final I18nMessage i18n, final HikariDataSource dataSource) {
+        super(configuration, i18n, dataSource);
         this.keys = new ArrayList<>(ofNullable(configuration.getKeys()).orElse(emptyList()));
         if (this.keys.isEmpty()) {
             throw new IllegalArgumentException(i18n.errorNoKeyForUpdateQuery());
@@ -79,8 +71,6 @@ public class Update extends JdbcAction {
                 .map(key -> entries.stream().filter(e -> key.equals(e.getName())).findFirst()
                         .orElseThrow(() -> new IllegalStateException(getI18n().errorNoFieldForQueryParam(key))))
                 .forEach(entry -> queryParams.put(index.incrementAndGet(), entry));
-
-        log.debug("[query] : " + query);
         return query;
     }
 }

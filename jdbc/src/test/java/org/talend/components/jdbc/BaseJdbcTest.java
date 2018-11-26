@@ -4,11 +4,13 @@ import lombok.Data;
 import org.junit.jupiter.api.BeforeEach;
 import org.talend.components.jdbc.configuration.OutputConfiguration;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
+import org.talend.components.jdbc.dataset.SqlQueryDataset;
 import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
@@ -48,7 +50,24 @@ public abstract class BaseJdbcTest {
         return data;
     }
 
-    public static void insertRows(final JdbcTestContainer container, final int rowCount, final boolean withNullValues,
+    public long countAll(final JdbcTestContainer container) {
+        final SqlQueryDataset dataset = new SqlQueryDataset();
+        dataset.setConnection(newConnection(container));
+        final String total = "total";
+        dataset.setSqlQuery("select count(*) as " + total + " from " + container.getTestTableName());
+        final String inConfig = configurationByExample().forInstance(dataset).configured().toQueryString();
+        Job.components().component("jdbcInput", "Jdbc://QueryInput?" + inConfig).component("collector", "test://collector")
+                .connections().from("jdbcInput").to("collector").build().run();
+        final Record data = getComponentsHandler().getCollectedData(Record.class).iterator().next();
+        getComponentsHandler().resetState();
+        return data.getSchema().getEntries().stream().filter(entry -> entry.getName().equalsIgnoreCase(total)).findFirst()
+                .map(entry -> entry.getType() == Schema.Type.STRING ? Long.valueOf(data.getString(entry.getName()))
+                        : data.getLong(entry.getName()))
+                .orElse(0L);
+
+    }
+
+    public static void insertRows(final JdbcTestContainer container, final long rowCount, final boolean withNullValues,
             final int withMissingIdEvery, final String stringPrefix) {
         final OutputConfiguration configuration = new OutputConfiguration();
         configuration.setDataset(newTableNameDataset(container.getTestTableName(), container));
@@ -83,10 +102,10 @@ public abstract class BaseJdbcTest {
      */
     public static int getRandomRowCount() {
         final int availableProcessors = Runtime.getRuntime().availableProcessors();
-        return new Random().nextInt(((availableProcessors * 100) - availableProcessors)) + availableProcessors;
+        return new Random().nextInt(((availableProcessors * 100) - availableProcessors * 4)) + availableProcessors * 4;
     }
 
-    public static String rowGeneratorConfig(final int rowCount, final boolean withNullValues, final int withMissingIdEvery,
+    public static String rowGeneratorConfig(final long rowCount, final boolean withNullValues, final int withMissingIdEvery,
             final String stringPrefix) {
         return "config.rowCount=" + rowCount + "&config.withNullValues=" + withNullValues
                 + ofNullable(stringPrefix).map(p -> "&config.stringPrefix=" + stringPrefix).orElse("")

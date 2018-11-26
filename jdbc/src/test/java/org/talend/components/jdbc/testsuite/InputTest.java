@@ -16,7 +16,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.talend.components.jdbc.BaseJdbcTest;
-import org.talend.components.jdbc.BeamDirectRunner;
 import org.talend.components.jdbc.JdbcInvocationContextProvider;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
 import org.talend.components.jdbc.dataset.SqlQueryDataset;
@@ -24,6 +23,7 @@ import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit.environment.Environment;
 import org.talend.sdk.component.junit.environment.builtin.ContextualEnvironment;
+import org.talend.sdk.component.junit.environment.builtin.beam.DirectRunnerEnvironment;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
@@ -37,7 +37,7 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 @WithComponents("org.talend.components.jdbc")
 @ExtendWith({ JdbcInvocationContextProvider.class })
 @Environment(ContextualEnvironment.class)
-@Environment(BeamDirectRunner.class)
+@Environment(DirectRunnerEnvironment.class)
 class InputTest extends BaseJdbcTest {
 
     @TestTemplate

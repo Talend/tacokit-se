@@ -12,6 +12,7 @@
  */
 package org.talend.components.jdbc.output;
 
+import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfiguration;
 import org.talend.components.jdbc.output.statement.JdbcActionFactory;
@@ -28,7 +29,6 @@ import org.talend.sdk.component.api.record.Record;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.Serializable;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,27 +42,28 @@ public class Output implements Serializable {
 
     private final OutputConfiguration configuration;
 
-    private final JdbcService jdbcDriversService;
+    private final JdbcService jdbcService;
 
     private final I18nMessage i18n;
-
-    private transient Connection connection;
 
     private transient List<Record> records;
 
     private transient JdbcAction jdbcAction;
 
-    public Output(@Option("configuration") final OutputConfiguration outputConfiguration, final JdbcService jdbcDriversService,
+    private transient HikariDataSource dataSource;
+
+    public Output(@Option("configuration") final OutputConfiguration outputConfiguration, final JdbcService jdbcService,
             final I18nMessage i18nMessage) {
         this.configuration = outputConfiguration;
-        this.jdbcDriversService = jdbcDriversService;
+        this.jdbcService = jdbcService;
         this.i18n = i18nMessage;
     }
 
     @PostConstruct
     public void init() {
-        this.connection = jdbcDriversService.connection(configuration.getDataset().getConnection());
-        this.jdbcAction = new JdbcActionFactory(i18n, this::getConnection, configuration).createAction();
+        dataSource = jdbcService.createDataSource(configuration.getDataset().getConnection(),
+                configuration.isRewriteBatchedStatements());
+        this.jdbcAction = new JdbcActionFactory(i18n, dataSource, configuration).createAction();
         this.records = new ArrayList<>();
     }
 
@@ -82,76 +83,17 @@ public class Output implements Serializable {
         try {
             final List<Reject> discards = jdbcAction.execute(records);
             discards.stream().map(Object::toString).forEach(log::info);
-        } catch (final Throwable e) {
+        } catch (final Exception e) {
             records.stream().map(Object::toString).forEach(log::info);
-            quiteRollback();
             throw e;
-        }
-
-        try {
-            connection.commit();
-        } catch (final SQLException e) {
-            log.error("Can't commit the transaction", e);
-            quiteRollback();
-        }
-    }
-
-    private void quiteRollback() {
-        try {
-            log.info("Rollback transaction");
-            connection.rollback();
-        } catch (SQLException e) {
-            log.error("Can't rollback the transaction", e);
         }
     }
 
     @PreDestroy
     public void preDestroy() {
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (final SQLException e) {
-                log.error(i18n.errorCantCloseJdbcConnectionProperly(), e);
-                throw new IllegalStateException(e);
-            }
+        if (dataSource != null) {
+            dataSource.close();
         }
     }
 
-    /**
-     * Validate and recreate a connection if it's not valid
-     *
-     * @return a valid connection
-     */
-    private Connection getConnection() {
-        try {
-            if (this.connection == null) {
-                this.connection = jdbcDriversService.connection(configuration.getDataset().getConnection());
-            } else if (!jdbcDriversService.isConnectionValid(this.connection)) {
-                log.debug("Invalid connection from connection pool. recreating a new one");
-                try {
-                    this.connection.close();
-                } catch (final SQLException e) {
-                    log.warn(i18n.errorCantCloseJdbcConnectionProperly(), e);
-                }
-                this.connection = jdbcDriversService.connection(configuration.getDataset().getConnection(),
-                        configuration.isRewriteBatchedStatements());
-            }
-        } catch (final SQLException e) {
-            log.debug("Can't validate connection state from connection pool. recreating a new one", e);
-            try {
-                this.connection.close();
-            } catch (final SQLException e1) {
-                log.warn(i18n.errorCantCloseJdbcConnectionProperly(), e1);
-            }
-
-            this.connection = jdbcDriversService.connection(configuration.getDataset().getConnection());
-        }
-
-        try {
-            this.connection.setAutoCommit(false);
-        } catch (final SQLException e) {
-            throw new IllegalStateException("can't deactivate auto commit for this database", e);
-        }
-        return this.connection;
-    }
 }

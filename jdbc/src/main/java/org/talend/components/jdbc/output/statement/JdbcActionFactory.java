@@ -1,24 +1,18 @@
 package org.talend.components.jdbc.output.statement;
 
-import java.sql.Connection;
-import java.util.function.Supplier;
-
-import org.talend.components.jdbc.configuration.OutputConfiguration;
-import org.talend.components.jdbc.output.statement.operations.Delete;
-import org.talend.components.jdbc.output.statement.operations.Insert;
-import org.talend.components.jdbc.output.statement.operations.JdbcAction;
-import org.talend.components.jdbc.output.statement.operations.Update;
-import org.talend.components.jdbc.output.statement.operations.UpsertDefault;
-import org.talend.components.jdbc.service.I18nMessage;
-
+import com.zaxxer.hikari.HikariDataSource;
 import lombok.Data;
+import org.talend.components.jdbc.configuration.OutputConfiguration;
+import org.talend.components.jdbc.output.statement.operations.*;
+import org.talend.components.jdbc.service.I18nMessage;
+import org.talend.components.jdbc.service.JdbcService;
 
 @Data
 public class JdbcActionFactory {
 
     private final I18nMessage i18n;
 
-    private final Supplier<Connection> connection;
+    private final HikariDataSource dataSource;
 
     private final OutputConfiguration configuration;
 
@@ -26,13 +20,13 @@ public class JdbcActionFactory {
         final JdbcAction action;
         switch (configuration.getActionOnData()) {
         case INSERT:
-            action = new Insert(configuration, i18n, connection);
+            action = new Insert(configuration, i18n, dataSource);
             break;
         case UPDATE:
-            action = new Update(configuration, i18n, connection);
+            action = new Update(configuration, i18n, dataSource);
             break;
         case DELETE:
-            action = new Delete(configuration, i18n, connection);
+            action = new Delete(configuration, i18n, dataSource);
             break;
         case UPSERT:
             // todo : provide native upsert operation for every database
@@ -44,7 +38,7 @@ public class JdbcActionFactory {
             case "Postgresql":
             case "Derby":
             default:
-                action = new UpsertDefault(configuration, i18n, connection);
+                action = new UpsertDefault(configuration, i18n, dataSource);
                 break;
             }
             break;

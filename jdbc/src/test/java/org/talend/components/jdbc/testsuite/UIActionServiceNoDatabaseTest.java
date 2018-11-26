@@ -39,7 +39,7 @@ class UIActionServiceNoDatabaseTest {
         assertNotNull(values);
         assertFalse(values.getItems().isEmpty());
         assertTrue(values.getItems().stream().map(Values.Item::getId).collect(toSet()).containsAll(Stream
-                .of("MySQL", "Derby", "Oracle", "Snowflake", "Postgresql", "Redshift", "MariaDB", "MSSQL").collect(toSet())));
+                .of("MySQL", "Derby", "Oracle", "Snowflake", "PostgreSQL", "Redshift", "MariaDB", "MSSQL").collect(toSet())));
     }
 
     @Test
