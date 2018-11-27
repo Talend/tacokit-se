@@ -17,6 +17,7 @@ import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.talend.components.jdbc.BaseJdbcTest;
 import org.talend.components.jdbc.JdbcInvocationContextProvider;
+import org.talend.components.jdbc.configuration.OutputConfiguration;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
 import org.talend.components.jdbc.dataset.SqlQueryDataset;
 import org.talend.components.jdbc.dataset.TableNameDataset;
@@ -27,6 +28,7 @@ import org.talend.sdk.component.junit.environment.builtin.beam.DirectRunnerEnvir
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -54,6 +56,26 @@ class InputTest extends BaseJdbcTest {
 
         final List<Record> collectedData = getComponentsHandler().getCollectedData(Record.class);
         assertEquals(rowCount, collectedData.size());
+    }
+
+    @TestTemplate
+    @DisplayName("Query - create table if not exist")
+    void createTable(final JdbcTestContainer container) {
+        final int rowCount = getRandomRowCount();
+        final OutputConfiguration configuration = new OutputConfiguration();
+        configuration.setCreateTableIfNotExists(true);
+        configuration.setDataset(newTableNameDataset("TO_BE_CREATED", container));
+        configuration.setActionOnData(OutputConfiguration.ActionOnData.INSERT);
+        final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
+        Job.components().component("rowGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, false, 0, null))
+                .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput").build()
+                .run();
+        final TableNameDataset dataset = newTableNameDataset("TO_BE_CREATED", container);
+        final String inConfig = configurationByExample().forInstance(dataset).configured().toQueryString();
+        Job.components().component("jdbcInput", "Jdbc://TableNameInput?" + inConfig).component("collector", "test://collector")
+                .connections().from("jdbcInput").to("collector").build().run();
+        final List<Record> data = new ArrayList<>(getComponentsHandler().getCollectedData(Record.class));
+        assertEquals(rowCount, data.size());
     }
 
     @TestTemplate

@@ -77,11 +77,14 @@ public class JdbcService {
 
     private URLClassLoader getOrCreateDriverClassLoader(final JdbcConfiguration.Driver driver) {
         return driversClassLoaders.computeIfAbsent(driver, key -> {
-            final Collection<File> driverFiles = resolver.resolveFromDescriptor(
-                    new ByteArrayInputStream(driver.getPaths().stream().filter(p -> p != null && !p.trim().isEmpty())
-                            .collect(joining("\n")).getBytes(StandardCharsets.UTF_8)));
-            final String missingJars = driverFiles.stream().filter(f -> !f.exists()).map(File::getAbsolutePath)
-                    .collect(joining("\n"));
+            final Collection<File> driverFiles = resolver.resolveFromDescriptor(new ByteArrayInputStream(
+                    driver.getPaths()
+                            .stream()
+                            .filter(p -> p != null && !p.trim().isEmpty())
+                            .collect(joining("\n"))
+                            .getBytes(StandardCharsets.UTF_8)));
+            final String missingJars =
+                    driverFiles.stream().filter(f -> !f.exists()).map(File::getAbsolutePath).collect(joining("\n"));
             if (!missingJars.isEmpty()) {
                 throw new IllegalStateException(i18n.errorDriverLoad(driver.getId(), missingJars));
             }
@@ -104,10 +107,14 @@ public class JdbcService {
     }
 
     private JdbcConfiguration.Driver getDriver(final JdbcConnection dataStore) {
-        return jdbcConfiguration.get().getDrivers().stream()
+        return jdbcConfiguration.get()
+                .getDrivers()
+                .stream()
                 .filter(d -> d.getId()
-                        .equals(ofNullable(dataStore.getHandler()).filter(h -> !h.isEmpty()).orElse(dataStore.getDbType())))
-                .filter(d -> d.getHandlers() == null || d.getHandlers().isEmpty()).findFirst()
+                        .equals(ofNullable(dataStore.getHandler()).filter(h -> !h.isEmpty())
+                                .orElse(dataStore.getDbType())))
+                .filter(d -> d.getHandlers() == null || d.getHandlers().isEmpty())
+                .findFirst()
                 .orElseThrow(() -> new IllegalStateException(i18n.errorDriverNotFound(dataStore.getDbType())));
     }
 
@@ -139,6 +146,7 @@ public class JdbcService {
         hikariDS.setAutoCommit(isAutoCommit);
         hikariDS.setReadOnly(isReadOnly);
         hikariDS.setMaximumPoolSize(1);
+        hikariDS.setMinimumIdle(0);
         hikariDS.setLeakDetectionThreshold(10 * 60 * 1000);
         hikariDS.setConnectionTimeout(30 * 1000);
         hikariDS.setValidationTimeout(10 * 1000);

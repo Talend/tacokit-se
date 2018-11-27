@@ -30,8 +30,8 @@ import static org.talend.sdk.component.api.configuration.condition.ActiveIf.Eval
 import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.OR;
 
 @Data
-@GridLayout(value = { @GridLayout.Row("dataset"), @GridLayout.Row({ "actionOnData" }), @GridLayout.Row("keys"),
-        @GridLayout.Row("ignoreUpdate") })
+@GridLayout(value = { @GridLayout.Row("dataset"), @GridLayout.Row("createTableIfNotExists"), @GridLayout.Row({ "actionOnData" }),
+        @GridLayout.Row("keys"), @GridLayout.Row("ignoreUpdate") })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("rewriteBatchedStatements") })
 @Documentation("Those properties define an output data set for the JDBC output component")
 public class OutputConfiguration implements Serializable {
@@ -40,6 +40,11 @@ public class OutputConfiguration implements Serializable {
     @Required
     @Documentation("Dataset configuration")
     private TableNameDataset dataset;
+
+    @Option
+    @Required
+    @Documentation("Create table if don't exists")
+    private boolean createTableIfNotExists = false;
 
     @Option
     @Documentation("The action to be performed")

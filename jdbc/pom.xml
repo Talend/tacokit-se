@@ -20,6 +20,8 @@
         <jdbc.integration.databases>Derby</jdbc.integration.databases>
         <HikariCP.version>3.1.0</HikariCP.version>
         <metrics.version>4.0.3</metrics.version>
+        <jooq.version>3.11.7</jooq.version>
+        <ddlutils.version>1.7</ddlutils.version>
     </properties>
 
     <dependencies>

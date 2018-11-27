@@ -3,9 +3,9 @@ package org.talend.components.jdbc.output.statement;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.Data;
 import org.talend.components.jdbc.configuration.OutputConfiguration;
+import org.talend.components.jdbc.output.platforms.*;
 import org.talend.components.jdbc.output.statement.operations.*;
 import org.talend.components.jdbc.service.I18nMessage;
-import org.talend.components.jdbc.service.JdbcService;
 
 @Data
 public class JdbcActionFactory {
@@ -31,12 +31,11 @@ public class JdbcActionFactory {
         case UPSERT:
             // todo : provide native upsert operation for every database
             switch (configuration.getDataset().getConnection().getDbType()) {
-            case "Redshift":
-            case "MySQL":
-            case "Snowflake":
-            case "Oracle":
-            case "Postgresql":
-            case "Derby":
+            case MySQLPlatform.NAME:
+            case SnowflakePlatform.NAME:
+            case OraclePlatform.NAME:
+            case PostgreSQLPlatform.NAME:
+            case DerbyPlatform.NAME:
             default:
                 action = new UpsertDefault(configuration, i18n, dataSource);
                 break;

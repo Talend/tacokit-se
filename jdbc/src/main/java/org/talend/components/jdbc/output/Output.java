@@ -15,6 +15,8 @@ package org.talend.components.jdbc.output;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfiguration;
+import org.talend.components.jdbc.output.platforms.Platform;
+import org.talend.components.jdbc.output.platforms.PlatformFactory;
 import org.talend.components.jdbc.output.statement.JdbcActionFactory;
 import org.talend.components.jdbc.output.statement.operations.JdbcAction;
 import org.talend.components.jdbc.service.I18nMessage;
@@ -29,6 +31,7 @@ import org.talend.sdk.component.api.record.Record;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.Serializable;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +55,10 @@ public class Output implements Serializable {
 
     private transient HikariDataSource dataSource;
 
+    private transient Platform platform;
+
+    private boolean tableCreated;
+
     public Output(@Option("configuration") final OutputConfiguration outputConfiguration, final JdbcService jdbcService,
             final I18nMessage i18nMessage) {
         this.configuration = outputConfiguration;
@@ -63,7 +70,11 @@ public class Output implements Serializable {
     public void init() {
         dataSource = jdbcService.createDataSource(configuration.getDataset().getConnection(),
                 configuration.isRewriteBatchedStatements());
-        this.jdbcAction = new JdbcActionFactory(i18n, dataSource, configuration).createAction();
+        final JdbcActionFactory jdbcActionFactory = new JdbcActionFactory(i18n, dataSource, configuration);
+        if (configuration.isCreateTableIfNotExists()) {
+            platform = PlatformFactory.get(configuration.getDataset().getConnection().getDbType());
+        }
+        this.jdbcAction = jdbcActionFactory.createAction();
         this.records = new ArrayList<>();
     }
 
@@ -79,6 +90,13 @@ public class Output implements Serializable {
 
     @AfterGroup
     public void afterGroup() throws SQLException {
+        if (configuration.isCreateTableIfNotExists() && !tableCreated) {
+            try (final Connection connection = dataSource.getConnection()) {
+                platform.createTableIfNotExist(connection, configuration.getDataset().getTableName(), records);
+                tableCreated = true;
+            }
+        }
+
         // TODO : handle discarded records
         try {
             final List<Reject> discards = jdbcAction.execute(records);

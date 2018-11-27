@@ -86,9 +86,10 @@ public abstract class AbstractInputEmitter implements Serializable {
                 Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder();
                 for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
                     final String name = resultSet.getMetaData().getColumnName(i);
-                    final int type = resultSet.getMetaData().getColumnType(i);
+                    final int sqlType = resultSet.getMetaData().getColumnType(i);
+                    final String javaType = resultSet.getMetaData().getColumnClassName(i);
                     final Object value = resultSet.getObject(i);
-                    addColumn(recordBuilder, name, type, value);
+                    addColumn(recordBuilder, name, sqlType, value);
                 }
                 return recordBuilder.build();
             }
@@ -109,7 +110,7 @@ public abstract class AbstractInputEmitter implements Serializable {
             builder.withInt(name, (Integer) value);
             break;
         case java.sql.Types.INTEGER:
-        case java.sql.Types.BIGINT:
+
             if (value instanceof Integer) { // mysql INT can be a java Long
                 builder.withInt(name, (Integer) value);
             } else {
@@ -140,6 +141,7 @@ public abstract class AbstractInputEmitter implements Serializable {
         case Types.LONGVARBINARY:
             builder.withBytes(name, (byte[]) value);
             break;
+        case java.sql.Types.BIGINT:
         case java.sql.Types.DECIMAL:
         case java.sql.Types.NUMERIC:
         case java.sql.Types.VARCHAR:
