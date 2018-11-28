@@ -128,31 +128,27 @@ public class JdbcService {
         if (connection.getJdbcUrl() == null || connection.getJdbcUrl().trim().isEmpty()) {
             throw new IllegalArgumentException(i18n.errorEmptyJdbcURL());
         }
-        try {
-            final JdbcConfiguration.Driver driver = getDriver(connection);
-            final URLClassLoader driverLoader = getOrCreateDriverClassLoader(driver);
-            final HikariDataSource hikariDS = (HikariDataSource) driverLoader.loadClass(HikariDataSource.class.getName())
-                    .newInstance();
-            hikariDS.setUsername(connection.getUserId());
-            hikariDS.setPassword(connection.getPassword());
-            hikariDS.setDriverClassName(driver.getClassName());
-            hikariDS.setJdbcUrl(connection.getJdbcUrl());
-            hikariDS.setAutoCommit(isAutoCommit);
-            hikariDS.setReadOnly(isReadOnly);
-            hikariDS.setMaximumPoolSize(1);
-            hikariDS.setLeakDetectionThreshold(10 * 60 * 1000);
-            hikariDS.setConnectionTimeout(30 * 1000);
-            hikariDS.setValidationTimeout(10 * 1000);
-            hikariDS.setPoolName("Hikari-" + Thread.currentThread().getName() + "#" + Thread.currentThread().getId());
-            hikariDS.addDataSourceProperty("rewriteBatchedStatements", String.valueOf(rewriteBatchedStatements));
-            hikariDS.addDataSourceProperty("cachePrepStmts", "true");
-            hikariDS.addDataSourceProperty("prepStmtCacheSize", "250");
-            hikariDS.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-            hikariDS.addDataSourceProperty("useServerPrepStmts", "true");
-            return hikariDS;
-        } catch (final InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            throw new IllegalStateException(i18n.errorCantLoadDriver(connection.getDbType()), e);
-        }
+        final JdbcConfiguration.Driver driver = getDriver(connection);
+        final URLClassLoader driverLoader = getOrCreateDriverClassLoader(driver);
+        Thread.currentThread().setContextClassLoader(driverLoader);
+        final HikariDataSource hikariDS = new HikariDataSource();
+        hikariDS.setUsername(connection.getUserId());
+        hikariDS.setPassword(connection.getPassword());
+        hikariDS.setDriverClassName(driver.getClassName());
+        hikariDS.setJdbcUrl(connection.getJdbcUrl());
+        hikariDS.setAutoCommit(isAutoCommit);
+        hikariDS.setReadOnly(isReadOnly);
+        hikariDS.setMaximumPoolSize(1);
+        hikariDS.setLeakDetectionThreshold(10 * 60 * 1000);
+        hikariDS.setConnectionTimeout(30 * 1000);
+        hikariDS.setValidationTimeout(10 * 1000);
+        hikariDS.setPoolName("Hikari-" + Thread.currentThread().getName() + "#" + Thread.currentThread().getId());
+        hikariDS.addDataSourceProperty("rewriteBatchedStatements", String.valueOf(rewriteBatchedStatements));
+        hikariDS.addDataSourceProperty("cachePrepStmts", "true");
+        hikariDS.addDataSourceProperty("prepStmtCacheSize", "250");
+        hikariDS.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+        hikariDS.addDataSourceProperty("useServerPrepStmts", "true");
+        return hikariDS;
     }
 
 }
