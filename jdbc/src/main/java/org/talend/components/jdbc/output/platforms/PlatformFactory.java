@@ -12,15 +12,17 @@
  */
 package org.talend.components.jdbc.output.platforms;
 
+import org.talend.components.jdbc.datastore.JdbcConnection;
+
 import java.util.Locale;
+
+import static java.util.Optional.ofNullable;
 
 public final class PlatformFactory {
 
-    public static Platform get(final String name) {
-        if (name == null || name.isEmpty()) {
-            throw new IllegalArgumentException("database name can't be null");
-        }
-        switch (name.toLowerCase(Locale.ROOT)) {
+    public static Platform get(final JdbcConnection connection) {
+        final String dbType = ofNullable(connection.getHandler()).orElseGet(connection::getDbType);
+        switch (dbType.toLowerCase(Locale.ROOT)) {
         case MySQLPlatform.NAME:
             return new MySQLPlatform();
         case MariaDbPlatform.NAME:
@@ -38,7 +40,7 @@ public final class PlatformFactory {
         case DerbyPlatform.NAME:
             return new DerbyPlatform();
         default:
-            throw new RuntimeException("unsupported database " + name);
+            throw new RuntimeException("unsupported database " + dbType);
         }
     }
 

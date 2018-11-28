@@ -23,7 +23,8 @@ public class JdbcInvocationContextProvider implements TestTemplateInvocationCont
         POSTGRESQL,
         ORACLE,
         MARIADB,
-        MSSQL;
+        MSSQL,
+        SNOWFLAKE;
 
         public static Stream<SupportedDatabase> getActiveDatabases() {
             return Boolean.getBoolean("talend.jdbc.it")
@@ -121,6 +122,9 @@ public class JdbcInvocationContextProvider implements TestTemplateInvocationCont
             break;
         case MSSQL:
             container = new MSSQLServerTestContainer();
+            break;
+        case SNOWFLAKE:
+            container = new SnowflakeTestContainer();
             break;
         default:
             throw new IllegalArgumentException("unsupported database " + name);

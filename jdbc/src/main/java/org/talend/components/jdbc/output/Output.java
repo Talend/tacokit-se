@@ -72,7 +72,7 @@ public class Output implements Serializable {
                 configuration.isRewriteBatchedStatements());
         final JdbcActionFactory jdbcActionFactory = new JdbcActionFactory(i18n, dataSource, configuration);
         if (configuration.isCreateTableIfNotExists()) {
-            platform = PlatformFactory.get(configuration.getDataset().getConnection().getDbType());
+            platform = PlatformFactory.get(configuration.getDataset().getConnection());
         }
         this.jdbcAction = jdbcActionFactory.createAction();
         this.records = new ArrayList<>();

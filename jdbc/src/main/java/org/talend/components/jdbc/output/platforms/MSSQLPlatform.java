@@ -26,6 +26,8 @@ public class MSSQLPlatform extends Platform {
 
     public static final String NAME = "mssql";
 
+    private final String VARCHAR_MAX_LENGTH = "max";
+
     @Override
     public String name() {
         return NAME;
@@ -59,7 +61,7 @@ public class MSSQLPlatform extends Platform {
     }
 
     @Override
-    protected boolean isTableExistsCreationError(SQLException e) {
+    protected boolean isTableExistsCreationError(final SQLException e) {
         return "S0001".equalsIgnoreCase(e.getSQLState()) && 2714 == e.getErrorCode();
     }
 
@@ -71,16 +73,11 @@ public class MSSQLPlatform extends Platform {
         return identifier(column.getName())//
                 + " " + toDBType(column)//
                 + " " + isRequired(column)//
-                + " " + defaultValue(column) //
-                + " " + comment(column);
-    }
-
-    private String comment(final Column column) {
-        return column.getComment() == null ? "" : "COMMENT " + column.getComment();
+                + (column.getDefaultValue() == null ? "" : " " + defaultValue(column));
     }
 
     private String isRequired(final Column column) {
-        return column.isNullable() ? "NULL" : "NOT NULL";
+        return column.isNullable() ? "" : "NOT NULL";
     }
 
     private String defaultValue(Column column) {
@@ -90,19 +87,18 @@ public class MSSQLPlatform extends Platform {
     private String toDBType(final Column column) {
         switch (column.getType()) {
         case STRING:
-            return "VARCHAR(" + column.getSize() + ")";
+            return "VARCHAR(" + VARCHAR_MAX_LENGTH + ")";
         case BOOLEAN:
-            return "BOOLEAN";
+            return "BIT";
         case DOUBLE:
-            return "DOUBLE";
         case FLOAT:
-            return "FLOAT";
+            return "DECIMAL";
         case LONG:
             return "BIGINT";
         case INT:
-            return "Int";
+            return "INT";
         case BYTES:
-            return "BLOB";
+            return "VARBINARY(max)";
         case DATETIME:
             return "DATE";
         case RECORD: // todo ??

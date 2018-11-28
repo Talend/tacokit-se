@@ -1,12 +1,10 @@
 package org.talend.components.jdbc.containers;
 
-import com.zaxxer.hikari.HikariDataSource;
 import lombok.Data;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.derby.drda.NetworkServerControl;
 import org.apache.derby.jdbc.ClientDataSource;
-import org.talend.components.jdbc.service.JdbcService;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -14,46 +12,15 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.UUID;
-
-import static org.talend.components.jdbc.BaseJdbcTest.newConnection;
 
 @Data
 public class DerbyTestContainer implements JdbcTestContainer {
 
     @Delegate
     private final DerbyContainer container = new DerbyContainer();
-
-    private final String testTableName = "test_" + UUID.randomUUID().toString().substring(0, 8);
-
-    @Override
-    public void createOrTruncateTable(final JdbcService jdbcService) {
-        try (HikariDataSource dataSource = jdbcService.createDataSource(newConnection(this))) {
-            try (final Connection connection = dataSource.getConnection()) {
-                final String createTableQuery = "CREATE TABLE " + getTestTableName()
-                        + " (id INT, t_string VARCHAR(30), t_boolean BOOLEAN, t_float FLOAT, t_double DOUBLE, t_bytes BLOB, t_date DATE, "
-                        + "t_long BIGINT," + " PRIMARY KEY (id))";
-                try (final PreparedStatement stm = connection.prepareStatement(createTableQuery)) {
-                    stm.execute();
-                } catch (final SQLException e) {
-                    if (!"X0Y32".equals(e.getSQLState())) { // ignore if table already exist
-                        throw e;
-                    }
-                    // truncate existing table
-                    try (final PreparedStatement stm = connection.prepareStatement("truncate table " + getTestTableName())) {
-                        stm.execute();
-                    }
-                } finally {
-                    connection.commit();
-                }
-            } catch (SQLException e) {
-                throw new IllegalStateException(e);
-            }
-        }
-    }
 
     @Override
     public String getDatabaseType() {

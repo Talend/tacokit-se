@@ -26,6 +26,11 @@ public class OraclePlatform extends Platform {
 
     public static final String NAME = "oracle";
 
+    /*
+     * https://docs.oracle.com/cd/B14117_01/server.101/b10758/sqlqr06.htm
+     */
+    private static final String VARCHAR2_MAX = "4000";
+
     @Override
     public String name() {
         return NAME;
@@ -74,12 +79,7 @@ public class OraclePlatform extends Platform {
         return identifier(column.getName())//
                 + " " + toDBType(column)//
                 + " " + isRequired(column)//
-                + " " + defaultValue(column) //
-                + " " + comment(column);
-    }
-
-    private String comment(final Column column) {
-        return column.getComment() == null ? "" : "COMMENT " + column.getComment();
+                + " " + defaultValue(column);
     }
 
     private String isRequired(final Column column) {
@@ -93,7 +93,7 @@ public class OraclePlatform extends Platform {
     private String toDBType(final Column column) {
         switch (column.getType()) {
         case STRING:
-            return "VARCHAR(" + column.getSize() + ")";
+            return "VARCHAR(" + VARCHAR2_MAX + ")";
         case BOOLEAN:
             return "NUMBER(1)";
         case DOUBLE:

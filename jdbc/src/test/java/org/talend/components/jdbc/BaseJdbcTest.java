@@ -1,7 +1,9 @@
 package org.talend.components.jdbc;
 
+import com.zaxxer.hikari.HikariDataSource;
 import lombok.Data;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.talend.components.jdbc.configuration.OutputConfiguration;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
 import org.talend.components.jdbc.dataset.SqlQueryDataset;
@@ -9,6 +11,7 @@ import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
+import org.talend.components.jdbc.service.UIActionService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
@@ -16,10 +19,15 @@ import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
+import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import static java.util.Locale.ROOT;
 import static java.util.Optional.ofNullable;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
@@ -33,15 +41,40 @@ public abstract class BaseJdbcTest {
     private JdbcService jdbcService;
 
     @Service
+    private UIActionService uiActionService;
+
+    @Service
     private I18nMessage i18nMessage;
 
-    @BeforeEach
-    void beforEach(final JdbcTestContainer container) {
-        container.createOrTruncateTable(getJdbcService());
+    public String getTestTableName(final TestInfo info) {
+        return (info.getTestClass().map(Class::getSimpleName).orElse("TEST").toUpperCase(ROOT) + "_"
+                + info.getTestMethod().map(Method::getName).orElse("TABLE").toUpperCase(ROOT)).substring(0, 10);
     }
 
-    public List<Record> readAll(final JdbcTestContainer container) {
-        final TableNameDataset dataset = newTableNameDataset(container.getTestTableName(), container);
+    @BeforeEach
+    void beforEach(final TestInfo testInfo, final JdbcTestContainer container) {
+        final String testTable = getTestTableName(testInfo);
+        final JdbcConnection datastore = newConnection(container);
+        uiActionService.getTableFromDatabase(datastore).getItems().stream()
+                .filter(item -> item.getId().equalsIgnoreCase(testTable)).findFirst().ifPresent(item -> {
+                    try (final HikariDataSource dataSource = jdbcService.createDataSource(datastore)) {
+                        try (final Connection connection = dataSource.getConnection()) {
+                            try (final PreparedStatement stm = connection.prepareStatement("truncate table " + testTable)) {
+                                stm.execute();
+                            } catch (final SQLException e) {
+                                connection.rollback();
+                            }
+
+                            connection.commit();
+                        } catch (final SQLException e) {
+                            throw new IllegalStateException(e);
+                        }
+                    }
+                });
+    }
+
+    public List<Record> readAll(final String table, final JdbcTestContainer container) {
+        final TableNameDataset dataset = newTableNameDataset(table, container);
         final String inConfig = configurationByExample().forInstance(dataset).configured().toQueryString();
         Job.components().component("jdbcInput", "Jdbc://TableNameInput?" + inConfig).component("collector", "test://collector")
                 .connections().from("jdbcInput").to("collector").build().run();
@@ -50,11 +83,11 @@ public abstract class BaseJdbcTest {
         return data;
     }
 
-    public long countAll(final JdbcTestContainer container) {
+    public long countAll(final String table, final JdbcTestContainer container) {
         final SqlQueryDataset dataset = new SqlQueryDataset();
         dataset.setConnection(newConnection(container));
         final String total = "total";
-        dataset.setSqlQuery("select count(*) as " + total + " from " + container.getTestTableName());
+        dataset.setSqlQuery("select count(*) as " + total + " from " + table);
         final String inConfig = configurationByExample().forInstance(dataset).configured().toQueryString();
         Job.components().component("jdbcInput", "Jdbc://QueryInput?" + inConfig).component("collector", "test://collector")
                 .connections().from("jdbcInput").to("collector").build().run();
@@ -67,11 +100,12 @@ public abstract class BaseJdbcTest {
 
     }
 
-    public static void insertRows(final JdbcTestContainer container, final long rowCount, final boolean withNullValues,
-            final int withMissingIdEvery, final String stringPrefix) {
+    public static void insertRows(final String table, final JdbcTestContainer container, final long rowCount,
+            final boolean withNullValues, final int withMissingIdEvery, final String stringPrefix) {
         final OutputConfiguration configuration = new OutputConfiguration();
-        configuration.setDataset(newTableNameDataset(container.getTestTableName(), container));
+        configuration.setDataset(newTableNameDataset(table, container));
         configuration.setActionOnData(OutputConfiguration.ActionOnData.INSERT);
+        configuration.setCreateTableIfNotExists(true);
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
         Job.components()
                 .component("rowGenerator",

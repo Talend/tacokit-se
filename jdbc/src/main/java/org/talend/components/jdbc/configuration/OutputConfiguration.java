@@ -43,6 +43,7 @@ public class OutputConfiguration implements Serializable {
 
     @Option
     @Required
+    @ActiveIf(target = "actionOnData", value = { "INSERT", "UPSERT" })
     @Documentation("Create table if don't exists")
     private boolean createTableIfNotExists = false;
 

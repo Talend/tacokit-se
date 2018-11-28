@@ -73,7 +73,7 @@ public abstract class AbstractInputEmitter implements Serializable {
                 statement = connection.createStatement();
             }
             resultSet = statement.executeQuery(dataSet.getQuery());
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             throw new IllegalStateException(e);
         }
     }
@@ -82,19 +82,19 @@ public abstract class AbstractInputEmitter implements Serializable {
     public Record next() {
         try {
             final boolean hasNext = resultSet.next();
-            if (hasNext) {
-                Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder();
-                for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
-                    final String name = resultSet.getMetaData().getColumnName(i);
-                    final int sqlType = resultSet.getMetaData().getColumnType(i);
-                    final String javaType = resultSet.getMetaData().getColumnClassName(i);
-                    final Object value = resultSet.getObject(i);
-                    addColumn(recordBuilder, name, sqlType, value);
-                }
-                return recordBuilder.build();
+            if (!hasNext) {
+                return null;
             }
 
-            return null;
+            final Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder();
+            for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
+                final String name = resultSet.getMetaData().getColumnName(i);
+                final int sqlType = resultSet.getMetaData().getColumnType(i);
+                final String javaType = resultSet.getMetaData().getColumnClassName(i);
+                final Object value = resultSet.getObject(i);
+                addColumn(recordBuilder, name, sqlType, value);
+            }
+            return recordBuilder.build();
         } catch (SQLException e) {
             throw new IllegalStateException(e);
         }
@@ -110,7 +110,6 @@ public abstract class AbstractInputEmitter implements Serializable {
             builder.withInt(name, (Integer) value);
             break;
         case java.sql.Types.INTEGER:
-
             if (value instanceof Integer) { // mysql INT can be a java Long
                 builder.withInt(name, (Integer) value);
             } else {

@@ -12,7 +12,9 @@
  */
 package org.talend.components.jdbc.testsuite;
 
+import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.talend.components.jdbc.BaseJdbcTest;
@@ -20,17 +22,22 @@ import org.talend.components.jdbc.JdbcInvocationContextProvider;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
 import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.JdbcConnection;
+import org.talend.components.jdbc.output.platforms.PlatformFactory;
 import org.talend.components.jdbc.service.UIActionService;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit.environment.Environment;
 import org.talend.sdk.component.junit.environment.builtin.ContextualEnvironment;
 import org.talend.sdk.component.junit5.WithComponents;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Locale;
 import java.util.stream.Stream;
 
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -41,12 +48,15 @@ import static org.junit.jupiter.api.Assertions.*;
 class UIActionServiceTest extends BaseJdbcTest {
 
     @Service
-    private UIActionService myService;
+    private UIActionService uiActionService;
+
+    @Service
+    private RecordBuilderFactory recordBuilderFactory;
 
     @TestTemplate
     @DisplayName("HealthCheck - Valid user")
     void validateBasicDatastore(final JdbcTestContainer container) {
-        final HealthCheckStatus status = myService.validateBasicDataStore(newConnection(container));
+        final HealthCheckStatus status = uiActionService.validateBasicDataStore(newConnection(container));
         assertNotNull(status);
         assertEquals(HealthCheckStatus.Status.OK, status.getStatus());
     }
@@ -59,7 +69,7 @@ class UIActionServiceTest extends BaseJdbcTest {
         datastore.setJdbcUrl(container.getJdbcUrl());
         datastore.setUserId("bad");
         datastore.setPassword("az");
-        final HealthCheckStatus status = myService.validateBasicDataStore(datastore);
+        final HealthCheckStatus status = uiActionService.validateBasicDataStore(datastore);
         assertNotNull(status);
         assertEquals(HealthCheckStatus.Status.KO, status.getStatus());
     }
@@ -72,7 +82,7 @@ class UIActionServiceTest extends BaseJdbcTest {
         datastore.setJdbcUrl(container.getJdbcUrl() + "DontExistUnlessyouCreatedDB");
         datastore.setUserId("bad");
         datastore.setPassword("az");
-        final HealthCheckStatus status = myService.validateBasicDataStore(datastore);
+        final HealthCheckStatus status = uiActionService.validateBasicDataStore(datastore);
         assertNotNull(status);
         assertEquals(HealthCheckStatus.Status.KO, status.getStatus());
     }
@@ -85,7 +95,7 @@ class UIActionServiceTest extends BaseJdbcTest {
         datastore.setJdbcUrl("jdbc:darby/DB");
         datastore.setUserId("bad");
         datastore.setPassword("az");
-        final HealthCheckStatus status = myService.validateBasicDataStore(datastore);
+        final HealthCheckStatus status = uiActionService.validateBasicDataStore(datastore);
         assertNotNull(status);
         assertEquals(HealthCheckStatus.Status.KO, status.getStatus());
         assertFalse(status.getComment().isEmpty());
@@ -93,10 +103,23 @@ class UIActionServiceTest extends BaseJdbcTest {
 
     @TestTemplate
     @DisplayName("Get Table list - valid connection")
-    void getTableFromDatabase(final JdbcTestContainer container) {
-        final SuggestionValues values = myService.getTableFromDatabase(newConnection(container));
+    void getTableFromDatabase(final TestInfo testInfo, final JdbcTestContainer container) throws SQLException {
+        final JdbcConnection datastore = newConnection(container);
+        final String testTableName = getTestTableName(testInfo);
+        createTestTable(testTableName, datastore);
+        final SuggestionValues values = uiActionService.getTableFromDatabase(datastore);
         assertNotNull(values);
-        assertTrue(values.getItems().stream().anyMatch(e -> e.getLabel().equalsIgnoreCase(container.getTestTableName())));
+        assertTrue(values.getItems().stream().anyMatch(e -> e.getLabel().equalsIgnoreCase(testTableName)));
+    }
+
+    private void createTestTable(String testTableName, JdbcConnection datastore) throws SQLException {
+        try (HikariDataSource dataSource = getJdbcService().createDataSource(datastore)) {
+            try (final Connection connection = dataSource.getConnection()) {
+                PlatformFactory.get(datastore).createTableIfNotExist(connection, testTableName,
+                        asList(recordBuilderFactory.newRecordBuilder().withInt("id", 1).build()));
+                connection.commit();
+            }
+        }
     }
 
     @TestTemplate
@@ -107,16 +130,18 @@ class UIActionServiceTest extends BaseJdbcTest {
         datastore.setJdbcUrl(container.getJdbcUrl());
         datastore.setUserId("wrong");
         datastore.setPassword("wrong");
-        final SuggestionValues values = myService.getTableFromDatabase(datastore);
+        final SuggestionValues values = uiActionService.getTableFromDatabase(datastore);
         assertNotNull(values);
         assertEquals(0, values.getItems().size());
     }
 
     @TestTemplate
     @DisplayName("Get Table columns list - valid connection")
-    void getTableColumnFromDatabase(final JdbcTestContainer container) {
-        final TableNameDataset tableNameDataset = newTableNameDataset(container.getTestTableName(), container);
-        final SuggestionValues values = myService.getTableColumns(tableNameDataset);
+    void getTableColumnFromDatabase(final TestInfo testInfo, final JdbcTestContainer container) throws SQLException {
+        final String testTableName = getTestTableName(testInfo);
+        final TableNameDataset tableNameDataset = newTableNameDataset(testTableName, container);
+        createTestTable(testTableName, tableNameDataset.getConnection());
+        final SuggestionValues values = uiActionService.getTableColumns(tableNameDataset);
         assertNotNull(values);
         assertEquals(8, values.getItems().size());
         assertEquals(
@@ -127,16 +152,16 @@ class UIActionServiceTest extends BaseJdbcTest {
 
     @TestTemplate
     @DisplayName("Get Table Columns list - invalid connection")
-    void getTableColumnsFromDatabaseWithInvalidConnection(final JdbcTestContainer container) {
+    void getTableColumnsFromDatabaseWithInvalidConnection(final TestInfo testInfo, final JdbcTestContainer container) {
         final JdbcConnection datastore = new JdbcConnection();
         datastore.setDbType(container.getDatabaseType());
         datastore.setJdbcUrl(container.getJdbcUrl());
         datastore.setUserId("wrong");
         datastore.setPassword("wrong");
         final TableNameDataset tableNameDataset = new TableNameDataset();
-        tableNameDataset.setTableName(container.getTestTableName());
+        tableNameDataset.setTableName(getTestTableName(testInfo));
         tableNameDataset.setConnection(datastore);
-        final SuggestionValues values = myService.getTableColumns(tableNameDataset);
+        final SuggestionValues values = uiActionService.getTableColumns(tableNameDataset);
         assertNotNull(values);
         assertTrue(values.getItems().isEmpty());
     }
@@ -148,7 +173,7 @@ class UIActionServiceTest extends BaseJdbcTest {
         final TableNameDataset tableNameDataset = new TableNameDataset();
         tableNameDataset.setTableName("tableNeverExist159");
         tableNameDataset.setConnection(datastore);
-        final SuggestionValues values = myService.getTableColumns(tableNameDataset);
+        final SuggestionValues values = uiActionService.getTableColumns(tableNameDataset);
         assertNotNull(values);
         assertTrue(values.getItems().isEmpty());
     }

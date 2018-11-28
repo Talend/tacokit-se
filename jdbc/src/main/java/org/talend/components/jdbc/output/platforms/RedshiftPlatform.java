@@ -19,8 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * syntax detail can be found at <a href="https://dev.mysql.com/doc/refman/8.0/en/create-table.html syntax
- * detail">https://dev.mysql.com/doc/refman/8.0/en/create-table.html</a>
+ * https://docs.aws.amazon.com/fr_fr/redshift/latest/dg/r_CREATE_TABLE_NEW.html
  */
 @Slf4j
 public class RedshiftPlatform extends Platform {
@@ -34,7 +33,7 @@ public class RedshiftPlatform extends Platform {
 
     @Override
     protected String delimiterToken() {
-        return "`";
+        return "";
     }
 
     @Override
@@ -74,12 +73,7 @@ public class RedshiftPlatform extends Platform {
         return identifier(column.getName())//
                 + " " + toDBType(column)//
                 + " " + isRequired(column)//
-                + " " + defaultValue(column) //
-                + " " + comment(column);
-    }
-
-    private String comment(final Column column) {
-        return column.getComment() == null ? "" : "COMMENT " + column.getComment();
+                + " " + defaultValue(column);
     }
 
     private String isRequired(final Column column) {
@@ -93,7 +87,10 @@ public class RedshiftPlatform extends Platform {
     private String toDBType(final Column column) {
         switch (column.getType()) {
         case STRING:
-            return "VARCHAR(" + column.getSize() + ")";
+            /*
+             * https://docs.aws.amazon.com/fr_fr/redshift/latest/dg/r_Character_types.html
+             */
+            return "VARCHAR(max)";
         case BOOLEAN:
             return "BOOLEAN";
         case DOUBLE:

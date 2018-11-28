@@ -23,6 +23,11 @@ public class MariaDbPlatform extends Platform {
 
     public static final String NAME = "mariadb";
 
+    /*
+     * https://mariadb.com/kb/en/library/varchar/
+     */
+    private static final String VARCHAR_UTF8_MAX = "21844";
+
     @Override
     public String name() {
         return NAME;
@@ -70,12 +75,7 @@ public class MariaDbPlatform extends Platform {
         return identifier(column.getName())//
                 + " " + toDBType(column)//
                 + " " + isRequired(column)//
-                + " " + defaultValue(column) //
-                + " " + comment(column);
-    }
-
-    private String comment(final Column column) {
-        return column.getComment() == null ? "" : "COMMENT " + column.getComment();
+                + " " + defaultValue(column);
     }
 
     private String isRequired(final Column column) {
@@ -89,7 +89,7 @@ public class MariaDbPlatform extends Platform {
     private String toDBType(final Column column) {
         switch (column.getType()) {
         case STRING:
-            return "VARCHAR(" + column.getSize() + ")";
+            return "VARCHAR(" + VARCHAR_UTF8_MAX + ")";
         case BOOLEAN:
             return "BOOLEAN";
         case DOUBLE:

@@ -74,12 +74,7 @@ public class PostgreSQLPlatform extends Platform {
         return identifier(column.getName())//
                 + " " + toDBType(column)//
                 + " " + isRequired(column)//
-                + " " + defaultValue(column) //
-                + " " + comment(column);
-    }
-
-    private String comment(final Column column) {
-        return column.getComment() == null ? "" : "COMMENT " + column.getComment();
+                + " " + defaultValue(column);
     }
 
     private String isRequired(final Column column) {
@@ -93,7 +88,7 @@ public class PostgreSQLPlatform extends Platform {
     private String toDBType(final Column column) {
         switch (column.getType()) {
         case STRING:
-            return "VARCHAR(" + column.getSize() + ")";
+            return "character varying";
         case BOOLEAN:
             return "BOOLEAN";
         case DOUBLE:

@@ -27,6 +27,8 @@ public class MySQLPlatform extends Platform {
 
     public static final String NAME = "mysql";
 
+    private final String VARCHAR_UTF8_MAX_LENGTH = "21844";
+
     @Override
     public String name() {
         return NAME;
@@ -74,12 +76,7 @@ public class MySQLPlatform extends Platform {
         return identifier(column.getName())//
                 + " " + toDBType(column)//
                 + " " + isRequired(column)//
-                + " " + defaultValue(column) //
-                + " " + comment(column);
-    }
-
-    private String comment(final Column column) {
-        return column.getComment() == null ? "" : "COMMENT " + column.getComment();
+                + " " + defaultValue(column);
     }
 
     private String isRequired(final Column column) {
@@ -93,7 +90,7 @@ public class MySQLPlatform extends Platform {
     private String toDBType(final Column column) {
         switch (column.getType()) {
         case STRING:
-            return "VARCHAR(" + column.getSize() + ")";
+            return "VARCHAR(" + VARCHAR_UTF8_MAX_LENGTH + ")";
         case BOOLEAN:
             return "BOOLEAN";
         case DOUBLE:

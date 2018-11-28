@@ -13,6 +13,7 @@
 package org.talend.components.jdbc.testsuite;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.talend.components.jdbc.BaseJdbcTest;
@@ -44,30 +45,32 @@ class OutputTest extends BaseJdbcTest {
 
     @TestTemplate
     @DisplayName("Insert - valid use case")
-    void insert(final JdbcTestContainer container) {
+    void insert(final TestInfo testInfo, final JdbcTestContainer container) {
         final OutputConfiguration configuration = new OutputConfiguration();
-        configuration.setDataset(newTableNameDataset(container.getTestTableName(), container));
+        final String testTableName = getTestTableName(testInfo);
+        configuration.setDataset(newTableNameDataset(testTableName, container));
         configuration.setActionOnData(OutputConfiguration.ActionOnData.INSERT);
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
         final int rowCount = getRandomRowCount();
         Job.components().component("rowGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, false, 0, null))
                 .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput").build()
                 .run();
-        assertEquals(rowCount, countAll(container));
+        assertEquals(rowCount, countAll(testTableName, container));
     }
 
     @TestTemplate
     @DisplayName("Insert - with null values")
-    void insertWithNullValues(final JdbcTestContainer container) {
+    void insertWithNullValues(final TestInfo testInfo, final JdbcTestContainer container) {
         final OutputConfiguration configuration = new OutputConfiguration();
-        configuration.setDataset(newTableNameDataset(container.getTestTableName(), container));
+        final String testTableName = getTestTableName(testInfo);
+        configuration.setDataset(newTableNameDataset(testTableName, container));
         configuration.setActionOnData(OutputConfiguration.ActionOnData.INSERT);
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
         final int rowCount = getRandomRowCount();
         Job.components().component("rowGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, true, 0, null))
                 .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput").build()
                 .run();
-        assertEquals(rowCount, countAll(container));
+        assertEquals(rowCount, countAll(testTableName, container));
     }
 
     /*
@@ -76,34 +79,36 @@ class OutputTest extends BaseJdbcTest {
      */
     @TestTemplate
     @DisplayName("Insert - duplicate records")
-    void insertDuplicateRecords(final JdbcTestContainer container) {
+    void insertDuplicateRecords(final TestInfo testInfo, final JdbcTestContainer container) {
         final OutputConfiguration configuration = new OutputConfiguration();
-        configuration.setDataset(newTableNameDataset(container.getTestTableName(), container));
+        final String testTableName = getTestTableName(testInfo);
+        configuration.setDataset(newTableNameDataset(testTableName, container));
         configuration.setActionOnData(OutputConfiguration.ActionOnData.INSERT);
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
         final int rowCount = 2;
         Job.components().component("rowGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, false, 0, null))
                 .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput").build()
                 .run();
-        assertEquals(rowCount, readAll(container).size());
+        assertEquals(rowCount, readAll(testTableName, container).size());
         Job.components().component("rowGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount * 2, false, 0, null))
                 .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput").build()
                 .run();
 
-        long size = countAll(container);
+        long size = countAll(testTableName, container);
         // some drivers will reject all records and others will reject only duplicated one
         assertTrue(rowCount * 2 == size || rowCount == size);
     }
 
     @TestTemplate
     @DisplayName("Delete - valid query")
-    void delete(final JdbcTestContainer container) {
+    void delete(final TestInfo testInfo, final JdbcTestContainer container) {
         // insert some initial data
-        final int rowCount = getRandomRowCount();
-        insertRows(container, rowCount, false, 0, null);
+        final int rowCount = 200; // getRandomRowCount();
+        final String testTableName = getTestTableName(testInfo);
+        insertRows(testTableName, container, rowCount, false, 0, null);
         // delete the inserted data data
         final OutputConfiguration deleteConfig = new OutputConfiguration();
-        deleteConfig.setDataset(newTableNameDataset(container.getTestTableName(), container));
+        deleteConfig.setDataset(newTableNameDataset(testTableName, container));
         deleteConfig.setActionOnData(OutputConfiguration.ActionOnData.DELETE);
         deleteConfig.setKeys(singletonList("id"));
         final String updateConfig = configurationByExample().forInstance(deleteConfig).configured().toQueryString();
@@ -112,17 +117,18 @@ class OutputTest extends BaseJdbcTest {
                 .build().run();
 
         // check the update
-        assertEquals(0L, countAll(container));
+        assertEquals(0L, countAll(testTableName, container));
     }
 
     @TestTemplate
     @DisplayName("Delete - No keys")
-    void deleteWithNoKeys(final JdbcTestContainer container) {
+    void deleteWithNoKeys(final TestInfo testInfo, final JdbcTestContainer container) {
         final long rowCount = 3;
-        insertRows(container, rowCount, false, 0, null);
+        final String testTableName = getTestTableName(testInfo);
+        insertRows(testTableName, container, rowCount, false, 0, null);
         final Exception error = assertThrows(Exception.class, () -> {
             final OutputConfiguration deleteConfig = new OutputConfiguration();
-            deleteConfig.setDataset(newTableNameDataset(container.getTestTableName(), container));
+            deleteConfig.setDataset(newTableNameDataset(testTableName, container));
             deleteConfig.setActionOnData(OutputConfiguration.ActionOnData.DELETE);
             final String updateConfig = configurationByExample().forInstance(deleteConfig).configured().toQueryString();
             Job.components().component("userGenerator", "jdbcTest://RowGenerator?config.rowCount=" + rowCount)
@@ -130,18 +136,19 @@ class OutputTest extends BaseJdbcTest {
                     .build().run();
         });
         assertTrue(error.getMessage().contains(getI18nMessage().errorNoKeyForDeleteQuery()));
-        assertEquals(rowCount, countAll(container));
+        assertEquals(rowCount, countAll(testTableName, container));
     }
 
     @TestTemplate
     @DisplayName("Delete - Missing defined key in incoming record")
-    void deleteWithMissingDefinedKeys(final JdbcTestContainer container) {
+    void deleteWithMissingDefinedKeys(final TestInfo testInfo, final JdbcTestContainer container) {
         // 1) insert some data.
         final int rowCount = 2;
-        insertRows(container, rowCount, false, 0, null);
+        final String testTableName = getTestTableName(testInfo);
+        insertRows(testTableName, container, rowCount, false, 0, null);
         // 2) perform delete test with some record with missing delete key (id)
         final OutputConfiguration deleteConfig = new OutputConfiguration();
-        deleteConfig.setDataset(newTableNameDataset(container.getTestTableName(), container));
+        deleteConfig.setDataset(newTableNameDataset(testTableName, container));
         deleteConfig.setActionOnData(OutputConfiguration.ActionOnData.DELETE);
         deleteConfig.setKeys(singletonList("id"));
         final String updateConfig = configurationByExample().forInstance(deleteConfig).configured().toQueryString();
@@ -153,18 +160,20 @@ class OutputTest extends BaseJdbcTest {
                 .from("userGenerator").to("jdbcOutput").build().run();
 
         // 3) check the remaining records
-        assertEquals(IntStream.rangeClosed(1, rowCount).filter(r -> r % missingKeyEvery == 0).count(), readAll(container).size());
+        assertEquals(IntStream.rangeClosed(1, rowCount).filter(r -> r % missingKeyEvery == 0).count(),
+                readAll(testTableName, container).size());
     }
 
     @TestTemplate
     @DisplayName("Update - valid query")
-    void update(final JdbcTestContainer container) {
+    void update(final TestInfo testInfo, final JdbcTestContainer container) {
         // insert some initial data
         final int rowCount = getRandomRowCount();
-        insertRows(container, rowCount, false, 0, null);
+        final String testTableName = getTestTableName(testInfo);
+        insertRows(testTableName, container, rowCount, false, 0, null);
         // update the inserted data data
         final OutputConfiguration configuration = new OutputConfiguration();
-        configuration.setDataset(newTableNameDataset(container.getTestTableName(), container));
+        configuration.setDataset(newTableNameDataset(testTableName, container));
         configuration.setActionOnData(OutputConfiguration.ActionOnData.UPDATE);
         configuration.setKeys(singletonList("id"));
         final String updateConfig = configurationByExample().forInstance(configuration).configured().toQueryString();
@@ -174,7 +183,7 @@ class OutputTest extends BaseJdbcTest {
                 .build().run();
 
         // check the update
-        final List<Record> users = readAll(container);
+        final List<Record> users = readAll(testTableName, container);
         assertEquals(rowCount, users.size());
         assertEquals(IntStream.rangeClosed(1, rowCount).mapToObj(i -> "updated" + i).collect(toSet()), users.stream()
                 .map(r -> ofNullable(r.getString("T_STRING")).orElseGet(() -> r.getString("t_string"))).collect(toSet()));
@@ -182,10 +191,10 @@ class OutputTest extends BaseJdbcTest {
 
     @TestTemplate
     @DisplayName("Update - no keys")
-    void updateWithNoKeys(final JdbcTestContainer container) {
+    void updateWithNoKeys(final TestInfo testInfo, final JdbcTestContainer container) {
         final Exception error = assertThrows(Exception.class, () -> {
             final OutputConfiguration updateConfiguration = new OutputConfiguration();
-            updateConfiguration.setDataset(newTableNameDataset(container.getTestTableName(), container));
+            updateConfiguration.setDataset(newTableNameDataset(getTestTableName(testInfo), container));
             updateConfiguration.setActionOnData(OutputConfiguration.ActionOnData.UPDATE);
             final String updateConfig = configurationByExample().forInstance(updateConfiguration).configured().toQueryString();
             Job.components().component("userGenerator", "jdbcTest://RowGenerator?config.rowCount=4&config.namePrefix=updatedUser")
@@ -197,13 +206,14 @@ class OutputTest extends BaseJdbcTest {
 
     @TestTemplate
     @DisplayName("Upsert - valid query")
-    void upsert(final JdbcTestContainer container) {
+    void upsert(final TestInfo testInfo, final JdbcTestContainer container) {
         // insert some initial data
         final int existingRecords = getRandomRowCount();
-        insertRows(container, existingRecords, false, 0, null);
+        final String testTableName = getTestTableName(testInfo);
+        insertRows(testTableName, container, existingRecords, false, 0, null);
         // update the inserted data data
         final OutputConfiguration configuration = new OutputConfiguration();
-        configuration.setDataset(newTableNameDataset(container.getTestTableName(), container));
+        configuration.setDataset(newTableNameDataset(testTableName, container));
         configuration.setActionOnData(OutputConfiguration.ActionOnData.UPSERT);
         configuration.setKeys(singletonList("id"));
         final String updateConfig = configurationByExample().forInstance(configuration).configured().toQueryString();
@@ -214,7 +224,7 @@ class OutputTest extends BaseJdbcTest {
                 .build().run();
 
         // check the update
-        final List<Record> users = readAll(container);
+        final List<Record> users = readAll(testTableName, container);
         assertEquals(newRecords, users.size());
         assertEquals(IntStream.rangeClosed(1, newRecords).mapToObj(i -> "updated" + i).collect(toSet()), users.stream()
                 .map(r -> ofNullable(r.getString("t_string")).orElseGet(() -> r.getString("T_STRING"))).collect(toSet()));

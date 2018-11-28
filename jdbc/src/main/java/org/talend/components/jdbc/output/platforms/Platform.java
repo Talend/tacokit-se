@@ -14,14 +14,12 @@ package org.talend.components.jdbc.output.platforms;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
 
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -42,6 +40,10 @@ public abstract class Platform implements Serializable {
 
     public void createTableIfNotExist(final Connection connection, final String name, final List<Record> records)
             throws SQLException {
+        if (records.isEmpty()) {
+            return;
+        }
+
         final String sql = buildQuery(getTableModel(connection, name, records));
         try (final Statement statement = connection.createStatement()) {
             statement.executeUpdate(sql);
@@ -66,22 +68,6 @@ public abstract class Platform implements Serializable {
             log.warn("can't get database catalog or schema", e);
         }
         return builder.columns(records.stream().flatMap(record -> record.getSchema().getEntries().stream()).distinct()
-                .map(entry -> Column.builder().entry(entry).size(inferSize(entry, records)).build()).collect(Collectors.toList()))
-                .build();
-    }
-
-    private Integer inferSize(final Schema.Entry column, final List<Record> records) {
-        switch (column.getType()) {
-        case STRING:
-            return 5 * records.stream()
-                    .filter(record -> record.getSchema().getEntries().stream()
-                            .anyMatch(entry -> entry.getName().equals(column.getName())))
-                    .map(record -> record.getString(column.getName())).filter(Objects::nonNull).mapToInt(String::length).max()
-                    .orElseThrow(
-                            () -> new IllegalStateException("can't infer size of {" + column.getName() + "} from incoming data"));
-        default:
-            return null;
-        }
-
+                .map(entry -> Column.builder().entry(entry).build()).collect(Collectors.toList())).build();
     }
 }
