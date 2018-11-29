@@ -111,6 +111,7 @@
                     </argLine>
                     <systemPropertyVariables>
                         <talend.jdbc.it>${jdbc.it}</talend.jdbc.it>
+                        <!--<talend.jdbc.it.snowflake.skip>true</talend.jdbc.it.snowflake.skip>-->
                         <talend.component.junit.handler.state>static</talend.component.junit.handler.state>
 
                         <!-- check it used -->
@@ -162,6 +163,12 @@
                     <groupId>com.microsoft.sqlserver</groupId>
                     <artifactId>mssql-jdbc</artifactId>
                     <version>7.0.0.jre8</version>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>net.snowflake</groupId>
+                    <artifactId>snowflake-jdbc</artifactId>
+                    <version>3.6.18</version>
                     <scope>provided</scope>
                 </dependency>
             </dependencies>

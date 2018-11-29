@@ -14,13 +14,16 @@ package org.talend.components.jdbc.output.platforms;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 @Slf4j
 public abstract class Platform implements Serializable {
@@ -29,45 +32,58 @@ public abstract class Platform implements Serializable {
 
     abstract protected String delimiterToken();
 
-    abstract protected String valueQuoteToken();
-
     protected abstract String buildQuery(final Table table);
 
     /**
      * @param e if the exception if a table allready exist ignore it. otherwise re throw e
      */
-    protected abstract boolean isTableExistsCreationError(final SQLException e);
+    protected abstract boolean isTableExistsCreationError(final Throwable e);
 
-    public void createTableIfNotExist(final Connection connection, final String name, final List<Record> records)
-            throws SQLException {
+    public void createTableIfNotExist(final Connection connection, final String name, final List<String> keys,
+            final List<Record> records) throws SQLException {
         if (records.isEmpty()) {
             return;
         }
 
-        final String sql = buildQuery(getTableModel(connection, name, records));
+        final String sql = buildQuery(getTableModel(connection, name, keys, records));
         try (final Statement statement = connection.createStatement()) {
             statement.executeUpdate(sql);
-        } catch (final SQLException e) {
+            connection.commit();
+        } catch (final Throwable e) {
             connection.rollback();
             if (!isTableExistsCreationError(e)) {
                 throw e;
             }
+
+            log.debug("create table issue was ignored. The table and it's name space has been created by an other worker", e);
         }
-        connection.commit();
     }
 
-    String identifier(final String name) {
+    public String identifier(final String name) {
         return delimiterToken() + name + delimiterToken();
     }
 
-    private Table getTableModel(final Connection connection, final String name, final List<Record> records) {
+    String createPKs(final List<Column> primaryKeys) {
+        return primaryKeys == null || primaryKeys.isEmpty() ? ""
+                : ", PRIMARY KEY "
+                        + primaryKeys.stream().map(Column::getName).map(this::identifier).collect(joining(",", "(", ")"));
+    }
+
+    private Table getTableModel(final Connection connection, final String name, final List<String> keys,
+            final List<Record> records) {
         final Table.TableBuilder builder = Table.builder().name(name);
         try {
             builder.catalog(connection.getCatalog()).schema(connection.getSchema());
         } catch (final SQLException e) {
             log.warn("can't get database catalog or schema", e);
         }
-        return builder.columns(records.stream().flatMap(record -> record.getSchema().getEntries().stream()).distinct()
-                .map(entry -> Column.builder().entry(entry).build()).collect(Collectors.toList())).build();
+        final List<Schema.Entry> entries = records.stream().flatMap(record -> record.getSchema().getEntries().stream()).distinct()
+                .collect(toList());
+        return builder.columns(entries.stream().map(entry -> Column.builder().entry(entry).build()).collect(toList()))
+                .primaryKeys(keys.stream()
+                        .map(k -> new Column(entries.stream().filter(e -> e.getName().equals(k)).findFirst()
+                                .orElseThrow(() -> new IllegalStateException("can't find key {" + k + "}"))))
+                        .collect(toList()))
+                .build();
     }
 }

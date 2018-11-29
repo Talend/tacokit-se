@@ -23,6 +23,7 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.talend.components.jdbc.service.UIActionService.ACTION_SUGGESTION_TABLE_COLUMNS_NAMES;
@@ -52,16 +53,17 @@ public class OutputConfiguration implements Serializable {
     private ActionOnData actionOnData = ActionOnData.INSERT;
 
     @Option
-    @ActiveIf(target = "actionOnData", negate = true, value = { "INSERT" })
+    @ActiveIfs(operator = OR, value = { @ActiveIf(target = "actionOnData", negate = true, value = { "INSERT" }),
+            @ActiveIf(target = "createTableIfNotExists", value = { "true" }), })
     @Suggestable(value = ACTION_SUGGESTION_TABLE_COLUMNS_NAMES, parameters = { "dataset" })
     @Documentation("List of columns to be used as keys for this operation")
-    private List<String> keys;
+    private List<String> keys = new ArrayList<>();
 
     @Option
     @Suggestable(value = ACTION_SUGGESTION_TABLE_COLUMNS_NAMES, parameters = { "dataset" })
     @ActiveIf(target = "actionOnData", value = { "UPDATE", "UPSERT" })
     @Documentation("List of columns to be ignored from update")
-    private List<String> ignoreUpdate;
+    private List<String> ignoreUpdate = new ArrayList<>();
 
     @Option
     @ActiveIfs(operator = OR, value = { @ActiveIf(target = "../dataset.connection.dbType", value = { "MySQL" }),

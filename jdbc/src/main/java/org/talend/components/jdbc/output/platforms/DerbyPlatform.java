@@ -16,7 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.joining;
 
 /**
  * syntax detail can be found at <a href="https://dev.mysql.com/doc/refman/8.0/en/create-table.html syntax
@@ -27,7 +28,7 @@ public class DerbyPlatform extends Platform {
 
     public static final String NAME = "derby";
 
-    private final String VARCHAR_MAX_LENGTH = "32672";
+    private final static String VARCHAR_MAX_LENGTH = "32672";
 
     @Override
     public String name() {
@@ -40,20 +41,15 @@ public class DerbyPlatform extends Platform {
     }
 
     @Override
-    protected String valueQuoteToken() {
-        return "";
-    }
-
-    @Override
     protected String buildQuery(final Table table) {
         // keep the string builder for readability
         final StringBuilder sql = new StringBuilder("CREATE TABLE");
         sql.append(" ");
         sql.append(identifier(table.getName()));
-        sql.append(" ");
+        sql.append("(");
         sql.append(createColumns(table.getColumns()));
-
-        // todo create PK
+        sql.append(createPKs(table.getPrimaryKeys()));
+        sql.append(")");
         // todo create index
 
         log.debug("### create table query ###");
@@ -62,12 +58,12 @@ public class DerbyPlatform extends Platform {
     }
 
     @Override
-    protected boolean isTableExistsCreationError(final SQLException e) {
-        return "X0Y32".equals(e.getSQLState());
+    protected boolean isTableExistsCreationError(final Throwable e) {
+        return e instanceof SQLException && "X0Y32".equals(((SQLException) e).getSQLState());
     }
 
     private String createColumns(final List<Column> columns) {
-        return columns.stream().map(this::createColumn).collect(Collectors.joining(",", "(", ")"));
+        return columns.stream().map(this::createColumn).collect(joining(","));
     }
 
     private String createColumn(final Column column) {

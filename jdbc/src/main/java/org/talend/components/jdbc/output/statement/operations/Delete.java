@@ -15,6 +15,7 @@ package org.talend.components.jdbc.output.statement.operations;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfiguration;
+import org.talend.components.jdbc.output.platforms.Platform;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.record.Record;
@@ -38,14 +39,15 @@ public class Delete extends JdbcAction {
 
     private boolean namedParamsResolved;
 
-    public Delete(final OutputConfiguration configuration, final I18nMessage i18n, final HikariDataSource dataSource) {
-        super(configuration, i18n, dataSource);
+    public Delete(final Platform platform, final OutputConfiguration configuration, final I18nMessage i18n,
+            final JdbcService.JdbcDatasource dataSource) {
+        super(platform, configuration, i18n, dataSource);
         this.keys = new ArrayList<>(ofNullable(configuration.getKeys()).orElse(emptyList()));
         if (this.keys.isEmpty()) {
             throw new IllegalArgumentException(getI18n().errorNoKeyForDeleteQuery());
         }
-        this.query = "DELETE FROM " + configuration.getDataset().getTableName() + " WHERE "
-                + keys.stream().map(c -> c + " = ?").collect(joining(" AND "));
+        this.query = "DELETE FROM " + getPlatform().identifier(configuration.getDataset().getTableName()) + " WHERE "
+                + keys.stream().map(platform::identifier).map(c -> c + " = ?").collect(joining(" AND "));
     }
 
     @Override

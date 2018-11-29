@@ -12,7 +12,6 @@
  */
 package org.talend.components.jdbc.output;
 
-import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfiguration;
 import org.talend.components.jdbc.output.platforms.Platform;
@@ -53,7 +52,7 @@ public class Output implements Serializable {
 
     private transient JdbcAction jdbcAction;
 
-    private transient HikariDataSource dataSource;
+    private transient JdbcService.JdbcDatasource dataSource;
 
     private transient Platform platform;
 
@@ -68,12 +67,10 @@ public class Output implements Serializable {
 
     @PostConstruct
     public void init() {
-        dataSource = jdbcService.createDataSource(configuration.getDataset().getConnection(),
+        platform = PlatformFactory.get(configuration.getDataset().getConnection());
+        dataSource = jdbcService.createDataSource(configuration.getDataset().getConnection(), false,
                 configuration.isRewriteBatchedStatements());
-        final JdbcActionFactory jdbcActionFactory = new JdbcActionFactory(i18n, dataSource, configuration);
-        if (configuration.isCreateTableIfNotExists()) {
-            platform = PlatformFactory.get(configuration.getDataset().getConnection());
-        }
+        final JdbcActionFactory jdbcActionFactory = new JdbcActionFactory(platform, i18n, dataSource, configuration);
         this.jdbcAction = jdbcActionFactory.createAction();
         this.records = new ArrayList<>();
     }
@@ -92,7 +89,8 @@ public class Output implements Serializable {
     public void afterGroup() throws SQLException {
         if (configuration.isCreateTableIfNotExists() && !tableCreated) {
             try (final Connection connection = dataSource.getConnection()) {
-                platform.createTableIfNotExist(connection, configuration.getDataset().getTableName(), records);
+                platform.createTableIfNotExist(connection, configuration.getDataset().getTableName(), configuration.getKeys(),
+                        records);
                 tableCreated = true;
             }
         }
@@ -102,7 +100,7 @@ public class Output implements Serializable {
             final List<Reject> discards = jdbcAction.execute(records);
             discards.stream().map(Object::toString).forEach(log::info);
         } catch (final Exception e) {
-            records.stream().map(Object::toString).forEach(log::info);
+            records.stream().map(r -> new Reject(e.getMessage(), r)).map(Reject::toString).forEach(log::info);
             throw e;
         }
     }

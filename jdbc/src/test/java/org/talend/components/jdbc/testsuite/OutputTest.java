@@ -33,6 +33,7 @@ import java.util.stream.IntStream;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.derby.vti.XmlVTI.asList;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
@@ -50,6 +51,8 @@ class OutputTest extends BaseJdbcTest {
         final String testTableName = getTestTableName(testInfo);
         configuration.setDataset(newTableNameDataset(testTableName, container));
         configuration.setActionOnData(OutputConfiguration.ActionOnData.INSERT);
+        configuration.setCreateTableIfNotExists(true);
+        configuration.setKeys(asList("id"));
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
         final int rowCount = getRandomRowCount();
         Job.components().component("rowGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, false, 0, null))
@@ -65,6 +68,8 @@ class OutputTest extends BaseJdbcTest {
         final String testTableName = getTestTableName(testInfo);
         configuration.setDataset(newTableNameDataset(testTableName, container));
         configuration.setActionOnData(OutputConfiguration.ActionOnData.INSERT);
+        configuration.setCreateTableIfNotExists(true);
+        configuration.setKeys(asList("id"));
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
         final int rowCount = getRandomRowCount();
         Job.components().component("rowGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, true, 0, null))
@@ -84,26 +89,30 @@ class OutputTest extends BaseJdbcTest {
         final String testTableName = getTestTableName(testInfo);
         configuration.setDataset(newTableNameDataset(testTableName, container));
         configuration.setActionOnData(OutputConfiguration.ActionOnData.INSERT);
+        configuration.setCreateTableIfNotExists(true);
+        configuration.setKeys(asList("id"));
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
-        final int rowCount = 2;
+        final long rowCount = getRandomRowCount();
         Job.components().component("rowGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, false, 0, null))
                 .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput").build()
                 .run();
-        assertEquals(rowCount, readAll(testTableName, container).size());
-        Job.components().component("rowGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount * 2, false, 0, null))
+        assertEquals(rowCount, countAll(testTableName, container));
+        final long nextRecords = rowCount * 3;
+        Job.components().component("rowGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(nextRecords, false, 0, null))
                 .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput").build()
                 .run();
 
         long size = countAll(testTableName, container);
         // some drivers will reject all records and others will reject only duplicated one
-        assertTrue(rowCount * 2 == size || rowCount == size);
+        assertEquals(nextRecords, size);
     }
 
     @TestTemplate
     @DisplayName("Delete - valid query")
     void delete(final TestInfo testInfo, final JdbcTestContainer container) {
         // insert some initial data
-        final int rowCount = 200; // getRandomRowCount();
+        final int rowCount = getRandomRowCount();
+        System.out.println("testing with " + rowCount);
         final String testTableName = getTestTableName(testInfo);
         insertRows(testTableName, container, rowCount, false, 0, null);
         // delete the inserted data data

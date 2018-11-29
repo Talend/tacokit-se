@@ -1,6 +1,5 @@
 package org.talend.components.jdbc;
 
-import com.zaxxer.hikari.HikariDataSource;
 import lombok.Data;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
@@ -9,6 +8,8 @@ import org.talend.components.jdbc.containers.JdbcTestContainer;
 import org.talend.components.jdbc.dataset.SqlQueryDataset;
 import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.JdbcConnection;
+import org.talend.components.jdbc.output.platforms.Platform;
+import org.talend.components.jdbc.output.platforms.PlatformFactory;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
 import org.talend.components.jdbc.service.UIActionService;
@@ -29,6 +30,7 @@ import java.util.Random;
 
 import static java.util.Locale.ROOT;
 import static java.util.Optional.ofNullable;
+import static org.apache.derby.vti.XmlVTI.asList;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @Data
@@ -48,7 +50,7 @@ public abstract class BaseJdbcTest {
 
     public String getTestTableName(final TestInfo info) {
         return (info.getTestClass().map(Class::getSimpleName).orElse("TEST").toUpperCase(ROOT) + "_"
-                + info.getTestMethod().map(Method::getName).orElse("TABLE").toUpperCase(ROOT)).substring(0, 10);
+                + info.getTestMethod().map(Method::getName).orElse("TABLE").toUpperCase(ROOT)).substring(0, 15);
     }
 
     @BeforeEach
@@ -57,18 +59,18 @@ public abstract class BaseJdbcTest {
         final JdbcConnection datastore = newConnection(container);
         uiActionService.getTableFromDatabase(datastore).getItems().stream()
                 .filter(item -> item.getId().equalsIgnoreCase(testTable)).findFirst().ifPresent(item -> {
-                    try (final HikariDataSource dataSource = jdbcService.createDataSource(datastore)) {
-                        try (final Connection connection = dataSource.getConnection()) {
-                            try (final PreparedStatement stm = connection.prepareStatement("truncate table " + testTable)) {
-                                stm.execute();
-                            } catch (final SQLException e) {
-                                connection.rollback();
-                            }
-
+                    final Platform platform = PlatformFactory.get(datastore);
+                    try (final Connection connection = jdbcService.createDataSource(datastore, false, false).getConnection()) {
+                        try (final PreparedStatement stm = connection
+                                .prepareStatement("TRUNCATE TABLE " + platform.identifier(testTable))) {
+                            stm.executeUpdate();
                             connection.commit();
                         } catch (final SQLException e) {
-                            throw new IllegalStateException(e);
+                            connection.rollback();
+                            throw e;
                         }
+                    } catch (final SQLException e) {
+                        throw new IllegalStateException(e);
                     }
                 });
     }
@@ -106,6 +108,7 @@ public abstract class BaseJdbcTest {
         configuration.setDataset(newTableNameDataset(table, container));
         configuration.setActionOnData(OutputConfiguration.ActionOnData.INSERT);
         configuration.setCreateTableIfNotExists(true);
+        configuration.setKeys(asList("id"));
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
         Job.components()
                 .component("rowGenerator",
@@ -136,7 +139,7 @@ public abstract class BaseJdbcTest {
      */
     public static int getRandomRowCount() {
         final int availableProcessors = Runtime.getRuntime().availableProcessors();
-        return new Random().nextInt(((availableProcessors * 100) - availableProcessors * 4)) + availableProcessors * 4;
+        return new Random().nextInt(((availableProcessors * 10) - availableProcessors * 5)) + availableProcessors * 5;
     }
 
     public static String rowGeneratorConfig(final long rowCount, final boolean withNullValues, final int withMissingIdEvery,

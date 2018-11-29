@@ -28,7 +28,8 @@ public class JdbcInvocationContextProvider implements TestTemplateInvocationCont
 
         public static Stream<SupportedDatabase> getActiveDatabases() {
             return Boolean.getBoolean("talend.jdbc.it")
-                    ? Stream.of(values()).filter(db -> !Boolean.getBoolean(db.name().toLowerCase(ROOT) + ".skip"))
+                    ? Stream.of(values())
+                            .filter(db -> !Boolean.getBoolean("talend.jdbc.it." + db.name().toLowerCase(ROOT) + ".skip"))
                     : Stream.of(DERBY);
         }
     }

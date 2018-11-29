@@ -38,11 +38,6 @@ public class PostgreSQLPlatform extends Platform {
     }
 
     @Override
-    protected String valueQuoteToken() {
-        return "";
-    }
-
-    @Override
     protected String buildQuery(final Table table) {
         // keep the string builder for readability
         final StringBuilder sql = new StringBuilder("CREATE TABLE");
@@ -50,10 +45,10 @@ public class PostgreSQLPlatform extends Platform {
         sql.append("IF NOT EXISTS");
         sql.append(" ");
         sql.append(identifier(table.getName()));
-        sql.append(" ");
+        sql.append("(");
         sql.append(createColumns(table.getColumns()));
-
-        // todo create PK
+        sql.append(createPKs(table.getPrimaryKeys()));
+        sql.append(")");
         // todo create index
 
         log.debug("### create table query ###");
@@ -62,12 +57,14 @@ public class PostgreSQLPlatform extends Platform {
     }
 
     @Override
-    protected boolean isTableExistsCreationError(final SQLException e) {
-        return false;
+    protected boolean isTableExistsCreationError(final Throwable e) {
+        // name space creation issue in distributed exectution is not handled by "IF NOT EXISTS"
+        // https://www.postgresql.org/message-id/CA%2BTgmoZAdYVtwBfp1FL2sMZbiHCWT4UPrzRLNnX1Nb30Ku3-gg%40mail.gmail.com
+        return e instanceof SQLException && "23505".equals(((SQLException) e).getSQLState());
     }
 
     private String createColumns(final List<Column> columns) {
-        return columns.stream().map(this::createColumn).collect(Collectors.joining(",", "(", ")"));
+        return columns.stream().map(this::createColumn).collect(Collectors.joining(","));
     }
 
     private String createColumn(final Column column) {

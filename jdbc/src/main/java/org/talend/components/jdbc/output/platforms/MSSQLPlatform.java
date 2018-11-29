@@ -26,7 +26,7 @@ public class MSSQLPlatform extends Platform {
 
     public static final String NAME = "mssql";
 
-    private final String VARCHAR_MAX_LENGTH = "max";
+    private final static String VARCHAR_MAX_LENGTH = "max";
 
     @Override
     public String name() {
@@ -39,20 +39,15 @@ public class MSSQLPlatform extends Platform {
     }
 
     @Override
-    protected String valueQuoteToken() {
-        return "";
-    }
-
-    @Override
     protected String buildQuery(final Table table) {
         // keep the string builder for readability
         final StringBuilder sql = new StringBuilder("CREATE TABLE");
         sql.append(" ");
         sql.append(identifier(table.getName()));
-        sql.append(" ");
+        sql.append("(");
         sql.append(createColumns(table.getColumns()));
-
-        // todo create PK
+        sql.append(createPKs(table.getPrimaryKeys()));
+        sql.append(")");
         // todo create index
 
         log.debug("### create table query ###");
@@ -61,12 +56,12 @@ public class MSSQLPlatform extends Platform {
     }
 
     @Override
-    protected boolean isTableExistsCreationError(final SQLException e) {
-        return "S0001".equalsIgnoreCase(e.getSQLState()) && 2714 == e.getErrorCode();
+    protected boolean isTableExistsCreationError(final Throwable e) {
+        return e instanceof SQLException && "S0001".equalsIgnoreCase(((SQLException) e).getSQLState());
     }
 
     private String createColumns(final List<Column> columns) {
-        return columns.stream().map(this::createColumn).collect(Collectors.joining(",", "(", ")"));
+        return columns.stream().map(this::createColumn).collect(Collectors.joining(","));
     }
 
     private String createColumn(final Column column) {

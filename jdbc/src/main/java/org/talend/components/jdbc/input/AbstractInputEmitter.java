@@ -1,6 +1,5 @@
 package org.talend.components.jdbc.input;
 
-import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.dataset.BaseDataSet;
 import org.talend.components.jdbc.service.I18nMessage;
@@ -33,7 +32,7 @@ public abstract class AbstractInputEmitter implements Serializable {
 
     private ResultSet resultSet;
 
-    private HikariDataSource dataSource;
+    private JdbcService.JdbcDatasource dataSource;
 
     public AbstractInputEmitter(final BaseDataSet queryDataSet, final JdbcService jdbcDriversService,
             final RecordBuilderFactory recordBuilderFactory, final I18nMessage i18nMessage) {
@@ -54,10 +53,11 @@ public abstract class AbstractInputEmitter implements Serializable {
         }
 
         try {
-            dataSource = jdbcDriversService.createDataSourceReadOnly(dataSet.getConnection());
+            dataSource = jdbcDriversService.createDataSource(dataSet.getConnection());
             connection = dataSource.getConnection();
             /*
              * Add some optimization for mysql by activating read only and enabling streaming
+             * todo move this to org.talend.components.jdbc.output.platforms.Platform
              */
             if (connection.getMetaData().getDriverName().toLowerCase().contains("mysql")) {
                 statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);

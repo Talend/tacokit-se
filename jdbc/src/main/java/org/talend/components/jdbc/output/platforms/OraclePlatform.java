@@ -42,11 +42,6 @@ public class OraclePlatform extends Platform {
     }
 
     @Override
-    protected String valueQuoteToken() {
-        return "";
-    }
-
-    @Override
     protected String buildQuery(final Table table) {
         // keep the string builder for readability
         final StringBuilder sql = new StringBuilder("CREATE TABLE");
@@ -55,11 +50,11 @@ public class OraclePlatform extends Platform {
             sql.append(table.getSchema()).append(".");
         }
         sql.append(identifier(table.getName()));
-        sql.append(" ");
+        sql.append("(");
         sql.append(createColumns(table.getColumns()));
-
-        // todo create PK
+        sql.append(createPKs(table.getPrimaryKeys()));
         // todo create index
+        sql.append(")");
 
         log.debug("### create table query ###");
         log.debug(sql.toString());
@@ -67,12 +62,12 @@ public class OraclePlatform extends Platform {
     }
 
     @Override
-    protected boolean isTableExistsCreationError(final SQLException e) {
-        return "42000".equals(e.getSQLState()) && 955 == e.getErrorCode();
+    protected boolean isTableExistsCreationError(final Throwable e) {
+        return e instanceof SQLException && "42000".equals(((SQLException) e).getSQLState());
     }
 
     private String createColumns(final List<Column> columns) {
-        return columns.stream().map(this::createColumn).collect(Collectors.joining(",", "(", ")"));
+        return columns.stream().map(this::createColumn).collect(Collectors.joining(","));
     }
 
     private String createColumn(final Column column) {

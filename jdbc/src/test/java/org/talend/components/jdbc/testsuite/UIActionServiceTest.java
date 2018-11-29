@@ -23,6 +23,7 @@ import org.talend.components.jdbc.containers.JdbcTestContainer;
 import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.output.platforms.PlatformFactory;
+import org.talend.components.jdbc.service.JdbcService;
 import org.talend.components.jdbc.service.UIActionService;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
@@ -113,9 +114,9 @@ class UIActionServiceTest extends BaseJdbcTest {
     }
 
     private void createTestTable(String testTableName, JdbcConnection datastore) throws SQLException {
-        try (HikariDataSource dataSource = getJdbcService().createDataSource(datastore)) {
+        try (JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(datastore)) {
             try (final Connection connection = dataSource.getConnection()) {
-                PlatformFactory.get(datastore).createTableIfNotExist(connection, testTableName,
+                PlatformFactory.get(datastore).createTableIfNotExist(connection, testTableName, asList("id"),
                         asList(recordBuilderFactory.newRecordBuilder().withInt("id", 1).build()));
                 connection.commit();
             }
@@ -143,11 +144,9 @@ class UIActionServiceTest extends BaseJdbcTest {
         createTestTable(testTableName, tableNameDataset.getConnection());
         final SuggestionValues values = uiActionService.getTableColumns(tableNameDataset);
         assertNotNull(values);
-        assertEquals(8, values.getItems().size());
-        assertEquals(
-                Stream.of("T_DOUBLE", "T_LONG", "T_BYTES", "T_FLOAT", "T_BOOLEAN", "T_STRING", "T_DATE", "ID").collect(toSet()),
-                values.getItems().stream().map(SuggestionValues.Item::getLabel).map(l -> l.toUpperCase(Locale.ROOT))
-                        .collect(toSet()));
+        assertEquals(1, values.getItems().size());
+        assertEquals(Stream.of("ID").collect(toSet()), values.getItems().stream().map(SuggestionValues.Item::getLabel)
+                .map(l -> l.toUpperCase(Locale.ROOT)).collect(toSet()));
     }
 
     @TestTemplate

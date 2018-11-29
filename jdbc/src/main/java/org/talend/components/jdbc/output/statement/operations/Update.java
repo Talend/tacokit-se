@@ -12,10 +12,11 @@
  */
 package org.talend.components.jdbc.output.statement.operations;
 
-import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfiguration;
+import org.talend.components.jdbc.output.platforms.Platform;
 import org.talend.components.jdbc.service.I18nMessage;
+import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
@@ -35,8 +36,9 @@ public class Update extends JdbcAction {
 
     private Map<Integer, Schema.Entry> queryParams;
 
-    public Update(final OutputConfiguration configuration, final I18nMessage i18n, final HikariDataSource dataSource) {
-        super(configuration, i18n, dataSource);
+    public Update(final Platform platform, final OutputConfiguration configuration, final I18nMessage i18n,
+            final JdbcService.JdbcDatasource dataSource) {
+        super(platform, configuration, i18n, dataSource);
         this.keys = new ArrayList<>(ofNullable(configuration.getKeys()).orElse(emptyList()));
         if (this.keys.isEmpty()) {
             throw new IllegalArgumentException(i18n.errorNoKeyForUpdateQuery());
@@ -61,11 +63,11 @@ public class Update extends JdbcAction {
         final AtomicInteger index = new AtomicInteger(0);
         final List<Schema.Entry> entries = records.stream().flatMap(r -> r.getSchema().getEntries().stream()).distinct()
                 .collect(toList());
-        final String query = "UPDATE " + getConfiguration().getDataset().getTableName() + " SET "
+        final String query = "UPDATE " + getPlatform().identifier(getConfiguration().getDataset().getTableName()) + " SET "
                 + entries.stream().filter(e -> !ignoreColumns.contains(e.getName()) && !keys.contains(e.getName()))
-                        .peek(e -> queryParams.put(index.incrementAndGet(), e)).map(c -> c.getName() + " = ?")
-                        .collect(joining(","))
-                + " WHERE " + keys.stream().map(c -> c + " = ?").collect(joining(" AND "));
+                        .peek(e -> queryParams.put(index.incrementAndGet(), e)).map(c -> getPlatform().identifier(c.getName()))
+                        .map(c -> c + " = ?").collect(joining(","))
+                + " WHERE " + keys.stream().map(c -> getPlatform().identifier(c)).map(c -> c + " = ?").collect(joining(" AND "));
 
         keys.stream()
                 .map(key -> entries.stream().filter(e -> key.equals(e.getName())).findFirst()

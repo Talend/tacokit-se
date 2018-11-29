@@ -12,10 +12,11 @@
  */
 package org.talend.components.jdbc.output.statement.operations;
 
-import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfiguration;
+import org.talend.components.jdbc.output.platforms.Platform;
 import org.talend.components.jdbc.service.I18nMessage;
+import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
@@ -34,8 +35,9 @@ public class Insert extends JdbcAction {
 
     private final Map<String, String> queries = new HashMap<>();
 
-    public Insert(final OutputConfiguration configuration, final I18nMessage i18n, final HikariDataSource dataSource) {
-        super(configuration, i18n, dataSource);
+    public Insert(final Platform platform, final OutputConfiguration configuration, final I18nMessage i18n,
+            final JdbcService.JdbcDatasource dataSource) {
+        super(platform, configuration, i18n, dataSource);
     }
 
     @Override
@@ -48,8 +50,10 @@ public class Insert extends JdbcAction {
             entries.forEach(name -> namedParams.put(index.incrementAndGet(), name));
             final List<Map.Entry<Integer, Schema.Entry>> params = namedParams.entrySet().stream()
                     .sorted(comparing(Map.Entry::getKey)).collect(toList());
-            final StringBuilder query = new StringBuilder("INSERT INTO ").append(getConfiguration().getDataset().getTableName());
-            query.append(params.stream().map(e -> e.getValue().getName()).collect(joining(",", "(", ")")));
+            final StringBuilder query = new StringBuilder("INSERT INTO ")
+                    .append(getPlatform().identifier(getConfiguration().getDataset().getTableName()));
+            query.append(params.stream().map(e -> e.getValue().getName()).map(name -> getPlatform().identifier(name))
+                    .collect(joining(",", "(", ")")));
             query.append(" VALUES");
             query.append(params.stream().map(e -> "?").collect((joining(",", "(", ")"))));
             return query.toString();

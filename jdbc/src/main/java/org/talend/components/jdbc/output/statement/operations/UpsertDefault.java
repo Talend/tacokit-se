@@ -1,11 +1,12 @@
 package org.talend.components.jdbc.output.statement.operations;
 
-import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfiguration;
 import org.talend.components.jdbc.output.Reject;
+import org.talend.components.jdbc.output.platforms.Platform;
 import org.talend.components.jdbc.output.statement.RecordToSQLTypeConverter;
 import org.talend.components.jdbc.service.I18nMessage;
+import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
@@ -31,14 +32,15 @@ public class UpsertDefault extends JdbcAction {
 
     private Map<Integer, Schema.Entry> queryParams;
 
-    public UpsertDefault(final OutputConfiguration configuration, final I18nMessage i18n, final HikariDataSource dataSource) {
-        super(configuration, i18n, dataSource);
+    public UpsertDefault(final Platform platform, final OutputConfiguration configuration, final I18nMessage i18n,
+            final JdbcService.JdbcDatasource dataSource) {
+        super(platform, configuration, i18n, dataSource);
         this.keys = new ArrayList<>(ofNullable(configuration.getKeys()).orElse(emptyList()));
         if (this.keys.isEmpty()) {
             throw new IllegalArgumentException(i18n.errorNoKeyForUpdateQuery());
         }
-        insert = new Insert(configuration, i18n, dataSource);
-        update = new Update(configuration, i18n, dataSource);
+        insert = new Insert(platform, configuration, i18n, dataSource);
+        update = new Update(platform, configuration, i18n, dataSource);
     }
 
     @Override
@@ -48,12 +50,13 @@ public class UpsertDefault extends JdbcAction {
         final List<Schema.Entry> entries = records.stream().flatMap(r -> r.getSchema().getEntries().stream()).distinct()
                 .collect(toList());
 
-        return "SELECT COUNT(*) AS RECORD_EXIST FROM " + getConfiguration().getDataset().getTableName() + " WHERE "
+        return "SELECT COUNT(*) AS RECORD_EXIST FROM " + getPlatform().identifier(getConfiguration().getDataset().getTableName())
+                + " WHERE "
                 + getConfiguration().getKeys().stream()
                         .peek(key -> queryParams.put(index.incrementAndGet(),
                                 entries.stream().filter(e -> e.getName().equals(key)).findFirst()
                                         .orElseThrow(() -> new IllegalStateException(getI18n().errorNoFieldForQueryParam(key)))))
-                        .map(c -> c + " = ?").collect(joining(" AND "));
+                        .map(c -> getPlatform().identifier(c)).map(c -> c + " = ?").collect(joining(" AND "));
     }
 
     @Override
@@ -96,15 +99,9 @@ public class UpsertDefault extends JdbcAction {
                         }
                     }
                 }
-            } catch (final SQLException e) {
-                quiteRollback(connection);
-                throw e;
-            }
-
-            try {
                 connection.commit();
             } catch (final SQLException e) {
-                quiteRollback(connection);
+                connection.rollback();
                 throw e;
             }
         }

@@ -39,11 +39,6 @@ public class MariaDbPlatform extends Platform {
     }
 
     @Override
-    protected String valueQuoteToken() {
-        return "";
-    }
-
-    @Override
     protected String buildQuery(final Table table) {
         // keep the string builder for readability
         final StringBuilder sql = new StringBuilder("CREATE TABLE");
@@ -51,10 +46,10 @@ public class MariaDbPlatform extends Platform {
         sql.append("IF NOT EXISTS");
         sql.append(" ");
         sql.append(identifier(table.getName()));
-        sql.append(" ");
+        sql.append("(");
         sql.append(createColumns(table.getColumns()));
-
-        // todo create PK
+        sql.append(createPKs(table.getPrimaryKeys()));
+        sql.append(")");
         // todo create index
 
         log.debug("### create table query ###");
@@ -63,12 +58,12 @@ public class MariaDbPlatform extends Platform {
     }
 
     @Override
-    protected boolean isTableExistsCreationError(SQLException e) {
+    protected boolean isTableExistsCreationError(Throwable e) {
         return false;
     }
 
     private String createColumns(final List<Column> columns) {
-        return columns.stream().map(this::createColumn).collect(Collectors.joining(",", "(", ")"));
+        return columns.stream().map(this::createColumn).collect(Collectors.joining(","));
     }
 
     private String createColumn(final Column column) {

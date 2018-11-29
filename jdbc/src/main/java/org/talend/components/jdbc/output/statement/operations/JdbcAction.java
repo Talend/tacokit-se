@@ -16,42 +16,38 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfiguration;
 import org.talend.components.jdbc.output.Reject;
+import org.talend.components.jdbc.output.platforms.Platform;
 import org.talend.components.jdbc.output.statement.RecordToSQLTypeConverter;
 import org.talend.components.jdbc.service.I18nMessage;
+import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
-import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 import static java.util.Collections.emptyList;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toList;
 
 @Data
 @Slf4j
 public abstract class JdbcAction {
 
+    private final Platform platform;
+
     private final OutputConfiguration configuration;
 
     private final I18nMessage i18n;
 
-    private final DataSource dataSource;
+    private final JdbcService.JdbcDatasource dataSource;
 
-    private final Integer maxRetry = 5;
+    private final Integer maxRetry = 10;
 
     private Integer retryCount = 0;
-
-    /**
-     * A default retry strategy. We try to detect deadl lock by testing the sql state code.
-     * 40001 is the state code used by almost all database to rise a dead lock issue
-     */
-    private final Function<SQLException, Boolean> retryStrategy = e -> "40001"
-            .equals(ofNullable(e.getNextException()).orElse(e).getSQLState());
 
     protected abstract String buildQuery(List<Record> records);
 
@@ -63,106 +59,97 @@ public abstract class JdbcAction {
         if (records.isEmpty()) {
             return emptyList();
         }
-        final String query = buildQuery(records);
-        final List<Reject> discards = new ArrayList<>();
         try (final Connection connection = dataSource.getConnection()) {
-            discards.addAll(processRecords(records, connection, query));
-            if (discards.size() != records.size()) {
-                connection.commit();
-            }
-        }
-
-        return discards;
-    }
-
-    public static void quiteRollback(final Connection connection) {
-        try {
-            log.debug("Rollback connection " + connection);
-            connection.rollback();
-        } catch (SQLException rollbackException) {
-            log.error("Can't rollback the connection " + connection, rollbackException);
+            return processRecords(records, connection, buildQuery(records));
         }
     }
 
     private List<Reject> processRecords(final List<Record> records, final Connection connection, final String query)
             throws SQLException {
-        final List<Reject> discards = new ArrayList<>();
+        final List<Reject> rejects = new ArrayList<>();
         do {
             try (final PreparedStatement statement = connection.prepareStatement(query)) {
-                discards.addAll(prepareStatement(records, statement));
+                final Map<Integer, Integer> batchOrder = new HashMap<>();
+                int recordIndex = -1;
+                int batchNumber = -1;
+                for (final Record record : records) {
+                    recordIndex++;
+                    statement.clearParameters();
+                    if (!validateQueryParam(record)) {
+                        rejects.add(new Reject("missing required query param in this record", record));
+                        continue;
+                    }
+                    for (final Map.Entry<Integer, Schema.Entry> entry : getQueryParams().entrySet()) {
+                        RecordToSQLTypeConverter.valueOf(entry.getValue().getType().name()).setValue(statement, entry.getKey(),
+                                entry.getValue(), record);
+                    }
+                    statement.addBatch();
+                    batchNumber++;
+                    batchOrder.put(batchNumber, recordIndex);
+                }
+
                 try {
                     statement.executeBatch();
+                    connection.commit();
                     break;
                 } catch (final SQLException e) {
-                    statement.clearBatch();
-                    if (!retryStrategy.apply(e) || retryCount > maxRetry) {
-                        discards.addAll(handleDiscards(records, connection, query, e));
+                    connection.rollback();
+                    if (!retry(e) || retryCount > maxRetry) {
+                        rejects.addAll(handleRejects(records, batchOrder, e));
                         break;
                     }
-
                     retryCount++;
                     log.warn("Deadlock detected. retrying", e);
-                    quiteRollback(connection);
                     try {
-                        Thread.sleep(retryCount * 100 + 3000); // todo make this configurable (back pressure)
+                        Thread.sleep((long) Math.exp(retryCount) * 2000);
                     } catch (InterruptedException e1) {
                         Thread.currentThread().interrupt();
                     }
-                    final List<Record> needRetry = new ArrayList<>(records);
-                    needRetry.removeAll(discards.stream().map(Reject::getRecord).collect(toSet()));
-                    discards.addAll(processRecords(needRetry, connection, query));
                 }
             }
         } while (true);
 
-        return discards;
+        return rejects;
     }
 
-    private List<Reject> handleDiscards(final List<Record> records, final Connection connection, final String query,
-            final SQLException e) throws SQLException {
+    /**
+     * A default retry strategy. We try to detect deadl lock by testing the sql state code.
+     * 40001 is the state code used by almost all database to rise a dead lock issue
+     */
+    private boolean retry(final SQLException e) {
+        return "40001".equals(ofNullable(e.getNextException()).orElse(e).getSQLState());
+    }
+
+    private List<Reject> handleRejects(final List<Record> records, Map<Integer, Integer> batchOrder, final SQLException e)
+            throws SQLException {
         if (!(e instanceof BatchUpdateException)) {
             throw e;
         }
         final List<Reject> discards = new ArrayList<>();
-        final int[] result = BatchUpdateException.class.cast(e).getUpdateCounts();
+        final int[] result = ((BatchUpdateException) e).getUpdateCounts();
+        SQLException error = e;
         if (result.length == records.size()) {
-            /* driver has executed all the batch statements */
             for (int i = 0; i < result.length; i++) {
                 switch (result[i]) {
                 case Statement.EXECUTE_FAILED:
-                    final SQLException error = ofNullable(e.getNextException()).orElse(e);
-                    discards.add(new Reject(error.getMessage(), error.getSQLState(), error.getErrorCode(), records.get(i)));
+                    error = ofNullable(error.getNextException()).orElse(error);
+                    discards.add(new Reject(error.getMessage(), error.getSQLState(), error.getErrorCode(),
+                            records.get(batchOrder.get(i))));
                     break;
                 }
             }
         } else {
-            /*
-             * driver stopped executing batch statements after the failing one
-             * all record after failure point need to be reprocessed
-             */
             int failurePoint = result.length;
-            final SQLException error = ofNullable(e.getNextException()).orElse(e);
-            discards.add(new Reject(error.getMessage(), error.getSQLState(), error.getErrorCode(), records.get(failurePoint)));
-            discards.addAll(processRecords(records.subList(failurePoint + 1, records.size()), connection, query));
+            error = ofNullable(error.getNextException()).orElse(error);
+            discards.add(new Reject(error.getMessage(), error.getSQLState(), error.getErrorCode(),
+                    records.get(batchOrder.get(failurePoint))));
+            // todo we may retry for this sub list
+            discards.addAll(records.subList(batchOrder.get(failurePoint) + 1, records.size()).stream()
+                    .map(r -> new Reject("rejected due to error in previous elements error in this transaction", r))
+                    .collect(toList()));
         }
 
         return discards;
     }
 
-    private List<Reject> prepareStatement(List<Record> records, PreparedStatement statement) throws SQLException {
-        final List<Reject> discards = new ArrayList<>();
-        for (final Record record : records) {
-            statement.clearParameters();
-            if (!validateQueryParam(record)) {
-                discards.add(new Reject("missing required query param in this record", record));
-                continue;
-            }
-            for (final Map.Entry<Integer, Schema.Entry> entry : getQueryParams().entrySet()) {
-                RecordToSQLTypeConverter.valueOf(entry.getValue().getType().name()).setValue(statement, entry.getKey(),
-                        entry.getValue(), record);
-            }
-            statement.addBatch();
-        }
-        return discards;
-    }
 }
