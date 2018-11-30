@@ -17,7 +17,7 @@
         <xbean-finder-shaded.version>4.8</xbean-finder-shaded.version>
         <derby.version>10.12.1.1</derby.version>
         <testcontainers.version>1.10.1</testcontainers.version>
-        <jdbc.integration.databases>Derby</jdbc.integration.databases>
+        <jdbc.integration.database>Derby</jdbc.integration.database>
         <HikariCP.version>3.1.0</HikariCP.version>
         <metrics.version>4.0.3</metrics.version>
         <jooq.version>3.11.7</jooq.version>

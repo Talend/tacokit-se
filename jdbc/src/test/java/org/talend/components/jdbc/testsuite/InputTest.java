@@ -17,6 +17,8 @@ import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.talend.components.jdbc.BaseJdbcTest;
+import org.talend.components.jdbc.Disabled;
+import org.talend.components.jdbc.DisabledDatabases;
 import org.talend.components.jdbc.JdbcInvocationContextProvider;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
 import org.talend.components.jdbc.dataset.SqlQueryDataset;
@@ -32,13 +34,15 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.talend.components.jdbc.Database.SNOWFLAKE;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @DisplayName("Input")
-@WithComponents("org.talend.components.jdbc")
 @ExtendWith({ JdbcInvocationContextProvider.class })
 @Environment(ContextualEnvironment.class)
 @Environment(DirectRunnerEnvironment.class)
+@WithComponents("org.talend.components.jdbc")
+@DisabledDatabases({ @Disabled(value = SNOWFLAKE, reason = "need to be setup on ci") })
 class InputTest extends BaseJdbcTest {
 
     @TestTemplate

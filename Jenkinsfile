@@ -61,7 +61,7 @@ spec:
                     // for next concurrent builds
                     sh 'for i in ci_docker ci_nexus ci_site; do rm -Rf $i; rsync -av . $i; done'
                     // real task
-                    sh 'mvn clean install -T1C -Pdocker'
+                    sh 'mvn clean install -T1C -Pdocker -PITs'
                 }
             }
             post {

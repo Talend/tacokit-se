@@ -63,7 +63,7 @@ public abstract class Platform implements Serializable {
         return delimiterToken() + name + delimiterToken();
     }
 
-    String createPKs(final List<Column> primaryKeys) {
+    public String createPKs(final List<Column> primaryKeys) {
         return primaryKeys == null || primaryKeys.isEmpty() ? ""
                 : ", PRIMARY KEY "
                         + primaryKeys.stream().map(Column::getName).map(this::identifier).collect(joining(",", "(", ")"));

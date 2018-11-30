@@ -14,9 +14,9 @@ package org.talend.components.jdbc.output.platforms;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.sql.SQLException;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.joining;
 
 /**
  * https://docs.snowflake.net/manuals/sql-reference/sql/create-table.html
@@ -61,14 +61,14 @@ public class SnowflakePlatform extends Platform {
     }
 
     private String createColumns(final List<Column> columns) {
-        return columns.stream().map(this::createColumn).collect(Collectors.joining(","));
+        return columns.stream().map(this::createColumn).collect(joining(","));
     }
 
     private String createColumn(final Column column) {
         return identifier(column.getName())//
                 + " " + toDBType(column)//
                 + " " + isRequired(column)//
-                + " " + defaultValue(column);
+                + defaultValue(column);
     }
 
     private String isRequired(final Column column) {
@@ -76,7 +76,7 @@ public class SnowflakePlatform extends Platform {
     }
 
     private String defaultValue(Column column) {
-        return column.getDefaultValue() == null ? "" : "DEFAULT " + column.getDefaultValue();
+        return column.getDefaultValue() == null ? "" : " DEFAULT " + column.getDefaultValue();
     }
 
     private String toDBType(final Column column) {

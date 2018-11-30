@@ -17,6 +17,8 @@ import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.talend.components.jdbc.BaseJdbcTest;
+import org.talend.components.jdbc.Disabled;
+import org.talend.components.jdbc.DisabledDatabases;
 import org.talend.components.jdbc.JdbcInvocationContextProvider;
 import org.talend.components.jdbc.configuration.OutputConfiguration;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
@@ -35,6 +37,7 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.derby.vti.XmlVTI.asList;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.talend.components.jdbc.Database.SNOWFLAKE;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @DisplayName("Output")
@@ -42,6 +45,7 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 @ExtendWith({ JdbcInvocationContextProvider.class })
 @Environment(ContextualEnvironment.class)
 @Environment(DirectRunnerEnvironment.class)
+@DisabledDatabases({ @Disabled(value = SNOWFLAKE, reason = "need to be setup on ci") })
 class OutputTest extends BaseJdbcTest {
 
     @TestTemplate
@@ -71,48 +75,30 @@ class OutputTest extends BaseJdbcTest {
         configuration.setCreateTableIfNotExists(true);
         configuration.setKeys(asList("id"));
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
-        final int rowCount = getRandomRowCount();
+        final int rowCount = 10;
         Job.components().component("rowGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, true, 0, null))
                 .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput").build()
                 .run();
         assertEquals(rowCount, countAll(testTableName, container));
     }
 
-    /*
-     * Duplicated records should be rejected and valid record need to be inserted even if it's done in a one single batch
-     * statement
-     */
     @TestTemplate
+    @DisabledDatabases({ @Disabled(value = SNOWFLAKE, reason = "Snowflake database don't enforce PK and UNIQUE constraint") })
     @DisplayName("Insert - duplicate records")
     void insertDuplicateRecords(final TestInfo testInfo, final JdbcTestContainer container) {
-        final OutputConfiguration configuration = new OutputConfiguration();
         final String testTableName = getTestTableName(testInfo);
-        configuration.setDataset(newTableNameDataset(testTableName, container));
-        configuration.setActionOnData(OutputConfiguration.ActionOnData.INSERT);
-        configuration.setCreateTableIfNotExists(true);
-        configuration.setKeys(asList("id"));
-        final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
-        final long rowCount = getRandomRowCount();
-        Job.components().component("rowGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, false, 0, null))
-                .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput").build()
-                .run();
+        final long rowCount = 5;
+        insertRows(testTableName, container, rowCount, false, 0, null);
         assertEquals(rowCount, countAll(testTableName, container));
-        final long nextRecords = rowCount * 3;
-        Job.components().component("rowGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(nextRecords, false, 0, null))
-                .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput").build()
-                .run();
-
-        long size = countAll(testTableName, container);
-        // some drivers will reject all records and others will reject only duplicated one
-        assertEquals(nextRecords, size);
+        insertRows(testTableName, container, rowCount, false, 0, null);
+        assertEquals(rowCount, countAll(testTableName, container));
     }
 
     @TestTemplate
     @DisplayName("Delete - valid query")
     void delete(final TestInfo testInfo, final JdbcTestContainer container) {
         // insert some initial data
-        final int rowCount = getRandomRowCount();
-        System.out.println("testing with " + rowCount);
+        final int rowCount = 10;
         final String testTableName = getTestTableName(testInfo);
         insertRows(testTableName, container, rowCount, false, 0, null);
         // delete the inserted data data
@@ -121,7 +107,7 @@ class OutputTest extends BaseJdbcTest {
         deleteConfig.setActionOnData(OutputConfiguration.ActionOnData.DELETE);
         deleteConfig.setKeys(singletonList("id"));
         final String updateConfig = configurationByExample().forInstance(deleteConfig).configured().toQueryString();
-        Job.components().component("userGenerator", "jdbcTest://RowGenerator?config.rowCount=" + rowCount)
+        Job.components().component("userGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, false, 0, null))
                 .component("jdbcOutput", "Jdbc://Output?" + updateConfig).connections().from("userGenerator").to("jdbcOutput")
                 .build().run();
 
@@ -140,7 +126,7 @@ class OutputTest extends BaseJdbcTest {
             deleteConfig.setDataset(newTableNameDataset(testTableName, container));
             deleteConfig.setActionOnData(OutputConfiguration.ActionOnData.DELETE);
             final String updateConfig = configurationByExample().forInstance(deleteConfig).configured().toQueryString();
-            Job.components().component("userGenerator", "jdbcTest://RowGenerator?config.rowCount=" + rowCount)
+            Job.components().component("userGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, false, 0, null))
                     .component("jdbcOutput", "Jdbc://Output?" + updateConfig).connections().from("userGenerator").to("jdbcOutput")
                     .build().run();
         });
@@ -177,7 +163,7 @@ class OutputTest extends BaseJdbcTest {
     @DisplayName("Update - valid query")
     void update(final TestInfo testInfo, final JdbcTestContainer container) {
         // insert some initial data
-        final int rowCount = getRandomRowCount();
+        final int rowCount = 10;
         final String testTableName = getTestTableName(testInfo);
         insertRows(testTableName, container, rowCount, false, 0, null);
         // update the inserted data data
@@ -206,7 +192,7 @@ class OutputTest extends BaseJdbcTest {
             updateConfiguration.setDataset(newTableNameDataset(getTestTableName(testInfo), container));
             updateConfiguration.setActionOnData(OutputConfiguration.ActionOnData.UPDATE);
             final String updateConfig = configurationByExample().forInstance(updateConfiguration).configured().toQueryString();
-            Job.components().component("userGenerator", "jdbcTest://RowGenerator?config.rowCount=4&config.namePrefix=updatedUser")
+            Job.components().component("userGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(1, false, 0, "updated"))
                     .component("jdbcOutput", "Jdbc://Output?" + updateConfig).connections().from("userGenerator").to("jdbcOutput")
                     .build().run();
         });
@@ -217,7 +203,7 @@ class OutputTest extends BaseJdbcTest {
     @DisplayName("Upsert - valid query")
     void upsert(final TestInfo testInfo, final JdbcTestContainer container) {
         // insert some initial data
-        final int existingRecords = getRandomRowCount();
+        final int existingRecords = 40;
         final String testTableName = getTestTableName(testInfo);
         insertRows(testTableName, container, existingRecords, false, 0, null);
         // update the inserted data data

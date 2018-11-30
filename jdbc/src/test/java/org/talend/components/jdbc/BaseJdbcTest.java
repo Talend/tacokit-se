@@ -49,12 +49,14 @@ public abstract class BaseJdbcTest {
     private I18nMessage i18nMessage;
 
     public String getTestTableName(final TestInfo info) {
-        return (info.getTestClass().map(Class::getSimpleName).orElse("TEST").toUpperCase(ROOT) + "_"
-                + info.getTestMethod().map(Method::getName).orElse("TABLE").toUpperCase(ROOT)).substring(0, 15);
+        return info.getTestClass().map(Class::getSimpleName).map(name -> name.substring(0, Math.min(5, name.length())))
+                .orElse("TEST").toUpperCase(ROOT) + "_"
+                + info.getTestMethod().map(Method::getName).map(name -> name.substring(0, Math.min(10, name.length())))
+                        .orElse("TABLE").toUpperCase(ROOT);
     }
 
     @BeforeEach
-    void beforEach(final TestInfo testInfo, final JdbcTestContainer container) {
+    void beforeEach(final TestInfo testInfo, final JdbcTestContainer container) {
         final String testTable = getTestTableName(testInfo);
         final JdbcConnection datastore = newConnection(container);
         uiActionService.getTableFromDatabase(datastore).getItems().stream()
@@ -62,7 +64,7 @@ public abstract class BaseJdbcTest {
                     final Platform platform = PlatformFactory.get(datastore);
                     try (final Connection connection = jdbcService.createDataSource(datastore, false, false).getConnection()) {
                         try (final PreparedStatement stm = connection
-                                .prepareStatement("TRUNCATE TABLE " + platform.identifier(testTable))) {
+                                .prepareStatement("DROP TABLE " + platform.identifier(testTable))) {
                             stm.executeUpdate();
                             connection.commit();
                         } catch (final SQLException e) {

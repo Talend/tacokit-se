@@ -12,12 +12,13 @@
  */
 package org.talend.components.jdbc.testsuite;
 
-import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.talend.components.jdbc.BaseJdbcTest;
+import org.talend.components.jdbc.Disabled;
+import org.talend.components.jdbc.DisabledDatabases;
 import org.talend.components.jdbc.JdbcInvocationContextProvider;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
 import org.talend.components.jdbc.dataset.TableNameDataset;
@@ -38,14 +39,16 @@ import java.sql.SQLException;
 import java.util.Locale;
 import java.util.stream.Stream;
 
-import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.talend.components.jdbc.Database.SNOWFLAKE;
 
 @DisplayName("UIActionService")
 @WithComponents("org.talend.components.jdbc")
 @ExtendWith({ JdbcInvocationContextProvider.class })
 @Environment(ContextualEnvironment.class)
+@DisabledDatabases({ @Disabled(value = SNOWFLAKE, reason = "need to be setup on ci") })
 class UIActionServiceTest extends BaseJdbcTest {
 
     @Service
@@ -114,10 +117,10 @@ class UIActionServiceTest extends BaseJdbcTest {
     }
 
     private void createTestTable(String testTableName, JdbcConnection datastore) throws SQLException {
-        try (JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(datastore)) {
+        try (JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(datastore, false, false)) {
             try (final Connection connection = dataSource.getConnection()) {
-                PlatformFactory.get(datastore).createTableIfNotExist(connection, testTableName, asList("id"),
-                        asList(recordBuilderFactory.newRecordBuilder().withInt("id", 1).build()));
+                PlatformFactory.get(datastore).createTableIfNotExist(connection, testTableName, singletonList("id"),
+                        singletonList(recordBuilderFactory.newRecordBuilder().withInt("id", 1).build()));
                 connection.commit();
             }
         }

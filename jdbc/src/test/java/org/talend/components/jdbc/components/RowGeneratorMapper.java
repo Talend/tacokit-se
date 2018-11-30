@@ -24,10 +24,17 @@ public class RowGeneratorMapper implements Serializable {
 
     private RecordBuilderFactory recordBuilderFactory;
 
+    private final long recordSize;
+
     public RowGeneratorMapper(@Option("config") final RowGeneratorSource.Config config,
             final RecordBuilderFactory recordBuilderFactory) {
         this.recordBuilderFactory = recordBuilderFactory;
         this.config = config;
+        this.recordSize = recordBuilderFactory.newRecordBuilder().withString("t_string", "data0").withBoolean("t_boolean", true)
+                .withLong("t_long", 10000000000L).withDouble("t_double", 1000.85d).withFloat("t_float", 15.50f)
+                .withDateTime("t_date", new Date()).withBytes("t_bytes", "some data in bytes".getBytes(StandardCharsets.UTF_8))
+                .build().toString().getBytes().length;
+
     }
 
     @Assessor
@@ -37,10 +44,6 @@ public class RowGeneratorMapper implements Serializable {
 
     @Split
     public List<RowGeneratorMapper> split(@PartitionSize final long bundles) {
-        long recordSize = recordBuilderFactory.newRecordBuilder().withString("t_string", "data0").withBoolean("t_boolean", true)
-                .withLong("t_long", 10000000000L).withDouble("t_double", 1000.85d).withFloat("t_float", 15.50f)
-                .withDateTime("t_date", new Date()).withBytes("t_bytes", "some data in bytes".getBytes(StandardCharsets.UTF_8))
-                .build().toString().getBytes().length;
         long nbBundle = Math.max(1, estimateSize() / bundles);
         final long bundleCount = bundles / recordSize;
         final int totalData = config.getRowCount();
