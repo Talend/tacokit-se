@@ -14,7 +14,6 @@ package org.talend.components.jdbc.output.platforms;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -82,26 +81,23 @@ public class RedshiftPlatform extends Platform {
     private String toDBType(final Column column) {
         switch (column.getType()) {
         case STRING:
-            /*
-             * https://docs.aws.amazon.com/fr_fr/redshift/latest/dg/r_Character_types.html
-             */
+            // https://docs.aws.amazon.com/fr_fr/redshift/latest/dg/r_Character_types.html
             return "VARCHAR(max)";
         case BOOLEAN:
             return "BOOLEAN";
         case DOUBLE:
-            return "DOUBLE";
+            return "REAL";
         case FLOAT:
-            return "FLOAT";
+            return "DOUBLE PRECISION";
         case LONG:
             return "BIGINT";
         case INT:
-            return "INT";
-        case BYTES:
-            return "BLOB";
+            return "INTEGER";
         case DATETIME:
             return "DATE";
-        case RECORD: // todo ??
-        case ARRAY: // todo ??
+        case BYTES: // Bytes are not supported in redshift. AWS users may use s3 to store there binary data.
+        case RECORD:
+        case ARRAY:
         default:
             throw new IllegalStateException("unsupported type for this database " + column);
         }

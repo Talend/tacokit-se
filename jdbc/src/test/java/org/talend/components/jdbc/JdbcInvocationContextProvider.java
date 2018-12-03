@@ -74,7 +74,8 @@ public class JdbcInvocationContextProvider implements TestTemplateInvocationCont
 
         @Override
         public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
-            return getDisableConditions(context).stream().filter(d -> d.value().equals(database)).findFirst()
+            return getDisableConditions(context).stream()
+                    .filter(d -> d.value().equals(Database.ALL) || d.value().equals(database)).findFirst()
                     .map(disabled -> ConditionEvaluationResult.disabled(disabled.reason())).orElse(ENABLED);
         }
     }
@@ -128,7 +129,7 @@ public class JdbcInvocationContextProvider implements TestTemplateInvocationCont
 
     private static Stream<Database> getTestDatabase(final ExtensionContext ctx) {
         final List<Database> disables = getDisableConditions(ctx).stream().map(Disabled::value).collect(toList());
-        return Database.getActiveDatabases().filter(d -> !disables.contains(d));
+        return disables.contains(Database.ALL) ? empty() : Database.getActiveDatabases().filter(d -> !disables.contains(d));
     }
 
     private static List<Disabled> getDisableConditions(ExtensionContext ctx) {

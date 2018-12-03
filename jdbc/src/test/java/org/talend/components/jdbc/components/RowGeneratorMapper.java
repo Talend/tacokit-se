@@ -59,6 +59,7 @@ public class RowGeneratorMapper implements Serializable {
             dataSetChunk.setStringPrefix(config.getStringPrefix());
             dataSetChunk.setWithNullValues(config.isWithNullValues());
             dataSetChunk.setStringPrefix(config.getStringPrefix());
+            dataSetChunk.setWithBytes(config.isWithBytes());
             dataSetChunk.setWithMissingIdEvery(config.getWithMissingIdEvery());
             return new RowGeneratorMapper(dataSetChunk, recordBuilderFactory);
         }).filter(Objects::nonNull).collect(toList());

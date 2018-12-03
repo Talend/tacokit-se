@@ -57,7 +57,7 @@ public class RowGeneratorSource implements Serializable {
         if (config.withNullValues) {
             builder.withString("t_string", null);
             builder.withDateTime("t_date", (Date) null);
-            builder.withBytes("t_bytes", null);
+
         } else {
             builder.withString("t_string", ofNullable(config.stringPrefix).orElse("customer") + currentCount);
             builder.withBoolean("t_boolean", true);
@@ -65,8 +65,15 @@ public class RowGeneratorSource implements Serializable {
             builder.withDouble("t_double", 1000.85d);
             builder.withFloat("t_float", 15.50f);
             builder.withDateTime("t_date", new Date());
-            builder.withBytes("t_bytes", "some data in bytes".getBytes(StandardCharsets.UTF_8));
 
+        }
+
+        if (config.withBytes) {
+            if (config.withNullValues) {
+                builder.withBytes("t_bytes", null);
+            } else {
+                builder.withBytes("t_bytes", "some data in bytes".getBytes(StandardCharsets.UTF_8));
+            }
         }
 
         currentCount++;
@@ -90,6 +97,9 @@ public class RowGeneratorSource implements Serializable {
 
         @Option
         private int withMissingIdEvery;
+
+        @Option
+        private boolean withBytes = true;
 
     }
 }

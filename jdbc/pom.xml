@@ -17,7 +17,6 @@
         <xbean-finder-shaded.version>4.8</xbean-finder-shaded.version>
         <derby.version>10.12.1.1</derby.version>
         <testcontainers.version>1.10.1</testcontainers.version>
-        <jdbc.integration.database>Derby</jdbc.integration.database>
         <HikariCP.version>3.1.0</HikariCP.version>
         <metrics.version>4.0.3</metrics.version>
         <jooq.version>3.11.7</jooq.version>
@@ -171,6 +170,12 @@
                     <version>3.6.18</version>
                     <scope>provided</scope>
                 </dependency>
+                <dependency>
+                    <groupId>com.amazon.redshift</groupId>
+                    <artifactId>redshift-jdbc42</artifactId>
+                    <version>1.2.16.1027</version>
+                    <scope>provided</scope>
+                </dependency>
             </dependencies>
 
             <repositories>
@@ -179,6 +184,13 @@
                     <id>hand-china</id>
                     <name>nexus.saas.hand-china</name>
                     <url>http://nexus.saas.hand-china.com/content/repositories/rdc/</url>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+                <repository>
+                    <id>redshift</id>
+                    <url>http://s3.amazonaws.com/redshift-maven-repository/release</url>
                     <snapshots>
                         <enabled>false</enabled>
                     </snapshots>
