@@ -151,10 +151,10 @@ spec:
         success {
             slackSend(color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})", channel: "${slackChannel}")
             script {
-                if (env.COMPONENT_SERVER_IMAGE_VERSION) {
-                    println "Launching Connectors EE build with component server docker image >${env.COMPONENT_SERVER_IMAGE_VERSION}<"
+                if (params.COMPONENT_SERVER_IMAGE_VERSION) {
+                    println "Launching Connectors EE build with component server docker image >${params.COMPONENT_SERVER_IMAGE_VERSION}<"
                     build job: '/connectors-ee/master',
-                            parameters: [string(name: 'COMPONENT_SERVER_IMAGE_VERSION', value: "${env.COMPONENT_SERVER_IMAGE_VERSION}")],
+                            parameters: [string(name: 'COMPONENT_SERVER_IMAGE_VERSION', value: "${params.COMPONENT_SERVER_IMAGE_VERSION}")],
                             wait: false, propagate: false
                 }
             }
