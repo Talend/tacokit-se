@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.talend.components</groupId>
+        <artifactId>connectors-se</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <groupId>org.talend.components</groupId>
+    <artifactId>components-jms</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Components :: JMS</name>
+    <description>A generated component project</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- overrides parent pom property to fix dataset validation issue -->
+        <validation.model>false</validation.model>
+        <!--
+        Set it to true if you want the documentation to be rendered as HTML and PDF
+
+        You can also use it on the command line: -Dtalend.documentation.htmlAndPdf=true
+        -->
+        <talend.documentation.htmlAndPdf>false</talend.documentation.htmlAndPdf>
+
+        <!--
+        if you want to deploy into the studio you can use the related goal:
+
+        mvn package talend-component:deploy-in-studio -Dtalend.component.studioHome=/path/to/studio
+
+        TIP: it is recommended to set this property into your settings.xml in an active by default profile.
+        -->
+        <talend.component.studioHome/>
+    </properties>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>org/talend/**/*</include>
+                    </includes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>prepare-agent-ut</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <append>true</append>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>prepare-agent-it</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>prepare-agent-integration</goal>
+                        </goals>
+                        <configuration>
+                            <propertyName>jacoco.agent.it.argLine</propertyName>
+                            <append>true</append>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report-it</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>report-integration</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>**/*IT.java</include>
+                    </includes>
+                    <systemPropertyVariables>
+                        <jms.port>${jms.port}</jms.port>
+                        <javax.net.ssl.trustStore>src/test/resources/client.ts</javax.net.ssl.trustStore>
+                        <javax.net.ssl.trustStorePassword>password</javax.net.ssl.trustStorePassword>
+                    </systemPropertyVariables>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+<!--                <dependencies>
+                    <dependency>
+                        <groupId>org.junit.platform</groupId>
+                        <artifactId>junit-platform-surefire-provider</artifactId>
+                        <version>${junit-platform-surefire-provider.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.junit.jupiter</groupId>
+                        <artifactId>junit-jupiter-engine</artifactId>
+                        <version>${junit5.version}</version>
+                    </dependency>
+                </dependencies>-->
+            </plugin>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>${docker-maven-plugin.version}</version>
+                <configuration>
+                    <skip>${skipTests}</skip>
+                    <images>
+                        <image>
+                            <alias>amqtest</alias>
+                            <name>vizotenko/activemq:1.0.0</name>
+                            <build>
+                                <dockerFileDir>demo</dockerFileDir>
+                            </build>
+                            <run>
+                                <ports>
+                                    <port>jms.port:61617</port>
+                                </ports>
+                            </run>
+                        </image>
+                    </images>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>start</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>build</goal>
+                            <goal>start</goal>
+                        </goals>
+                        <configuration>
+                            <images>
+                                <image>
+                                    <name>vizotenko/activemq:1.0.0</name>
+                                    <run>
+                                        <ports>
+                                            <port>jms.port:61617</port>
+                                        </ports>
+                                        <wait>
+                                            <tcp>
+                                                <host>localhost</host>
+                                                <ports>
+                                                    <port>61617</port>
+                                                </ports>
+                                            </tcp>
+                                            <time>60000</time>
+                                        </wait>
+                                    </run>
+                                </image>
+                            </images>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>stop</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>javax.jms</groupId>
+            <artifactId>javax.jms-api</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>

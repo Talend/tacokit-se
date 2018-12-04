@@ -1,0 +1,1 @@
+ This dockerfile was prepared to test image with SSL enabled
