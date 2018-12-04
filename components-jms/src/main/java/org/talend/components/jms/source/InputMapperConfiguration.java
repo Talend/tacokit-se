@@ -17,10 +17,12 @@ import org.talend.components.jms.configuration.BasicConfiguration;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Min;
+import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
+import java.util.List;
 
 @GridLayout(value = { @GridLayout.Row({ "basicConfig" }), @GridLayout.Row({ "subscriptionConfig" }),
         @GridLayout.Row({ "timeout" }), @GridLayout.Row({ "maximumMessages" }),
@@ -35,19 +37,21 @@ public class InputMapperConfiguration implements Serializable {
 
     @Option
     @Documentation("Durable subscription configuration")
-    @ActiveIf(target = "basicConfig/messageType", value = "TOPIC")
+    @ActiveIf(target = "basicConfig.messageType", value = "TOPIC")
     private DurableSubscriptionConfiguration subscriptionConfig;
 
     @Option
+    @Required
     @Min(0)
     @Documentation("JMS receive message timeout. A timeout of zero never expires, and the call blocks indefinitely.")
-    private Integer timeout = 0;
+    private Integer timeout;
 
     @Option
+    @Required
     @Min(0)
     @Documentation("Maximum messages defines a number of messages this component will listen to. "
             + "After reaching the maximum component will stop receiving messages")
-    private Integer maximumMessages = 100;
+    private Integer maximumMessages;
 
     @Option
     @Documentation("Message Selector Expression used to receive only messages whose headers and properties match the selector")

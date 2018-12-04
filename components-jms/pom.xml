@@ -35,26 +35,6 @@
         -->
         <talend.component.studioHome/>
     </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>javax.jms</groupId>
-            <artifactId>javax.jms-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.talend.sdk.component</groupId>
-            <artifactId>component-runtime-beam</artifactId>
-            <version>${component-runtime.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.beam</groupId>
-            <artifactId>beam-runners-direct-java</artifactId>
-            <version>${beam.version}</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -105,7 +85,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>${surefire.version}</version>
                 <configuration>
                     <includes>
                         <include>**/*IT.java</include>
@@ -114,7 +93,6 @@
                         <jms.port>${jms.port}</jms.port>
                         <javax.net.ssl.trustStore>src/test/resources/client.ts</javax.net.ssl.trustStore>
                         <javax.net.ssl.trustStorePassword>password</javax.net.ssl.trustStorePassword>
-                        <talend.component.junit.handler.state>static</talend.component.junit.handler.state>
                     </systemPropertyVariables>
                 </configuration>
                 <executions>
@@ -123,50 +101,20 @@
                             <goal>integration-test</goal>
                             <goal>verify</goal>
                         </goals>
-                        <configuration>
-                            <classpathDependencyExcludes>
-                                <classpathDependencyExcludes>org.talend.sdk.component:component-runtime-beam
-                                </classpathDependencyExcludes>
-                                <classpathDependencyExcludes>org.apache.beam:beam-runners-direct-java
-                                </classpathDependencyExcludes>
-                            </classpathDependencyExcludes>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>filesafe-beam-test</id>
-                        <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
-                        </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>default-test</id>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                        <configuration>
-                            <classpathDependencyExcludes>
-                                <classpathDependencyExcludes>org.talend.sdk.component:component-runtime-beam
-                                </classpathDependencyExcludes>
-                                <classpathDependencyExcludes>org.apache.beam:beam-runners-direct-java
-                                </classpathDependencyExcludes>
-                            </classpathDependencyExcludes>
-                        </configuration>
-                    </execution>
-
-                    <execution>
-                        <id>surefire-beam-test</id>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                    </execution>
-                </executions>
+<!--                <dependencies>
+                    <dependency>
+                        <groupId>org.junit.platform</groupId>
+                        <artifactId>junit-platform-surefire-provider</artifactId>
+                        <version>${junit-platform-surefire-provider.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.junit.jupiter</groupId>
+                        <artifactId>junit-jupiter-engine</artifactId>
+                        <version>${junit5.version}</version>
+                    </dependency>
+                </dependencies>-->
             </plugin>
             <plugin>
                 <groupId>io.fabric8</groupId>
@@ -230,4 +178,12 @@
             </plugin>
         </plugins>
     </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>javax.jms</groupId>
+            <artifactId>javax.jms-api</artifactId>
+        </dependency>
+    </dependencies>
+
 </project>
