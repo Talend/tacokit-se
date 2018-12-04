@@ -2,7 +2,7 @@ package org.talend.components.jms.testutils;
 
 public class JmsTestConstants {
 
-    public final static Integer ACTIVEMQ_PORT = 61617;
+    public static final String URL;
 
     public static final String DESTINATION = "test";
 
@@ -26,4 +26,9 @@ public class JmsTestConstants {
 
     public static final int TEN_MESSAGES = 10;
 
+    static {
+        String systemPropertyPort = System.getProperty("jms.port");
+        String jmsPort = systemPropertyPort != null ? systemPropertyPort : "61617";
+        URL = "ssl://localhost:" + jmsPort;
+    }
 }

@@ -93,7 +93,7 @@ public class JMSServiceTestIT {
     @Test
     public void missingProviderConfig() {
         InputMapperConfiguration inputConfiguration = getInputConfiguration();
-        inputConfiguration.getConnection().setModuleList(MISSING_PROVIDER);
+        inputConfiguration.getBasicConfig().getConnection().setModuleList(MISSING_PROVIDER);
         final String inputConfig = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
 
         assertThrows(IllegalStateException.class, () -> Job.components().component("jms-input", "JMS://Input?" + inputConfig)
@@ -103,7 +103,7 @@ public class JMSServiceTestIT {
     @Test
     public void emptyUrlTest() {
         InputMapperConfiguration inputConfiguration = getInputConfiguration();
-        inputConfiguration.getConnection().setUrl("");
+        inputConfiguration.getBasicConfig().getConnection().setUrl("");
         final String inputConfig = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
 
         assertThrows(IllegalArgumentException.class, () -> Job.components().component("jms-input", "JMS://Input?" + inputConfig)
@@ -184,7 +184,7 @@ public class JMSServiceTestIT {
         dataStore.setUrl(URL);
         basicConfiguration.setDestination(DESTINATION);
         basicConfiguration.setMessageType(MessageType.QUEUE);
-        configuration.setConnection(dataStore);
+        basicConfiguration.setConnection(dataStore);
         configuration.setBasicConfig(basicConfiguration);
         return configuration;
     }
@@ -201,7 +201,7 @@ public class JMSServiceTestIT {
         subsConfig.setDurableSubscription(DURABLE_SUBSCRIPTION);
         subsConfig.setClientId(CLIENT_ID);
         subsConfig.setSubscriberName(SUBSCRIBER_NAME);
-        configuration.setConnection(dataStore);
+        basicConfiguration.setConnection(dataStore);
         configuration.setSubscriptionConfig(subsConfig);
         configuration.setBasicConfig(basicConfiguration);
         configuration.setMaximumMessages(TEN_MESSAGES);

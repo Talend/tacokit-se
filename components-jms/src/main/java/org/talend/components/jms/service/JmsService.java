@@ -137,16 +137,7 @@ public class JmsService {
                     throw new IllegalStateException(e);
                 }
             }).toArray(URL[]::new);
-
-            final Thread thread = Thread.currentThread();
-            final ClassLoader prev = thread.getContextClassLoader();
-            try {
-                URLClassLoader cl = new URLClassLoader(urls, this.getClass().getClassLoader());
-                thread.setContextClassLoader(cl);
-                return cl;
-            } finally {
-                thread.setContextClassLoader(prev);
-            }
+            return new URLClassLoader(urls, this.getClass().getClassLoader());
         });
     }
 
