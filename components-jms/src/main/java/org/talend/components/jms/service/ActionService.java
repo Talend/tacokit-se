@@ -39,7 +39,9 @@ import static org.talend.components.jms.MessageConst.MESSAGE_CONTENT;
 public class ActionService {
 
     public static final String ACTION_LIST_SUPPORTED_BROKER = "ACTION_LIST_SUPPORTED_BROKER";
+
     public static final String ACTION_BASIC_HEALTH_CHECK = "ACTION_BASIC_HEALTH_CHECK";
+
     public static final String DISCOVER_SCHEMA = "discoverSchema";
 
     @Service
