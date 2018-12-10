@@ -17,7 +17,8 @@ class ActionServiceTestIT {
     private ActionService actionService;
 
     @Test
-    public void testJMSSuccessfulConnection() {
+    public void testJMSSuccessfulConnection() throws InterruptedException {
+        Thread.sleep(1000);
         JmsDataStore dataStore = new JmsDataStore();
         dataStore.setModuleList(JMS_PROVIDER);
         dataStore.setUrl(URL);
