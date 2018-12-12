@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.talend.components.salesforce.commons.SalesforceRuntimeHelper;
 import org.talend.components.salesforce.output.OutputConfiguration;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;

@@ -25,9 +25,13 @@ import java.util.TreeMap;
 
 import javax.xml.namespace.QName;
 
+import org.apache.avro.Schema;
+import org.apache.avro.SchemaBuilder;
+import org.talend.components.salesforce.commons.SalesforceAvroRegistry;
 import org.talend.components.salesforce.datastore.BasicDataStore;
+import org.talend.components.salesforce.soql.FieldDescription;
 import org.talend.components.salesforce.soql.SoqlQuery;
-import org.talend.sdk.component.api.record.Schema;
+import org.talend.daikon.avro.AvroUtils;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 
@@ -231,63 +235,6 @@ public class SalesforceService {
         }
     }
 
-    /**
-     * Generate schema base on provided module file map
-     */
-    public Schema guessSchema(Map<String, Field> fieldMap, Schema.Builder schemaBuilder, Schema.Entry.Builder entryBuilder) {
-        if (fieldMap == null) {
-            throw new RuntimeException("module is not set!");
-        }
-        if (schemaBuilder == null) {
-            throw new RuntimeException("schemaBuilder is not set!");
-        }
-        if (entryBuilder == null) {
-            throw new RuntimeException("entryBuilder is not set!");
-        }
-        if (fieldMap != null) {
-            for (String fieldName : fieldMap.keySet()) {
-                Field field = fieldMap.get(fieldName);
-                if (!isSuppotedType(field)) {
-                    continue;
-                }
-                addSchemaEntry(field, schemaBuilder, entryBuilder);
-            }
-        }
-        return schemaBuilder.build();
-    }
-
-    /**
-     * Convert moduel field to schema entry and add into schema builder
-     */
-    public void addSchemaEntry(Field field, Schema.Builder schemaBuilder, Schema.Entry.Builder entryBuilder) {
-        switch (field.getType()) {
-        case _boolean:
-            schemaBuilder.withEntry(entryBuilder.withName(field.getName()).withType(Schema.Type.BOOLEAN).build());
-            break;
-        case _double:
-        case percent:
-        case currency:
-            schemaBuilder.withEntry(entryBuilder.withName(field.getName()).withType(Schema.Type.DOUBLE).build());
-            break;
-        case _int:
-            schemaBuilder.withEntry(entryBuilder.withName(field.getName()).withType(Schema.Type.INT).build());
-            break;
-        case date:
-            schemaBuilder.withEntry(entryBuilder.withName(field.getName()).withType(Schema.Type.DATETIME).build());
-            break;
-        case datetime:
-            schemaBuilder.withEntry(entryBuilder.withName(field.getName()).withType(Schema.Type.DATETIME).build());
-            break;
-        case time:
-            schemaBuilder.withEntry(entryBuilder.withName(field.getName()).withType(Schema.Type.DATETIME).build());
-            break;
-        case base64:
-        default:
-            schemaBuilder.withEntry(entryBuilder.withName(field.getName()).withType(Schema.Type.STRING).build());
-            break;
-        }
-    }
-
     public boolean isSuppotedType(Field field) {
         // filter the invalid compound columns for salesforce bulk query api
         if (field == null || field.getType() == FieldType.address || // no address
@@ -298,6 +245,42 @@ public class SalesforceService {
             return false;
         }
         return true;
+    }
+
+    public Schema guessSchema(BasicDataStore dataStore, String soqlQuery, final LocalConfiguration localConfiguration) {
+        SoqlQuery query = SoqlQuery.getInstance();
+        query.init(soqlQuery);
+
+        SchemaBuilder.FieldAssembler fieldAssembler = SchemaBuilder.record("GuessedSchema").fields();
+        DescribeSObjectResult describeSObjectResult = null;
+
+        try {
+            describeSObjectResult = connect(dataStore, localConfiguration).describeSObject(query.getDrivingEntityName());
+        } catch (ConnectionException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+
+        Schema entitySchema = SalesforceAvroRegistry.get().inferSchema(describeSObjectResult);
+
+        for (FieldDescription fieldDescription : query.getFieldDescriptions()) {
+            Schema.Field schemaField = entitySchema.getField(fieldDescription.getSimpleName());
+
+            SchemaBuilder.FieldBuilder builder = fieldAssembler.name(fieldDescription.getFullName());
+
+            Schema fieldType = null;
+            if (schemaField != null) {
+                Map<String, Object> props = schemaField.getObjectProps();
+                for (Map.Entry<String, Object> entry : props.entrySet()) {
+                    builder.prop(entry.getKey(), String.valueOf(entry.getValue()));
+                }
+                fieldType = schemaField.schema();
+            } else {
+                fieldType = AvroUtils._string();
+            }
+            builder.type(fieldType).noDefault();
+        }
+
+        return (Schema) fieldAssembler.endRecord();
     }
 
 }
