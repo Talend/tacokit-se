@@ -20,7 +20,7 @@ spec:
             command: [cat]
             tty: true
             volumeMounts: [{name: docker, mountPath: /var/run/docker.sock}, {name: m2main, mountPath: /root/.m2/repository}]
-            resources: {requests: {memory: 3G, cpu: '2'}, limits: {memory: 3G, cpu: '2'}}
+            resources: {requests: {memory: 3G, cpu: '2'}, limits: {memory: 8G, cpu: '2'}}
     volumes:
         -
             name: docker
@@ -61,7 +61,7 @@ spec:
                     // for next concurrent builds
                     sh 'for i in ci_docker ci_nexus ci_site; do rm -Rf $i; rsync -av . $i; done'
                     // real task
-                    sh 'mvn clean install -T1C -Pdocker -PITs -e -X'
+                    sh 'mvn clean install -T1C -Pdocker -PITs -e'
                 }
             }
             post {
