@@ -20,7 +20,7 @@ spec:
             command: [cat]
             tty: true
             volumeMounts: [{name: docker, mountPath: /var/run/docker.sock}, {name: m2main, mountPath: /root/.m2/repository}]
-            resources: {requests: {memory: 3G, cpu: '2'}, limits: {memory: 3G, cpu: '2'}}
+            resources: {requests: {memory: 3G, cpu: '2'}, limits: {memory: 8G, cpu: '2'}}
     volumes:
         -
             name: docker
@@ -61,7 +61,7 @@ spec:
                     // for next concurrent builds
                     sh 'for i in ci_docker ci_nexus ci_site; do rm -Rf $i; rsync -av . $i; done'
                     // real task
-                    sh 'mvn clean install -T1C -Pdocker'
+                    sh 'mvn clean install -T1C -Pdocker -PITs -e'
                 }
             }
             post {
@@ -95,6 +95,9 @@ spec:
                      |chmod +x ./connectors-se-docker/src/main/scripts/docker/*.sh
                      |revision=`git rev-parse --abbrev-ref HEAD | tr / _`
                      |./connectors-se-docker/src/main/scripts/docker/all.sh \$revision
+                     |
+                     |# collect doc
+                     |chmod +x .jenkins/generate-doc.sh && .jenkins/generate-doc.sh
                      |""".stripMargin()
                             }
                         }
@@ -104,6 +107,10 @@ spec:
                             publishHTML(target: [
                                     allowMissing: true, alwaysLinkToLastBuild: false, keepAll: true,
                                     reportDir   : 'ci_docker/connectors-se-docker/target', reportFiles: 'docker.html', reportName: "Docker Images"
+                            ])
+                            publishHTML(target: [
+                                    allowMissing: true, alwaysLinkToLastBuild: false, keepAll: true,
+                                    reportDir   : 'ci_docker/target/talend-component-kit_documentation/', reportFiles: 'index.html', reportName: "Component Documentation"
                             ])
                         }
                     }
@@ -144,10 +151,10 @@ spec:
         success {
             slackSend(color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})", channel: "${slackChannel}")
             script {
-                if (env.COMPONENT_SERVER_IMAGE_VERSION) {
-                    println "Launching Connectors EE build with component server docker image >${env.COMPONENT_SERVER_IMAGE_VERSION}<"
+                if (params.COMPONENT_SERVER_IMAGE_VERSION) {
+                    println "Launching Connectors EE build with component server docker image >${params.COMPONENT_SERVER_IMAGE_VERSION}<"
                     build job: '/connectors-ee/master',
-                            parameters: [string(name: 'COMPONENT_SERVER_IMAGE_VERSION', value: "${env.COMPONENT_SERVER_IMAGE_VERSION}")],
+                            parameters: [string(name: 'COMPONENT_SERVER_IMAGE_VERSION', value: "${params.COMPONENT_SERVER_IMAGE_VERSION}")],
                             wait: false, propagate: false
                 }
             }
