@@ -21,7 +21,7 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.talend.components.salesforce.BulkResultSet;
+import org.talend.components.salesforce.commons.BulkResultSet;
 import org.talend.components.salesforce.dataset.QueryDataSet;
 import org.talend.components.salesforce.service.BulkQueryService;
 import org.talend.components.salesforce.service.Messages;

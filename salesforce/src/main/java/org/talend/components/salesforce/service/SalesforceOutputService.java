@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.avro.util.Utf8;
+import org.talend.components.salesforce.commons.SalesforceRuntimeHelper;
 import org.talend.components.salesforce.output.OutputConfiguration;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -153,7 +155,11 @@ public class SalesforceOutputService implements Serializable {
                     continue;
                 }
                 if (value != null && !value.toString().isEmpty()) {
-                    addSObjectField(so, sfField.getName(), sfField.getType(), value);
+                    if (Utf8.class.isInstance(value)) {
+                        addSObjectField(so, sfField.getName(), sfField.getType(), value.toString());
+                    } else {
+                        addSObjectField(so, sfField.getName(), sfField.getType(), value);
+                    }
                 } else {
                     if (UPDATE.equals(outputAction)) {
                         nullValueFields.add(field.getName());

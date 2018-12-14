@@ -12,7 +12,7 @@
  *
  */
 
-package org.talend.components.salesforce;
+package org.talend.components.salesforce.commons;
 
 import java.io.IOException;
 import java.util.List;

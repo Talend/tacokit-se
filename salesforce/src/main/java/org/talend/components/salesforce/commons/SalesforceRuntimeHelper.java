@@ -12,7 +12,7 @@
  *
  */
 
-package org.talend.components.salesforce.service;
+package org.talend.components.salesforce.commons;
 
 import java.util.Calendar;
 import java.util.Date;

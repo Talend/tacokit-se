@@ -21,17 +21,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.runners.MethodSorters.NAME_ASCENDING;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.apache.avro.Schema;
+import org.apache.avro.SchemaBuilder;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.IndexedRecord;
+import org.apache.avro.util.Utf8;
 import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.values.PCollection;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.talend.components.salesforce.SalesforceTestBase;
 import org.talend.components.salesforce.dataset.ModuleDataSet;
@@ -43,6 +46,7 @@ import org.talend.sdk.component.junit.beam.Data;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.beam.TalendFn;
 import org.talend.sdk.component.runtime.beam.TalendIO;
+import org.talend.sdk.component.runtime.beam.spi.record.AvroRecord;
 import org.talend.sdk.component.runtime.beam.transform.ViewsMappingTransform;
 import org.talend.sdk.component.runtime.input.Mapper;
 import org.talend.sdk.component.runtime.output.Branches;
@@ -266,7 +270,7 @@ public class SalesforceOutputBeamTest extends SalesforceTestBase {
     }
 
     @Test
-    public void test003_BatchModeExceptionOnError() {
+    public void test007_BatchModeExceptionOnError() {
         final OutputConfiguration configuration = new OutputConfiguration();
         final ModuleDataSet moduleDataSet = new ModuleDataSet();
         moduleDataSet.setModuleName("Account");
@@ -299,6 +303,47 @@ public class SalesforceOutputBeamTest extends SalesforceTestBase {
         assertThrows(IllegalStateException.class, () -> pipeline.run().waitUntilFinish());
 
         checkModuleData("Account", "Name Like 'test_batch_%" + UNIQUE_ID + "%'", 1);
+    }
+
+    @Test
+    public void test008_RecordIncludeAvroUtf8() {
+        Schema recordSchema = SchemaBuilder.builder().record("Schema").fields() //
+                .name("Name").type().nullable().stringType().noDefault() //
+                .name("Phone").type().nullable().stringType().noDefault() //
+                .endRecord();
+        final OutputConfiguration configuration = new OutputConfiguration();
+        final ModuleDataSet moduleDataSet = new ModuleDataSet();
+        moduleDataSet.setModuleName("Account");
+        moduleDataSet.setDataStore(dataStore);
+        configuration.setOutputAction(OutputConfiguration.OutputAction.INSERT);
+        configuration.setModuleDataSet(moduleDataSet);
+        configuration.setExceptionForErrors(true);
+        configuration.setBatchMode(true);
+        configuration.setCommitLevel(2);
+
+        // We create the component processor instance using the configuration filled above
+        final Processor processor = COMPONENT_FACTORY.createProcessor(SalesforceOutput.class, configuration);
+
+        IndexedRecord r1 = new GenericData.Record(recordSchema);
+        r1.put(0, new Utf8("test_batch_1_" + "_" + UNIQUE_ID));
+        r1.put(1, UNIQUE_ID);
+        IndexedRecord r2 = new GenericData.Record(recordSchema);
+        r2.put(0, new Utf8("test_batch_2_" + "_" + UNIQUE_ID));
+        r2.put(1, UNIQUE_ID);
+        final JoinInputFactory joinInputFactory = new JoinInputFactory().withInput("__default__",
+                asList(new AvroRecord(r1), new AvroRecord(r2)));
+
+        // Convert it to a beam "source"
+        final PCollection<Record> inputs = pipeline.apply(Data.of(processor.plugin(), joinInputFactory.asInputRecords()));
+
+        // add our processor right after to see each data as configured previously
+        inputs.apply(TalendFn.asFn(processor)).apply(Data.map(processor.plugin(), AvroRecord.class));
+
+        // run the pipeline and ensure the execution was successful
+        assertEquals(PipelineResult.State.DONE, pipeline.run().waitUntilFinish());
+
+        checkModuleData("Account", "Name Like 'test_batch_%" + UNIQUE_ID + "%' and Phone = '" + UNIQUE_ID + "'", 2);
+
     }
 
     @Test
