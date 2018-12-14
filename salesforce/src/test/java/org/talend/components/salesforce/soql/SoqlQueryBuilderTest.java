@@ -16,7 +16,7 @@ package org.talend.components.salesforce.soql;
 import java.util.Arrays;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit-tests for {@link SoqlQueryBuilder} class

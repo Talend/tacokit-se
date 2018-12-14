@@ -14,6 +14,7 @@
 
 package org.talend.components.salesforce.service;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -21,38 +22,23 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.talend.components.salesforce.service.SalesforceService.URL;
 
-import org.junit.Assert;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.talend.components.salesforce.SfHeaderFilter;
+import org.talend.components.salesforce.SalesforceTestBase;
 import org.talend.components.salesforce.dataset.ModuleDataSet;
 import org.talend.components.salesforce.datastore.BasicDataStore;
-import org.talend.sdk.component.api.DecryptedServer;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-import org.talend.sdk.component.junit.BaseComponentsHandler;
-import org.talend.sdk.component.junit.http.api.HttpApiHandler;
-import org.talend.sdk.component.junit.http.junit5.HttpApi;
-import org.talend.sdk.component.junit.http.junit5.HttpApiInject;
-import org.talend.sdk.component.junit.http.junit5.HttpApiName;
-import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
-import org.talend.sdk.component.junit5.WithMavenServers;
-import org.talend.sdk.component.maven.Server;
 
+// @Disabled("Salesforce credentials is not ready on ci")
 @WithComponents("org.talend.components.salesforce")
-@HttpApi(useSsl = true, headerFilter = SfHeaderFilter.class)
-@WithMavenServers //
-class UiActionServiceTest {
-
-    static {
-        // System.setProperty("talend.junit.http.capture", "true");
-    }
-
-    @Service
-    RecordBuilderFactory factory;
+public class UiActionServiceTest extends SalesforceTestBase {
 
     @Service
     private UiActionService service;
@@ -60,37 +46,18 @@ class UiActionServiceTest {
     @Service
     private Messages i18n;
 
-    @Injected
-    private BaseComponentsHandler componentsHandler;
-
-    @HttpApiInject
-    private HttpApiHandler<?> httpApiHandler;
-
-    @DecryptedServer(value = "salesforce-password", alwaysTryLookup = false)
-    private Server serverWithPassword;
-
-    @DecryptedServer(value = "salesforce-securitykey", alwaysTryLookup = false)
-    private Server serverWithSecuritykey;
-
     @Test
-    @HttpApiName("${class}_${method}")
-    @DisplayName("Validate connection")
-    void validateBasicConnectionOK() {
-        final BasicDataStore datasore = new BasicDataStore();
-        datasore.setEndpoint(URL);
-        datasore.setUserId(serverWithPassword.getUsername());
-        datasore.setPassword(serverWithPassword.getPassword());
-        datasore.setSecurityKey(serverWithSecuritykey.getPassword());
-        final HealthCheckStatus status = service.validateBasicConnection(datasore, i18n);
+    @DisplayName("Test connection OK [Valid]")
+    public void validateBasicConnectionOK() {
+        final HealthCheckStatus status = service.validateBasicConnection(getDataStore(), i18n);
         assertEquals(i18n.healthCheckOk(), status.getComment());
         assertEquals(HealthCheckStatus.Status.OK, status.getStatus());
 
     }
 
     @Test
-    @HttpApiName("${class}_${method}")
-    @DisplayName("Validate connection with bad credentials")
-    void validateBasicConnectionFailed() {
+    @DisplayName("Test connection Failed [Invalid]")
+    public void validateBasicConnectionFailed() {
         final BasicDataStore datasore = new BasicDataStore();
         datasore.setEndpoint(URL);
         final HealthCheckStatus status = service.validateBasicConnection(datasore, i18n);
@@ -100,25 +67,37 @@ class UiActionServiceTest {
     }
 
     @Test
-    @HttpApiName("${class}_${method}")
-    @DisplayName("Load modules")
-    void loadModules() {
-        final BasicDataStore datasore = new BasicDataStore();
-        datasore.setEndpoint(URL);
-        datasore.setUserId(serverWithPassword.getUsername());
-        datasore.setPassword(serverWithPassword.getPassword());
-        datasore.setSecurityKey(serverWithSecuritykey.getPassword());
-        final SuggestionValues modules = service.loadSalesforceModules(datasore);
+    @DisplayName("Test load modules [Valid]")
+    public void loadModules() {
+        final SuggestionValues modules = service.loadSalesforceModules(getDataStore());
         assertNotNull(modules);
         assertTrue(modules.isCacheable());
-        assertEquals(354, modules.getItems().size());
-        modules.getItems().stream().forEach(c -> Assert.assertNotEquals(c.getLabel(), "AcceptedEventRelation"));
+        final List<String> moduleNames = new ArrayList<>();
+        modules.getItems().stream().forEach(e -> moduleNames.add(e.getId()));
+        assertTrue("Return module name list is not include all expected modules!", moduleNames.containsAll(asList("Account",
+                "AccountContactRole", "AccountFeed", "AccountHistory", "AccountPartner", "AccountShare", "AdditionalNumber",
+                "ApexClass", "ApexComponent", "ApexLog", "ApexPage", "ApexTrigger", "Asset", "AssetFeed", "AssignmentRule",
+                "AsyncApexJob", "Attachment", "BrandTemplate", "BusinessHours", "BusinessProcess", "CallCenter", "Campaign",
+                "CampaignFeed", "CampaignMember", "CampaignMemberStatus", "CampaignShare", "Case", "CaseComment",
+                "CaseContactRole", "CaseFeed", "CaseHistory", "CaseShare", "CaseSolution", "CaseTeamMember", "CaseTeamRole",
+                "CaseTeamTemplate", "CaseTeamTemplateMember", "CaseTeamTemplateRecord", "CategoryData", "CategoryNode",
+                "CollaborationGroup", "CollaborationGroupFeed", "CollaborationGroupMember", "Community", "Contact", "ContactFeed",
+                "ContactHistory", "ContactShare", "Contract", "ContractContactRole", "ContractFeed", "ContractHistory",
+                "CronTrigger", "Document", "DocumentAttachmentMap", "EmailServicesAddress", "EmailServicesFunction",
+                "EmailTemplate", "EntitySubscription", "Event", "FeedComment", "FeedTrackedChange", "FiscalYearSettings",
+                "Folder", "ForecastShare", "Group", "GroupMember", "Holiday", "Idea", "IdeaComment", "Lead", "LeadFeed",
+                "LeadHistory", "LeadShare", "LeadStatus", "MailmergeTemplate", "Note", "Opportunity", "OpportunityCompetitor",
+                "OpportunityContactRole", "OpportunityFeed", "OpportunityFieldHistory", "OpportunityHistory",
+                "OpportunityLineItem", "OpportunityPartner", "OpportunityShare", "OpportunityStage", "OrgWideEmailAddress",
+                "Organization", "Partner", "Period", "Pricebook2", "PricebookEntry", "ProcessInstance", "ProcessInstanceStep",
+                "ProcessInstanceWorkitem", "Product2", "Product2Feed", "Profile", "QueueSobject", "RecordType", "Scontrol",
+                "Site", "SiteHistory", "Solution", "SolutionFeed", "SolutionHistory", "StaticResource", "User", "UserFeed",
+                "UserLicense", "UserPreference", "UserRole", "Vote", "WebLink")));
     }
 
     @Test
-    @HttpApiName("${class}_${method}")
-    @DisplayName("Load modules with bad basic credentials")
-    void loadModulesWithBadCredentials() {
+    @DisplayName("Test connection with bad credentials [Invalid]")
+    public void loadModulesWithBadCredentials() {
         assertThrows(IllegalStateException.class, () -> {
             final BasicDataStore datasore = new BasicDataStore();
             datasore.setEndpoint(URL);
@@ -129,19 +108,22 @@ class UiActionServiceTest {
     }
 
     @Test
-    @HttpApiName("${class}_${method}")
-    @DisplayName("Retrive module column names")
-    public void retriveColumnsName() {
+    @DisplayName("Test retrieve column names [Valid]")
+    public void retrieveColumnsName() {
         final String moduleName = "Account";
-        final BasicDataStore datasore = new BasicDataStore();
-        datasore.setEndpoint(URL);
-        datasore.setUserId(serverWithPassword.getUsername());
-        datasore.setPassword(serverWithPassword.getPassword());
-        datasore.setSecurityKey(serverWithSecuritykey.getPassword());
-        ModuleDataSet.ColumnSelectionConfig filedNameList = service.defaultColumns(datasore, moduleName);
+        ModuleDataSet.ColumnSelectionConfig filedNameList = service.defaultColumns(getDataStore(), moduleName);
         assertNotNull(filedNameList);
         assertNotNull(filedNameList.getSelectColumnNames());
-        assertEquals(54, filedNameList.getSelectColumnNames().size());
+        assertTrue("Return module field name list is not include all expected fields!",
+                filedNameList.getSelectColumnNames()
+                        .containsAll(asList("Id", "IsDeleted", "MasterRecordId", "Name", "Type", "ParentId", "BillingStreet",
+                                "BillingCity", "BillingState", "BillingPostalCode", "BillingCountry", "BillingLatitude",
+                                "BillingLongitude", "ShippingStreet", "ShippingCity", "ShippingState", "ShippingPostalCode",
+                                "ShippingCountry", "ShippingLatitude", "ShippingLongitude", "Phone", "Fax", "AccountNumber",
+                                "Website", "PhotoUrl", "Sic", "Industry", "AnnualRevenue", "NumberOfEmployees", "Ownership",
+                                "TickerSymbol", "Description", "Rating", "Site", "OwnerId", "CreatedDate", "CreatedById",
+                                "LastModifiedDate", "LastModifiedById", "SystemModstamp", "LastActivityDate", "LastViewedDate",
+                                "LastReferencedDate", "Jigsaw", "JigsawCompanyId", "AccountSource", "SicDesc")));
 
     }
 

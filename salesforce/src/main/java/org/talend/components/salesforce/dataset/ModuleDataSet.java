@@ -22,6 +22,7 @@ import org.talend.components.salesforce.datastore.BasicDataStore;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.action.Updatable;
+import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -36,10 +37,12 @@ import lombok.Data;
 public class ModuleDataSet implements QueryDataSet {
 
     @Option
+    @Required
     @Documentation("")
     private BasicDataStore dataStore;
 
     @Option
+    @Required
     @Suggestable(value = "loadSalesforceModules", parameters = { "dataStore" })
     @Documentation("")
     private String moduleName;

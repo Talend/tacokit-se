@@ -47,19 +47,19 @@ import lombok.extern.slf4j.Slf4j;
 @Documentation("Salesforce output")
 public class SalesforceOutput implements Serializable {
 
-    private final OutputConfiguration outputConfig;
+    private final OutputConfiguration configuration;
 
     private final SalesforceService service;
 
     private final LocalConfiguration localConfiguration;
 
-    private SalesforceOutputService outputService;
+    private transient SalesforceOutputService outputService;
 
     private Messages messages;
 
-    public SalesforceOutput(@Option("outputConfig") final OutputConfiguration outputConfig, LocalConfiguration localConfiguration,
-            final SalesforceService service, final Messages messages) {
-        this.outputConfig = outputConfig;
+    public SalesforceOutput(@Option("configuration") final OutputConfiguration outputConfig,
+            final LocalConfiguration localConfiguration, final SalesforceService service, final Messages messages) {
+        this.configuration = outputConfig;
         this.service = service;
         this.localConfiguration = localConfiguration;
         this.messages = messages;
@@ -68,11 +68,11 @@ public class SalesforceOutput implements Serializable {
     @PostConstruct
     public void init() {
         try {
-            final PartnerConnection connection = service.connect(outputConfig.getModuleDataSet().getDataStore(),
+            final PartnerConnection connection = service.connect(configuration.getModuleDataSet().getDataStore(),
                     localConfiguration);
-            outputService = new SalesforceOutputService(outputConfig, connection, messages);
-            Map<String, Field> fieldMap = service.getFieldMap(outputConfig.getModuleDataSet().getDataStore(),
-                    outputConfig.getModuleDataSet().getModuleName(), localConfiguration);
+            outputService = new SalesforceOutputService(configuration, connection, messages);
+            Map<String, Field> fieldMap = service.getFieldMap(configuration.getModuleDataSet().getDataStore(),
+                    configuration.getModuleDataSet().getModuleName(), localConfiguration);
             outputService.setFieldMap(fieldMap);
         } catch (ConnectionException e) {
             throw service.handleConnectionException(e);

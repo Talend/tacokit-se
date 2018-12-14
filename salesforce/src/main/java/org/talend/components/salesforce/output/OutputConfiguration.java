@@ -19,6 +19,7 @@ import java.io.Serializable;
 import org.talend.components.salesforce.dataset.ModuleDataSet;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -35,10 +36,12 @@ import lombok.Data;
 public class OutputConfiguration implements Serializable {
 
     @Option
+    @Required
     @Documentation("")
     private ModuleDataSet moduleDataSet;
 
     @Option
+    @Required
     @Documentation("write operation")
     private OutputAction outputAction = OutputAction.INSERT;
 
@@ -48,6 +51,7 @@ public class OutputConfiguration implements Serializable {
     private String upsertKeyColumn;
 
     @Option
+    @Required
     @Documentation("whether use batch operation")
     private boolean batchMode = true;
 
@@ -57,6 +61,7 @@ public class OutputConfiguration implements Serializable {
     private int commitLevel = 200;
 
     @Option
+    @Required
     @DefaultValue("true")
     @Documentation("exception for errors")
     private boolean exceptionForErrors;

@@ -15,6 +15,7 @@
 package org.talend.components.salesforce.commons;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -31,7 +32,7 @@ import java.util.Arrays;
 import java.util.Map;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.csvreader.CsvReader;
 import com.csvreader.CsvWriter;
@@ -60,7 +61,7 @@ public class BulkResultSetTest {
         BulkResultSet resultSet = new BulkResultSet(csvReader, Arrays.asList("fieldA", "fieldB", "fieldC"));
 
         int count = 0;
-        Map<String,String> result;
+        Map<String, String> result;
         while ((result = resultSet.next()) != null) {
             assertEquals("fieldValueA" + count, result.get("fieldA"));
             assertEquals("fieldValueB" + count, result.get("fieldB"));
@@ -73,7 +74,7 @@ public class BulkResultSetTest {
     }
 
     @Test
-    public void testSafetySwitchTrueFailure(){
+    public void testSafetySwitchTrueFailure() {
         try {
             prepareSafetySwitchTest(true, 100_001);
         } catch (Exception ioe) {
@@ -103,22 +104,23 @@ public class BulkResultSetTest {
                 Charset.forName("UTF-8"));
         csvReader.setSafetySwitch(safetySwitchParameter);
         BulkResultSet resultSet = new BulkResultSet(csvReader, Arrays.asList("fieldA", "fieldB", "fieldC"));
-        Map<String,String> result = resultSet.next();
+        Map<String, String> result = resultSet.next();
         return ((String) result.get("fieldC")).length();
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testResultSetIOError() throws IOException {
+        assertThrows(IllegalStateException.class, () -> {
+            InputStream in = mock(InputStream.class);
+            doThrow(new IOException("I/O ERROR")).when(in).read();
+            when(in.read(any(byte[].class))).thenThrow(new IOException("I/O ERROR"));
 
-        InputStream in = mock(InputStream.class);
-        doThrow(new IOException("I/O ERROR")).when(in).read();
-        when(in.read(any(byte[].class))).thenThrow(new IOException("I/O ERROR"));
+            CsvReader csvReader = new CsvReader(in, ',', Charset.forName("UTF-8"));
 
-        CsvReader csvReader = new CsvReader(in, ',', Charset.forName("UTF-8"));
+            BulkResultSet resultSet = new BulkResultSet(csvReader, Arrays.asList("fieldA", "fieldB", "fieldC"));
 
-        BulkResultSet resultSet = new BulkResultSet(csvReader, Arrays.asList("fieldA", "fieldB", "fieldC"));
-
-        while (resultSet.next() != null) {
-        }
+            while (resultSet.next() != null) {
+            }
+        });
     }
 }
