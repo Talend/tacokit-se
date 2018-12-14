@@ -21,10 +21,7 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.apache.avro.Schema;
-import org.talend.components.salesforce.commons.BulkResult;
-import org.talend.components.salesforce.commons.BulkResultAdapterFactory;
-import org.talend.components.salesforce.commons.BulkResultSet;
+import org.talend.components.salesforce.BulkResultSet;
 import org.talend.components.salesforce.dataset.QueryDataSet;
 import org.talend.components.salesforce.service.BulkQueryService;
 import org.talend.components.salesforce.service.Messages;
@@ -35,7 +32,6 @@ import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-import org.talend.sdk.component.runtime.beam.spi.record.AvroRecord;
 
 import com.sforce.async.AsyncApiException;
 import com.sforce.async.BulkConnection;
@@ -56,13 +52,9 @@ public abstract class AbstractQueryEmitter implements Serializable {
 
     private BulkQueryService bulkQueryService;
 
-    private Schema schema;
-
     private BulkResultSet bulkResultSet;
 
     private RecordBuilderFactory recordBuilderFactory;
-
-    private BulkResultAdapterFactory resultAdapterFactory;
 
     private Messages messages;
 
@@ -98,7 +90,7 @@ public abstract class AbstractQueryEmitter implements Serializable {
             if (bulkResultSet == null) {
                 bulkResultSet = bulkQueryService.getQueryResultSet(bulkQueryService.nextResultId());
             }
-            BulkResult currentRecord = bulkResultSet.next();
+            Map<String, String> currentRecord = bulkResultSet.next();
             if (currentRecord == null) {
                 String resultId = bulkQueryService.nextResultId();
                 if (resultId != null) {
@@ -106,7 +98,7 @@ public abstract class AbstractQueryEmitter implements Serializable {
                     currentRecord = bulkResultSet.next();
                 }
             }
-            return convertToRecord(currentRecord);
+            return bulkQueryService.convertToRecord(currentRecord);
         } catch (ConnectionException e) {
             throw service.handleConnectionException(e);
         } catch (AsyncApiException e) {
@@ -128,30 +120,5 @@ public abstract class AbstractQueryEmitter implements Serializable {
     abstract String getQuery();
 
     abstract String getModuleName();
-
-    public Schema getSchema() {
-        if (schema == null) {
-            schema = service.guessSchema(dataset.getDataStore(), getQuery(), localConfiguration);
-        }
-        return schema;
-    }
-
-    public BulkResultAdapterFactory getFactory() {
-        if (resultAdapterFactory == null) {
-            resultAdapterFactory = new BulkResultAdapterFactory();
-            resultAdapterFactory.setSchema(getSchema());
-        }
-        return resultAdapterFactory;
-    }
-
-    /**
-     * Convert result to record
-     */
-    public Record convertToRecord(BulkResult result) {
-        if (result == null) {
-            return null;
-        }
-        return new AvroRecord(getFactory().convertToAvro(result));
-    }
 
 }
