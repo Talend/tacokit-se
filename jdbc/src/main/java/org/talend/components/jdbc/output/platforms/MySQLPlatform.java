@@ -12,6 +12,7 @@
  */
 package org.talend.components.jdbc.output.platforms;
 
+import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -34,6 +35,12 @@ public class MySQLPlatform extends Platform {
     @Override
     protected String delimiterToken() {
         return "`";
+    }
+
+    @Override
+    public void addDataSourceProperties(HikariDataSource dataSource) {
+        super.addDataSourceProperties(dataSource);
+        dataSource.addDataSourceProperty("useCursorFetch", true);
     }
 
     @Override
