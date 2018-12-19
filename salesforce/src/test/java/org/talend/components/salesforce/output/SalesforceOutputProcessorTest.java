@@ -21,6 +21,7 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -28,6 +29,7 @@ import org.apache.beam.sdk.Pipeline;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.talend.components.salesforce.SalesforceTestBase;
@@ -55,7 +57,7 @@ public class SalesforceOutputProcessorTest extends SalesforceTestBase {
     private RecordBuilderFactory factory;
 
     @BeforeAll
-    public void test001_Insert() {
+    public void prepareData() {
         final OutputConfiguration configuration = new OutputConfiguration();
         final ModuleDataSet moduleDataSet = new ModuleDataSet();
         moduleDataSet.setModuleName("Account");
@@ -82,7 +84,39 @@ public class SalesforceOutputProcessorTest extends SalesforceTestBase {
     }
 
     @Test
-    public void test002_InsertNoFieldValueSet() {
+    @DisplayName("Test insert supported types")
+    public void testInsertTypes() {
+        final OutputConfiguration configuration = new OutputConfiguration();
+        final ModuleDataSet moduleDataSet = new ModuleDataSet();
+        moduleDataSet.setModuleName("Contact");
+        moduleDataSet.setDataStore(getDataStore());
+        configuration.setOutputAction(OutputConfiguration.OutputAction.INSERT);
+        configuration.setModuleDataSet(moduleDataSet);
+        configuration.setBatchMode(false);
+        configuration.setExceptionForErrors(true);
+
+        // We create the component processor instance using the configuration filled above
+        final Processor processor = getComponentsHandler().createProcessor(SalesforceOutput.class, configuration);
+
+        Record record = factory.newRecordBuilder().withString("FirstName", "F_test_types_" + UNIQUE_ID)
+                .withString("LastName", "F_test_types_" + UNIQUE_ID).withString("Email", "testalltype_" + UNIQUE_ID + "@test.com")
+                .withDouble("MailingLongitude", 115.7).withDouble("MailingLatitude", 39.4).withDateTime("Birthdate", new Date())
+                .build();
+        final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
+        getComponentsHandler().setInputData(asList(record));
+        Job.components().component("emitter", "test://emitter")
+                .component("salesforce-output", "Salesforce://SalesforceOutput?" + config).connections().from("emitter")
+                .to("salesforce-output").build().run();
+        getComponentsHandler().resetState();
+        checkModuleData("Contact",
+                "MailingLongitude != null and MailingLongitude !=null and Birthdate !=null and Name Like 'F_test_types_%"
+                        + UNIQUE_ID + "%'",
+                1);
+    }
+
+    @Test
+    @DisplayName("Test insert object without field value set")
+    public void testInsertNoFieldSet() {
         final BasicDataStore datasore = new BasicDataStore();
         datasore.setEndpoint(URL);
         datasore.setUserId(USER_ID);
@@ -98,7 +132,7 @@ public class SalesforceOutputProcessorTest extends SalesforceTestBase {
         configuration.setExceptionForErrors(false);
 
         // create a record with no field match module fields
-        Record record = factory.newRecordBuilder().withString("Wrong_Field_Name", "test_" + UNIQUE_ID).build();
+        Record record = factory.newRecordBuilder().withString("Wrong_Field_Name", "test_Wrong_Field_Name_" + UNIQUE_ID).build();
 
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
 
@@ -107,10 +141,12 @@ public class SalesforceOutputProcessorTest extends SalesforceTestBase {
                 .component("salesforce-output", "Salesforce://SalesforceOutput?" + config).connections().from("emitter")
                 .to("salesforce-output").build().run();
         getComponentsHandler().resetState();
+        checkModuleData("Account", "Name Like 'test_Wrong_Field_Name_%" + UNIQUE_ID + "%'", 0);
     }
 
     @Test
-    public void test003_ExceptionOnError() {
+    @DisplayName("Test exception on error")
+    public void testExceptionOnError() {
         final OutputConfiguration configuration = new OutputConfiguration();
         final ModuleDataSet moduleDataSet = new ModuleDataSet();
         moduleDataSet.setModuleName("Account");
@@ -133,7 +169,8 @@ public class SalesforceOutputProcessorTest extends SalesforceTestBase {
     }
 
     @Test
-    public void test004_Update() {
+    @DisplayName("Test update object with `Id`")
+    public void testUpdate() {
         // 1. read data from salesforce
         final ModuleDataSet inputDataSet = new ModuleDataSet();
         inputDataSet.setModuleName("Account");
@@ -174,7 +211,8 @@ public class SalesforceOutputProcessorTest extends SalesforceTestBase {
     }
 
     @Test
-    public void test006_Upsert() {
+    @DisplayName("Test upsert with upsert key")
+    public void testUpsert() {
         final OutputConfiguration configuration = new OutputConfiguration();
         final ModuleDataSet moduleDataSet = new ModuleDataSet();
         moduleDataSet.setModuleName("Contact");
@@ -198,7 +236,8 @@ public class SalesforceOutputProcessorTest extends SalesforceTestBase {
     }
 
     @Test
-    public void test007_BatchModeExceptionOnError() {
+    @DisplayName("Test batch mode with exception on error checked")
+    public void testBatchModeExceptionOnError() {
         final OutputConfiguration configuration = new OutputConfiguration();
         final ModuleDataSet moduleDataSet = new ModuleDataSet();
         moduleDataSet.setModuleName("Account");
@@ -225,7 +264,7 @@ public class SalesforceOutputProcessorTest extends SalesforceTestBase {
     }
 
     @AfterAll
-    public void test999_cleanupTestRecords() {
+    public void cleanupTestRecords() {
         cleanTestRecords("Account", "Name Like '%" + UNIQUE_ID + "%'");
         checkModuleData("Account", "Name Like '%" + UNIQUE_ID + "%'", 0);
 

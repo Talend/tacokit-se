@@ -16,6 +16,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.junit.Assert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -32,7 +33,7 @@ import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.input.Mapper;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
-// @Disabled("Salesforce credentials is not ready on ci")
+@Disabled("Salesforce credentials is not ready on ci")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @WithComponents("org.talend.components.salesforce")
 public class SalesforceInputEmitterTest extends SalesforceTestBase {

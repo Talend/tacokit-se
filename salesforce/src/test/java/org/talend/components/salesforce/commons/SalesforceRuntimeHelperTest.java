@@ -22,6 +22,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import com.sforce.ws.bind.CalendarCodec;
 
@@ -31,6 +32,7 @@ import com.sforce.ws.bind.CalendarCodec;
 public class SalesforceRuntimeHelperTest {
 
     @Test
+    @DisplayName("Test convert date to calendar")
     public void testConvertDateToCalendar() throws Throwable {
         long timestamp = System.currentTimeMillis();
         Calendar calendar1 = SalesforceRuntimeHelper.convertDateToCalendar(new Date(timestamp), false);

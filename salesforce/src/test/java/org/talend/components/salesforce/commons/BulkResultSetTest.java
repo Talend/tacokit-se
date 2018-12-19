@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.Map;
 
 import org.junit.Assert;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.csvreader.CsvReader;
@@ -43,6 +44,7 @@ import com.csvreader.CsvWriter;
 public class BulkResultSetTest {
 
     @Test
+    @DisplayName("Test resultset")
     public void testResultSet() throws IOException {
 
         final int recordCount = 100;
@@ -74,6 +76,7 @@ public class BulkResultSetTest {
     }
 
     @Test
+    @DisplayName("Test resultset")
     public void testSafetySwitchTrueFailure() {
         try {
             prepareSafetySwitchTest(true, 100_001);
@@ -83,6 +86,7 @@ public class BulkResultSetTest {
     }
 
     @Test
+    @DisplayName("Test safetySwitch false success")
     public void testSafetySwitchFalseSuccess() throws IOException {
         final int columnLength = 200_000;
         Assert.assertEquals(columnLength, prepareSafetySwitchTest(false, columnLength));
@@ -109,6 +113,7 @@ public class BulkResultSetTest {
     }
 
     @Test
+    @DisplayName("Test resultset IOException")
     public void testResultSetIOError() throws IOException {
         assertThrows(IllegalStateException.class, () -> {
             InputStream in = mock(InputStream.class);

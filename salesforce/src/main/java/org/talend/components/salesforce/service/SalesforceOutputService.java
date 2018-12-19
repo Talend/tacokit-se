@@ -22,6 +22,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -148,7 +149,12 @@ public class SalesforceOutputService implements Serializable {
         for (Schema.Entry field : input.getSchema().getEntries()) {
             // For "Id" column, we should ignore it for "INSERT" action
             if (!("Id".equals(field.getName()) && OutputConfiguration.OutputAction.INSERT.equals(outputAction))) {
-                Object value = input.get(Object.class, field.getName());
+                Object value = null;
+                if (Schema.Type.DATETIME.equals(field.getType())) {
+                    value = GregorianCalendar.from(input.getDateTime(field.getName()));
+                } else {
+                    value = input.get(Object.class, field.getName());
+                }
                 // TODO need check
                 Field sfField = fieldMap.get(field.getName());
                 if (sfField == null) {
@@ -180,7 +186,12 @@ public class SalesforceOutputService implements Serializable {
         Map<String, Map<String, String>> referenceFieldsMap = getReferenceFieldsMap();
         nullValueFields.clear();
         for (Schema.Entry field : input.getSchema().getEntries()) {
-            Object value = input.get(Object.class, field.getName());
+            Object value = null;
+            if (Schema.Type.DATETIME.equals(field.getType())) {
+                value = GregorianCalendar.from(input.getDateTime(field.getName()));
+            } else {
+                value = input.get(Object.class, field.getName());
+            }
             Field sfField = fieldMap.get(field.getName());
             /*
              * if (sfField == null) {

@@ -36,7 +36,7 @@ import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.junit5.WithComponents;
 
-// @Disabled("Salesforce credentials is not ready on ci")
+@Disabled("Salesforce credentials is not ready on ci")
 @WithComponents("org.talend.components.salesforce")
 public class UiActionServiceTest extends SalesforceTestBase {
 

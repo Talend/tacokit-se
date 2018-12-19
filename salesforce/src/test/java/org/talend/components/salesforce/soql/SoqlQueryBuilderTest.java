@@ -16,6 +16,7 @@ package org.talend.components.salesforce.soql;
 import java.util.Arrays;
 
 import org.junit.Assert;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -27,6 +28,7 @@ public class SoqlQueryBuilderTest {
      * Checks {@link SoqlQueryBuilder#buildSoqlQuery()} returns SOQL query according to column list and entity name
      */
     @Test
+    @DisplayName("Test build SOQL query simple")
     public void testBuildSoqlQuerySimple() {
         String expected = "\"SELECT Id, Name, BillingCity FROM Account\"";
 
@@ -40,6 +42,7 @@ public class SoqlQueryBuilderTest {
      * child-to-parent relationship
      */
     @Test
+    @DisplayName("Test build SOQL query child to parent")
     public void testBuildSoqlQueryChildToParent() {
         String expected = "\"SELECT Name, Account.Name, Account.Owner.Name FROM Contact\"";
 
@@ -54,6 +57,7 @@ public class SoqlQueryBuilderTest {
      * parent-to-child relationship
      */
     @Test
+    @DisplayName("Test build SOQL query parent to child")
     public void testBuildSoqlQueryParentToChild() {
         String expected = "\"SELECT Name, (SELECT LastName FROM Contacts) FROM Account\"";
 
@@ -68,6 +72,7 @@ public class SoqlQueryBuilderTest {
      * parent-to-child relationship in case of three-level entities linking
      */
     @Test
+    @DisplayName("Test build SOQL query parent to child depth")
     public void testBuildSoqlQueryParentToChildDepth() {
         String expected = "\"SELECT Name, (SELECT LastName, Account.Owner.Name FROM Contacts) FROM Account\"";
 
@@ -83,6 +88,7 @@ public class SoqlQueryBuilderTest {
      * complex relationship
      */
     @Test
+    @DisplayName("Test build SOQL query complect relationship")
     public void testBuildSoqlQueryComplexRelationship() {
         String expected = "\"SELECT Id, Name, (SELECT Quantity, ListPrice, PricebookEntry.UnitPrice, PricebookEntry.Name FROM OpportunityLineItems) FROM Opportunity\"";
         String queryFromBuilder = new SoqlQueryBuilder(Arrays.asList("Id", "Name", "OpportunityLineItems_records_Quantity",
@@ -97,6 +103,7 @@ public class SoqlQueryBuilderTest {
      * custom field
      */
     @Test
+    @DisplayName("Test build SOQL query custom filed")
     public void testBuildSoqlQueryCustomField() {
         String expected = "\"SELECT Id, SLAExpirationDate__c FROM Account\"";
 
@@ -110,6 +117,7 @@ public class SoqlQueryBuilderTest {
      * custom table
      */
     @Test
+    @DisplayName("Test build SOQL query with custom module")
     public void testBuildSoqlQueryWithCustomTable() {
         String expected = "\"SELECT Id, SLAExpirationDate__c FROM talend_custom__c\"";
 
@@ -124,6 +132,7 @@ public class SoqlQueryBuilderTest {
      * custom fields/table and relation child to parent
      */
     @Test
+    @DisplayName("Test build SOQL query with custom modules child to parent")
     public void testBuildSoqlQueryWithCustomTablesChildToParent() {
         String expected = "\"SELECT talend_custom__c.Name, talend_custom__c.custom_name__c, talend_contact__r.Name, talend_contact__r.Account.Name FROM talend_custom__c\"";
 
@@ -138,6 +147,7 @@ public class SoqlQueryBuilderTest {
      * custom fields/table and relation parent to child
      */
     @Test
+    @DisplayName("Test build SOQL query with custom modules parent to child")
     public void testBuildSoqlQueryWithCustomTablesParentToChild() {
         String expected = "\"SELECT Name, (SELECT custom.lastName, custom_name__c, talend_account__c.custom_lastName__c, talend_account__c.Age FROM talend_custom__r), contact_title__c FROM talend_contact__c\"";
 
@@ -154,6 +164,7 @@ public class SoqlQueryBuilderTest {
      * custom fields, and complex table name with relation parent to child
      */
     @Test
+    @DisplayName("Test build SOQL query with complex child table name parent to child")
     public void testBuildSoqlQueryWithComplexChildTableNameParentToChild() {
         String expected = "\"SELECT Name, (SELECT custom.lastName, talend_account__c.Age FROM talend_contact__c.Persons), contact_title__c FROM talend_contact__c\"";
 
