@@ -45,7 +45,7 @@ public class RowGeneratorMapper implements Serializable {
     @Split
     public List<RowGeneratorMapper> split(@PartitionSize final long bundles) {
         long nbBundle = Math.max(1, estimateSize() / bundles);
-        final long bundleCount = bundles / recordSize;
+        final long bundleCount = Math.max(1, bundles / recordSize);
         final int totalData = config.getRowCount();
         return LongStream.range(0, nbBundle).mapToObj(i -> {
             final int from = (int) (bundleCount * i);

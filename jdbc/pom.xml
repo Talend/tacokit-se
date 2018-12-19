@@ -15,12 +15,11 @@
 
     <properties>
         <xbean-finder-shaded.version>4.8</xbean-finder-shaded.version>
+        <HikariCP.version>3.1.0</HikariCP.version>
+        <commons-codec.version>1.11</commons-codec.version>
+        <!-- test version -->
         <derby.version>10.12.1.1</derby.version>
         <testcontainers.version>1.10.2</testcontainers.version>
-        <HikariCP.version>3.1.0</HikariCP.version>
-        <metrics.version>4.0.3</metrics.version>
-        <jooq.version>3.11.7</jooq.version>
-        <ddlutils.version>1.7</ddlutils.version>
     </properties>
 
     <dependencies>
@@ -33,6 +32,11 @@
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
             <version>${HikariCP.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>${commons-codec.version}</version>
         </dependency>
         <!-- test -->
         <dependency>
@@ -101,6 +105,28 @@
             <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>1.10.2</version>
+            <scope>compile</scope>
+        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.apache.beam</groupId>-->
+            <!--<artifactId>beam-sdks-java-core</artifactId>-->
+            <!--<scope>provided</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.apache.avro</groupId>-->
+            <!--<artifactId>avro</artifactId>-->
+            <!--<scope>provided</scope>-->
+        <!--</dependency>-->
+
+        <!--<dependency>-->
+            <!--<groupId>org.talend.sdk.component</groupId>-->
+            <!--<artifactId>component-runtime-beam</artifactId>-->
+            <!--<scope>provided</scope>-->
+        <!--</dependency>-->
     </dependencies>
 
     <build>
@@ -123,7 +149,7 @@
                            You can activate the targetParallelism to control the parallelism of the test pipeline.
                            You can also set it to 1 to debug more easily
                         -->
-                        <!--<talend.beam.job.targetParallelism>1</talend.beam.job.targetParallelism>-->
+                        <talend.beam.job.targetParallelism>1</talend.beam.job.targetParallelism>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

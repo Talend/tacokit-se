@@ -62,7 +62,7 @@ public abstract class Platform implements Serializable {
     }
 
     public String identifier(final String name) {
-        return delimiterToken() + name + delimiterToken();
+        return name == null || name.isEmpty() ? name : delimiterToken() + name + delimiterToken();
     }
 
     public String createPKs(final List<Column> primaryKeys) {

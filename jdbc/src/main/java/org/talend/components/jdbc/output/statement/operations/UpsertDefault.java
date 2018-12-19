@@ -22,7 +22,7 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.*;
 
 @Slf4j
-public class UpsertDefault extends JdbcAction {
+public class UpsertDefault extends QueryManager {
 
     private final Insert insert;
 

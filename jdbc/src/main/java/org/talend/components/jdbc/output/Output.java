@@ -14,10 +14,10 @@ package org.talend.components.jdbc.output;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfig;
+import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.output.platforms.Platform;
 import org.talend.components.jdbc.output.platforms.PlatformFactory;
-import org.talend.components.jdbc.output.statement.JdbcActionFactory;
-import org.talend.components.jdbc.output.statement.operations.JdbcAction;
+import org.talend.components.jdbc.output.statement.operations.QueryManager;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.component.Icon;
@@ -27,16 +27,14 @@ import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.processor.*;
 import org.talend.sdk.component.api.record.Record;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.Serializable;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.Optional.ofNullable;
+import static org.talend.components.jdbc.output.statement.QueryManagerFactory.getQueryManager;
 
 @Slf4j
 @Processor(name = "Output")
@@ -53,15 +51,17 @@ public class Output implements Serializable {
 
     private transient List<Record> records;
 
-    private transient JdbcAction jdbcAction;
+    private transient QueryManager queryManager;
 
-    private transient JdbcService.JdbcDatasource dataSource;
+    private transient JdbcService.JdbcDatasource datasource;
 
     private transient Platform platform;
 
-    private boolean tableExists;
+    private Boolean tableExistsCheck;
 
     private boolean tableCreated;
+
+    private transient boolean init;
 
     public Output(@Option("configuration") final OutputConfig outputConfig, final JdbcService jdbcService,
             final I18nMessage i18nMessage) {
@@ -70,36 +70,39 @@ public class Output implements Serializable {
         this.i18n = i18nMessage;
     }
 
-    @PostConstruct
-    public void init() throws SQLException {
-        platform = PlatformFactory.get(configuration.getDataset().getConnection());
-        dataSource = jdbcService.createDataSource(configuration.getDataset().getConnection(),
-                configuration.isRewriteBatchedStatements());
-        final JdbcActionFactory jdbcActionFactory = new JdbcActionFactory(platform, i18n, dataSource, configuration);
-        this.jdbcAction = jdbcActionFactory.createAction();
-        this.records = new ArrayList<>();
-        try (final Connection connection = dataSource.getConnection()) {
-            tableExists = checkTableExistence(configuration.getDataset().getTableName(), connection);
-            if (!tableExists && !this.configuration.isCreateTableIfNotExists()) {
-                throw new IllegalStateException(i18n.errorTaberDoesNotExists(configuration.getDataset().getTableName()));
-            }
-        }
-    }
-
     @BeforeGroup
-    public void beforeGroup() {
-        records.clear();
+    public void beforeGroup() throws SQLException {
+        this.records = new ArrayList<>();
     }
 
     @ElementListener
-    public void elementListener(@Input final Record record) {
+    public void elementListener(@Input final Record record) throws SQLException {
+        if (!init) {
+            // prevent creating db connection if no records
+            // it's mostly useful for streaming scenario
+            lazyInit();
+        }
         records.add(record);
+    }
+
+    private void lazyInit() throws SQLException {
+        this.init = true;
+        final JdbcConnection connection = configuration.getDataset().getConnection();
+        this.platform = PlatformFactory.get(connection);
+        this.datasource = jdbcService.createDataSource(connection, configuration.isRewriteBatchedStatements());
+        this.queryManager = getQueryManager(platform, i18n, configuration, datasource);
+        if (this.tableExistsCheck == null) {
+            this.tableExistsCheck = this.queryManager.checkTableExistence(configuration.getDataset().getTableName());
+        }
+        if (!this.tableExistsCheck && !this.configuration.isCreateTableIfNotExists()) {
+            throw new IllegalStateException(this.i18n.errorTaberDoesNotExists(this.configuration.getDataset().getTableName()));
+        }
     }
 
     @AfterGroup
     public void afterGroup() throws SQLException {
-        if (!tableExists && !tableCreated && configuration.isCreateTableIfNotExists()) {
-            try (final Connection connection = dataSource.getConnection()) {
+        if (!tableExistsCheck && !tableCreated && configuration.isCreateTableIfNotExists()) {
+            try (final Connection connection = datasource.getConnection()) {
                 platform.createTableIfNotExist(connection, configuration.getDataset().getTableName(), configuration.getKeys(),
                         records);
                 tableCreated = true;
@@ -108,7 +111,7 @@ public class Output implements Serializable {
 
         // TODO : handle discarded records
         try {
-            final List<Reject> discards = jdbcAction.execute(records);
+            final List<Reject> discards = queryManager.execute(records);
             discards.stream().map(Object::toString).forEach(log::error);
         } catch (final Throwable e) {
             records.stream().map(r -> new Reject(e.getMessage(), r)).map(Reject::toString).forEach(log::error);
@@ -123,28 +126,10 @@ public class Output implements Serializable {
         }
     }
 
-    private boolean checkTableExistence(final String tableName, final Connection connection) throws SQLException {
-        try (final ResultSet resultSet = connection.getMetaData().getTables(connection.getCatalog(), connection.getSchema(),
-                tableName, new String[] { "TABLE", "SYNONYM" })) {
-            while (resultSet.next()) {
-                if (ofNullable(ofNullable(resultSet.getString("TABLE_NAME")).orElseGet(() -> {
-                    try {
-                        return resultSet.getString("SYNONYM_NAME");
-                    } catch (final SQLException e) {
-                        return null;
-                    }
-                })).filter(tableName::equals).isPresent()) {
-                    return true;
-                }
-            }
-            return false;
-        }
-    }
-
     @PreDestroy
     public void preDestroy() {
-        if (dataSource != null) {
-            dataSource.close();
+        if (datasource != null) {
+            datasource.close();
         }
     }
 

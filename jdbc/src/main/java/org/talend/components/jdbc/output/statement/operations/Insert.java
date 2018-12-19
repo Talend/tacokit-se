@@ -29,7 +29,7 @@ import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.*;
 
 @Slf4j
-public class Insert extends JdbcAction {
+public class Insert extends QueryManager {
 
     private Map<Integer, Schema.Entry> namedParams;
 
