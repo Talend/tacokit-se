@@ -28,7 +28,7 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.*;
 
 @Slf4j
-public class Delete extends JdbcAction {
+public class Delete extends QueryManager {
 
     private final List<String> keys;
 

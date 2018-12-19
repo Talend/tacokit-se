@@ -17,27 +17,35 @@ import org.talend.components.jdbc.datastore.JdbcConnection;
 import java.util.Locale;
 
 import static java.util.Optional.ofNullable;
+import static org.talend.components.jdbc.output.platforms.DerbyPlatform.DERBY;
+import static org.talend.components.jdbc.output.platforms.MSSQLPlatform.MSSQL;
+import static org.talend.components.jdbc.output.platforms.MariaDbPlatform.MARIADB;
+import static org.talend.components.jdbc.output.platforms.MySQLPlatform.MYSQL;
+import static org.talend.components.jdbc.output.platforms.OraclePlatform.ORACLE;
+import static org.talend.components.jdbc.output.platforms.PostgreSQLPlatform.POSTGRESQL;
+import static org.talend.components.jdbc.output.platforms.RedshiftPlatform.REDSHIFT;
+import static org.talend.components.jdbc.output.platforms.SnowflakePlatform.SNOWFLAKE;
 
 public final class PlatformFactory {
 
     public static Platform get(final JdbcConnection connection) {
         final String dbType = ofNullable(connection.getHandler()).orElseGet(connection::getDbType);
         switch (dbType.toLowerCase(Locale.ROOT)) {
-        case MySQLPlatform.MYSQL:
+        case MYSQL:
             return new MySQLPlatform();
-        case MariaDbPlatform.MARIADB:
+        case MARIADB:
             return new MariaDbPlatform();
-        case PostgreSQLPlatform.POSTGRESQL:
+        case POSTGRESQL:
             return new PostgreSQLPlatform();
-        case RedshiftPlatform.REDSHIFT:
+        case REDSHIFT:
             return new RedshiftPlatform();
-        case SnowflakePlatform.SNOWFLAKE:
+        case SNOWFLAKE:
             return new SnowflakePlatform();
-        case OraclePlatform.ORACLE:
+        case ORACLE:
             return new OraclePlatform();
-        case MSSQLPlatform.MSSQL:
+        case MSSQL:
             return new MSSQLPlatform();
-        case DerbyPlatform.DERBY:
+        case DERBY:
             return new DerbyPlatform();
         default:
             throw new RuntimeException("unsupported database " + dbType);
@@ -45,6 +53,6 @@ public final class PlatformFactory {
     }
 
     private PlatformFactory() {
-
+        // no-op
     }
 }

@@ -28,7 +28,7 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.*;
 
 @Slf4j
-public class Update extends JdbcAction {
+public class Update extends QueryManager {
 
     private final List<String> keys;
 

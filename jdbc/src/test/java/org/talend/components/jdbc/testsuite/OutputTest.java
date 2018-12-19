@@ -55,10 +55,10 @@ import static org.talend.components.jdbc.Database.SNOWFLAKE;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @DisplayName("Output")
-@Environment(DirectRunnerEnvironment.class)
-// @Environment(ContextualEnvironment.class)
+// @Environment(DirectRunnerEnvironment.class)
+@Environment(ContextualEnvironment.class)
 @ExtendWith(WithDatabasesEnvironments.class)
-@DisabledDatabases({ @Disabled(value = SNOWFLAKE, reason = "Snowflake credentials need to be setup on ci") })
+// @DisabledDatabases({ @Disabled(value = SNOWFLAKE, reason = "Snowflake credentials need to be setup on ci") })
 class OutputTest extends BaseJdbcTest {
 
     @Service
@@ -74,10 +74,15 @@ class OutputTest extends BaseJdbcTest {
         configuration.setCreateTableIfNotExists(true);
         configuration.setKeys(singletonList("id"));
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
-        final int rowCount = 100;
+
+        final int rowCount = (64 * 1024 * 1024) / recordBuilderFactory.newRecordBuilder().withString("t_string", "data0")
+                .withBoolean("t_boolean", true).withLong("t_long", 10000000000L).withDouble("t_double", 1000.85d)
+                .withFloat("t_float", 15.50f).withDateTime("t_date", new Date())
+                .withBytes("t_bytes", "some data in bytes".getBytes(StandardCharsets.UTF_8)).build().toString().getBytes().length;
+
         Job.components().component("rowGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, false, 0, null))
-                .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput").build()
-                .run();
+                .component("jdbcOutput", "Jdbc://Output?configuration.$maxBatchSize=" + rowCount + "&" + config).connections()
+                .from("rowGenerator").to("jdbcOutput").build().run();
         assertEquals(rowCount, countAll(testTableName, container));
     }
 
