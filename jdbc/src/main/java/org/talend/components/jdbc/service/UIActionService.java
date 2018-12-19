@@ -25,7 +25,6 @@ import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.completion.Suggestions;
 import org.talend.sdk.component.api.service.completion.Values;
 import org.talend.sdk.component.api.service.configuration.Configuration;
-import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 
@@ -85,13 +84,15 @@ public class UIActionService {
 
     @HealthCheck(ACTION_BASIC_HEALTH_CHECK)
     public HealthCheckStatus validateBasicDataStore(@Option final JdbcConnection datastore) {
-        try (final Connection ignored = this.jdbcService.createDataSource(datastore).getConnection()) {
-            // no-op
-        } catch (final Exception e) {
-            return new HealthCheckStatus(HealthCheckStatus.Status.KO, e.getMessage());
-        }
+        try (JdbcService.JdbcDatasource dataSource = this.jdbcService.createDataSource(datastore)) {
+            try (final Connection ignored = dataSource.getConnection()) {
+                // no-op
+            } catch (final Exception e) {
+                return new HealthCheckStatus(HealthCheckStatus.Status.KO, e.getMessage());
+            }
 
-        return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18n.successConnection());
+            return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18n.successConnection());
+        }
     }
 
     @AsyncValidation(ACTION_VALIDATION_READONLY_QUERY)
