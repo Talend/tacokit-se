@@ -365,6 +365,23 @@
             </goals>
           </execution>
         </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.geronimo.config</groupId>
+            <artifactId>geronimo-config-impl</artifactId>
+            <version>1.2</version>
+          </dependency>
+          <dependency>
+            <groupId>org.apache.beam</groupId>
+            <artifactId>beam-sdks-java-core</artifactId>
+            <version>${beam.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>org.talend.sdk.component</groupId>
+            <artifactId>component-runtime-beam</artifactId>
+            <version>${component-runtime.version}</version>
+          </dependency>
+        </dependencies>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

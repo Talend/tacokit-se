@@ -42,6 +42,10 @@ spec:
                 name: 'COMPONENT_SERVER_IMAGE_VERSION',
                 defaultValue: '1.1.2',
                 description: 'The Component Server docker image tag')
+        booleanParam(
+	        name: 'PUSH_DOCKER_IMAGE',
+	        defaultValue: false,
+		description: 'If dev branch, push generated docker image to datapwn (it is always done for master).')
     }
 
     options {
@@ -81,6 +85,9 @@ spec:
         stage('Post Build Steps') {
             parallel {
                 stage('Docker') {
+                    when {
+		        expression { sh(returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim() == 'master' || params.PUSH_DOCKER_IMAGE == true }
+                    }
                     steps {
                         container('main') {
                             withCredentials([
@@ -106,7 +113,7 @@ spec:
                         always {
                             publishHTML(target: [
                                     allowMissing: true, alwaysLinkToLastBuild: false, keepAll: true,
-                                    reportDir   : 'ci_docker/connectors-se-docker/target', reportFiles: 'docker.html', reportName: "Docker Images"
+                                    reportDir   : 'ci_docker/connectors-se-docker/target', includes: 'docker.html', reportFiles: 'docker.html', reportName: "Docker Images"
                             ])
                             publishHTML(target: [
                                     allowMissing: true, alwaysLinkToLastBuild: false, keepAll: true,

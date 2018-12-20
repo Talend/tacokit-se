@@ -1,0 +1,84 @@
+= Talend JDBC Connectors
+
+This project contains a suite of connectors for JDBC databases mostly for reading and writing in addition of bulk loading
+capabilities for some cloud databases like Snowflake and Amazon Redshift.
+
+== How to build the project
+The project locally use maven as build tool.
+
+```
+mvn clean install
+```
+
+== How to run integration tests
+
+This project has a maven profile that let you run the project integration tests that cover most of the open source databases
+like `MySQL`, `MariaDB`, `Postgres`, `Derby`...
+
+The integration tests require *docker* to be present on your machine
+as we relay on https://www.testcontainers.org/usage/database_containers.html to provide environments
+to integration tests.
+
+*IMPORTANT:* Please ensure you have docker installed on your machine and the user that run the tests has the enough
+privilege to pull and start docker containers.
+
+Running integration tests:
+```
+mvn clean install -PITs
+```
+
+
+== Add/disable a database
+The databases that can run within this project are configured in `resources/TALEND-INF/local-configuration.properties`
+
+The default local configuration can be overridden or appended with java environment variables.
+
+=== Adding new database
+
+```
+-Djdbc.drivers[index].id=<Unid Driver ID>
+-Djdbc.drivers[index].displayName=<Driver display name>
+-Djdbc.drivers[index].order=< Driver order in the list>
+-Djdbc.drivers[index].handlers[0]=MySQL
+-Djdbc.drivers[index].className=< Driver qualified class name>
+-Djdbc.drivers[index].paths[0]=<driver maven gav> // so that the driver can be loaded dynamically at runtime
+
+```
+
+Where *index* is the next index from the local-configuration. think of drivers[] as a java object.
+
+=== Disabling a database
+
+```
+-Djdbc.driver.<driver id>.skip=true
+```
+
+For example, to disable Derby
+
+```
+-Djdbc.driver.derby.skip=true
+
+```
+
+== Connector configuration Web UI
+You can explore the components configuration in your web browser by starting the web tools
+that start a component server and deploy the component to it using Talend maven component plugin.
+
+```
+mvn clean install -DskipTests talend-component:web
+```
+
+This start a web server accessible from http://localhost:8080
+
+== Deploy the project components to the studio
+You can deploy this project to *Talend Open Studio* _(version >= 7.1.1)_
+
+* Download and install Talend Open Studio from https://sourceforge.net/projects/talend-studio/files/Talend%20Open%20Studio/[https://sourceforge.net/projects/talend-studio]
+* Build and deploy the project connectors
+```
+mvn clean install -DskipTests \
+     talend-component:deploy-in-studio \
+     -Dtalend.component.studioHome="<path to Talend Open Studio home>"
+```
+
+You will need to install _(in maven format)_ the required drivers manually to `<path to Talend Open Studio home>/configuration/.m2`
