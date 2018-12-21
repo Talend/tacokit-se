@@ -13,6 +13,7 @@
 package org.talend.components.jdbc.service;
 
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.JdbcConfiguration;
 import org.talend.components.jdbc.datastore.JdbcConnection;
@@ -25,6 +26,10 @@ import org.talend.sdk.component.api.service.dependency.Resolver;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -155,7 +160,7 @@ public class JdbcService {
             final ClassLoader prev = thread.getContextClassLoader();
             try {
                 thread.setContextClassLoader(classLoader);
-                return dataSource.getConnection();
+                return wrap(classLoader, dataSource.getConnection(), Connection.class);
             } finally {
                 thread.setContextClassLoader(prev);
             }
@@ -163,13 +168,48 @@ public class JdbcService {
 
         @Override
         public void close() {
+            final Thread thread = Thread.currentThread();
+            final ClassLoader prev = thread.getContextClassLoader();
             try {
+                thread.setContextClassLoader(classLoader);
                 dataSource.close();
             } finally {
+                thread.setContextClassLoader(prev);
                 try {
                     classLoader.close();
                 } catch (final IOException e) {
                     log.error("can't close driver classloader properly", e);
+                }
+            }
+        }
+
+        private static <T> T wrap(final ClassLoader classLoader, final Object delegate, final Class<T> api) {
+            return api.cast(
+                    Proxy.newProxyInstance(classLoader, new Class<?>[] { api }, new ContextualDelegate(delegate, classLoader)));
+        }
+
+        @AllArgsConstructor
+        private static class ContextualDelegate implements InvocationHandler {
+
+            private final Object delegate;
+
+            private final ClassLoader classLoader;
+
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                final Thread thread = Thread.currentThread();
+                final ClassLoader prev = thread.getContextClassLoader();
+                thread.setContextClassLoader(classLoader);
+                try {
+                    final Object invoked = method.invoke(delegate, args);
+                    if (method.getReturnType().getName().startsWith("java.sql.") && method.getReturnType().isInterface()) {
+                        return wrap(classLoader, invoked, method.getReturnType());
+                    }
+                    return invoked;
+                } catch (final InvocationTargetException ite) {
+                    throw ite.getTargetException();
+                } finally {
+                    thread.setContextClassLoader(prev);
                 }
             }
         }
