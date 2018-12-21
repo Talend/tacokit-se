@@ -1,3 +1,15 @@
+/*
+ * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.talend.components.jdbc.output.statement.operations.snowflake;
 
 import lombok.Data;
@@ -33,30 +45,33 @@ import java.util.stream.Collectors;
 
 import static java.nio.file.Files.*;
 import static java.time.LocalDateTime.now;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static java.util.Locale.ROOT;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 @Slf4j
 public class SnowflakeCopy extends QueryManager {
 
-    private final long maxChunk = 64 * 1024 * 1024; // 64 MB
+    private final long maxChunk = 16 * 1024 * 1024; // 16MB
 
-    private final Path snowflakeTempDir;
+    private final Path snowflakeTmpDir;
+
+    private final int putParallelism;
 
     public SnowflakeCopy(final Platform platform, final OutputConfig configuration, final I18nMessage i18n,
             final JdbcService.JdbcDatasource dataSource) {
         super(platform, configuration, i18n, dataSource);
+        this.putParallelism = Math.min(99, 4 * Runtime.getRuntime().availableProcessors());
         try {
-            snowflakeTempDir = createTempDirectory("talend-jdbc-snowflake-");
+            snowflakeTmpDir = createTempDirectory("talend-jdbc-snowflake-");
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 try {
-                    if (snowflakeTempDir != null && snowflakeTempDir.toFile().exists()) {
-                        Files.walk(snowflakeTempDir).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+                    if (snowflakeTmpDir != null && snowflakeTmpDir.toFile().exists()) {
+                        Files.walk(snowflakeTmpDir).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
                     }
                 } catch (final IOException e) {
-                    log.warn("can't clean temp chunk", e);
+                    log.error("can't clean tmp files for snowflake put", e);
                 }
             }));
         } catch (final IOException e) {
@@ -67,20 +82,24 @@ public class SnowflakeCopy extends QueryManager {
     @Override
     public List<Reject> execute(final List<Record> records) throws SQLException {
         final List<Reject> rejects = new ArrayList<>();
-        final Collection<RecordChunk> chunks = splitRecords(snowflakeTempDir, records);
+        final List<RecordChunk> chunks = splitRecords(snowflakeTmpDir, records);
         try (final Connection connection = getDataSource().getConnection()) {
             final String qSchema = getPlatform().identifier(connection.getSchema());
             final String qDatabase = getPlatform().identifier(connection.getCatalog());
-            final String fqStageName = qDatabase + "." + qSchema + ".%"
-                    + getPlatform().identifier(getConfiguration().getDataset().getTableName());
-            final String fqTableName = qDatabase + "." + qSchema + "."
-                    + getPlatform().identifier(getConfiguration().getDataset().getTableName());
+            final String tableName = getConfiguration().getDataset().getTableName();
+            final String fqTableName = qDatabase + "." + qSchema + "." + getPlatform().identifier(tableName);
+            final String fqStageName = qDatabase + "." + qSchema + ".%" + getPlatform().identifier(tableName);
             try (final Statement statement = connection.createStatement()) {
-                final List<RecordChunk> chunkToCopy = chunks.parallelStream()
+                final List<RecordChunk> chunksToCopy = chunks.stream().parallel()
                         .map(chunk -> doPUT(fqStageName, statement, chunk, rejects)).filter(Objects::nonNull).collect(toList());
 
-                rejects.addAll(doCopy(fqStageName, fqTableName, statement, chunkToCopy));
-
+                final List<CopyError> copyErrors = doCopy(fqStageName, fqTableName, statement, chunksToCopy);
+                if (!copyErrors.isEmpty()) {
+                    if (copyErrors.size() == chunks.size()) {
+                        throw new IllegalStateException(copyErrors.stream().map(CopyError::getError).collect(joining("\n")));
+                    }
+                    rejects.addAll(validationToReject(chunks, copyErrors));
+                }
             }
             connection.commit();
         }
@@ -88,69 +107,94 @@ public class SnowflakeCopy extends QueryManager {
         return rejects;
     }
 
-    private RecordChunk doPUT(final String fqStageName, final Statement statement, final RecordChunk chunk,
-            final List<Reject> rejects) {
-        try {
-            statement.execute("PUT '" + chunk.getChunk().toUri() + "' '@" + fqStageName + "/' AUTO_COMPRESS=TRUE");
-            return chunk;
-        } catch (final SQLException e) {
-            rejects.addAll(chunk.getRecords().stream()
-                    .map(record -> new Reject(e.getMessage(), e.getSQLState(), e.getErrorCode(), record))
-                    .collect(Collectors.toList()));
-            return null;
-        }
+    private List<Reject> validationToReject(final List<RecordChunk> chunks, final List<CopyError> validationResult) {
+        return validationResult.stream()
+                .flatMap(e -> chunks.stream().filter(chunk -> chunk.getChunk().getFileName().toString().equals(e.getFile()))
+                        .flatMap(chunk -> chunk.getRecords().stream().map(record -> new Reject(e.getError(), record))))
+                .collect(toList());
     }
 
-    private List<Reject> doCopy(final String fqStageName, final String fqTableName, final Statement statement,
+    private RecordChunk doPUT(final String fqStageName, final Statement statement, final RecordChunk chunk,
+            final List<Reject> rejects) {
+        try (final ResultSet result = statement.executeQuery(
+                "PUT '" + chunk.getChunk().toUri() + "' '@" + fqStageName + "/' AUTO_COMPRESS=TRUE PARALLEL=" + putParallelism)) {
+            if (!"UPLOADED".equalsIgnoreCase(result.getString("status"))) {
+                String error = result.getString("message");
+                rejects.addAll(toReject(chunk, error, result.getString("status"), null));
+                return null;
+            }
+        } catch (final SQLException e) {
+            rejects.addAll(toReject(chunk, e.getMessage(), e.getSQLState(), e.getErrorCode()));
+            return null;
+        }
+
+        return chunk;
+    }
+
+    private List<Reject> toReject(RecordChunk chunk, String error, final String state, final Integer code) {
+        return chunk.getRecords().stream().map(record -> new Reject(error, state, code, record)).collect(Collectors.toList());
+    }
+
+    private List<CopyError> doCopy(final String fqStageName, final String fqTableName, final Statement statement,
             final List<RecordChunk> chunks) {
-        final List<CopyResult> errors = new ArrayList<>();
+        final List<CopyError> errors = new ArrayList<>();
         try (final ResultSet result = statement
                 .executeQuery("COPY INTO " + fqTableName + " from '@" + fqStageName + "/'" + " FILES="
                         + chunks.stream().map(chunk -> chunk.getChunk().getFileName()).map(name -> "'" + name + ".gz'")
                                 .collect(joining(",", "(", ")"))
                         + " FILE_FORMAT=(TYPE=CSV field_delimiter=',' COMPRESSION=GZIP field_optionally_enclosed_by='\"')"
-                        + " PURGE=TRUE" + " ON_ERROR='CONTINUE'")) {
+                        + "PURGE=TRUE ON_ERROR='CONTINUE'")) {
             while (result.next()) {
                 final String status = result.getString("status");
-                if ("LOAD_FAILED".equals(status)) {
+                switch (status.toLowerCase(ROOT)) {
+                case "load_failed":
+                case "partially_loaded":
                     final String file = result.getString("file");
-                    final String error = result.getString("FIRST_ERROR");
+                    final String error = result.getString("first_error");
+                    final int errorLine = result.getInt("first_error_line");
+                    final int errorsSeen = result.getInt("errors_seen");
+                    final int errorLimit = result.getInt("error_limit");
+                    final int errorCharacter = result.getInt("first_error_character");
+                    final String errorColumnName = result.getString("first_error_column_name");
                     final int rowsLoaded = result.getInt("rows_loaded");
                     final int rowsParsed = result.getInt("rows_parsed");
-                    errors.add(new CopyResult(file, error, rowsLoaded, rowsParsed));
+                    errors.add(new CopyError(file, errorsSeen, errorLimit, error, errorLine, errorCharacter, errorColumnName,
+                            rowsLoaded, rowsParsed));
+                    break;
+                case "loaded":
+                    break;
                 }
             }
         } catch (final SQLException e) {
             throw new IllegalStateException(e);
         }
 
-        if (!errors.isEmpty()) {
-            if (errors.size() == chunks.size()) {
-                throw new IllegalStateException(errors.stream().map(CopyResult::getError).collect(joining("\n")));
-            }
-
-            return errors.stream()
-                    .flatMap(e -> chunks.stream().filter(chunk -> chunk.getChunk().getFileName().toString().equals(e.getFile()))
-                            .flatMap(chunk -> chunk.getRecords().stream().map(record -> new Reject(e.getError(), record))))
-                    .collect(toList());
-        }
-
-        return emptyList();
+        return errors;
     }
 
     @Data
-    private static class CopyResult {
+    private static class CopyError {
 
         private final String file;
 
+        private final int errorSeen;
+
+        private final int errorLimit;
+
         private final String error;
+
+        private final int errorLine;
+
+        private final int errorCharacter;
+
+        private final String errorColumnName;
 
         private final int rowLoaded;
 
         private final int rowParsed;
     }
 
-    private Collection<RecordChunk> splitRecords(final Path directoryPath, final List<Record> records) {
+    private List<RecordChunk> splitRecords(final Path directoryPath, final List<Record> records) {
         final AtomicLong size = new AtomicLong(0);
         final AtomicInteger count = new AtomicInteger(0);
         final AtomicInteger recordCounter = new AtomicInteger(0);
@@ -168,7 +212,7 @@ public class SnowflakeCopy extends QueryManager {
                             .writer(line);
                 });
         chunks.get(count.get()).close(); // close the last writer
-        return chunks.values();
+        return new ArrayList<>(chunks.values());
     }
 
     @Getter
@@ -228,7 +272,7 @@ public class SnowflakeCopy extends QueryManager {
     }
 
     @Override
-    protected String buildQuery(List<Record> records) {
+    protected String buildQuery(final List<Record> records) {
         return null;
     }
 
@@ -238,11 +282,11 @@ public class SnowflakeCopy extends QueryManager {
     }
 
     @Override
-    protected boolean validateQueryParam(Record record) {
+    protected boolean validateQueryParam(final Record record) {
         return true;
     }
 
-    private static String valueOf(Record record, Schema.Entry entry) {
+    private static String valueOf(final Record record, final Schema.Entry entry) {
         switch (entry.getType()) {
         case INT:
             return String.valueOf(record.getInt(entry.getName()));
@@ -251,19 +295,33 @@ public class SnowflakeCopy extends QueryManager {
         case BYTES:
             return Hex.encodeHexString(record.getBytes(entry.getName()));
         case FLOAT:
-            return String.valueOf(record.getFloat(entry.getName()));
+            return Float.toHexString(record.getFloat(entry.getName()));
         case DOUBLE:
-            return String.valueOf(record.getDouble(entry.getName()));
+            return Double.toHexString(record.getDouble(entry.getName()));
         case BOOLEAN:
             return String.valueOf(record.getBoolean(entry.getName()));
         case DATETIME:
             return String.valueOf(record.getDateTime(entry.getName()).toInstant().toEpochMilli());
         case STRING:
-            return "\"" + record.getString(entry.getName()) + "\"";
+            return escape(record.getString(entry.getName()));
         case ARRAY:
         case RECORD:
         default:
             throw new IllegalArgumentException("unsupported type in " + entry);
+        }
+    }
+
+    private static String escape(final String value) {
+        if (value == null) {
+            return "";
+        }
+        if (value.isEmpty()) {
+            return "\"\"";
+        }
+        if (value.indexOf('"') >= 0 || value.indexOf('\n') >= 0 || value.indexOf(',') >= 0 || value.indexOf('\\') >= 0) {
+            return '"' + value.replaceAll("\"", "\"\"") + '"';
+        } else {
+            return value;
         }
     }
 }
