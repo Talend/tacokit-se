@@ -12,6 +12,7 @@
  */
 package org.talend.components.jdbc.output.statement.operations;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfig;
 import org.talend.components.jdbc.output.platforms.Platform;
@@ -28,6 +29,7 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.*;
 
 @Slf4j
+@Getter
 public class Update extends QueryManager {
 
     private final List<String> keys;

@@ -63,7 +63,7 @@ public abstract class BaseJdbcTest {
         dropTestTable(testInfo, container);
     }
 
-    // @AfterEach
+    @AfterEach
     void afterEach(final TestInfo testInfo, final JdbcTestContainer container) {
         dropTestTable(testInfo, container);
     }

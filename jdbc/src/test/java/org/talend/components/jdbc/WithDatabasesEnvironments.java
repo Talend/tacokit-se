@@ -45,7 +45,7 @@ public class WithDatabasesEnvironments implements TestTemplateInvocationContextP
             @Override
             public String getDisplayName(int invocationIndex) {
                 final String name = ((DecoratingEnvironmentProvider) provider).getName();
-                return database + " with " + ("direct".equalsIgnoreCase(name) ? "Beam Direct Runner" : name);
+                return database + " @ " + ("direct".equalsIgnoreCase(name) ? "Beam Runner" : name);
             }
 
             @Override
