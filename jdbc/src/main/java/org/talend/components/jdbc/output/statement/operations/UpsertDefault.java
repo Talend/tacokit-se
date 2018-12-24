@@ -1,5 +1,6 @@
 package org.talend.components.jdbc.output.statement.operations;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfig;
 import org.talend.components.jdbc.output.Reject;
@@ -22,6 +23,7 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.*;
 
 @Slf4j
+@Getter
 public class UpsertDefault extends QueryManager {
 
     private final Insert insert;

@@ -171,4 +171,13 @@ public abstract class QueryManager {
         }
     }
 
+    public String namespace(final Connection connection) throws SQLException {
+        return (connection.getCatalog() != null && !connection.getCatalog().isEmpty()
+                ? getPlatform().identifier(connection.getCatalog()) + "."
+                : "")
+                + (connection.getSchema() != null && !connection.getSchema().isEmpty()
+                        ? getPlatform().identifier(connection.getSchema())
+                        : "");
+    }
+
 }
