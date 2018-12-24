@@ -30,7 +30,6 @@ import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit5.WithComponents;
-import org.talend.sdk.component.runtime.input.Mapper;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
 @Disabled("Salesforce credentials is not ready on ci")
@@ -223,9 +222,6 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
         soqlQueryDataSet.setQuery("select  name from account where name = 'this name will never exist $'");
         soqlQueryDataSet.setDataStore(getDataStore());
 
-        // We create the component mapper instance using the configuration filled above
-        final Mapper mapper = getComponentsHandler().createMapper(SOQLQueryEmitter.class, soqlQueryDataSet);
-
         final String config = configurationByExample().forInstance(soqlQueryDataSet).configured().toQueryString();
         Job.components().component("salesforce-input", "Salesforce://SOQLQueryInput?" + config)
                 .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
@@ -244,6 +240,22 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
                 () -> Job.components().component("salesforce-input", "Salesforce://SOQLQueryInput?" + config)
                         .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build()
                         .run());
+    }
+
+    @Test
+    @DisplayName("Test SOQL query with relationship")
+    public void testSOQLQueryChildToParent() {
+        final SOQLQueryDataSet soqlQueryDataSet = new SOQLQueryDataSet();
+        soqlQueryDataSet.setQuery("select Id,Name,CreatedBy.Name from Account where Name Like 'TestName_100%" + UNIQUE_ID + "%'");
+        soqlQueryDataSet.setDataStore(getDataStore());
+
+        final String config = configurationByExample().forInstance(soqlQueryDataSet).configured().toQueryString();
+        Job.components().component("salesforce-input", "Salesforce://SOQLQueryInput?" + config)
+                .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
+        final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
+        Assert.assertEquals(1, records.size());
+        Record record = records.get(0);
+        assertNotNull(record.getString("CreatedBy_Name"));
     }
 
     @AfterAll

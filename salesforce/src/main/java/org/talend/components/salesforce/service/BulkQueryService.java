@@ -444,7 +444,7 @@ public class BulkQueryService {
         Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder();
         for (String fieldName : result.keySet()) {
             if (fieldName != null) {
-                addField(recordBuilder, fieldMap.get(fieldName), result.get(fieldName));
+                addField(recordBuilder, fieldName, result.get(fieldName));
             }
         }
         return recordBuilder.build();
@@ -457,36 +457,43 @@ public class BulkQueryService {
     /**
      * Add field to record
      */
-    private void addField(final Record.Builder builder, Field field, final String value) throws IOException {
-        if (field == null || value == null || value.isEmpty()) {
+    private void addField(final Record.Builder builder, String fieldName, final String value) throws IOException {
+        if (value == null || value.isEmpty()) {
             return;
         }
         try {
-            switch (field.getType()) {
-            case _boolean:
-                builder.withBoolean(field.getName(), Boolean.valueOf(value));
-                break;
-            case _double:
-            case percent:
-            case currency:
-                builder.withDouble(field.getName(), Double.parseDouble(value));
-                break;
-            case _int:
-                builder.withInt(field.getName(), Integer.valueOf(value));
-                break;
-            case date:
-                builder.withDateTime(field.getName(), DATE_FORMAT.parse(value));
-                break;
-            case datetime:
-                builder.withTimestamp(field.getName(), DATETIME_FORMAT.parse(value).getTime());
-                break;
-            case time:
-                builder.withTimestamp(field.getName(), TIME_FORMAT.parse(value).getTime());
-                break;
-            case base64:
-            default:
-                builder.withString(field.getName(), value);
-                break;
+            // Get field from moduel field mapping, if null means not a field of moduel
+            Field field = fieldMap.get(fieldName);
+            if (field != null) {
+                switch (field.getType()) {
+                case _boolean:
+                    builder.withBoolean(field.getName(), Boolean.valueOf(value));
+                    break;
+                case _double:
+                case percent:
+                case currency:
+                    builder.withDouble(field.getName(), Double.parseDouble(value));
+                    break;
+                case _int:
+                    builder.withInt(field.getName(), Integer.valueOf(value));
+                    break;
+                case date:
+                    builder.withDateTime(field.getName(), DATE_FORMAT.parse(value));
+                    break;
+                case datetime:
+                    builder.withTimestamp(field.getName(), DATETIME_FORMAT.parse(value).getTime());
+                    break;
+                case time:
+                    builder.withTimestamp(field.getName(), TIME_FORMAT.parse(value).getTime());
+                    break;
+                case base64:
+                default:
+                    builder.withString(field.getName(), value);
+                    break;
+                }
+            } else {
+                // if field not exist in the field mapping of module, put string type as default
+                builder.withString(fieldName, value);
             }
         } catch (ParseException e) {
             // TODO
