@@ -18,7 +18,8 @@ import java.util.List;
 
 import static java.time.LocalDateTime.now;
 import static java.util.stream.Collectors.joining;
-import static org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeCopy.upload;
+import static org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeCopy.putAndCopy;
+import static org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeCopy.tmpTableName;
 
 public class SnowflakeDelete extends Delete {
 
@@ -33,12 +34,11 @@ public class SnowflakeDelete extends Delete {
         final List<Reject> rejects = new ArrayList<>();
         try (final Connection connection = getDataSource().getConnection()) {
             final String tableName = getConfiguration().getDataset().getTableName();
-            final String suffix = now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-            final String tmpTableName = "temp_" + tableName + "_" + suffix;
+            final String tmpTableName = tmpTableName(tableName);
             final String fqTableName = namespace(connection) + "." + getPlatform().identifier(tableName);
             final String fqTmpTableName = namespace(connection) + "." + getPlatform().identifier(tmpTableName);
             final String fqStageName = namespace(connection) + ".%" + getPlatform().identifier(tmpTableName);
-            rejects.addAll(upload(connection, records, fqStageName, fqTableName, fqTmpTableName));
+            rejects.addAll(putAndCopy(connection, records, fqStageName, fqTableName, fqTmpTableName));
             // delete from temp table
             try (final Statement statement = connection.createStatement()) {
                 statement.execute("delete from " + fqTableName + " target using " + fqTmpTableName + " as source where "
