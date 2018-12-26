@@ -16,7 +16,6 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.Hex;
 import org.talend.components.jdbc.output.Reject;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -32,7 +31,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -40,26 +38,41 @@ import java.util.stream.Collectors;
 
 import static java.nio.file.Files.*;
 import static java.time.LocalDateTime.now;
+import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Locale.ROOT;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.codec.binary.Hex.encodeHexString;
 
 @Slf4j
 public class SnowflakeCopy {
 
     private static final long maxChunk = 16 * 1024 * 1024; // 16MB
 
-    public static List<Reject> upload(final Connection connection, final List<Record> records, final String fqStageName,
+    private static final String TIMESTAMP_FORMAT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+
+    public static List<Reject> putAndCopy(final Connection connection, final List<Record> records, final String fqStageName,
             final String fqTableName, final String fqTmpTableName) throws SQLException {
-        final List<Reject> rejects = new ArrayList<>();
+
         final List<RecordChunk> chunks = splitRecords(createWorkDir(), records);
         try (final Statement statement = connection.createStatement()) {
             statement.execute("create temporary table if not exists " + fqTmpTableName + " like " + fqTableName);
         }
+        final List<Reject> rejects = new ArrayList<>();
         final List<RecordChunk> copy = chunks.stream().parallel().map(chunk -> doPUT(fqStageName, connection, chunk, rejects))
                 .filter(Objects::nonNull).collect(toList());
         rejects.addAll(toReject(chunks, doCopy(fqStageName, fqTmpTableName, connection, copy)));
         return rejects;
+    }
+
+    /**
+     * @return a tmp table name from the original table name
+     */
+
+    public static String tmpTableName(final String tableName) {
+        final String suffix = now(ZoneOffset.UTC).format(ofPattern("yyyyMMddHHmmss"));
+        String tmpTableName = "temp_" + tableName + "_" + suffix;
+        return tmpTableName.length() < 256 ? tmpTableName : tmpTableName.substring(0, 256);
     }
 
     private static Path createWorkDir() {
@@ -220,7 +233,7 @@ public class SnowflakeCopy {
         void writer(final String line) {
             if (writer == null) {
                 end = start;
-                final String suffix = now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+                final String suffix = now(ZoneOffset.UTC).format(ofPattern("yyyyMMddHHmmss"));
                 try {
                     chunk = createTempFile(tmpDir, "part_" + part + "_", "_" + suffix + ".csv");
                     writer = newBufferedWriter(chunk, StandardCharsets.UTF_8);
@@ -254,16 +267,17 @@ public class SnowflakeCopy {
             return String.valueOf(record.getInt(entry.getName()));
         case LONG:
             return String.valueOf(record.getLong(entry.getName()));
-        case BYTES:
-            return Hex.encodeHexString(record.getBytes(entry.getName()));
         case FLOAT:
             return Float.toHexString(record.getFloat(entry.getName()));
         case DOUBLE:
             return Double.toHexString(record.getDouble(entry.getName()));
         case BOOLEAN:
             return String.valueOf(record.getBoolean(entry.getName()));
+        case BYTES:
+            return record.getBytes(entry.getName()) == null ? "" : encodeHexString(record.getBytes(entry.getName()));
         case DATETIME:
-            return String.valueOf(record.getDateTime(entry.getName()).toInstant().toEpochMilli());
+            return record.getDateTime(entry.getName()) == null ? ""
+                    : record.getDateTime(entry.getName()).format(ofPattern(TIMESTAMP_FORMAT_PATTERN));
         case STRING:
             return escape(record.getString(entry.getName()));
         case ARRAY:

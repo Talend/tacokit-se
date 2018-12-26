@@ -19,7 +19,8 @@ import java.util.stream.Collectors;
 
 import static java.time.LocalDateTime.now;
 import static java.util.stream.Collectors.joining;
-import static org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeCopy.upload;
+import static org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeCopy.putAndCopy;
+import static org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeCopy.tmpTableName;
 
 public class SnowflakeUpsert extends UpsertDefault {
 
@@ -31,22 +32,23 @@ public class SnowflakeUpsert extends UpsertDefault {
     @Override
     public List<Reject> execute(List<Record> records) throws SQLException {
         buildQuery(records);
+        getInsert().buildQuery(records);
+        getUpdate().buildQuery(records);
         final List<Reject> rejects = new ArrayList<>();
         try (final Connection connection = getDataSource().getConnection()) {
             final String tableName = getConfiguration().getDataset().getTableName();
-            final String suffix = now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-            final String tmpTableName = "temp_" + tableName + "_" + suffix;
+            final String tmpTableName = tmpTableName(tableName);
             final String fqTableName = namespace(connection) + "." + getPlatform().identifier(tableName);
             final String fqTmpTableName = namespace(connection) + "." + getPlatform().identifier(tmpTableName);
             final String fqStageName = namespace(connection) + ".%" + getPlatform().identifier(tmpTableName);
-            rejects.addAll(upload(connection, records, fqStageName, fqTableName, fqTmpTableName));
+            rejects.addAll(putAndCopy(connection, records, fqStageName, fqTableName, fqTmpTableName));
             // upsert from temp table
             try (final Statement statement = connection.createStatement()) {
                 statement.execute("merge into " + fqTableName + " target using " + fqTmpTableName + " as source on "
                         + getConfiguration().getKeys().stream().map(key -> getPlatform().identifier(key))
                                 .map(key -> "source." + key + "= target." + key).collect(joining("AND", " ", " "))
                         + " when matched then update set "
-                        + getQueryParams().values().stream()
+                        + getUpdate().getQueryParams().values().stream()
                                 .filter(p -> !getUpdate().getIgnoreColumns().contains(p.getName())
                                         && !getKeys().contains(p.getName()))
                                 .map(e -> getPlatform().identifier(e.getName()))
