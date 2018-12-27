@@ -40,7 +40,7 @@ spec:
     parameters {
         string(
                 name: 'COMPONENT_SERVER_IMAGE_VERSION',
-                defaultValue: '1.1.2',
+                defaultValue: '1.1.4',
                 description: 'The Component Server docker image tag')
         booleanParam(
 	        name: 'PUSH_DOCKER_IMAGE',
