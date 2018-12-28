@@ -32,12 +32,12 @@ import lombok.Data;
         // customize it as much as needed
         @GridLayout.Row({ "moduleDataSet" }), @GridLayout.Row({ "outputAction" }), @GridLayout.Row({ "upsertKeyColumn" }),
         @GridLayout.Row({ "batchMode" }), @GridLayout.Row("commitLevel"), @GridLayout.Row("exceptionForErrors") })
-@Documentation("TODO fill the documentation for this configuration")
+@Documentation("This configuration of output component")
 public class OutputConfiguration implements Serializable {
 
     @Option
     @Required
-    @Documentation("")
+    @Documentation("the configuration of connection and target module")
     private ModuleDataSet moduleDataSet;
 
     @Option
@@ -57,13 +57,13 @@ public class OutputConfiguration implements Serializable {
 
     @Option
     @ActiveIf(target = "batchMode", value = "true")
-    @Documentation("size of every batch")
+    @Documentation("max size of batch")
     private int commitLevel = 200;
 
     @Option
     @Required
     @DefaultValue("true")
-    @Documentation("exception for errors")
+    @Documentation("whether throw exception when got error during operation")
     private boolean exceptionForErrors;
 
     public enum OutputAction {

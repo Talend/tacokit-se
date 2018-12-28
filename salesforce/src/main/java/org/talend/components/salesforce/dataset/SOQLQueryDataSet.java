@@ -27,16 +27,16 @@ import lombok.Data;
 @Data
 @DataSet("SOQLQuery")
 @GridLayout(value = { @GridLayout.Row("dataStore"), @GridLayout.Row("query"), })
-@Documentation("")
+@Documentation("The dataset which soql filled manually")
 public class SOQLQueryDataSet implements QueryDataSet {
 
     @Option
-    @Documentation("")
+    @Documentation("connection information of salesforce")
     private BasicDataStore dataStore;
 
     @Option
     @Code("sql")
-    @Documentation("")
+    @Documentation("the soql to be executed")
     private String query;
 
 }

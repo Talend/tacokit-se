@@ -92,7 +92,7 @@ public class UiActionService {
     }
 
     @Update("defaultColumns")
-    public ModuleDataSet.ColumnSelectionConfig defaultColumns(@Option("moduleDataSet") final BasicDataStore dataStore,
+    public ModuleDataSet.ColumnSelectionConfig defaultColumns(@Option("dataStore") final BasicDataStore dataStore,
             @Option("moduleName") final String moduleName) {
         try {
             final ModuleDataSet.ColumnSelectionConfig config = new ModuleDataSet.ColumnSelectionConfig();

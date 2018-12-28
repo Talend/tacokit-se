@@ -59,12 +59,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BulkQueryService {
 
-    public static final int DEFAULT_CHUNK_SIZE = 100_000;
-
-    public static final int DEFAULT_CHUNK_SLEEP_TIME = 15;
-
-    public static final int MAX_CHUNK_SIZE = 250_000;
-
     public static final int DEFAULT_JOB_TIME_OUT = 0;
 
     private static final String PK_CHUNKING_HEADER_NAME = "Sforce-Enable-PKChunking";
@@ -113,9 +107,6 @@ public class BulkQueryService {
         this.bulkConnection = bulkConnection;
         this.recordBuilderFactory = recordBuilderFactory;
         this.messagesI18n = messages;
-        // PK Chunking is not supported in dataset
-        // this.chunkSize = DEFAULT_CHUNK_SIZE;
-        // chunkSleepTime = DEFAULT_CHUNK_SLEEP_TIME;
         this.jobTimeOut = DEFAULT_JOB_TIME_OUT;
     }
 
@@ -462,7 +453,7 @@ public class BulkQueryService {
             return;
         }
         try {
-            // Get field from moduel field mapping, if null means not a field of moduel
+            // Get field from module field mapping, if null means not a field of module
             Field field = fieldMap.get(fieldName);
             if (field != null) {
                 switch (field.getType()) {

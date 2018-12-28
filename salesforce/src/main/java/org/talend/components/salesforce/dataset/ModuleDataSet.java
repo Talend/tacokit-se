@@ -33,26 +33,26 @@ import lombok.Data;
 @DataSet("ModuleSelection")
 @GridLayout(value = { @GridLayout.Row("dataStore"), @GridLayout.Row("moduleName"), @GridLayout.Row("condition"),
         @GridLayout.Row("columnSelectionConfig") })
-@Documentation("")
+@Documentation("This dataset use module name, query condition and selected columns build SOQL to query records")
 public class ModuleDataSet implements QueryDataSet {
 
     @Option
     @Required
-    @Documentation("")
+    @Documentation("the connection information of salesforce")
     private BasicDataStore dataStore;
 
     @Option
     @Required
     @Suggestable(value = "loadSalesforceModules", parameters = { "dataStore" })
-    @Documentation("")
+    @Documentation("module name")
     private String moduleName;
 
     @Option
-    @Documentation("")
+    @Documentation("condition of query")
     private String condition;
 
     @Option
-    @Documentation("Column seelection")
+    @Documentation("select columns to query")
     @Updatable(value = "defaultColumns", parameters = { "dataStore", "moduleName" })
     private ColumnSelectionConfig columnSelectionConfig;
 
@@ -61,7 +61,7 @@ public class ModuleDataSet implements QueryDataSet {
     public static class ColumnSelectionConfig implements Serializable {
 
         @Option
-        @Documentation("")
+        @Documentation("selected column names")
         private List<String> selectColumnNames;
     }
 
