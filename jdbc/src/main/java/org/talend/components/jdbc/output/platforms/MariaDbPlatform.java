@@ -67,24 +67,17 @@ public class MariaDbPlatform extends Platform {
         return identifier(column.getName())//
                 + " " + toDBType(column)//
                 + " " + isRequired(column)//
-                + " " + defaultValue(column);
+        ;
     }
 
     private String isRequired(final Column column) {
         return column.isNullable() ? "NULL" : "NOT NULL";
     }
 
-    private String defaultValue(Column column) {
-        return column.getDefaultValue() == null ? "" : "DEFAULT " + column.getDefaultValue();
-    }
-
     private String toDBType(final Column column) {
         switch (column.getType()) {
         case STRING:
-            if (column.getSize() != null && column.getSize() > 255) {
-                return "TEXT";
-            }
-            return "VARCHAR(255)";
+            return "TEXT";
         case BOOLEAN:
             return "BOOLEAN";
         case DOUBLE:

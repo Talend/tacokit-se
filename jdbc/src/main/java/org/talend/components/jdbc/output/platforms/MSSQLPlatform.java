@@ -69,15 +69,11 @@ public class MSSQLPlatform extends Platform {
         return identifier(column.getName())//
                 + " " + toDBType(column)//
                 + " " + isRequired(column)//
-                + (column.getDefaultValue() == null ? "" : " " + defaultValue(column));
+        ;
     }
 
     private String isRequired(final Column column) {
         return column.isNullable() ? "" : "NOT NULL";
-    }
-
-    private String defaultValue(Column column) {
-        return column.getDefaultValue() == null ? "" : "DEFAULT " + column.getDefaultValue();
     }
 
     private String toDBType(final Column column) {
