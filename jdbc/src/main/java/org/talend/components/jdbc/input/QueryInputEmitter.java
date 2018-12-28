@@ -27,7 +27,7 @@ import java.io.Serializable;
 
 @Slf4j
 @Version
-@Icon(value = Icon.IconType.CUSTOM, custom = "JDBCInput")
+@Icon(value = Icon.IconType.DATASTORE)
 @Emitter(name = "QueryInput")
 @Documentation("JDBC query input")
 public class QueryInputEmitter extends AbstractInputEmitter implements Serializable {

@@ -29,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Version
-@Icon(value = Icon.IconType.CUSTOM, custom = "JDBCInput")
+@Icon(value = Icon.IconType.DATASTORE)
 @Emitter(name = "TableNameInput")
 @Documentation("JDBC input using table name")
 public class TableNameInputEmitter extends AbstractInputEmitter implements Serializable {

@@ -39,7 +39,7 @@ import static org.talend.components.jdbc.output.statement.QueryManagerFactory.ge
 @Slf4j
 @Processor(name = "Output")
 @Version
-@Icon(value = Icon.IconType.CUSTOM, custom = "JDBCOutput")
+@Icon(value = Icon.IconType.DATASTORE)
 @Documentation("JDBC Output component")
 public class Output implements Serializable {
 
