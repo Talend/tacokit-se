@@ -36,13 +36,13 @@ public class InputMapperConfiguration implements Serializable {
 
     @Option
     @Documentation("Durable subscription configuration")
-    @ActiveIf(target = "basicConfig.messageType", value = "TOPIC")
+    @ActiveIf(target = "basicConfig/messageType", value = "TOPIC")
     private DurableSubscriptionConfiguration subscriptionConfig;
 
     @Option
     @Min(0)
     @Documentation("JMS receive message timeout. A timeout of zero never expires, and the call blocks indefinitely.")
-    private Integer timeout = -1;
+    private Integer timeout = 0;
 
     @Option
     @Min(0)
