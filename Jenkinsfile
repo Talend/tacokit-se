@@ -146,7 +146,7 @@ spec:
                                             usernameVariable: 'NEXUS_USER',
                                             passwordVariable: 'NEXUS_PASSWORD')
                             ]) {
-                                sh "cd ci_nexus && mvn -s .jenkins/settings.xml clean deploy -e -DskipTests -DaltDeploymentRepository=talend.snapshots::default::${deploymentRepository}"
+                                sh "cd ci_nexus && mvn -s .jenkins/settings.xml clean deploy -e -Pdocker -DskipTests -DaltDeploymentRepository=talend.snapshots::default::${deploymentRepository}"
                             }
                         }
                     }
