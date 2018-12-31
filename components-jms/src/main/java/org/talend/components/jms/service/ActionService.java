@@ -20,9 +20,9 @@ import org.talend.sdk.component.api.service.completion.DynamicValues;
 import org.talend.sdk.component.api.service.completion.Values;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.api.service.schema.DiscoverSchema;
-import org.talend.sdk.component.api.service.schema.Schema;
-import org.talend.sdk.component.api.service.schema.Type;
+import org.talend.sdk.component.api.record.Schema;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -30,7 +30,6 @@ import javax.jms.JMSException;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import java.net.URLClassLoader;
-import java.util.Collections;
 
 import static java.util.stream.Collectors.toList;
 import static org.talend.components.jms.MessageConst.MESSAGE_CONTENT;
@@ -50,6 +49,9 @@ public class ActionService {
     @Service
     private I18nMessage i18n;
 
+    @Service
+    private RecordBuilderFactory recordBuilderFactory;
+
     @DynamicValues(ACTION_LIST_SUPPORTED_BROKER)
     public Values loadSupportedJMSProviders() {
         return new Values(jmsService.getProviders().keySet().stream().map(id -> new Values.Item(id, id)).collect(toList()));
@@ -57,7 +59,10 @@ public class ActionService {
 
     @DiscoverSchema(DISCOVER_SCHEMA)
     public Schema guessSchema(BasicConfiguration config) {
-        return new Schema(Collections.singletonList(new Schema.Entry(MESSAGE_CONTENT, Type.STRING)));
+        return recordBuilderFactory.newSchemaBuilder(org.talend.sdk.component.api.record.Schema.Type.RECORD)
+                .withEntry(recordBuilderFactory.newEntryBuilder().withName(MESSAGE_CONTENT)
+                        .withType(org.talend.sdk.component.api.record.Schema.Type.STRING).build())
+                .build();
     }
 
     @HealthCheck(ACTION_BASIC_HEALTH_CHECK)
