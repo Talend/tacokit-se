@@ -59,9 +59,9 @@ public class ActionService {
 
     @DiscoverSchema(DISCOVER_SCHEMA)
     public Schema guessSchema(BasicConfiguration config) {
-        return recordBuilderFactory.newSchemaBuilder(org.talend.sdk.component.api.record.Schema.Type.RECORD)
+        return recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD)
                 .withEntry(recordBuilderFactory.newEntryBuilder().withName(MESSAGE_CONTENT)
-                        .withType(org.talend.sdk.component.api.record.Schema.Type.STRING).build())
+                        .withType(Schema.Type.STRING).build())
                 .build();
     }
 
