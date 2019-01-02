@@ -87,7 +87,7 @@ public class InputSource implements Serializable {
                         configuration.getBasicConfig().getConnection().getUserName(),
                         configuration.getBasicConfig().getConnection().getPassword());
             } catch (JMSException e) {
-                throw new IllegalStateException(i18n.errorInvalidConnection());
+                throw new IllegalStateException(i18n.errorInvalidConnection(), e);
             }
 
             if (configuration.getSubscriptionConfig().isDurableSubscription()) {
