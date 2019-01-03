@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -53,7 +53,7 @@ public class OraclePlatform extends Platform {
         sql.append(identifier(table.getName()));
         sql.append("(");
         sql.append(createColumns(table.getColumns()));
-        sql.append(createPKs(table.getPrimaryKeys()));
+        sql.append(createPKs(table.getColumns().stream().filter(Column::isPrimaryKey).collect(Collectors.toList())));
         // todo create index
         sql.append(")");
 
@@ -84,14 +84,10 @@ public class OraclePlatform extends Platform {
         ;
     }
 
-    private String isRequired(final Column column) {
-        return column.isNullable() ? "NULL" : "NOT NULL";
-    }
-
     private String toDBType(final Column column) {
         switch (column.getType()) {
         case STRING:
-            return "VARCHAR(" + VARCHAR2_MAX + ")";
+            return column.getSize() <= -1 ? "VARCHAR(" + VARCHAR2_MAX + ")" : "VARCHAR(" + column.getSize() + ")";
         case BOOLEAN:
             return "NUMBER(1)";
         case DOUBLE:

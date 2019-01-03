@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
 
@@ -49,7 +50,7 @@ public class DerbyPlatform extends Platform {
         sql.append(identifier(table.getName()));
         sql.append("(");
         sql.append(createColumns(table.getColumns()));
-        sql.append(createPKs(table.getPrimaryKeys()));
+        sql.append(createPKs(table.getColumns().stream().filter(Column::isPrimaryKey).collect(Collectors.toList())));
         sql.append(")");
         // todo create index
 
@@ -74,14 +75,15 @@ public class DerbyPlatform extends Platform {
         ;
     }
 
-    private String isRequired(final Column column) {
-        return column.isNullable() ? "" : "NOT NULL";
+    protected String isRequired(final Column column) {
+        return column.isNullable() && !column.isPrimaryKey() ? "" : "NOT NULL";
     }
 
     private String toDBType(final Column column) {
         switch (column.getType()) {
         case STRING:
-            return "LONG VARCHAR";
+            return column.getSize() <= -1 ? (column.isPrimaryKey() ? "VARCHAR(255)" : "LONG VARCHAR")
+                    : "VARCHAR(" + column.getSize() + ")";
         case BOOLEAN:
             return "BOOLEAN";
         case DOUBLE:

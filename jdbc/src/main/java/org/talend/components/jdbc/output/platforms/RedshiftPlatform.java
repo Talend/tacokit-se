@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -48,7 +48,7 @@ public class RedshiftPlatform extends Platform {
         sql.append(identifier(table.getName()));
         sql.append("(");
         sql.append(createColumns(table.getColumns()));
-        sql.append(createPKs(table.getPrimaryKeys()));
+        sql.append(createPKs(table.getColumns().stream().filter(Column::isPrimaryKey).collect(Collectors.toList())));
         sql.append(")");
         // todo create index
 
@@ -73,15 +73,11 @@ public class RedshiftPlatform extends Platform {
         ;
     }
 
-    private String isRequired(final Column column) {
-        return column.isNullable() ? "NULL" : "NOT NULL";
-    }
-
     private String toDBType(final Column column) {
         switch (column.getType()) {
         case STRING:
             // https://docs.aws.amazon.com/fr_fr/redshift/latest/dg/r_Character_types.html
-            return "VARCHAR(max)";
+            return column.getSize() <= -1 ? "VARCHAR(max)" : "VARCHAR(" + column.getSize() + ")";
         case BOOLEAN:
             return "BOOLEAN";
         case DOUBLE:

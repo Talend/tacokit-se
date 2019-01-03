@@ -1,3 +1,15 @@
+/*
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.talend.components.jdbc;
 
 import org.junit.jupiter.api.extension.*;
@@ -27,6 +39,8 @@ import static org.talend.components.jdbc.Database.ALL;
 import static org.talend.components.jdbc.Database.DERBY;
 
 public class WithDatabasesEnvironments implements TestTemplateInvocationContextProvider, BeforeAllCallback, AfterAllCallback {
+
+    private static final String ENV_PREFIX = "talend.jdbc.it";
 
     @Override
     public boolean supportsTestTemplate(final ExtensionContext ctx) {
@@ -61,8 +75,6 @@ public class WithDatabasesEnvironments implements TestTemplateInvocationContextP
         private final Database database;
 
         private final EnvironmentProvider provider;
-
-        private static final String ENV_PREFIX = "talend.jdbc.it";
 
         private static final ConditionEvaluationResult ENABLED = ConditionEvaluationResult.enabled("");
 
@@ -143,12 +155,17 @@ public class WithDatabasesEnvironments implements TestTemplateInvocationContextP
 
     @Override
     public void beforeAll(final ExtensionContext ctx) {
+        if (getBoolean(ENV_PREFIX + "." + ALL.name().toLowerCase(ROOT) + ".skip")) {
+            return;
+        }
         final List<Disabled> disabled = getDisableConditions(ctx);
         if (disabled.stream().anyMatch(d -> ALL.equals(d.value()))) {
             return;
         }
         final ExtensionContext.Store store = getStore(ctx);
         Database.getActiveDatabases().filter(database -> disabled.stream().noneMatch(d -> d.value().equals(database)))
+                .filter(database -> getBoolean(ENV_PREFIX) || database.equals(DERBY))
+                .filter(database -> !getBoolean(ENV_PREFIX + "." + database.name().toLowerCase(ROOT) + ".skip"))
                 .forEach(database -> store.put(database, getContainerInstance(database)));
     }
 

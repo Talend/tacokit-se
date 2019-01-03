@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -48,6 +48,7 @@ import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.derby.vti.XmlVTI.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -72,12 +73,30 @@ class OutputTest extends BaseJdbcTest {
         configuration.setDataset(newTableNameDataset(testTableName, container));
         configuration.setActionOnData(OutputConfig.ActionOnData.INSERT);
         configuration.setCreateTableIfNotExists(true);
-        configuration.setKeys(singletonList("id"));
+        configuration.setKeys(asList("id"));
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
         final int rowCount = 50;
         Job.components().component("rowGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, false, 0, null))
                 .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput").build()
                 .run();
+        assertEquals(rowCount, countAll(testTableName, container));
+    }
+
+    @TestTemplate
+    @DisplayName("Create table - combined primary keys")
+    void createTableWithCombinedPrimaryKeys(final TestInfo testInfo, final JdbcTestContainer container) {
+        final OutputConfig configuration = new OutputConfig();
+        final String testTableName = getTestTableName(testInfo);
+        configuration.setDataset(newTableNameDataset(testTableName, container));
+        configuration.setActionOnData(OutputConfig.ActionOnData.INSERT);
+        configuration.setCreateTableIfNotExists(true);
+        configuration.setKeys(asList("id", "string_id"));
+        final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
+        final int rowCount = 50;
+        Job.ExecutorBuilder job = Job.components()
+                .component("rowGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, false, 0, null))
+                .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput").build();
+        job.run();
         assertEquals(rowCount, countAll(testTableName, container));
     }
 
@@ -121,7 +140,7 @@ class OutputTest extends BaseJdbcTest {
         final JdbcConnection dataStore = newConnection(container);
         final String testTableName = getTestTableName(testInfo);
         try (final Connection connection = getJdbcService().createDataSource(dataStore).getConnection()) {
-            PlatformFactory.get(dataStore).createTableIfNotExist(connection, testTableName, Collections.emptyList(),
+            PlatformFactory.get(dataStore).createTableIfNotExist(connection, testTableName, Collections.emptyList(), -1,
                     Collections.singletonList(record));
         }
         runWithBad("id", "bad id", testTableName, container);
