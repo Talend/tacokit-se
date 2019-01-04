@@ -32,7 +32,8 @@ public class RedshiftPlatform extends Platform {
 
     @Override
     protected String delimiterToken() {
-        return "";
+        // https://docs.aws.amazon.com/redshift/latest/dg/r_names.html
+        return "\"";
     }
 
     @Override
