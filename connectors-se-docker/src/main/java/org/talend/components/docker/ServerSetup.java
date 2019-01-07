@@ -1,36 +1,24 @@
 package org.talend.components.docker;
 
-import static java.util.Locale.ROOT;
-import static java.util.Optional.ofNullable;
-import static lombok.AccessLevel.PRIVATE;
-
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.file.Files;
-import java.util.List;
-
-import javax.json.Json;
-import javax.json.JsonReader;
-import javax.json.JsonValue;
-
+import lombok.NoArgsConstructor;
 import org.talend.sdk.component.dependencies.maven.Artifact;
 import org.talend.sdk.component.dependencies.maven.MvnCoordinateToFileConverter;
 import org.tomitribe.crest.Main;
-import org.tomitribe.crest.api.Command;
-import org.tomitribe.crest.api.Default;
-import org.tomitribe.crest.api.Err;
-import org.tomitribe.crest.api.Option;
-import org.tomitribe.crest.api.Out;
+import org.tomitribe.crest.api.*;
 import org.tomitribe.crest.cli.impl.CommandParser;
 import org.tomitribe.crest.contexts.DefaultsContext;
 import org.tomitribe.crest.contexts.SystemPropertiesDefaultsContext;
 
-import lombok.NoArgsConstructor;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.file.Files;
+import java.util.List;
+import java.util.Properties;
+
+import static java.util.Locale.ROOT;
+import static java.util.Optional.ofNullable;
+import static lombok.AccessLevel.PRIVATE;
 
 // allows to use CONNECTORS_SE_SETUP_OPTS environment variable to setup a docker image
 // ex1: CONNECTORS_SE_SETUP_OPTS="setup --artifact=group1:artifact1:version1 --artifact=group2:artifact2:version2"
@@ -52,10 +40,11 @@ public class ServerSetup {
             }
             if (downloadDrivers) {
                 try (final InputStream jdbc = Thread.currentThread().getContextClassLoader()
-                        .getResourceAsStream("db_type_config.json"); final JsonReader reader = Json.createReader(jdbc)) {
-                    reader.readArray().stream().map(JsonValue::asJsonObject)
-                            .flatMap(driver -> driver.getJsonArray("paths").stream())
-                            .map(path -> path.asJsonObject().getString("path"))
+                        .getResourceAsStream("local-configuration.properties");) {
+                    final Properties properties = new Properties();
+                    properties.load(jdbc);
+                    properties.stringPropertyNames().stream()
+                            .filter(key -> key.startsWith("jdbc.drivers") && key.endsWith("paths")).map(properties::getProperty)
                             .forEach(gav -> doInstallFromGav(stdout, stderr, m2, nexusBase, nexusToken, gav));
                 } catch (final IOException e) {
                     throw new IllegalStateException(e);

@@ -143,9 +143,9 @@
               <overwrite>true</overwrite>
               <resources>
                 <resource>
-                  <directory>../jdbc/src/main/resources</directory>
+                  <directory>../jdbc/src/main/resources/TALEND-INF/</directory>
                   <includes>
-                    <include>db_type_config.json</include>
+                    <include>local-configuration.properties</include>
                   </includes>
                 </resource>
               </resources>
