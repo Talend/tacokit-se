@@ -40,11 +40,11 @@ public class ServerSetup {
             }
             if (downloadDrivers) {
                 try (final InputStream jdbc = Thread.currentThread().getContextClassLoader()
-                        .getResourceAsStream("local-configuration.properties");) {
+                        .getResourceAsStream("local-configuration.properties")) {
                     final Properties properties = new Properties();
                     properties.load(jdbc);
                     properties.stringPropertyNames().stream()
-                            .filter(key -> key.startsWith("jdbc.drivers") && key.endsWith("paths")).map(properties::getProperty)
+                            .filter(key -> key.startsWith("jdbc.drivers") && key.contains("paths[")).map(properties::getProperty)
                             .forEach(gav -> doInstallFromGav(stdout, stderr, m2, nexusBase, nexusToken, gav));
                 } catch (final IOException e) {
                     throw new IllegalStateException(e);

@@ -52,12 +52,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.johnzon</groupId>
-      <artifactId>johnzon-core</artifactId>
-      <version>1.1.8</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>org.talend.sdk.component</groupId>
       <artifactId>container-core</artifactId>
       <version>${component-runtime.version}</version>
