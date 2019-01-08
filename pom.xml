@@ -47,11 +47,11 @@
   <distributionManagement>
     <snapshotRepository>
       <id>talend.snapshots</id>
-      <url>https://artifacts-oss.talend.com/nexus/content/repositories/TalendOpenSourceSnapshot</url>
+      <url>https://artifacts-zl.talend.com/nexus/content/repositories/snapshots/</url>
     </snapshotRepository>
     <repository>
       <id>talend.releases</id>
-      <url>https://artifacts-oss.talend.com/nexus/content/repositories/TalendOpenSourceRelease</url>
+      <url>https://artifacts-zl.talend.com/nexus/content/repositories/releases/</url>
     </repository>
     <site>
       <id>documentation.website</id>
