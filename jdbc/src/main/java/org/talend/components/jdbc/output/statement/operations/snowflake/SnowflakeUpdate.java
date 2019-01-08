@@ -51,16 +51,17 @@ public class SnowflakeUpdate extends Update {
             final String fqTmpTableName = namespace(connection) + "." + getPlatform().identifier(tmpTableName);
             final String fqStageName = namespace(connection) + ".%" + getPlatform().identifier(tmpTableName);
             rejects.addAll(putAndCopy(connection, records, fqStageName, fqTableName, fqTmpTableName));
-            // update from temp table
-            try (final Statement statement = connection.createStatement()) {
-                statement.execute("merge into " + fqTableName + " target using " + fqTmpTableName + " as source on "
-                        + getConfiguration().getKeys().stream().map(key -> getPlatform().identifier(key))
-                                .map(key -> "source." + key + "= target." + key).collect(joining("AND", " ", " "))
-                        + " when matched then update set "
-                        + getQueryParams().values().stream()
-                                .filter(p -> !getIgnoreColumns().contains(p.getName()) && !getKeys().contains(p.getName()))
-                                .map(e -> getPlatform().identifier(e.getName()))
-                                .map(name -> "target." + name + "= source." + name).collect(joining(",", "", " ")));
+            if (records.size() != rejects.size()) {
+                try (final Statement statement = connection.createStatement()) {
+                    statement.execute("merge into " + fqTableName + " target using " + fqTmpTableName + " as source on "
+                            + getConfiguration().getKeys().stream().map(key -> getPlatform().identifier(key))
+                                    .map(key -> "source." + key + "= target." + key).collect(joining("AND", " ", " "))
+                            + " when matched then update set "
+                            + getQueryParams().values().stream()
+                                    .filter(p -> !getIgnoreColumns().contains(p.getName()) && !getKeys().contains(p.getName()))
+                                    .map(e -> getPlatform().identifier(e.getName()))
+                                    .map(name -> "target." + name + "= source." + name).collect(joining(",", "", " ")));
+                }
             }
             connection.commit();
         }

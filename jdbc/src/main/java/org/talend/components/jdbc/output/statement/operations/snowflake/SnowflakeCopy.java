@@ -71,7 +71,7 @@ public class SnowflakeCopy {
 
     public static String tmpTableName(final String tableName) {
         final String suffix = now(ZoneOffset.UTC).format(ofPattern("yyyyMMddHHmmss"));
-        String tmpTableName = "temp_" + tableName + "_" + suffix;
+        String tmpTableName = "tmp_" + tableName + "_" + suffix;
         return tmpTableName.length() < 256 ? tmpTableName : tmpTableName.substring(0, 256);
     }
 
@@ -94,10 +94,12 @@ public class SnowflakeCopy {
     }
 
     private static List<Reject> toReject(final List<RecordChunk> chunks, final List<CopyError> errors) {
-        return errors.stream()
-                .flatMap(error -> chunks.stream()
-                        .filter(chunk -> chunk.getChunk().getFileName().toString().equals(error.getFile()))
-                        .map(chunk -> new Reject(error.getError(), chunk.getRecords().get(error.getErrorLine() - 1))))
+        return errors.stream().flatMap(error -> chunks.stream()
+                .filter(chunk -> error.getFile().startsWith(chunk.getChunk().getFileName().toString()))
+                .map(chunk -> new Reject(
+                        error.getError() + (error.getErrorColumnName() == null || error.getErrorColumnName().isEmpty() ? ""
+                                : ", columnName=" + error.getErrorColumnName()),
+                        chunk.getRecords().get(error.getErrorLine() - 1))))
                 .collect(toList());
     }
 

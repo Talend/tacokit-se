@@ -54,23 +54,24 @@ public class SnowflakeUpsert extends UpsertDefault {
             final String fqTmpTableName = namespace(connection) + "." + getPlatform().identifier(tmpTableName);
             final String fqStageName = namespace(connection) + ".%" + getPlatform().identifier(tmpTableName);
             rejects.addAll(putAndCopy(connection, records, fqStageName, fqTableName, fqTmpTableName));
-            // upsert from temp table
-            try (final Statement statement = connection.createStatement()) {
-                statement.execute("merge into " + fqTableName + " target using " + fqTmpTableName + " as source on "
-                        + getConfiguration().getKeys().stream().map(key -> getPlatform().identifier(key))
-                                .map(key -> "source." + key + "= target." + key).collect(joining("AND", " ", " "))
-                        + " when matched then update set "
-                        + getUpdate().getQueryParams().values().stream()
-                                .filter(p -> !getUpdate().getIgnoreColumns().contains(p.getName())
-                                        && !getKeys().contains(p.getName()))
-                                .map(e -> getPlatform().identifier(e.getName()))
-                                .map(name -> "target." + name + "= source." + name).collect(joining(",", "", " "))
-                        + " when not matched then " + "insert"
-                        + getInsert().getQueryParams().values().stream().map(e -> getPlatform().identifier(e.getName()))
-                                .map(name -> "target." + name).collect(Collectors.joining(",", "(", ")"))
-                        + " values"
-                        + getInsert().getQueryParams().values().stream().map(e -> getPlatform().identifier(e.getName()))
-                                .map(name -> "source." + name).collect(Collectors.joining(",", "(", ")")));
+            if (records.size() != rejects.size()) {
+                try (final Statement statement = connection.createStatement()) {
+                    statement.execute("merge into " + fqTableName + " target using " + fqTmpTableName + " as source on "
+                            + getConfiguration().getKeys().stream().map(key -> getPlatform().identifier(key))
+                                    .map(key -> "source." + key + "= target." + key).collect(joining("AND", " ", " "))
+                            + " when matched then update set "
+                            + getUpdate().getQueryParams().values().stream()
+                                    .filter(p -> !getUpdate().getIgnoreColumns().contains(p.getName())
+                                            && !getKeys().contains(p.getName()))
+                                    .map(e -> getPlatform().identifier(e.getName()))
+                                    .map(name -> "target." + name + "= source." + name).collect(joining(",", "", " "))
+                            + " when not matched then " + "insert"
+                            + getInsert().getQueryParams().values().stream().map(e -> getPlatform().identifier(e.getName()))
+                                    .map(name -> "target." + name).collect(Collectors.joining(",", "(", ")"))
+                            + " values"
+                            + getInsert().getQueryParams().values().stream().map(e -> getPlatform().identifier(e.getName()))
+                                    .map(name -> "source." + name).collect(Collectors.joining(",", "(", ")")));
+                }
             }
             connection.commit();
         }

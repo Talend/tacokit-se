@@ -23,13 +23,10 @@ import org.talend.sdk.component.api.record.Record;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.time.LocalDateTime.now;
 import static org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeCopy.putAndCopy;
 import static org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeCopy.tmpTableName;
 
@@ -51,10 +48,15 @@ public class SnowflakeInsert extends Insert {
             final String fqTmpTableName = namespace(connection) + "." + getPlatform().identifier(tmpTableName);
             final String fqStageName = namespace(connection) + ".%" + getPlatform().identifier(tmpTableName);
             rejects.addAll(putAndCopy(connection, records, fqStageName, fqTableName, fqTmpTableName));
-            try (final Statement statement = connection.createStatement()) {
-                statement.execute("insert into " + fqTableName + getQueryParams().values().stream()
-                        .map(e -> getPlatform().identifier(e.getName())).collect(Collectors.joining(",", "(", ")"))
-                        + " select * from " + fqTmpTableName);
+            if (records.size() != rejects.size()) {
+                try (final Statement statement = connection.createStatement()) {
+                    statement
+                            .execute(
+                                    "insert into " + fqTableName
+                                            + getQueryParams().values().stream().map(e -> getPlatform().identifier(e.getName()))
+                                                    .collect(Collectors.joining(",", "(", ")"))
+                                            + " select * from " + fqTmpTableName);
+                }
             }
             connection.commit();
         }
