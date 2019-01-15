@@ -71,7 +71,7 @@
     <jackson-codehaus.version>1.9.14-TALEND</jackson-codehaus.version>
 
     <tcomp0.version>0.23.2</tcomp0.version> <!-- until they are rewritten -->
-    <daikon.version>0.23.0</daikon.version>
+    <daikon.version>0.31.0</daikon.version>
 
     <junit5.version>5.3.1</junit5.version>
 
