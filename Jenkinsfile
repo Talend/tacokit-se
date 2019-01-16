@@ -52,7 +52,7 @@ spec:
                     // for next concurrent builds
                     sh 'for i in ci_documentation ci_nexus ci_site; do rm -Rf $i; rsync -av . $i; done'
                     // real task
-                    sh 'mvn clean install -T1C -PITs -e'
+                    sh 'mvn clean install -PITs -e'
                 }
             }
             post {
@@ -100,7 +100,7 @@ spec:
                 stage('Site') {
                     steps {
                         container('main') {
-                            sh 'cd ci_site && mvn clean site site:stage -T1C -Dmaven.test.failure.ignore=true'
+                            sh 'cd ci_site && mvn clean site site:stage -Dmaven.test.failure.ignore=true'
                         }
                     }
                     post {
