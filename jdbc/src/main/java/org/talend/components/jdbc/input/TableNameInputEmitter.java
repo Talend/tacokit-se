@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -29,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Version
-@Icon(value = Icon.IconType.CUSTOM, custom = "JDBCInput")
+@Icon(value = Icon.IconType.DATASTORE)
 @Emitter(name = "TableNameInput")
 @Documentation("JDBC input using table name")
 public class TableNameInputEmitter extends AbstractInputEmitter implements Serializable {

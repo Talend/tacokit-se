@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,6 +12,7 @@
  */
 package org.talend.components.jdbc.output.statement.operations;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfig;
 import org.talend.components.jdbc.output.platforms.Platform;
@@ -28,7 +29,8 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.*;
 
 @Slf4j
-public class Update extends JdbcAction {
+@Getter
+public class Update extends QueryManager {
 
     private final List<String> keys;
 

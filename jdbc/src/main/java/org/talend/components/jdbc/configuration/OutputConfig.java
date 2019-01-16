@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -29,8 +29,8 @@ import static org.talend.sdk.component.api.configuration.condition.ActiveIf.Eval
 import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.OR;
 
 @Data
-@GridLayout(value = { @GridLayout.Row("dataset"), @GridLayout.Row("createTableIfNotExists"), @GridLayout.Row({ "actionOnData" }),
-        @GridLayout.Row("keys"), @GridLayout.Row("ignoreUpdate") })
+@GridLayout(value = { @GridLayout.Row("dataset"), @GridLayout.Row("createTableIfNotExists"), @GridLayout.Row("varcharLength"),
+        @GridLayout.Row({ "actionOnData" }), @GridLayout.Row("keys"), @GridLayout.Row("ignoreUpdate") })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("rewriteBatchedStatements") })
 @Documentation("Those properties define an output data set for the JDBC output component")
 public class OutputConfig implements Serializable {
@@ -45,6 +45,13 @@ public class OutputConfig implements Serializable {
     @ActiveIf(target = "actionOnData", value = { "INSERT", "UPSERT" })
     @Documentation("Create table if don't exists")
     private boolean createTableIfNotExists = false;
+
+    @Option
+    @Required
+    @ActiveIf(target = "createTableIfNotExists", value = { "true" })
+    @Documentation("The length of varchar types. This value will be used to create varchar columns in this table."
+            + "\n-1 means that the max supported length of the targeted database will be used.")
+    private int varcharLength = -1;
 
     @Option
     @Documentation("The action to be performed")

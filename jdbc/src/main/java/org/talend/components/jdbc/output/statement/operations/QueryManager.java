@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -35,7 +35,7 @@ import static java.util.stream.Collectors.toList;
 
 @Data
 @Slf4j
-public abstract class JdbcAction {
+public abstract class QueryManager {
 
     private final Platform platform;
 
@@ -49,11 +49,11 @@ public abstract class JdbcAction {
 
     private Integer retryCount = 0;
 
-    protected abstract String buildQuery(List<Record> records);
+    abstract protected String buildQuery(List<Record> records);
 
-    protected abstract Map<Integer, Schema.Entry> getQueryParams();
+    abstract protected Map<Integer, Schema.Entry> getQueryParams();
 
-    protected abstract boolean validateQueryParam(Record record);
+    abstract protected boolean validateQueryParam(Record record);
 
     public List<Reject> execute(final List<Record> records) throws SQLException {
         if (records.isEmpty()) {
@@ -149,6 +149,35 @@ public abstract class JdbcAction {
         }
 
         return discards;
+    }
+
+    public boolean checkTableExistence(final String tableName) throws SQLException {
+        try (final Connection connection = getDataSource().getConnection()) {
+            try (final ResultSet resultSet = connection.getMetaData().getTables(connection.getCatalog(), connection.getSchema(),
+                    tableName, new String[] { "TABLE", "SYNONYM" })) {
+                while (resultSet.next()) {
+                    if (ofNullable(ofNullable(resultSet.getString("TABLE_NAME")).orElseGet(() -> {
+                        try {
+                            return resultSet.getString("SYNONYM_NAME");
+                        } catch (final SQLException e) {
+                            return null;
+                        }
+                    })).filter(tableName::equals).isPresent()) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+    }
+
+    public String namespace(final Connection connection) throws SQLException {
+        return (connection.getCatalog() != null && !connection.getCatalog().isEmpty()
+                ? getPlatform().identifier(connection.getCatalog()) + "."
+                : "")
+                + (connection.getSchema() != null && !connection.getSchema().isEmpty()
+                        ? getPlatform().identifier(connection.getSchema())
+                        : "");
     }
 
 }

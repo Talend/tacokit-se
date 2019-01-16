@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -117,7 +117,7 @@ class UIActionServiceTest extends BaseJdbcTest {
     private void createTestTable(String testTableName, JdbcConnection datastore) throws SQLException {
         try (JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(datastore, false)) {
             try (final Connection connection = dataSource.getConnection()) {
-                PlatformFactory.get(datastore).createTableIfNotExist(connection, testTableName, singletonList("id"),
+                PlatformFactory.get(datastore).createTableIfNotExist(connection, testTableName, singletonList("id"), -1,
                         singletonList(recordBuilderFactory.newRecordBuilder().withInt("id", 1).build()));
                 connection.commit();
             }

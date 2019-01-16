@@ -47,11 +47,11 @@
   <distributionManagement>
     <snapshotRepository>
       <id>talend.snapshots</id>
-      <url>https://artifacts-oss.talend.com/nexus/content/repositories/TalendOpenSourceSnapshot</url>
+      <url>https://artifacts-zl.talend.com/nexus/content/repositories/snapshots/</url>
     </snapshotRepository>
     <repository>
       <id>talend.releases</id>
-      <url>https://artifacts-oss.talend.com/nexus/content/repositories/TalendOpenSourceRelease</url>
+      <url>https://artifacts-zl.talend.com/nexus/content/repositories/releases/</url>
     </repository>
     <site>
       <id>documentation.website</id>
@@ -62,8 +62,8 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <component-api.version>1.1.1</component-api.version>
-    <component-runtime.version>1.1.4-SNAPSHOT</component-runtime.version>
+    <component-api.version>1.1.2</component-api.version>
+    <component-runtime.version>1.1.4</component-runtime.version>
     <slf4j.version>1.7.25</slf4j.version>
 
     <beam.version>2.8.0</beam.version>
@@ -279,7 +279,7 @@
         <executions>
           <execution>
             <id>tidy-pom</id>
-            <phase>validate</phase>
+            <phase>initialize</phase>
             <goals>
               <goal>pom</goal>
             </goals>
@@ -558,12 +558,6 @@
   </reporting>
 
   <profiles>
-    <profile>
-      <id>docker</id>
-      <modules>
-        <module>connectors-se-docker</module>
-      </modules>
-    </profile>
     <profile>
       <id>documentation-html</id>
       <build>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -29,7 +29,6 @@ import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit.environment.Environment;
-import org.talend.sdk.component.junit.environment.builtin.ContextualEnvironment;
 import org.talend.sdk.component.junit.environment.builtin.beam.DirectRunnerEnvironment;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
@@ -38,6 +37,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -48,6 +48,7 @@ import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.derby.vti.XmlVTI.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -72,12 +73,30 @@ class OutputTest extends BaseJdbcTest {
         configuration.setDataset(newTableNameDataset(testTableName, container));
         configuration.setActionOnData(OutputConfig.ActionOnData.INSERT);
         configuration.setCreateTableIfNotExists(true);
-        configuration.setKeys(singletonList("id"));
+        configuration.setKeys(asList("id"));
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
-        final int rowCount = 100;
+        final int rowCount = 50;
         Job.components().component("rowGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, false, 0, null))
                 .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput").build()
                 .run();
+        assertEquals(rowCount, countAll(testTableName, container));
+    }
+
+    @TestTemplate
+    @DisplayName("Create table - combined primary keys")
+    void createTableWithCombinedPrimaryKeys(final TestInfo testInfo, final JdbcTestContainer container) {
+        final OutputConfig configuration = new OutputConfig();
+        final String testTableName = getTestTableName(testInfo);
+        configuration.setDataset(newTableNameDataset(testTableName, container));
+        configuration.setActionOnData(OutputConfig.ActionOnData.INSERT);
+        configuration.setCreateTableIfNotExists(true);
+        configuration.setKeys(asList("id", "string_id"));
+        final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
+        final int rowCount = 50;
+        Job.ExecutorBuilder job = Job.components()
+                .component("rowGenerator", "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, false, 0, null))
+                .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput").build();
+        job.run();
         assertEquals(rowCount, countAll(testTableName, container));
     }
 
@@ -121,7 +140,7 @@ class OutputTest extends BaseJdbcTest {
         final JdbcConnection dataStore = newConnection(container);
         final String testTableName = getTestTableName(testInfo);
         try (final Connection connection = getJdbcService().createDataSource(dataStore).getConnection()) {
-            PlatformFactory.get(dataStore).createTableIfNotExist(connection, testTableName, Collections.emptyList(),
+            PlatformFactory.get(dataStore).createTableIfNotExist(connection, testTableName, Collections.emptyList(), -1,
                     Collections.singletonList(record));
         }
         runWithBad("id", "bad id", testTableName, container);
@@ -241,7 +260,7 @@ class OutputTest extends BaseJdbcTest {
     @DisplayName("Update - valid query")
     void update(final TestInfo testInfo, final JdbcTestContainer container) {
         // insert some initial data
-        final int rowCount = 10;
+        final int rowCount = 20;
         final String testTableName = getTestTableName(testInfo);
         insertRows(testTableName, container, rowCount, false, 0, null);
         // update the inserted data data
@@ -306,9 +325,11 @@ class OutputTest extends BaseJdbcTest {
     @TestTemplate
     @DisplayName("Insert - Date type handling")
     void dateTypesTest(final TestInfo testInfo, final JdbcTestContainer container) throws ParseException {
-        final Date date = new Date(new SimpleDateFormat("yyyy-MM-dd").parse("2018-12-6").getTime());
-        final Date datetime = new Date();
-        final Date time = new Date(1000 * 60 * 60 * 15 + 1000 * 60 * 20 + 39000); // 15:20:39
+        final ZoneId utc = ZoneId.of("UTC");
+        final ZonedDateTime date = ZonedDateTime.of(LocalDate.of(2018, 12, 25), LocalTime.of(0, 0, 0), utc);
+        final ZonedDateTime datetime = ZonedDateTime.of(2018, 12, 26, 11, 47, 15, 0, utc);
+        final ZonedDateTime time = ZonedDateTime.ofInstant(Instant.ofEpochMilli(LocalTime.of(15, 20, 39).toSecondOfDay() * 1000),
+                utc); // 15:20:39
         final Record record = recordBuilderFactory.newRecordBuilder().withDateTime("date", date)
                 .withDateTime("datetime", datetime).withDateTime("time", time).build();
         final List<Record> data = new ArrayList<>();
@@ -325,9 +346,9 @@ class OutputTest extends BaseJdbcTest {
         List<Record> inserted = readAll(testTableName, container);
         assertEquals(1, inserted.size());
         final Record result = inserted.iterator().next();
-        assertEquals(date.getTime(), result.getDateTime("date").toInstant().toEpochMilli());
-        assertEquals(time.getTime(), result.getDateTime("time").toInstant().toEpochMilli());
-        assertEquals(datetime.getTime(), result.getDateTime("datetime").toInstant().toEpochMilli());
+        assertEquals(date.toInstant().toEpochMilli(), result.getDateTime("date").toInstant().toEpochMilli());
+        assertEquals(datetime.toInstant().toEpochMilli(), result.getDateTime("datetime").toInstant().toEpochMilli());
+        assertEquals(time.toInstant().toEpochMilli(), result.getDateTime("time").toInstant().toEpochMilli());
     }
 
     @TestTemplate

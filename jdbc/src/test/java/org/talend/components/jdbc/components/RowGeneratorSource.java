@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.UUID;
 
 import static java.util.Optional.ofNullable;
 
@@ -55,6 +56,8 @@ public class RowGeneratorSource implements Serializable {
         final Record.Builder builder = recordBuilderFactory.newRecordBuilder();
         if (config.withMissingIdEvery <= 0 || currentCount % config.withMissingIdEvery != 0) {
             builder.withInt("id", currentCount);
+            final String uuid = UUID.randomUUID().toString();
+            builder.withString("string_id", uuid.substring(0, Math.min(255, uuid.length())));
         }
 
         if (config.withNullValues) {

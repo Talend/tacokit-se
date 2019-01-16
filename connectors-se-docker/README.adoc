@@ -1,8 +1,0 @@
-= Connectors SE Docker
-
-This module prepares a maven repository to be embed in a Docker image.
-The `Dockerfile` is ready to run/build to do that but the
-docker image creation is not part of the build until it is possible to build an image
-without having to rely on a local docker installation and require some version.
-
-The docker build is executed on the CI, see `Jenkinsfile`.
