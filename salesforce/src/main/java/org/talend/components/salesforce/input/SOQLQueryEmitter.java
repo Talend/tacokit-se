@@ -15,6 +15,7 @@
 package org.talend.components.salesforce.input;
 
 import java.io.Serializable;
+import java.util.List;
 
 import org.talend.components.salesforce.dataset.SOQLQueryDataSet;
 import org.talend.components.salesforce.service.Messages;
@@ -46,9 +47,20 @@ public class SOQLQueryEmitter extends AbstractQueryEmitter implements Serializab
         return ((SOQLQueryDataSet) dataset).getQuery();
     }
 
+    /**
+     * Extract module name from SOQL
+     */
     @Override
     public String getModuleName() {
         return SalesforceService.guessModuleName(getQuery());
+    }
+
+    /**
+     * Extract column list from SOQL
+     */
+    @Override
+    List<String> getColumnNames() {
+        return SalesforceService.guessColumnNamesFromSOQL(getQuery());
     }
 
 }

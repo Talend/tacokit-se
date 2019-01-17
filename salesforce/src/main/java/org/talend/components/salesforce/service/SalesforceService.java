@@ -26,9 +26,12 @@ import java.util.TreeMap;
 import javax.xml.namespace.QName;
 
 import org.talend.components.salesforce.datastore.BasicDataStore;
+import org.talend.components.salesforce.soql.FieldDescription;
 import org.talend.components.salesforce.soql.SoqlQuery;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import com.sforce.async.AsyncApiException;
 import com.sforce.async.BulkConnection;
@@ -66,6 +69,17 @@ public class SalesforceService {
         SoqlQuery query = SoqlQuery.getInstance();
         query.init(soqlQuery);
         return query.getDrivingEntityName();
+
+    }
+
+    public static List<String> guessColumnNamesFromSOQL(String soqlQuery) {
+        SoqlQuery query = SoqlQuery.getInstance();
+        query.init(soqlQuery);
+        List<String> columnNames = new ArrayList<>();
+        for (FieldDescription fieldDescription : query.getFieldDescriptions()) {
+            columnNames.add(fieldDescription.getFullName());
+        }
+        return columnNames;
 
     }
 
@@ -187,6 +201,52 @@ public class SalesforceService {
             return new IllegalStateException(queryFault.getExceptionMessage(), queryFault);
         } else {
             return new IllegalStateException("connection error", e);
+        }
+    }
+
+    public Schema guessSchema(List<String> fieldNames, Map<String, Field> fieldMap, final RecordBuilderFactory factory) {
+        final Schema.Entry.Builder entryBuilder = factory.newEntryBuilder();
+        final Schema.Builder schemaBuilder = factory.newSchemaBuilder(org.talend.sdk.component.api.record.Schema.Type.RECORD);
+        if ((fieldNames == null || fieldNames.isEmpty()) || fieldMap == null || fieldMap.isEmpty()) {
+            return schemaBuilder.build();
+        } else {
+            for (String fieldName : fieldNames) {
+                Field field = fieldMap.get(fieldName);
+                Schema.Type type = null;
+                boolean nillable = true;
+                if (field != null) {
+                    nillable = field.getNillable();
+                    switch (field.getType()) {
+                    case _boolean:
+                        type = Schema.Type.BOOLEAN;
+                        break;
+                    case _double:
+                    case percent:
+                    case currency:
+                        type = Schema.Type.DOUBLE;
+                        break;
+                    case _int:
+                        type = Schema.Type.INT;
+                        break;
+                    case date:
+                    case datetime:
+                    case time:
+                        type = Schema.Type.DATETIME;
+                        break;
+                    case base64:
+                        type = Schema.Type.BYTES;
+                        break;
+                    default:
+                        type = Schema.Type.STRING;
+                        break;
+                    }
+                } else {
+                    // if field not exist in the field mapping of module, put string type as default
+                    type = Schema.Type.STRING;
+                }
+                schemaBuilder.withEntry(entryBuilder.withName(fieldName).withType(type).withNullable(nillable).build());
+            }
+            return schemaBuilder.build();
         }
     }
 

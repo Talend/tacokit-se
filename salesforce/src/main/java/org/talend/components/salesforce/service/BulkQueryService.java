@@ -32,6 +32,7 @@ import java.util.Set;
 
 import org.talend.components.salesforce.commons.BulkResultSet;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import com.sforce.async.AsyncApiException;
@@ -101,6 +102,9 @@ public class BulkQueryService {
     private int chunkSleepTime;
 
     private long jobTimeOut;
+
+    // pre build record schema
+    private Schema recordSchema;
 
     public BulkQueryService(final BulkConnection bulkConnection, final RecordBuilderFactory recordBuilderFactory,
             final Messages messages) {
@@ -432,7 +436,7 @@ public class BulkQueryService {
         if (result == null) {
             return null;
         }
-        Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder();
+        Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder(recordSchema);
         for (String fieldName : result.keySet()) {
             if (fieldName != null) {
                 addField(recordBuilder, fieldName, result.get(fieldName));
@@ -490,5 +494,9 @@ public class BulkQueryService {
             // TODO
             throw new IOException(e);
         }
+    }
+
+    public void setRecordSchema(Schema recordSchema) {
+        this.recordSchema = recordSchema;
     }
 }

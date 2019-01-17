@@ -3,6 +3,7 @@ package org.talend.components.salesforce.input;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.talend.components.salesforce.service.SalesforceService.URL;
@@ -99,6 +100,33 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
         Schema schema = record.getSchema();
         List<Schema.Entry> entries = schema.getEntries();
         assertEquals(2, entries.size());
+    }
+
+    @Test
+    @DisplayName("Test query null value with primitive type")
+    public void testQueryNullValues() {
+        final ModuleDataSet moduleDataSet = new ModuleDataSet();
+        moduleDataSet.setModuleName("Account");
+        ModuleDataSet.ColumnSelectionConfig selectionConfig = new ModuleDataSet.ColumnSelectionConfig();
+        selectionConfig.setSelectColumnNames(Arrays.asList("Id", "Name", "NumberOfEmployees", "AnnualRevenue"));
+        moduleDataSet.setColumnSelectionConfig(selectionConfig);
+        moduleDataSet.setDataStore(getDataStore());
+        moduleDataSet.setCondition(
+                "NumberOfEmployees = null and AnnualRevenue = null and Name Like 'TestName_%" + UNIQUE_ID + "%' limit 5");
+
+        final String config = configurationByExample().forInstance(moduleDataSet).configured().toQueryString();
+        Job.components().component("salesforce-input", "Salesforce://ModuleQueryInput?" + config)
+                .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
+        final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
+        assertEquals(5, records.size());
+        Record record = records.get(0);
+        Schema schema = record.getSchema();
+        List<Schema.Entry> entries = schema.getEntries();
+        assertEquals(4, entries.size());
+        assertEquals(Schema.Type.INT, entries.get(2).getType());
+        assertEquals(Schema.Type.DOUBLE, entries.get(3).getType());
+        assertNull(record.get(Object.class, "NumberOfEmployees"));
+        assertNull(record.get(Object.class, "AnnualRevenue"));
     }
 
     @Test
