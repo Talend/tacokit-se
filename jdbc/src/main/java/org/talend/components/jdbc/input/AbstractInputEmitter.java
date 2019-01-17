@@ -24,12 +24,25 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.Serializable;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
 import java.util.Date;
 import java.util.stream.IntStream;
 
 import static java.sql.ResultSetMetaData.columnNoNulls;
-import static org.talend.sdk.component.api.record.Schema.Type.*;
+import static org.talend.sdk.component.api.record.Schema.Type.BOOLEAN;
+import static org.talend.sdk.component.api.record.Schema.Type.BYTES;
+import static org.talend.sdk.component.api.record.Schema.Type.DATETIME;
+import static org.talend.sdk.component.api.record.Schema.Type.DOUBLE;
+import static org.talend.sdk.component.api.record.Schema.Type.FLOAT;
+import static org.talend.sdk.component.api.record.Schema.Type.INT;
+import static org.talend.sdk.component.api.record.Schema.Type.LONG;
+import static org.talend.sdk.component.api.record.Schema.Type.RECORD;
+import static org.talend.sdk.component.api.record.Schema.Type.STRING;
 
 @Slf4j
 public abstract class AbstractInputEmitter implements Serializable {
@@ -49,6 +62,8 @@ public abstract class AbstractInputEmitter implements Serializable {
     private ResultSet resultSet;
 
     private JdbcService.JdbcDatasource dataSource;
+
+    private transient Schema schema;
 
     AbstractInputEmitter(final InputConfig inputConfig, final JdbcService jdbcDriversService,
             final RecordBuilderFactory recordBuilderFactory, final I18nMessage i18nMessage) {
@@ -85,24 +100,79 @@ public abstract class AbstractInputEmitter implements Serializable {
                 return null;
             }
 
-            final Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder();
-            final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
             final ResultSetMetaData metaData = resultSet.getMetaData();
-            IntStream.rangeClosed(1, metaData.getColumnCount())
-                    .forEach(index -> addColumn(recordBuilder, entryBuilder, metaData, index));
-            return recordBuilder.build();
+            if (schema == null) {
+                final Schema.Builder schemaBuilder = recordBuilderFactory.newSchemaBuilder(RECORD);
+                IntStream.rangeClosed(1, metaData.getColumnCount()).forEach(index -> addField(schemaBuilder, metaData, index));
+                schema = schemaBuilder.build();
+            }
 
+            final Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder(schema);
+            IntStream.rangeClosed(1, metaData.getColumnCount()).forEach(index -> addColumn(recordBuilder, metaData, index));
+            return recordBuilder.build();
         } catch (final SQLException e) {
             throw new IllegalStateException(e);
         }
     }
 
-    private void addColumn(final Record.Builder builder, final Schema.Entry.Builder entryBuilder,
-            final ResultSetMetaData metaData, final int columnIndex) {
+    private void addField(final Schema.Builder builder, final ResultSetMetaData metaData, final int columnIndex) {
+        try {
+            final String javaType = metaData.getColumnClassName(columnIndex);
+            final int sqlType = metaData.getColumnType(columnIndex);
+            final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
+            entryBuilder.withName(metaData.getColumnName(columnIndex))
+                    .withNullable(metaData.isNullable(columnIndex) != columnNoNulls);
+            switch (sqlType) {
+            case java.sql.Types.SMALLINT:
+            case java.sql.Types.TINYINT:
+            case java.sql.Types.INTEGER:
+                if (javaType.equals(Integer.class.getName())) {
+                    builder.withEntry(entryBuilder.withType(INT).build());
+                } else {
+                    builder.withEntry(entryBuilder.withType(LONG).build());
+                }
+                break;
+            case java.sql.Types.FLOAT:
+            case java.sql.Types.REAL:
+                builder.withEntry(entryBuilder.withType(FLOAT).build());
+                break;
+            case java.sql.Types.DOUBLE:
+                builder.withEntry(entryBuilder.withType(DOUBLE).build());
+                break;
+            case java.sql.Types.BOOLEAN:
+                builder.withEntry(entryBuilder.withType(BOOLEAN).build());
+                break;
+            case java.sql.Types.TIME:
+            case java.sql.Types.DATE:
+            case java.sql.Types.TIMESTAMP:
+                builder.withEntry(entryBuilder.withType(DATETIME).build());
+                break;
+            case java.sql.Types.BINARY:
+            case java.sql.Types.VARBINARY:
+            case Types.LONGVARBINARY:
+                builder.withEntry(entryBuilder.withType(BYTES).build());
+                break;
+            case java.sql.Types.BIGINT:
+            case java.sql.Types.DECIMAL:
+            case java.sql.Types.NUMERIC:
+            case java.sql.Types.VARCHAR:
+            case java.sql.Types.LONGVARCHAR:
+            case java.sql.Types.CHAR:
+            default:
+                builder.withEntry(entryBuilder.withType(STRING).build());
+                break;
+            }
+        } catch (final SQLException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private void addColumn(final Record.Builder builder, final ResultSetMetaData metaData, final int columnIndex) {
         try {
             final String javaType = metaData.getColumnClassName(columnIndex);
             final int sqlType = metaData.getColumnType(columnIndex);
             final Object value = resultSet.getObject(columnIndex);
+            final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
             entryBuilder.withName(metaData.getColumnName(columnIndex))
                     .withNullable(metaData.isNullable(columnIndex) != columnNoNulls);
             switch (sqlType) {
@@ -163,7 +233,6 @@ public abstract class AbstractInputEmitter implements Serializable {
         } catch (final SQLException e) {
             throw new IllegalStateException(e);
         }
-
     }
 
     @PreDestroy

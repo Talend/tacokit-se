@@ -60,20 +60,29 @@ class PlatformTests extends BaseJdbcTest {
 
     private final Date time = new Date(1000 * 60 * 60 * 15 + 1000 * 60 * 20 + 39000); // 15:20:39
 
-    private List<Record> records = new ArrayList<>();
+    private List<Record> records;
 
     PlatformTests() throws ParseException {
     }
 
     @BeforeEach
-    void beforeEach() {
-        if (records.isEmpty()) {
-            records.add(recordBuilderFactory.newRecordBuilder().withInt("id", 1).withString("email", "user@talend.com")
-                    .withString("t_text", RandomStringUtils.randomAlphabetic(300)).withBoolean("t_boolean", true)
-                    .withLong("t_long", 10000000000L).withDouble("t_double", 1000.85d).withFloat("t_float", 15.50f)
-                    .withDateTime("t_date", date).withDateTime("t_datetime", datetime).withDateTime("t_time", time)
-                    .withBytes("t_bytes", "some data in bytes".getBytes(StandardCharsets.UTF_8)).build());
+    void beforeEach(final JdbcTestContainer container) {
+        records = new ArrayList<>();
+        Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder().withInt("id", 1)
+                .withString("email", "user@talend.com").withString("t_text", RandomStringUtils.randomAlphabetic(300))
+                .withLong("t_long", 10000000000L).withDouble("t_double", 1000.85d).withFloat("t_float", 15.50f)
+                .withDateTime("t_date", date).withDateTime("t_datetime", datetime).withDateTime("t_time", time);
+
+        if (!container.getDatabaseType().equalsIgnoreCase("oracle")) {
+            recordBuilder.withBoolean("t_boolean", true);
         }
+
+        if (!container.getDatabaseType().equalsIgnoreCase("redshift")) {
+            recordBuilder.withBytes("t_bytes", "some data in bytes".getBytes(StandardCharsets.UTF_8));
+        }
+
+        records.add(recordBuilder.build());
+
     }
 
     @TestTemplate

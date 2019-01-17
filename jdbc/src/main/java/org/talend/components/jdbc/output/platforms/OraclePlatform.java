@@ -88,8 +88,6 @@ public class OraclePlatform extends Platform {
         switch (column.getType()) {
         case STRING:
             return column.getSize() <= -1 ? "VARCHAR(" + VARCHAR2_MAX + ")" : "VARCHAR(" + column.getSize() + ")";
-        case BOOLEAN:
-            return "NUMBER(1)";
         case DOUBLE:
         case FLOAT:
         case LONG:
@@ -99,8 +97,9 @@ public class OraclePlatform extends Platform {
             return "BLOB";
         case DATETIME:
             return "TIMESTAMP(6)";
-        case RECORD: // todo ??
-        case ARRAY: // todo ??
+        case BOOLEAN:
+        case RECORD:
+        case ARRAY:
         default:
             throw new IllegalStateException("unsupported type for this database " + column);
         }

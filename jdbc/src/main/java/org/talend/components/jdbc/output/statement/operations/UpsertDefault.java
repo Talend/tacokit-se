@@ -75,8 +75,10 @@ public class UpsertDefault extends QueryManager {
 
     @Override
     public boolean validateQueryParam(final Record record) {
-        return record.getSchema().getEntries().stream().map(Schema.Entry::getName).collect(toSet())
-                .containsAll(new HashSet<>(keys));
+        final Set<Schema.Entry> entries = new HashSet<>(record.getSchema().getEntries());
+        return keys.stream().allMatch(k -> entries.stream().anyMatch(entry -> entry.getName().equals(k)))
+                && entries.stream().filter(entry -> keys.contains(entry.getName())).filter(entry -> !entry.isNullable())
+                        .map(entry -> valueOf(record, entry)).allMatch(Optional::isPresent);
     }
 
     @Override

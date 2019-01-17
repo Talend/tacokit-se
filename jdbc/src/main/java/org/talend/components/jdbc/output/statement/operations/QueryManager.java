@@ -23,13 +23,21 @@ import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
-import java.sql.*;
+import java.sql.BatchUpdateException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.util.Collections.emptyList;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
@@ -178,6 +186,38 @@ public abstract class QueryManager {
                 + (connection.getSchema() != null && !connection.getSchema().isEmpty()
                         ? getPlatform().identifier(connection.getSchema())
                         : "");
+    }
+
+    public static Optional<Object> valueOf(final Record record, final Schema.Entry entry) {
+        switch (entry.getType()) {
+        case INT:
+            return of(record.getOptionalInt(entry.getName()).isPresent() ? record.getOptionalInt(entry.getName()).getAsInt()
+                    : empty());
+        case LONG:
+            return of(record.getOptionalLong(entry.getName()).isPresent() ? record.getOptionalLong(entry.getName()) : empty());
+        case FLOAT:
+            return of(record.getOptionalFloat(entry.getName()).isPresent() ? record.getOptionalFloat(entry.getName()) : empty());
+        case DOUBLE:
+            return of(
+                    record.getOptionalDouble(entry.getName()).isPresent() ? record.getOptionalDouble(entry.getName()) : empty());
+        case BOOLEAN:
+            return of(record.getOptionalBoolean(entry.getName()).isPresent() ? record.getOptionalBoolean(entry.getName())
+                    : empty());
+        case BYTES:
+            return of(record.getOptionalBytes(entry.getName()).isPresent() ? record.getOptionalBytes(entry.getName()) : empty());
+        case DATETIME:
+            return of(record.getOptionalDateTime(entry.getName()).isPresent() ? record.getOptionalDateTime(entry.getName())
+                    : empty());
+        case STRING:
+            return of(
+                    record.getOptionalString(entry.getName()).isPresent() ? record.getOptionalString(entry.getName()) : empty());
+        case RECORD:
+            return of(
+                    record.getOptionalRecord(entry.getName()).isPresent() ? record.getOptionalRecord(entry.getName()) : empty());
+        case ARRAY:
+        default:
+            throw new IllegalArgumentException("unsupported type in " + entry);
+        }
     }
 
 }

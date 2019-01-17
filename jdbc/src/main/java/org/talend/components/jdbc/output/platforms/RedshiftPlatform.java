@@ -91,7 +91,9 @@ public class RedshiftPlatform extends Platform {
             return "INTEGER";
         case DATETIME:
             return "TIMESTAMPT";
-        case BYTES: // Bytes are not supported in redshift. AWS users may use s3 to store there binary data.
+        case BYTES:
+            throw new IllegalStateException(
+                    "Bytes are not supported in redshift. AWS users may use s3 to store there binary data." + column);
         case RECORD:
         case ARRAY:
         default:
