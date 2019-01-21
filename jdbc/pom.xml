@@ -118,7 +118,7 @@
                 <version>${surefire.version}</version>
                 <configuration>
                     <argLine>
-                        -Djdbc.drivers[2].paths[0].path=com.oracle:ojdbc7:12.1.0.2
+                        -Djdbc.drivers[2].paths[0]=com.oracle:ojdbc7:jar:12.1.0.2
                         -Djdbc.driver.derby.skip=false
                     </argLine>
                     <systemPropertyVariables>
