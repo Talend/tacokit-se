@@ -437,10 +437,15 @@ public class BulkQueryService {
             return null;
         }
         Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder(recordSchema);
-        for (String fieldName : result.keySet()) {
-            if (fieldName != null) {
-                addField(recordBuilder, fieldName, result.get(fieldName));
+        for (Schema.Entry fieldEntry : recordSchema.getEntries()) {
+            String columnName = fieldEntry.getName();
+            String resultValue = result.get(columnName);
+            if (resultValue == null) {
+                // for query module with filed name: "Contact.Name" from Contact
+                // guess schema: "Contact_Name", result mapping is with value of "Name", instead of "Contact_Name"
+                resultValue = result.get(columnName.substring(columnName.indexOf("_") + 1));
             }
+            addField(recordBuilder, columnName, resultValue);
         }
         return recordBuilder.build();
     }
