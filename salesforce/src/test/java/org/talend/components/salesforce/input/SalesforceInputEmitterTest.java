@@ -1,8 +1,10 @@
 package org.talend.components.salesforce.input;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.talend.components.salesforce.service.SalesforceService.URL;
@@ -10,6 +12,7 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -48,6 +51,8 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
 
     @BeforeAll
     public void testprepareData() {
+
+        // 1. prepare Account data
         final OutputConfiguration configuration = new OutputConfiguration();
         final ModuleDataSet moduleDataSet = new ModuleDataSet();
         moduleDataSet.setModuleName("Account");
@@ -75,7 +80,26 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
         Job.components().component("emitter", "test://emitter")
                 .component("salesforce-output", "Salesforce://SalesforceOutput?" + config).connections().from("emitter")
                 .to("salesforce-output").build().run();
+        getComponentsHandler().resetState();
+        // 2. prepare Contact data
 
+        moduleDataSet.setModuleName("Contact");
+        moduleDataSet.setDataStore(getDataStore());
+        configuration.setOutputAction(OutputConfiguration.OutputAction.INSERT);
+        configuration.setModuleDataSet(moduleDataSet);
+        configuration.setBatchMode(false);
+        configuration.setExceptionForErrors(true);
+
+        Record record = factory.newRecordBuilder().withString("FirstName", "F_test_types_" + UNIQUE_ID)
+                .withString("LastName", "L_test_types_" + UNIQUE_ID).withString("Email", "testalltype_" + UNIQUE_ID + "@test.com")
+                .withDouble("MailingLongitude", 115.7).withDouble("MailingLatitude", 39.4).withDateTime("Birthdate", new Date())
+                .build();
+        final String outputContactConfig = configurationByExample().forInstance(configuration).configured().toQueryString();
+        getComponentsHandler().setInputData(asList(record));
+        Job.components().component("emitter", "test://emitter")
+                .component("salesforce-output", "Salesforce://SalesforceOutput?" + outputContactConfig).connections()
+                .from("emitter").to("salesforce-output").build().run();
+        getComponentsHandler().resetState();
     }
 
     // Module Query part
@@ -99,6 +123,33 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
         Schema schema = record.getSchema();
         List<Schema.Entry> entries = schema.getEntries();
         assertEquals(2, entries.size());
+    }
+
+    @Test
+    @DisplayName("Test query null value with primitive type")
+    public void testQueryNullValues() {
+        final ModuleDataSet moduleDataSet = new ModuleDataSet();
+        moduleDataSet.setModuleName("Account");
+        ModuleDataSet.ColumnSelectionConfig selectionConfig = new ModuleDataSet.ColumnSelectionConfig();
+        selectionConfig.setSelectColumnNames(Arrays.asList("Id", "Name", "NumberOfEmployees", "AnnualRevenue"));
+        moduleDataSet.setColumnSelectionConfig(selectionConfig);
+        moduleDataSet.setDataStore(getDataStore());
+        moduleDataSet.setCondition(
+                "NumberOfEmployees = null and AnnualRevenue = null and Name Like 'TestName_%" + UNIQUE_ID + "%' limit 5");
+
+        final String config = configurationByExample().forInstance(moduleDataSet).configured().toQueryString();
+        Job.components().component("salesforce-input", "Salesforce://ModuleQueryInput?" + config)
+                .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
+        final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
+        assertEquals(5, records.size());
+        Record record = records.get(0);
+        Schema schema = record.getSchema();
+        List<Schema.Entry> entries = schema.getEntries();
+        assertEquals(4, entries.size());
+        assertEquals(Schema.Type.INT, entries.get(2).getType());
+        assertEquals(Schema.Type.DOUBLE, entries.get(3).getType());
+        assertNull(record.get(Object.class, "NumberOfEmployees"));
+        assertNull(record.get(Object.class, "AnnualRevenue"));
     }
 
     @Test
@@ -258,10 +309,32 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
         assertNotNull(record.getString("CreatedBy_Name"));
     }
 
+    @Test
+    @DisplayName("Test SOQL query with relationship without name")
+    public void testSOQLQueryChildToParentWithoutName() {
+        final SOQLQueryDataSet soqlQueryDataSet = new SOQLQueryDataSet();
+        soqlQueryDataSet.setQuery(
+                "select Contact.Name, Account.Name from Contact where MailingLongitude != null and MailingLongitude !=null and Birthdate !=null and Name Like 'F_test_types_%"
+                        + UNIQUE_ID + "%'");
+        soqlQueryDataSet.setDataStore(getDataStore());
+
+        final String config = configurationByExample().forInstance(soqlQueryDataSet).configured().toQueryString();
+        Job.components().component("salesforce-input", "Salesforce://SOQLQueryInput?" + config)
+                .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
+        final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
+        Assert.assertEquals(1, records.size());
+        Record record = records.get(0);
+        assertEquals("F_test_types_" + UNIQUE_ID + " " + "L_test_types_" + UNIQUE_ID, record.getString("Contact_Name"));
+        assertNull(record.getString("Account_Name"));
+    }
+
     @AfterAll
     public void test99_cleanupTestRecords() {
         cleanTestRecords("Account", "Name Like '%" + UNIQUE_ID + "%'");
         checkModuleData("Account", "Name Like '%" + UNIQUE_ID + "%'", 0);
+
+        cleanTestRecords("Contact", "Email Like '%" + UNIQUE_ID + "%'");
+        checkModuleData("Contact", "Email Like '%" + UNIQUE_ID + "%'", 0);
     }
 
 }

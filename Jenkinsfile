@@ -1,8 +1,8 @@
 def slackChannel = 'components-ci'
 
-def deploymentSuffix = env.BRANCH_NAME == "master" ? "" : ("tdi/${env.BRANCH_NAME}")
+def deploymentSuffix = env.BRANCH_NAME == "tdi/${env.BRANCH_NAME}"
 def deploymentRepository = "https://artifacts-zl.talend.com/nexus/content/repositories/snapshots/${deploymentSuffix}"
-def m2 = "/tmp/jenkins/tdi/m2${deploymentSuffix.isEmpty() ? '' : ('/' + deploymentSuffix)}"
+def m2 = "/tmp/jenkins/tdi/m2/${deploymentSuffix}"
 
 pipeline {
     agent {

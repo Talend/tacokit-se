@@ -51,6 +51,9 @@ public class ModuleQueryEmitter extends AbstractQueryEmitter implements Serializ
         super(moduleDataSet, service, configuration, recordBuilderFactory, messages);
     }
 
+    /**
+     * Build SOQL based on selected columns and module name
+     */
     public String getQuery() {
 
         List<String> allModuleFields;
@@ -68,7 +71,7 @@ public class ModuleQueryEmitter extends AbstractQueryEmitter implements Serializ
         }
 
         List<String> queryFields;
-        List<String> selectedColumns = ((ModuleDataSet) dataset).getColumnSelectionConfig().getSelectColumnNames();
+        List<String> selectedColumns = getColumnNames();
         if (selectedColumns == null || selectedColumns.isEmpty()) {
             queryFields = allModuleFields;
         } else if (!allModuleFields.containsAll(selectedColumns)) { // ensure requested fields exist
@@ -100,6 +103,11 @@ public class ModuleQueryEmitter extends AbstractQueryEmitter implements Serializ
     @Override
     String getModuleName() {
         return ((ModuleDataSet) dataset).getModuleName();
+    }
+
+    @Override
+    List<String> getColumnNames() {
+        return ((ModuleDataSet) dataset).getColumnSelectionConfig().getSelectColumnNames();
     }
 
     private List<String> getColumnNames(DescribeSObjectResult in) {
