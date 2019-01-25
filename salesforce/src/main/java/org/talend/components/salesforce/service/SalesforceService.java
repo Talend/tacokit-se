@@ -261,6 +261,15 @@ public class SalesforceService {
             final LocalConfiguration localConfiguration) {
         try {
             PartnerConnection connection = connect(dataStore, localConfiguration);
+            return getFieldMap(connection, moduleName);
+
+        } catch (ConnectionException e) {
+            throw handleConnectionException(e);
+        }
+    }
+
+    public Map<String, Field> getFieldMap(PartnerConnection connection, String moduleName) {
+        try {
             DescribeSObjectResult module = connection.describeSObject(moduleName);
             Map<String, Field> fieldMap = new TreeMap<>();
             for (Field field : module.getFields()) {
