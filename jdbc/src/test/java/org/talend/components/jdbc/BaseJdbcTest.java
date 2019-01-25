@@ -129,7 +129,9 @@ public abstract class BaseJdbcTest {
     }
 
     public static void insertRows(final String table, final JdbcTestContainer container, final long rowCount,
-            final boolean withNullValues, final int withMissingIdEvery, final String stringPrefix) {
+            final boolean withNullValues, final String stringPrefix) {
+        final boolean withBoolean = !container.getDatabaseType().equalsIgnoreCase("oracle");
+        final boolean withBytes = !container.getDatabaseType().equalsIgnoreCase("redshift");
         final OutputConfig configuration = new OutputConfig();
         configuration.setDataset(newTableNameDataset(table, container));
         configuration.setActionOnData(OutputConfig.ActionOnData.INSERT);
@@ -140,7 +142,7 @@ public abstract class BaseJdbcTest {
         Job.components()
                 .component("rowGenerator",
                         "jdbcTest://RowGenerator?"
-                                + rowGeneratorConfig(rowCount, withNullValues, withMissingIdEvery, stringPrefix))
+                                + rowGeneratorConfig(rowCount, withNullValues, stringPrefix, withBoolean, withBytes))
                 .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput").build()
                 .run();
     }
@@ -161,11 +163,11 @@ public abstract class BaseJdbcTest {
         return dataset;
     }
 
-    public static String rowGeneratorConfig(final long rowCount, final boolean withNullValues, final int withMissingIdEvery,
-            final String stringPrefix) {
+    public static String rowGeneratorConfig(final long rowCount, final boolean withNullValues, final String stringPrefix,
+            final boolean withBoolean, final boolean withBytes) {
         return "config.rowCount=" + rowCount + "&config.withNullValues=" + withNullValues
-                + ofNullable(stringPrefix).map(p -> "&config.stringPrefix=" + stringPrefix).orElse("")
-                + "&config.withMissingIdEvery=" + withMissingIdEvery;
+                + ofNullable(stringPrefix).map(p -> "&config.stringPrefix=" + stringPrefix).orElse("") + "&config.withBoolean="
+                + withBoolean + "&config.withBytes=" + withBytes;
     }
 
 }

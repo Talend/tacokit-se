@@ -21,12 +21,19 @@ import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Collections.emptyList;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 @Slf4j
 @Getter
@@ -50,8 +57,10 @@ public class Update extends QueryManager {
 
     @Override
     public boolean validateQueryParam(final Record record) {
-        return record.getSchema().getEntries().stream().map(Schema.Entry::getName).collect(toSet())
-                .containsAll(new HashSet<>(keys));
+        final Set<Schema.Entry> entries = new HashSet<>(record.getSchema().getEntries());
+        return keys.stream().allMatch(k -> entries.stream().anyMatch(entry -> entry.getName().equals(k)))
+                && entries.stream().filter(entry -> keys.contains(entry.getName())).filter(entry -> !entry.isNullable())
+                        .map(entry -> valueOf(record, entry)).allMatch(Optional::isPresent);
     }
 
     @Override

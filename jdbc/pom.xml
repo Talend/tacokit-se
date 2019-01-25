@@ -128,7 +128,7 @@
                            You can activate the targetParallelism to control the parallelism of the test pipeline.
                            You can also set it to 1 to debug more easily
                         -->
-                        <talend.beam.job.targetParallelism>1</talend.beam.job.targetParallelism>
+                        <!--<talend.beam.job.targetParallelism>1</talend.beam.job.targetParallelism>-->
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

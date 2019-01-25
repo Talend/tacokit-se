@@ -95,8 +95,8 @@ public class PostgreSQLPlatform extends Platform {
             return "BYTEA";
         case DATETIME:
             return "timestamp";
-        case RECORD: // todo ??
-        case ARRAY: // todo ??
+        case RECORD:
+        case ARRAY:
         default:
             throw new IllegalStateException("unsupported type for this database " + column);
         }

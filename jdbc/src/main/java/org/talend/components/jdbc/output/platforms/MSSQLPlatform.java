@@ -96,8 +96,8 @@ public class MSSQLPlatform extends Platform {
             return "VARBINARY(max)";
         case DATETIME:
             return "datetime2";
-        case RECORD: // todo ??
-        case ARRAY: // todo ??
+        case RECORD:
+        case ARRAY:
         default:
             throw new IllegalStateException("unsupported type for this database " + column);
         }
