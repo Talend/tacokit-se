@@ -46,12 +46,12 @@
   </scm>
   <distributionManagement>
     <snapshotRepository>
-      <id>talend.snapshots</id>
-      <url>https://artifacts-zl.talend.com/nexus/content/repositories/snapshots/</url>
+      <id>talend_nexus_deployment</id>
+      <url>${talend_oss_snapshots}</url>
     </snapshotRepository>
     <repository>
-      <id>talend.releases</id>
-      <url>https://artifacts-zl.talend.com/nexus/content/repositories/releases/</url>
+      <id>talend_nexus_deployment</id>
+      <url>https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceRelease/</url>
     </repository>
     <site>
       <id>documentation.website</id>
@@ -82,6 +82,7 @@
     <guava.version>20.0</guava.version>
 
     <validation.model>true</validation.model>
+    <talend_oss_snapshots>https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceSnapshot/</talend_oss_snapshots>
   </properties>
 
   <dependencyManagement>
@@ -239,8 +240,24 @@
 
   <repositories>
     <repository>
+      <id>talend.oss.snapshots</id>
+      <url>${talend_oss_snapshots}</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+    <repository>
       <id>TalendOpenSourceRelease</id>
       <url>https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceRelease/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
     </repository>
     <repository>
       <id>SonatypeSnapshotsOSS</id>
@@ -255,8 +272,24 @@
   </repositories>
   <pluginRepositories>
     <pluginRepository>
-      <id>TalendOpenSourceRelease</id>
+      <id>talend.oss.snapshots</id>
+      <url>${talend_oss_snapshots}</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <id>talend.oss.releases</id>
       <url>https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceRelease/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
     </pluginRepository>
     <pluginRepository>
       <id>SonatypeSnapshotsOSS</id>

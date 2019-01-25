@@ -1,8 +1,11 @@
 def slackChannel = 'components-ci'
 
-def deploymentSuffix = env.BRANCH_NAME == "tdi/${env.BRANCH_NAME}"
-def deploymentRepository = "https://artifacts-zl.talend.com/nexus/content/repositories/snapshots/${deploymentSuffix}"
+def PRODUCTION_DEPLOYMENT_REPOSITORY = "TalendOpenSourceSnapshot"
+def escapedBranch = env.BRANCH_NAME.toLowerCase().replaceAll("/","_")
+def deploymentSuffix = env.BRANCH_NAME == "master" ? "${PRODUCTION_DEPLOYMENT_REPOSITORY}" : ("dev_branch_snapshots/branch_${escapedBranch}")
+def deploymentRepository = "https://artifacts-zl.talend.com/nexus/content/repositories/${deploymentSuffix}"
 def m2 = "/tmp/jenkins/tdi/m2/${deploymentSuffix}"
+def talendOssRepositoryArg = env.BRANCH_NAME == "master" ? "" : ("-Dtalend_oss_snapshots=https://nexus-smart-branch.datapwn.com/nexus/content/repositories/${deploymentSuffix}")
 
 pipeline {
     agent {
@@ -53,7 +56,14 @@ spec:
                     // for next concurrent builds
                     sh 'for i in ci_documentation ci_nexus ci_site; do rm -Rf $i; rsync -av . $i; done'
                     // real task
-                    sh 'mvn clean install -PITs -e'
+                    withCredentials([
+                            usernamePassword(
+                                    credentialsId: 'nexus-artifact-zl-credentials',
+                                    usernameVariable: 'NEXUS_USER',
+                                    passwordVariable: 'NEXUS_PASSWORD')
+                    ]) {
+                        sh "mvn -s .jenkins/settings.xml clean install -PITs -e ${talendOssRepositoryArg}"
+                    }
                 }
             }
             post {
@@ -122,7 +132,7 @@ spec:
                                             usernameVariable: 'NEXUS_USER',
                                             passwordVariable: 'NEXUS_PASSWORD')
                             ]) {
-                                sh "cd ci_nexus && mvn -s .jenkins/settings.xml clean deploy -e -Pdocker -DskipTests -DaltDeploymentRepository=talend.snapshots::default::${deploymentRepository}"
+                                sh "cd ci_nexus && mvn -s .jenkins/settings.xml clean deploy -e -Pdocker -DskipTests ${talendOssRepositoryArg}"
                             }
                         }
                     }
