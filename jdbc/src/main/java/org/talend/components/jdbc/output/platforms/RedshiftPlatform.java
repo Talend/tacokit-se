@@ -14,6 +14,7 @@ package org.talend.components.jdbc.output.platforms;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,7 +61,9 @@ public class RedshiftPlatform extends Platform {
 
     @Override
     protected boolean isTableExistsCreationError(final Throwable e) {
-        return false;
+        // name space creation issue in distributed exectution is not handled by "IF NOT EXISTS"
+        // https://www.postgresql.org/message-id/CA%2BTgmoZAdYVtwBfp1FL2sMZbiHCWT4UPrzRLNnX1Nb30Ku3-gg%40mail.gmail.com
+        return e instanceof SQLException && "23505".equals(((SQLException) e).getSQLState());
     }
 
     private String createColumns(final List<Column> columns) {
