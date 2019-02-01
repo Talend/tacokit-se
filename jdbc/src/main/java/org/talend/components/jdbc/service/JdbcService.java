@@ -124,10 +124,8 @@ public class JdbcService {
                 dataSource.setJdbcUrl(connection.getJdbcUrl());
                 dataSource.setAutoCommit(isAutoCommit);
                 dataSource.setMaximumPoolSize(1);
-                // todo : make this configurable
-                dataSource.setLeakDetectionThreshold(15 * 60 * 1000);
-                dataSource.setConnectionTimeout(30 * 1000);
-                dataSource.setValidationTimeout(10 * 1000);
+                dataSource.setConnectionTimeout(connection.getConnectionTimeOut() * 1000);
+                dataSource.setValidationTimeout(connection.getConnectionValidationTimeOut() * 1000);
                 PlatformFactory.get(connection).addDataSourceProperties(dataSource);
                 dataSource.addDataSourceProperty("rewriteBatchedStatements", String.valueOf(rewriteBatchedStatements));
                 // dataSource.addDataSourceProperty("cachePrepStmts", "true");
