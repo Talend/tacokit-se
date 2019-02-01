@@ -191,29 +191,34 @@ public abstract class QueryManager {
     public static Optional<Object> valueOf(final Record record, final Schema.Entry entry) {
         switch (entry.getType()) {
         case INT:
-            return of(record.getOptionalInt(entry.getName()).isPresent() ? record.getOptionalInt(entry.getName()).getAsInt()
-                    : empty());
+            return record.getOptionalInt(entry.getName()).isPresent() ? of(record.getOptionalInt(entry.getName()).getAsInt())
+                    : empty();
         case LONG:
-            return of(record.getOptionalLong(entry.getName()).isPresent() ? record.getOptionalLong(entry.getName()) : empty());
+            return record.getOptionalLong(entry.getName()).isPresent() ? of(record.getOptionalLong(entry.getName()).getAsLong())
+                    : empty();
         case FLOAT:
-            return of(record.getOptionalFloat(entry.getName()).isPresent() ? record.getOptionalFloat(entry.getName()) : empty());
+            return record.getOptionalFloat(entry.getName()).isPresent()
+                    ? of(record.getOptionalFloat(entry.getName()).getAsDouble())
+                    : empty();
         case DOUBLE:
-            return of(
-                    record.getOptionalDouble(entry.getName()).isPresent() ? record.getOptionalDouble(entry.getName()) : empty());
+            return record.getOptionalDouble(entry.getName()).isPresent()
+                    ? of(record.getOptionalDouble(entry.getName()).getAsDouble())
+                    : empty();
         case BOOLEAN:
-            return of(record.getOptionalBoolean(entry.getName()).isPresent() ? record.getOptionalBoolean(entry.getName())
-                    : empty());
+            return record.getOptionalBoolean(entry.getName()).isPresent() ? of(record.getOptionalBoolean(entry.getName()).get())
+                    : empty();
         case BYTES:
-            return of(record.getOptionalBytes(entry.getName()).isPresent() ? record.getOptionalBytes(entry.getName()) : empty());
+            return record.getOptionalBytes(entry.getName()).isPresent() ? of(record.getOptionalBytes(entry.getName()).get())
+                    : empty();
         case DATETIME:
-            return of(record.getOptionalDateTime(entry.getName()).isPresent() ? record.getOptionalDateTime(entry.getName())
-                    : empty());
+            return record.getOptionalDateTime(entry.getName()).isPresent() ? of(record.getOptionalDateTime(entry.getName()).get())
+                    : empty();
         case STRING:
-            return of(
-                    record.getOptionalString(entry.getName()).isPresent() ? record.getOptionalString(entry.getName()) : empty());
+            return record.getOptionalString(entry.getName()).isPresent() ? of(record.getOptionalString(entry.getName()).get())
+                    : empty();
         case RECORD:
-            return of(
-                    record.getOptionalRecord(entry.getName()).isPresent() ? record.getOptionalRecord(entry.getName()) : empty());
+            return record.getOptionalRecord(entry.getName()).isPresent() ? of(record.getOptionalRecord(entry.getName()).get())
+                    : empty();
         case ARRAY:
         default:
             throw new IllegalArgumentException("unsupported type in " + entry);
