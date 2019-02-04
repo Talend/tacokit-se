@@ -28,7 +28,7 @@ import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.Fo
 @Data
 @DataSet("SqlQueryDataset")
 @GridLayout({ @GridLayout.Row("connection"), @GridLayout.Row("sqlQuery") })
-@GridLayout(names = ADVANCED, value = { @GridLayout.Row("advancedCommon") })
+@GridLayout(names = ADVANCED, value = { @GridLayout.Row("connection"), @GridLayout.Row("advancedCommon") })
 @Documentation("This configuration define a read only query")
 public class SqlQueryDataset implements BaseDataSet {
 

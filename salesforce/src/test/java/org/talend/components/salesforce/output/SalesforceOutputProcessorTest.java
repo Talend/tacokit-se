@@ -95,9 +95,6 @@ public class SalesforceOutputProcessorTest extends SalesforceTestBase {
         configuration.setBatchMode(false);
         configuration.setExceptionForErrors(true);
 
-        // We create the component processor instance using the configuration filled above
-        final Processor processor = getComponentsHandler().createProcessor(SalesforceOutput.class, configuration);
-
         Record record = factory.newRecordBuilder().withString("FirstName", "F_test_types_" + UNIQUE_ID)
                 .withString("LastName", "F_test_types_" + UNIQUE_ID).withString("Email", "testalltype_" + UNIQUE_ID + "@test.com")
                 .withDouble("MailingLongitude", 115.7).withDouble("MailingLatitude", 39.4).withDateTime("Birthdate", new Date())

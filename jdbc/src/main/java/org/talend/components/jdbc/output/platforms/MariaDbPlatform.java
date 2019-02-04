@@ -89,8 +89,8 @@ public class MariaDbPlatform extends Platform {
             return "BLOB";
         case DATETIME:
             return "DATETIME(6)";
-        case RECORD: // todo ??
-        case ARRAY: // todo ??
+        case RECORD:
+        case ARRAY:
         default:
             throw new IllegalStateException("unsupported type for this database " + column);
         }

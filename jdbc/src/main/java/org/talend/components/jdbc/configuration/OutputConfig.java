@@ -31,7 +31,8 @@ import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Ope
 @Data
 @GridLayout(value = { @GridLayout.Row("dataset"), @GridLayout.Row("createTableIfNotExists"), @GridLayout.Row("varcharLength"),
         @GridLayout.Row({ "actionOnData" }), @GridLayout.Row("keys"), @GridLayout.Row("ignoreUpdate") })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("rewriteBatchedStatements") })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("dataset"),
+        @GridLayout.Row("rewriteBatchedStatements") })
 @Documentation("Those properties define an output data set for the JDBC output component")
 public class OutputConfig implements Serializable {
 

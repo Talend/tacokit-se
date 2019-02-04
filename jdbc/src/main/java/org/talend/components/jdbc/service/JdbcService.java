@@ -32,7 +32,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -73,26 +72,6 @@ public class JdbcService {
                 .map(Boolean::valueOf).orElse(false);
     }
 
-    private URL[] getDriverFiles(final JdbcConfiguration.Driver driver) {
-        return drivers.computeIfAbsent(driver, key -> {
-            final Collection<File> driverFiles = resolver.resolveFromDescriptor(
-                    new ByteArrayInputStream(driver.getPaths().stream().filter(p -> p != null && !p.trim().isEmpty())
-                            .collect(joining("\n")).getBytes(StandardCharsets.UTF_8)));
-            final String missingJars = driverFiles.stream().filter(f -> !f.exists()).map(File::getAbsolutePath)
-                    .collect(joining("\n"));
-            if (!missingJars.isEmpty()) {
-                throw new IllegalStateException(i18n.errorDriverLoad(driver.getId(), missingJars));
-            }
-            return driverFiles.stream().map(f -> {
-                try {
-                    return f.toURI().toURL();
-                } catch (MalformedURLException e) {
-                    throw new IllegalStateException(e);
-                }
-            }).toArray(URL[]::new);
-        });
-    }
-
     /**
      * @return return false if the sql query is not a read only query, true otherwise
      */
@@ -110,40 +89,43 @@ public class JdbcService {
 
     public JdbcDatasource createDataSource(final JdbcConnection connection) {
         final JdbcConfiguration.Driver driver = getDriver(connection);
-        return new JdbcDatasource(connection, getDriverFiles(driver), driver, false, false);
+        return new JdbcDatasource(i18n, resolver, connection, driver, false, false);
     }
 
     public JdbcDatasource createDataSource(final JdbcConnection connection, final boolean rewriteBatchedStatements) {
         final JdbcConfiguration.Driver driver = getDriver(connection);
-        return new JdbcDatasource(connection, getDriverFiles(driver), driver, false, rewriteBatchedStatements);
+        return new JdbcDatasource(i18n, resolver, connection, driver, false, rewriteBatchedStatements);
     }
 
     public static class JdbcDatasource implements AutoCloseable {
 
-        private final URLClassLoader classLoader;
+        private final Resolver.ClassLoaderDescriptor classLoaderDescriptor;
 
         private HikariDataSource dataSource;
 
-        JdbcDatasource(final JdbcConnection connection, final URL[] driverFiles, final JdbcConfiguration.Driver driver,
-                final boolean isAutoCommit, final boolean rewriteBatchedStatements) {
-
+        JdbcDatasource(final I18nMessage i18nMessage, final Resolver resolver, final JdbcConnection connection,
+                final JdbcConfiguration.Driver driver, final boolean isAutoCommit, final boolean rewriteBatchedStatements) {
             final Thread thread = Thread.currentThread();
             final ClassLoader prev = thread.getContextClassLoader();
-            this.classLoader = new URLClassLoader(driverFiles, prev);
+
+            classLoaderDescriptor = resolver.mapDescriptorToClassLoader(driver.getPaths());
+            String missingJars = driver.getPaths().stream().filter(p -> classLoaderDescriptor.resolvedDependencies().contains(p))
+                    .collect(joining("\n"));
+            if (!classLoaderDescriptor.resolvedDependencies().containsAll(driver.getPaths())) {
+                throw new IllegalStateException(i18nMessage.errorDriverLoad(driver.getId(), missingJars));
+            }
+
             try {
-                thread.setContextClassLoader(classLoader);
+                thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
                 dataSource = new HikariDataSource();
-                dataSource.setPoolName("Hikari-" + thread.getName() + "#" + thread.getId());
                 dataSource.setUsername(connection.getUserId());
                 dataSource.setPassword(connection.getPassword());
                 dataSource.setDriverClassName(driver.getClassName());
                 dataSource.setJdbcUrl(connection.getJdbcUrl());
                 dataSource.setAutoCommit(isAutoCommit);
                 dataSource.setMaximumPoolSize(1);
-                // todo : make this configurable
-                dataSource.setLeakDetectionThreshold(15 * 60 * 1000);
-                dataSource.setConnectionTimeout(30 * 1000);
-                dataSource.setValidationTimeout(10 * 1000);
+                dataSource.setConnectionTimeout(connection.getConnectionTimeOut() * 1000);
+                dataSource.setValidationTimeout(connection.getConnectionValidationTimeOut() * 1000);
                 PlatformFactory.get(connection).addDataSourceProperties(dataSource);
                 dataSource.addDataSourceProperty("rewriteBatchedStatements", String.valueOf(rewriteBatchedStatements));
                 // dataSource.addDataSourceProperty("cachePrepStmts", "true");
@@ -159,8 +141,8 @@ public class JdbcService {
             final Thread thread = Thread.currentThread();
             final ClassLoader prev = thread.getContextClassLoader();
             try {
-                thread.setContextClassLoader(classLoader);
-                return wrap(classLoader, dataSource.getConnection(), Connection.class);
+                thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
+                return wrap(classLoaderDescriptor.asClassLoader(), dataSource.getConnection(), Connection.class);
             } finally {
                 thread.setContextClassLoader(prev);
             }
@@ -171,13 +153,13 @@ public class JdbcService {
             final Thread thread = Thread.currentThread();
             final ClassLoader prev = thread.getContextClassLoader();
             try {
-                thread.setContextClassLoader(classLoader);
+                thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
                 dataSource.close();
             } finally {
                 thread.setContextClassLoader(prev);
                 try {
-                    classLoader.close();
-                } catch (final IOException e) {
+                    classLoaderDescriptor.close();
+                } catch (final Exception e) {
                     log.error("can't close driver classloader properly", e);
                 }
             }

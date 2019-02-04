@@ -16,6 +16,7 @@ import lombok.Data;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
 
@@ -25,9 +26,16 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.UUID;
 
 import static java.util.Optional.ofNullable;
+import static org.talend.sdk.component.api.record.Schema.Type.BOOLEAN;
+import static org.talend.sdk.component.api.record.Schema.Type.BYTES;
+import static org.talend.sdk.component.api.record.Schema.Type.DATETIME;
+import static org.talend.sdk.component.api.record.Schema.Type.DOUBLE;
+import static org.talend.sdk.component.api.record.Schema.Type.FLOAT;
+import static org.talend.sdk.component.api.record.Schema.Type.INT;
+import static org.talend.sdk.component.api.record.Schema.Type.LONG;
+import static org.talend.sdk.component.api.record.Schema.Type.STRING;
 
 public class RowGeneratorSource implements Serializable {
 
@@ -37,6 +45,8 @@ public class RowGeneratorSource implements Serializable {
 
     private RecordBuilderFactory recordBuilderFactory;
 
+    private transient Schema schema;
+
     public RowGeneratorSource(final Config config, final RecordBuilderFactory recordBuilderFactory) {
         this.recordBuilderFactory = recordBuilderFactory;
         this.config = config;
@@ -45,6 +55,39 @@ public class RowGeneratorSource implements Serializable {
     @PostConstruct
     public void init() {
         currentCount = config.start + 1;
+        Schema.Builder schemaBuilder = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD)
+                .withEntry(recordBuilderFactory.newEntryBuilder().withName("id").withType(INT).withNullable(false).build())
+                .withEntry(
+                        recordBuilderFactory.newEntryBuilder().withName("string_id").withType(STRING).withNullable(false).build())
+                .withEntry(recordBuilderFactory.newEntryBuilder().withName("t_string").withType(STRING)
+                        .withNullable(config.withNullValues).build())
+                .withEntry(recordBuilderFactory.newEntryBuilder().withName("t_string2").withType(STRING)
+                        .withNullable(config.withNullValues).build())
+                .withEntry(recordBuilderFactory.newEntryBuilder().withName("t_text").withType(STRING)
+                        .withNullable(config.withNullValues).build())
+                .withEntry(recordBuilderFactory.newEntryBuilder().withName("t_date").withType(DATETIME)
+                        .withNullable(config.withNullValues).build())
+                .withEntry(recordBuilderFactory.newEntryBuilder().withName("t_datetime").withType(DATETIME)
+                        .withNullable(config.withNullValues).build())
+                .withEntry(recordBuilderFactory.newEntryBuilder().withName("t_time").withType(DATETIME)
+                        .withNullable(config.withNullValues).build())
+                .withEntry(recordBuilderFactory.newEntryBuilder().withName("t_double").withType(DOUBLE)
+                        .withNullable(config.withNullValues).build())
+                .withEntry(recordBuilderFactory.newEntryBuilder().withName("t_long").withType(LONG)
+                        .withNullable(config.withNullValues).build())
+                .withEntry(recordBuilderFactory.newEntryBuilder().withName("t_float").withType(FLOAT)
+                        .withNullable(config.withNullValues).build());
+        if (config.withBytes) {
+            schemaBuilder.withEntry(recordBuilderFactory.newEntryBuilder().withName("t_bytes").withType(BYTES)
+                    .withNullable(config.withNullValues).build());
+        }
+
+        if (config.withBoolean) {
+            schemaBuilder.withEntry(recordBuilderFactory.newEntryBuilder().withName("t_boolean").withType(BOOLEAN)
+                    .withNullable(config.withNullValues).build());
+        }
+
+        schema = schemaBuilder.build();
     }
 
     @Producer
@@ -53,29 +96,19 @@ public class RowGeneratorSource implements Serializable {
             return null;
         }
 
-        final Record.Builder builder = recordBuilderFactory.newRecordBuilder();
-        if (config.withMissingIdEvery <= 0 || currentCount % config.withMissingIdEvery != 0) {
-            builder.withInt("id", currentCount);
-            final String uuid = UUID.randomUUID().toString();
-            builder.withString("string_id", uuid.substring(0, Math.min(255, uuid.length())));
-        }
-
-        if (config.withNullValues) {
-            builder.withString("t_string", null);
-            builder.withString("t_string2", null);
-            builder.withString("t_text", null);
-            builder.withDateTime("t_date", (Date) null);
-            builder.withDateTime("t_datetime", (Date) null);
-            builder.withDateTime("t_time", (Date) null);
-
-        } else {
+        final Record.Builder builder = recordBuilderFactory.newRecordBuilder(schema);
+        builder.withInt("id", currentCount);
+        builder.withString("string_id", String.valueOf(currentCount));
+        if (!config.withNullValues) {
             final Date date = new Date(new SimpleDateFormat("yyyy-MM-dd").parse("2018-12-6").getTime());
             final Date datetime = new Date();
             final Date time = new Date(1000 * 60 * 60 * 15 + 1000 * 60 * 20 + 39000); // 15:20:39
             builder.withString("t_string", ofNullable(config.stringPrefix).orElse("customer") + currentCount);
             builder.withString("t_string2", RandomStringUtils.randomAlphabetic(50));
             builder.withString("t_text", RandomStringUtils.randomAlphabetic(300));
-            builder.withBoolean("t_boolean", true);
+            if (config.withBoolean) {
+                builder.withBoolean("t_boolean", currentCount % 3 != 0);
+            }
             builder.withLong("t_long", 10000000000L);
             builder.withDouble("t_double", 1000.85d);
             builder.withFloat("t_float", 15.50f);
@@ -84,12 +117,8 @@ public class RowGeneratorSource implements Serializable {
             builder.withDateTime("t_time", time);
         }
 
-        if (config.withBytes) {
-            if (config.withNullValues) {
-                builder.withBytes("t_bytes", null);
-            } else {
-                builder.withBytes("t_bytes", "some data in bytes".getBytes(StandardCharsets.UTF_8));
-            }
+        if (config.withBytes && !config.withNullValues) {
+            builder.withBytes("t_bytes", "some data in bytes".getBytes(StandardCharsets.UTF_8));
         }
 
         currentCount++;
@@ -112,10 +141,10 @@ public class RowGeneratorSource implements Serializable {
         private boolean withNullValues;
 
         @Option
-        private int withMissingIdEvery;
+        private boolean withBytes = true;
 
         @Option
-        private boolean withBytes = true;
+        private boolean withBoolean = true;
 
     }
 }

@@ -23,6 +23,7 @@ import org.talend.sdk.component.api.record.Schema;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Comparator.comparing;
@@ -62,8 +63,8 @@ public class Insert extends QueryManager {
 
     @Override
     public boolean validateQueryParam(final Record record) {
-        return record.getSchema().getEntries().stream().map(Schema.Entry::getName).collect(toSet()).containsAll(namedParams
-                .values().stream().filter(namedParam -> !namedParam.isNullable()).map(Schema.Entry::getName).collect(toSet()));
+        return namedParams.values().stream().filter(e -> !e.isNullable()).map(e -> valueOf(record, e))
+                .allMatch(Optional::isPresent);
     }
 
     @Override

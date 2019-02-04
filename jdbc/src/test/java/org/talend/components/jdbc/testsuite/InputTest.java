@@ -20,7 +20,6 @@ import org.talend.components.jdbc.BaseJdbcTest;
 import org.talend.components.jdbc.Disabled;
 import org.talend.components.jdbc.DisabledDatabases;
 import org.talend.components.jdbc.WithDatabasesEnvironments;
-import org.talend.components.jdbc.dataset.AdvancedCommon;
 import org.talend.components.jdbc.configuration.InputQueryConfig;
 import org.talend.components.jdbc.configuration.InputTableNameConfig;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
@@ -52,7 +51,7 @@ class InputTest extends BaseJdbcTest {
     void validQuery(final TestInfo testInfo, final JdbcTestContainer container) {
         final int rowCount = 50;
         final String testTableName = getTestTableName(testInfo);
-        insertRows(testTableName, container, rowCount, false, 0, null);
+        insertRows(testTableName, container, rowCount, false, null);
         final SqlQueryDataset sqlQueryDataset = new SqlQueryDataset();
         final JdbcConnection connection = newConnection(container);
         sqlQueryDataset.setConnection(connection);
@@ -117,7 +116,7 @@ class InputTest extends BaseJdbcTest {
     void validTableName(final TestInfo testInfo, final JdbcTestContainer container) {
         final int rowCount = 50;
         final String testTableName = getTestTableName(testInfo);
-        insertRows(testTableName, container, rowCount, false, 0, null);
+        insertRows(testTableName, container, rowCount, false, null);
         final InputTableNameConfig config = new InputTableNameConfig();
         config.setDataSet(newTableNameDataset(testTableName, container));
         final String configURI = configurationByExample().forInstance(config).configured().toQueryString();
@@ -142,4 +141,21 @@ class InputTest extends BaseJdbcTest {
                         .component("collector", "test://collector").connections().from("jdbcInput").to("collector").build()
                         .run());
     }
+
+    @TestTemplate
+    @DisplayName("TableName - valid table name with null values")
+    void validTableNameWithNullValues(final TestInfo testInfo, final JdbcTestContainer container) {
+        final int rowCount = 1;
+        final String testTableName = getTestTableName(testInfo);
+        insertRows(testTableName, container, rowCount, true, null);
+        final InputTableNameConfig config = new InputTableNameConfig();
+        config.setDataSet(newTableNameDataset(testTableName, container));
+        final String configURI = configurationByExample().forInstance(config).configured().toQueryString();
+        Job.components().component("jdbcInput", "Jdbc://TableNameInput?" + configURI).component("collector", "test://collector")
+                .connections().from("jdbcInput").to("collector").build().run();
+
+        final List<Record> collectedData = getComponentsHandler().getCollectedData(Record.class);
+        assertEquals(rowCount, collectedData.size());
+    }
+
 }

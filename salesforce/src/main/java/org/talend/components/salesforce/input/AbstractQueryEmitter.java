@@ -16,6 +16,7 @@ package org.talend.components.salesforce.input;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -30,6 +31,7 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
@@ -58,6 +60,8 @@ public abstract class AbstractQueryEmitter implements Serializable {
 
     private Messages messages;
 
+    private boolean preBuildSchema;
+
     public AbstractQueryEmitter(@Option("configuration") final QueryDataSet queryDataSet, final SalesforceService service,
             LocalConfiguration configuration, final RecordBuilderFactory recordBuilderFactory, final Messages messages) {
         this.service = service;
@@ -71,9 +75,7 @@ public abstract class AbstractQueryEmitter implements Serializable {
     public void init() {
         try {
             final BulkConnection bulkConnection = service.bulkConnect(dataset.getDataStore(), localConfiguration);
-            Map<String, Field> fieldMap = service.getFieldMap(dataset.getDataStore(), getModuleName(), localConfiguration);
             bulkQueryService = new BulkQueryService(bulkConnection, recordBuilderFactory, messages);
-            bulkQueryService.setFieldMap(fieldMap);
             bulkQueryService.doBulkQuery(getModuleName(), getQuery());
         } catch (ConnectionException e) {
             throw service.handleConnectionException(e);
@@ -87,6 +89,13 @@ public abstract class AbstractQueryEmitter implements Serializable {
     @Producer
     public Record next() {
         try {
+            if (!preBuildSchema) {
+                this.preBuildSchema = true;
+                Map<String, Field> fieldMap = service.getFieldMap(dataset.getDataStore(), getModuleName(), localConfiguration);
+                bulkQueryService.setFieldMap(fieldMap);
+                Schema schema = service.guessSchema(getColumnNames(), fieldMap, recordBuilderFactory);
+                bulkQueryService.setRecordSchema(schema);
+            }
             if (bulkResultSet == null) {
                 bulkResultSet = bulkQueryService.getQueryResultSet(bulkQueryService.nextResultId());
             }
@@ -120,5 +129,7 @@ public abstract class AbstractQueryEmitter implements Serializable {
     abstract String getQuery();
 
     abstract String getModuleName();
+
+    abstract List<String> getColumnNames();
 
 }

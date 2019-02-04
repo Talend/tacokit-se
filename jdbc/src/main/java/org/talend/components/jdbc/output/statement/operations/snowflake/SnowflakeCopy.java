@@ -31,18 +31,27 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-import static java.nio.file.Files.*;
+import static java.nio.file.Files.createTempDirectory;
+import static java.nio.file.Files.createTempFile;
+import static java.nio.file.Files.newBufferedWriter;
 import static java.time.LocalDateTime.now;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Locale.ROOT;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.codec.binary.Hex.encodeHexString;
+import static org.talend.components.jdbc.output.statement.operations.QueryManager.valueOf;
 
 @Slf4j
 public class SnowflakeCopy {
@@ -191,8 +200,8 @@ public class SnowflakeCopy {
         final AtomicInteger count = new AtomicInteger(0);
         final AtomicInteger recordCounter = new AtomicInteger(0);
         final Map<Integer, RecordChunk> chunks = new HashMap<>();
-        records.stream().map(
-                record -> record.getSchema().getEntries().stream().map(entry -> valueOf(record, entry)).collect(joining(",")))
+        records.stream()
+                .map(record -> record.getSchema().getEntries().stream().map(entry -> format(record, entry)).collect(joining(",")))
                 .forEach(line -> {
                     if (size.addAndGet(line.getBytes(StandardCharsets.UTF_8).length) > maxChunk) {
                         // this writer can be closed now. to early free of memory
@@ -263,23 +272,20 @@ public class SnowflakeCopy {
         }
     }
 
-    private static String valueOf(final Record record, final Schema.Entry entry) {
+    private static String format(final Record record, final Schema.Entry entry) {
         switch (entry.getType()) {
         case INT:
-            return String.valueOf(record.getInt(entry.getName()));
         case LONG:
-            return String.valueOf(record.getLong(entry.getName()));
-        case FLOAT:
-            return Float.toHexString(record.getFloat(entry.getName()));
-        case DOUBLE:
-            return Double.toHexString(record.getDouble(entry.getName()));
         case BOOLEAN:
-            return String.valueOf(record.getBoolean(entry.getName()));
+            return valueOf(record, entry).map(String::valueOf).orElse("");
+        case FLOAT:
+            return valueOf(record, entry).map(v -> Float.toHexString((Float) v)).orElse("");
+        case DOUBLE:
+            return valueOf(record, entry).map(v -> Double.toHexString((Double) v)).orElse("");
         case BYTES:
-            return record.getBytes(entry.getName()) == null ? "" : encodeHexString(record.getBytes(entry.getName()));
+            return valueOf(record, entry).map(v -> encodeHexString((byte[]) v)).orElse("");
         case DATETIME:
-            return record.getDateTime(entry.getName()) == null ? ""
-                    : record.getDateTime(entry.getName()).format(ofPattern(TIMESTAMP_FORMAT_PATTERN));
+            return valueOf(record, entry).map(v -> ((ZonedDateTime) v).format(ofPattern(TIMESTAMP_FORMAT_PATTERN))).orElse("");
         case STRING:
             return escape(record.getString(entry.getName()));
         case ARRAY:

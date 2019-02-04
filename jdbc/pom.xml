@@ -118,7 +118,7 @@
                 <version>${surefire.version}</version>
                 <configuration>
                     <argLine>
-                        -Djdbc.drivers[2].paths[0].path=com.oracle:ojdbc7:12.1.0.2
+                        -Djdbc.drivers[2].paths[0]=com.oracle:ojdbc7:jar:12.1.0.2
                         -Djdbc.driver.derby.skip=false
                     </argLine>
                     <systemPropertyVariables>
@@ -128,7 +128,7 @@
                            You can activate the targetParallelism to control the parallelism of the test pipeline.
                            You can also set it to 1 to debug more easily
                         -->
-                        <talend.beam.job.targetParallelism>1</talend.beam.job.targetParallelism>
+                        <!--<talend.beam.job.targetParallelism>1</talend.beam.job.targetParallelism>-->
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

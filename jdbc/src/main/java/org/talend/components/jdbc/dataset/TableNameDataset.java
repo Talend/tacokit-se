@@ -29,7 +29,7 @@ import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.Fo
 @Data
 @DataSet("TableNameDataset")
 @GridLayout({ @GridLayout.Row("connection"), @GridLayout.Row("tableName") })
-@GridLayout(names = ADVANCED, value = { @GridLayout.Row("advancedCommon") })
+@GridLayout(names = ADVANCED, value = { @GridLayout.Row("connection"), @GridLayout.Row("advancedCommon") })
 @Documentation("This configuration define a dataset using a database table name.\nIt's generate a select * from table query")
 public class TableNameDataset implements BaseDataSet {
 

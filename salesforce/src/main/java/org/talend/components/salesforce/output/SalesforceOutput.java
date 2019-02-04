@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.talend.components.salesforce.service.Messages;
@@ -65,27 +64,26 @@ public class SalesforceOutput implements Serializable {
         this.messages = messages;
     }
 
-    @PostConstruct
-    public void init() {
-        try {
-            final PartnerConnection connection = service.connect(configuration.getModuleDataSet().getDataStore(),
-                    localConfiguration);
-            outputService = new SalesforceOutputService(configuration, connection, messages);
-            Map<String, Field> fieldMap = service.getFieldMap(configuration.getModuleDataSet().getDataStore(),
-                    configuration.getModuleDataSet().getModuleName(), localConfiguration);
-            outputService.setFieldMap(fieldMap);
-        } catch (ConnectionException e) {
-            throw service.handleConnectionException(e);
-        }
-    }
-
     @ElementListener
     public void onNext(@Input final Record record) throws IOException {
+        if (outputService == null) {
+            try {
+                final PartnerConnection connection = service.connect(configuration.getModuleDataSet().getDataStore(),
+                        localConfiguration);
+                outputService = new SalesforceOutputService(configuration, connection, messages);
+                Map<String, Field> fieldMap = service.getFieldMap(connection, configuration.getModuleDataSet().getModuleName());
+                outputService.setFieldMap(fieldMap);
+            } catch (ConnectionException e) {
+                throw service.handleConnectionException(e);
+            }
+        }
         outputService.write(record);
     }
 
     @PreDestroy
     public void release() throws IOException {
-        outputService.finish();
+        if (outputService != null) {
+            outputService.finish();
+        }
     }
 }

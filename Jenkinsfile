@@ -1,7 +1,17 @@
 def slackChannel = 'components-ci'
 
-def deploymentSuffix = env.BRANCH_NAME == "master" ? "" : ("tdi/${env.BRANCH_NAME}")
-def deploymentRepository = "https://artifacts-zl.talend.com/nexus/content/repositories/snapshots/${deploymentSuffix}"
+def PRODUCTION_DEPLOYMENT_REPOSITORY = "TalendOpenSourceSnapshot"
+
+def branchName = env.BRANCH_NAME
+if (BRANCH_NAME.startsWith("PR-")) {
+    branchName = env.CHANGE_BRANCH
+}
+
+def escapedBranch = branchName.toLowerCase().replaceAll("/","_")
+def deploymentSuffix = env.BRANCH_NAME == "master" ? "${PRODUCTION_DEPLOYMENT_REPOSITORY}" : ("dev_branch_snapshots/branch_${escapedBranch}")
+def deploymentRepository = "https://artifacts-zl.talend.com/nexus/content/repositories/${deploymentSuffix}"
+def m2 = "/tmp/jenkins/tdi/m2/${deploymentSuffix}"
+def talendOssRepositoryArg = env.BRANCH_NAME == "master" ? "" : ("-Dtalend_oss_snapshots=https://nexus-smart-branch.datapwn.com/nexus/content/repositories/${deploymentSuffix}")
 
 pipeline {
     agent {
@@ -25,7 +35,7 @@ spec:
             hostPath: {path: /var/run/docker.sock}
         -
             name: m2main
-            hostPath: {path: /tmp/jenkins/tdi/m2}
+            hostPath: { path: ${m2} }
 """
         }
     }
@@ -52,7 +62,14 @@ spec:
                     // for next concurrent builds
                     sh 'for i in ci_documentation ci_nexus ci_site; do rm -Rf $i; rsync -av . $i; done'
                     // real task
-                    sh 'mvn clean install -T1C -PITs -e'
+                    withCredentials([
+                            usernamePassword(
+                                    credentialsId: 'nexus-artifact-zl-credentials',
+                                    usernameVariable: 'NEXUS_USER',
+                                    passwordVariable: 'NEXUS_PASSWORD')
+                    ]) {
+                        sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -e ${talendOssRepositoryArg}"
+                    }
                 }
             }
             post {
@@ -82,7 +99,7 @@ spec:
                             ]) {
                                 sh """
                      |cd ci_documentation
-                     |mvn clean install -DskipTests
+                     |mvn -U -B clean install -DskipTests
                      |chmod +x .jenkins/generate-doc.sh && .jenkins/generate-doc.sh
                      |""".stripMargin()
                             }
@@ -100,7 +117,7 @@ spec:
                 stage('Site') {
                     steps {
                         container('main') {
-                            sh 'cd ci_site && mvn clean site site:stage -T1C -Dmaven.test.failure.ignore=true'
+                            sh 'cd ci_site && mvn -U -B clean site site:stage -Dmaven.test.failure.ignore=true'
                         }
                     }
                     post {
@@ -121,7 +138,7 @@ spec:
                                             usernameVariable: 'NEXUS_USER',
                                             passwordVariable: 'NEXUS_PASSWORD')
                             ]) {
-                                sh "cd ci_nexus && mvn -s .jenkins/settings.xml clean deploy -e -Pdocker -DskipTests -DaltDeploymentRepository=talend.snapshots::default::${deploymentRepository}"
+                                sh "cd ci_nexus && mvn -U -B -s .jenkins/settings.xml clean deploy -e -Pdocker -DskipTests ${talendOssRepositoryArg}"
                             }
                         }
                     }

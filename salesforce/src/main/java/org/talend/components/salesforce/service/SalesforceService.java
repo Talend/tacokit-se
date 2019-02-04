@@ -26,9 +26,12 @@ import java.util.TreeMap;
 import javax.xml.namespace.QName;
 
 import org.talend.components.salesforce.datastore.BasicDataStore;
+import org.talend.components.salesforce.soql.FieldDescription;
 import org.talend.components.salesforce.soql.SoqlQuery;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import com.sforce.async.AsyncApiException;
 import com.sforce.async.BulkConnection;
@@ -69,6 +72,17 @@ public class SalesforceService {
 
     }
 
+    public static List<String> guessColumnNamesFromSOQL(String soqlQuery) {
+        SoqlQuery query = SoqlQuery.getInstance();
+        query.init(soqlQuery);
+        List<String> columnNames = new ArrayList<>();
+        for (FieldDescription fieldDescription : query.getFieldDescriptions()) {
+            columnNames.add(fieldDescription.getFullName());
+        }
+        return columnNames;
+
+    }
+
     /**
      * Create a partner connection
      */
@@ -77,8 +91,9 @@ public class SalesforceService {
         final Integer timeout = (localConfiguration != null && localConfiguration.get(TIMEOUT_PROPERTY_KEY) != null)
                 ? Integer.parseInt(localConfiguration.get(TIMEOUT_PROPERTY_KEY))
                 : DEFAULT_TIMEOUT;
-        ConnectorConfig config = newConnectorConfig(datastore.getEndpoint());
-        config.setAuthEndpoint(datastore.getEndpoint());
+        String endpoint = getEndpoint(datastore, localConfiguration);
+        ConnectorConfig config = newConnectorConfig(endpoint);
+        config.setAuthEndpoint(endpoint);
         config.setUsername(datastore.getUserId());
         String password = datastore.getPassword();
         String securityKey = datastore.getSecurityKey();
@@ -112,18 +127,21 @@ public class SalesforceService {
      *
      * @return the datastore endpoint value.
      */
-    protected String getEndpoint(final LocalConfiguration localConfiguration) {
-
-        if (localConfiguration != null) {
-            String endpointProp = localConfiguration.get(ENDPOINT_PROPERTY_KEY);
-            if (endpointProp != null && !endpointProp.isEmpty()) {
-                if (endpointProp.contains(RETIRED_ENDPOINT)) {
-                    endpointProp = endpointProp.replaceFirst(RETIRED_ENDPOINT, ACTIVE_ENDPOINT);
-                }
-                return endpointProp;
+    protected String getEndpoint(final BasicDataStore datastore, final LocalConfiguration localConfiguration) {
+        String endpoint = datastore.getEndpoint();
+        if (endpoint == null || endpoint.isEmpty()) {
+            if (localConfiguration != null) {
+                endpoint = localConfiguration.get(ENDPOINT_PROPERTY_KEY);
             }
         }
-        return URL;
+        if (endpoint != null && !endpoint.isEmpty()) {
+            if (endpoint.contains(RETIRED_ENDPOINT)) {
+                endpoint = endpoint.replaceFirst(RETIRED_ENDPOINT, ACTIVE_ENDPOINT);
+            }
+            return endpoint;
+        } else {
+            return URL;
+        }
     }
 
     private ConnectorConfig newConnectorConfig(final String ep) {
@@ -145,7 +163,7 @@ public class SalesforceService {
 
         final PartnerConnection partnerConnection = connect(datastore, configuration);
         final ConnectorConfig partnerConfig = partnerConnection.getConfig();
-        ConnectorConfig bulkConfig = newConnectorConfig(datastore.getEndpoint());
+        ConnectorConfig bulkConfig = newConnectorConfig(getEndpoint(datastore, configuration));
         bulkConfig.setSessionId(partnerConfig.getSessionId());
         // For session renew
         bulkConfig.setSessionRenewer(partnerConfig.getSessionRenewer());
@@ -190,6 +208,52 @@ public class SalesforceService {
         }
     }
 
+    public Schema guessSchema(List<String> fieldNames, Map<String, Field> fieldMap, final RecordBuilderFactory factory) {
+        final Schema.Entry.Builder entryBuilder = factory.newEntryBuilder();
+        final Schema.Builder schemaBuilder = factory.newSchemaBuilder(org.talend.sdk.component.api.record.Schema.Type.RECORD);
+        if ((fieldNames == null || fieldNames.isEmpty()) || fieldMap == null || fieldMap.isEmpty()) {
+            return schemaBuilder.build();
+        } else {
+            for (String fieldName : fieldNames) {
+                Field field = fieldMap.get(fieldName);
+                Schema.Type type = null;
+                boolean nillable = true;
+                if (field != null) {
+                    nillable = field.getNillable();
+                    switch (field.getType()) {
+                    case _boolean:
+                        type = Schema.Type.BOOLEAN;
+                        break;
+                    case _double:
+                    case percent:
+                    case currency:
+                        type = Schema.Type.DOUBLE;
+                        break;
+                    case _int:
+                        type = Schema.Type.INT;
+                        break;
+                    case date:
+                    case datetime:
+                    case time:
+                        type = Schema.Type.DATETIME;
+                        break;
+                    case base64:
+                        type = Schema.Type.BYTES;
+                        break;
+                    default:
+                        type = Schema.Type.STRING;
+                        break;
+                    }
+                } else {
+                    // if field not exist in the field mapping of module, put string type as default
+                    type = Schema.Type.STRING;
+                }
+                schemaBuilder.withEntry(entryBuilder.withName(fieldName).withType(type).withNullable(nillable).build());
+            }
+            return schemaBuilder.build();
+        }
+    }
+
     /**
      * Retrieve module field map, filed name with filed
      */
@@ -197,6 +261,15 @@ public class SalesforceService {
             final LocalConfiguration localConfiguration) {
         try {
             PartnerConnection connection = connect(dataStore, localConfiguration);
+            return getFieldMap(connection, moduleName);
+
+        } catch (ConnectionException e) {
+            throw handleConnectionException(e);
+        }
+    }
+
+    public Map<String, Field> getFieldMap(PartnerConnection connection, String moduleName) {
+        try {
             DescribeSObjectResult module = connection.describeSObject(moduleName);
             Map<String, Field> fieldMap = new TreeMap<>();
             for (Field field : module.getFields()) {

@@ -32,6 +32,7 @@ import java.util.Set;
 
 import org.talend.components.salesforce.commons.BulkResultSet;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import com.sforce.async.AsyncApiException;
@@ -101,6 +102,9 @@ public class BulkQueryService {
     private int chunkSleepTime;
 
     private long jobTimeOut;
+
+    // pre build record schema
+    private Schema recordSchema;
 
     public BulkQueryService(final BulkConnection bulkConnection, final RecordBuilderFactory recordBuilderFactory,
             final Messages messages) {
@@ -432,11 +436,16 @@ public class BulkQueryService {
         if (result == null) {
             return null;
         }
-        Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder();
-        for (String fieldName : result.keySet()) {
-            if (fieldName != null) {
-                addField(recordBuilder, fieldName, result.get(fieldName));
+        Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder(recordSchema);
+        for (Schema.Entry fieldEntry : recordSchema.getEntries()) {
+            String columnName = fieldEntry.getName();
+            String resultValue = result.get(columnName);
+            if (resultValue == null) {
+                // for query module with filed name: "Contact.Name" from Contact
+                // guess schema: "Contact_Name", result mapping is with value of "Name", instead of "Contact_Name"
+                resultValue = result.get(columnName.substring(columnName.indexOf("_") + 1));
             }
+            addField(recordBuilder, columnName, resultValue);
         }
         return recordBuilder.build();
     }
@@ -490,5 +499,9 @@ public class BulkQueryService {
             // TODO
             throw new IOException(e);
         }
+    }
+
+    public void setRecordSchema(Schema recordSchema) {
+        this.recordSchema = recordSchema;
     }
 }
