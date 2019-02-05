@@ -23,7 +23,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.talend.components.jms.MessageConst.MESSAGE_CONTENT;
-import static org.talend.components.jms.testutils.JmsTestConstants.*;
+import static org.talend.components.jms.testutils.JmsTestConstants.CLIENT_ID;
+import static org.talend.components.jms.testutils.JmsTestConstants.DESTINATION;
+import static org.talend.components.jms.testutils.JmsTestConstants.DURABLE_SUBSCRIPTION;
+import static org.talend.components.jms.testutils.JmsTestConstants.JMS_PROVIDER;
+import static org.talend.components.jms.testutils.JmsTestConstants.MISSING_PROVIDER;
+import static org.talend.components.jms.testutils.JmsTestConstants.NO_MESSAGES;
+import static org.talend.components.jms.testutils.JmsTestConstants.SUBSCRIBER_NAME;
+import static org.talend.components.jms.testutils.JmsTestConstants.TEN_MESSAGES;
+import static org.talend.components.jms.testutils.JmsTestConstants.TEST_MESSAGE;
+import static org.talend.components.jms.testutils.JmsTestConstants.TEST_MESSAGE2;
+import static org.talend.components.jms.testutils.JmsTestConstants.TIMEOUT;
+import static org.talend.components.jms.testutils.JmsTestConstants.URL;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.jms") // component package
