@@ -33,6 +33,7 @@
 
         TIP: it is recommended to set this property into your settings.xml in an active by default profile.
         -->
+        <testcontainers.version>1.10.3</testcontainers.version>
         <talend.component.studioHome/>
     </properties>
 
@@ -51,6 +52,12 @@
             <groupId>org.apache.beam</groupId>
             <artifactId>beam-runners-direct-java</artifactId>
             <version>${beam.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -111,7 +118,6 @@
                         <include>**/*IT.java</include>
                     </includes>
                     <systemPropertyVariables>
-                        <jms.port>${jms.port}</jms.port>
                         <javax.net.ssl.trustStore>src/test/resources/client.ts</javax.net.ssl.trustStore>
                         <javax.net.ssl.trustStorePassword>password</javax.net.ssl.trustStorePassword>
                         <talend.component.junit.handler.state>static</talend.component.junit.handler.state>
@@ -164,66 +170,6 @@
                         <id>surefire-beam-test</id>
                         <goals>
                             <goal>test</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>io.fabric8</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <version>${docker-maven-plugin.version}</version>
-                <configuration>
-                    <skip>${skipTests}</skip>
-                    <images>
-                        <image>
-                            <alias>amqtest</alias>
-                            <name>vizotenko/activemq:1.0.0</name>
-                            <build>
-                                <dockerFileDir>demo</dockerFileDir>
-                            </build>
-                            <run>
-                                <ports>
-                                    <port>jms.port:61617</port>
-                                </ports>
-                            </run>
-                        </image>
-                    </images>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>start</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>build</goal>
-                            <goal>start</goal>
-                        </goals>
-                        <configuration>
-                            <images>
-                                <image>
-                                    <name>vizotenko/activemq:1.0.0</name>
-                                    <run>
-                                        <ports>
-                                            <port>jms.port:61617</port>
-                                        </ports>
-                                        <wait>
-                                            <tcp>
-                                                <host>localhost</host>
-                                                <ports>
-                                                    <port>61617</port>
-                                                </ports>
-                                            </tcp>
-                                            <time>60000</time>
-                                        </wait>
-                                    </run>
-                                </image>
-                            </images>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>stop</id>
-                        <phase>post-integration-test</phase>
-                        <goals>
-                            <goal>stop</goal>
                         </goals>
                     </execution>
                 </executions>

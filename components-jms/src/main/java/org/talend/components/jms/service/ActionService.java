@@ -60,8 +60,7 @@ public class ActionService {
     @DiscoverSchema(DISCOVER_SCHEMA)
     public Schema guessSchema(BasicConfiguration config) {
         return recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD)
-                .withEntry(recordBuilderFactory.newEntryBuilder().withName(MESSAGE_CONTENT)
-                        .withType(Schema.Type.STRING).build())
+                .withEntry(recordBuilderFactory.newEntryBuilder().withName(MESSAGE_CONTENT).withType(Schema.Type.STRING).build())
                 .build();
     }
 
