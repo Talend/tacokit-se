@@ -1,12 +1,16 @@
 package org.talend.components.jms.service;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.talend.components.jms.configuration.BasicConfiguration;
 import org.talend.components.jms.configuration.MessageType;
 import org.talend.components.jms.datastore.JmsDataStore;
 import org.talend.components.jms.output.OutputConfiguration;
 import org.talend.components.jms.source.DurableSubscriptionConfiguration;
 import org.talend.components.jms.source.InputMapperConfiguration;
+import org.talend.components.jms.testutils.JMSTestExtention;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
@@ -34,17 +38,25 @@ import static org.talend.components.jms.testutils.JmsTestConstants.TEN_MESSAGES;
 import static org.talend.components.jms.testutils.JmsTestConstants.TEST_MESSAGE;
 import static org.talend.components.jms.testutils.JmsTestConstants.TEST_MESSAGE2;
 import static org.talend.components.jms.testutils.JmsTestConstants.TIMEOUT;
-import static org.talend.components.jms.testutils.JmsTestConstants.URL;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.jms") // component package
-public class JMSServiceTestIT {
+@ExtendWith(JMSTestExtention.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public class JMSTestIT {
 
     @Injected
     private BaseComponentsHandler componentsHandler;
 
     @Service
     private JsonBuilderFactory factory;
+
+    private JMSTestExtention.TestContext testContext;
+
+    @BeforeAll
+    private void init(JMSTestExtention.TestContext testContext) {
+        this.testContext = testContext;
+    }
 
     @Test
     public void sendAndReceiveJMSMessageQueue() {
@@ -192,7 +204,7 @@ public class JMSServiceTestIT {
         BasicConfiguration basicConfiguration = new BasicConfiguration();
         JmsDataStore dataStore = new JmsDataStore();
         dataStore.setModuleList(JMS_PROVIDER);
-        dataStore.setUrl(URL);
+        dataStore.setUrl(testContext.getURL());
         basicConfiguration.setDestination(DESTINATION);
         basicConfiguration.setMessageType(MessageType.QUEUE);
         basicConfiguration.setConnection(dataStore);
@@ -205,7 +217,7 @@ public class JMSServiceTestIT {
         BasicConfiguration basicConfiguration = new BasicConfiguration();
         JmsDataStore dataStore = new JmsDataStore();
         dataStore.setModuleList(JMS_PROVIDER);
-        dataStore.setUrl(URL);
+        dataStore.setUrl(testContext.getURL());
         basicConfiguration.setDestination(DESTINATION);
         basicConfiguration.setMessageType(MessageType.QUEUE);
         DurableSubscriptionConfiguration subsConfig = new DurableSubscriptionConfiguration();
