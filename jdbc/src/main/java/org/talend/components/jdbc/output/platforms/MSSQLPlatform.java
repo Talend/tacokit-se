@@ -13,6 +13,7 @@
 package org.talend.components.jdbc.output.platforms;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.service.I18nMessage;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -25,6 +26,10 @@ import java.util.stream.Collectors;
 public class MSSQLPlatform extends Platform {
 
     public static final String MSSQL = "mssql";
+
+    public MSSQLPlatform(final I18nMessage i18n) {
+        super(i18n);
+    }
 
     @Override
     public String name() {
@@ -99,7 +104,7 @@ public class MSSQLPlatform extends Platform {
         case RECORD:
         case ARRAY:
         default:
-            throw new IllegalStateException("unsupported type for this database " + column);
+            throw new IllegalStateException(getI18n().errorUnsupportedType(column.getType().name(), column.getName()));
         }
     }
 

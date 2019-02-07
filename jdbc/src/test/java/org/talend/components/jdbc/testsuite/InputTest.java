@@ -56,7 +56,8 @@ class InputTest extends BaseJdbcTest {
         final JdbcConnection connection = newConnection(container);
         sqlQueryDataset.setConnection(connection);
         sqlQueryDataset.setFetchSize(rowCount / 3);
-        sqlQueryDataset.setSqlQuery("select * from " + PlatformFactory.get(connection).identifier(testTableName));
+        sqlQueryDataset
+                .setSqlQuery("select * from " + PlatformFactory.get(connection, getI18nMessage()).identifier(testTableName));
         final InputQueryConfig config = new InputQueryConfig();
         config.setDataSet(sqlQueryDataset);
         final String configURI = configurationByExample().forInstance(config).configured().toQueryString();

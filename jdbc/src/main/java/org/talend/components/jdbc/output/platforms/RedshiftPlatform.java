@@ -13,6 +13,7 @@
 package org.talend.components.jdbc.output.platforms;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.service.I18nMessage;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -25,6 +26,10 @@ import java.util.stream.Collectors;
 public class RedshiftPlatform extends Platform {
 
     public static final String REDSHIFT = "redshift";
+
+    public RedshiftPlatform(final I18nMessage i18n) {
+        super(i18n);
+    }
 
     @Override
     public String name() {
@@ -95,12 +100,11 @@ public class RedshiftPlatform extends Platform {
         case DATETIME:
             return "TIMESTAMPT";
         case BYTES:
-            throw new IllegalStateException(
-                    "Bytes are not supported in redshift. AWS users may use s3 to store there binary data." + column);
+            throw new IllegalStateException(getI18n().errorRedshiftUnsupportedBytes(column.getName()));
         case RECORD:
         case ARRAY:
         default:
-            throw new IllegalStateException("unsupported type for this database " + column);
+            throw new IllegalStateException(getI18n().errorUnsupportedType(column.getType().name(), column.getName()));
         }
     }
 

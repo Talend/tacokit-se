@@ -83,7 +83,7 @@ public abstract class BaseJdbcTest {
     private void dropTestTable(TestInfo testInfo, JdbcTestContainer container) {
         final String testTable = getTestTableName(testInfo);
         final JdbcConnection datastore = newConnection(container);
-        final Platform platform = PlatformFactory.get(datastore);
+        final Platform platform = PlatformFactory.get(datastore, i18nMessage);
         try (final Connection connection = jdbcService.createDataSource(datastore).getConnection()) {
             try (final PreparedStatement stm = connection.prepareStatement("DROP TABLE " + platform.identifier(testTable))) {
                 stm.executeUpdate();
@@ -113,7 +113,8 @@ public abstract class BaseJdbcTest {
         final JdbcConnection connection = newConnection(container);
         dataset.setConnection(connection);
         final String total = "total";
-        dataset.setSqlQuery("select count(*) as " + total + " from " + PlatformFactory.get(connection).identifier(table));
+        dataset.setSqlQuery(
+                "select count(*) as " + total + " from " + PlatformFactory.get(connection, i18nMessage).identifier(table));
         final InputQueryConfig config = new InputQueryConfig();
         config.setDataSet(dataset);
         final String inConfig = configurationByExample().forInstance(config).configured().toQueryString();

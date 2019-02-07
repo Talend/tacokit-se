@@ -1,11 +1,11 @@
 /*
  * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -17,9 +17,9 @@ import org.talend.sdk.component.api.internationalization.Internationalized;
 @Internationalized
 public interface I18nMessage {
 
-    String errorDriverDeregister(final String type);
+    String errorDriverDeregister(String type);
 
-    String warnDriverClose(final String type);
+    String warnDriverClose(String type);
 
     String errorDriverLoad(String driverId, String missingJars);
 
@@ -55,7 +55,7 @@ public interface I18nMessage {
 
     String errorNoKeyForUpdateQuery();
 
-    String errorNoFieldForQueryParam(final String field);
+    String errorNoFieldForQueryParam(String field);
 
     String errorNoUpdatableColumnWasDefined();
 
@@ -69,5 +69,11 @@ public interface I18nMessage {
 
     String errorCantLoadTableSuggestions();
 
-    String errorTaberDoesNotExists(final String tableName);
+    String errorTaberDoesNotExists(String tableName);
+
+    String errorRedshiftUnsupportedBytes(String field);
+
+    String errorUnsupportedDatabase(String dbType);
+
+    String errorUnsupportedType(String type, String field);
 }

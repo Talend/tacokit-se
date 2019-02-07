@@ -36,7 +36,7 @@ import static java.util.stream.Collectors.*;
 
 @Slf4j
 @Getter
-public class UpsertDefault extends QueryManager {
+public class UpsertDefault extends QueryManagerImpl {
 
     private final Insert insert;
 
@@ -46,15 +46,14 @@ public class UpsertDefault extends QueryManager {
 
     private Map<Integer, Schema.Entry> queryParams;
 
-    public UpsertDefault(final Platform platform, final OutputConfig configuration, final I18nMessage i18n,
-            final JdbcService.JdbcDatasource dataSource) {
-        super(platform, configuration, i18n, dataSource);
+    public UpsertDefault(final Platform platform, final OutputConfig configuration, final I18nMessage i18n) {
+        super(platform, configuration, i18n);
         this.keys = new ArrayList<>(ofNullable(configuration.getKeys()).orElse(emptyList()));
         if (this.keys.isEmpty()) {
             throw new IllegalArgumentException(i18n.errorNoKeyForUpdateQuery());
         }
-        insert = new Insert(platform, configuration, i18n, dataSource);
-        update = new Update(platform, configuration, i18n, dataSource);
+        insert = new Insert(platform, configuration, i18n);
+        update = new Update(platform, configuration, i18n);
     }
 
     @Override
@@ -87,7 +86,7 @@ public class UpsertDefault extends QueryManager {
     }
 
     @Override
-    public List<Reject> execute(final List<Record> records) throws SQLException {
+    public List<Reject> execute(final List<Record> records, final JdbcService.JdbcDatasource dataSource) throws SQLException {
         if (records.isEmpty()) {
             return emptyList();
         }
@@ -95,7 +94,7 @@ public class UpsertDefault extends QueryManager {
         final List<Record> needInsert = new ArrayList<>();
         final String query = buildQuery(records);
         final List<Reject> discards = new ArrayList<>();
-        try (final Connection connection = getDataSource().getConnection()) {
+        try (final Connection connection = dataSource.getConnection()) {
             try (final PreparedStatement statement = connection.prepareStatement(query)) {
                 for (final Record record : records) {
                     statement.clearParameters();
@@ -125,11 +124,11 @@ public class UpsertDefault extends QueryManager {
         // fixme handle the update and insert in // need a pool of 2 !
         if (!needInsert.isEmpty()) {
             insert.buildQuery(needInsert);
-            discards.addAll(insert.execute(needInsert));
+            discards.addAll(insert.execute(needInsert, dataSource));
         }
         if (!needUpdate.isEmpty()) {
             update.buildQuery(needUpdate);
-            discards.addAll(update.execute(needUpdate));
+            discards.addAll(update.execute(needUpdate, dataSource));
         }
 
         return discards;

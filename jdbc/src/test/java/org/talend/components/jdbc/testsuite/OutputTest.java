@@ -162,8 +162,8 @@ class OutputTest extends BaseJdbcTest {
         final JdbcConnection dataStore = newConnection(container);
         final String testTableName = getTestTableName(testInfo);
         try (final Connection connection = getJdbcService().createDataSource(dataStore).getConnection()) {
-            PlatformFactory.get(dataStore).createTableIfNotExist(connection, testTableName, Collections.emptyList(), -1,
-                    Collections.singletonList(builder.build()));
+            PlatformFactory.get(dataStore, getI18nMessage()).createTableIfNotExist(connection, testTableName,
+                    Collections.emptyList(), -1, Collections.singletonList(builder.build()));
         }
         runWithBad("id", "bad id", testTableName, container);
         runWithBad("t_long", "bad long", testTableName, container);

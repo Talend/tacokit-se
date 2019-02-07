@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfig;
 import org.talend.components.jdbc.output.Reject;
 import org.talend.components.jdbc.output.platforms.Platform;
+import org.talend.components.jdbc.output.statement.QueryManager;
 import org.talend.components.jdbc.output.statement.RecordToSQLTypeConverter;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
@@ -26,7 +27,6 @@ import org.talend.sdk.component.api.record.Schema;
 import java.sql.BatchUpdateException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -43,15 +43,13 @@ import static java.util.stream.Collectors.toList;
 
 @Data
 @Slf4j
-public abstract class QueryManager {
+public abstract class QueryManagerImpl implements QueryManager {
 
     private final Platform platform;
 
     private final OutputConfig configuration;
 
     private final I18nMessage i18n;
-
-    private final JdbcService.JdbcDatasource dataSource;
 
     private final Integer maxRetry = 10;
 
@@ -63,7 +61,8 @@ public abstract class QueryManager {
 
     abstract protected boolean validateQueryParam(Record record);
 
-    public List<Reject> execute(final List<Record> records) throws SQLException {
+    @Override
+    public List<Reject> execute(final List<Record> records, final JdbcService.JdbcDatasource dataSource) throws SQLException {
         if (records.isEmpty()) {
             return emptyList();
         }
@@ -159,26 +158,6 @@ public abstract class QueryManager {
         return discards;
     }
 
-    public boolean checkTableExistence(final String tableName) throws SQLException {
-        try (final Connection connection = getDataSource().getConnection()) {
-            try (final ResultSet resultSet = connection.getMetaData().getTables(connection.getCatalog(), connection.getSchema(),
-                    tableName, new String[] { "TABLE", "SYNONYM" })) {
-                while (resultSet.next()) {
-                    if (ofNullable(ofNullable(resultSet.getString("TABLE_NAME")).orElseGet(() -> {
-                        try {
-                            return resultSet.getString("SYNONYM_NAME");
-                        } catch (final SQLException e) {
-                            return null;
-                        }
-                    })).filter(tableName::equals).isPresent()) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        }
-    }
-
     public String namespace(final Connection connection) throws SQLException {
         return (connection.getCatalog() != null && !connection.getCatalog().isEmpty()
                 ? getPlatform().identifier(connection.getCatalog()) + "."
@@ -221,7 +200,7 @@ public abstract class QueryManager {
                     : empty();
         case ARRAY:
         default:
-            throw new IllegalArgumentException("unsupported type in " + entry);
+            return empty();
         }
     }
 

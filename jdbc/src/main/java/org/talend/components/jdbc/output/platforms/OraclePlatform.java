@@ -14,6 +14,7 @@ package org.talend.components.jdbc.output.platforms;
 
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.service.I18nMessage;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -31,6 +32,10 @@ public class OraclePlatform extends Platform {
      * https://docs.oracle.com/cd/B14117_01/server.101/b10758/sqlqr06.htm
      */
     private static final String VARCHAR2_MAX = "4000";
+
+    public OraclePlatform(final I18nMessage i18n) {
+        super(i18n);
+    }
 
     @Override
     public String name() {
@@ -101,7 +106,7 @@ public class OraclePlatform extends Platform {
         case RECORD:
         case ARRAY:
         default:
-            throw new IllegalStateException("unsupported type for this database " + column);
+            throw new IllegalStateException(getI18n().errorUnsupportedType(column.getType().name(), column.getName()));
         }
     }
 

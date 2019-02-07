@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfig;
 import org.talend.components.jdbc.output.platforms.Platform;
 import org.talend.components.jdbc.service.I18nMessage;
-import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
@@ -30,15 +29,14 @@ import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.*;
 
 @Slf4j
-public class Insert extends QueryManager {
+public class Insert extends QueryManagerImpl {
 
     private Map<Integer, Schema.Entry> namedParams;
 
     private final Map<String, String> queries = new HashMap<>();
 
-    public Insert(final Platform platform, final OutputConfig configuration, final I18nMessage i18n,
-            final JdbcService.JdbcDatasource dataSource) {
-        super(platform, configuration, i18n, dataSource);
+    public Insert(final Platform platform, final OutputConfig configuration, final I18nMessage i18n) {
+        super(platform, configuration, i18n);
     }
 
     @Override

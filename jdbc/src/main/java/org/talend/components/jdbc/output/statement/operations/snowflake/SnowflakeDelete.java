@@ -32,16 +32,15 @@ import static org.talend.components.jdbc.output.statement.operations.snowflake.S
 
 public class SnowflakeDelete extends Delete {
 
-    public SnowflakeDelete(Platform platform, OutputConfig configuration, I18nMessage i18n,
-            JdbcService.JdbcDatasource dataSource) {
-        super(platform, configuration, i18n, dataSource);
+    public SnowflakeDelete(Platform platform, OutputConfig configuration, I18nMessage i18n) {
+        super(platform, configuration, i18n);
     }
 
     @Override
-    public List<Reject> execute(List<Record> records) throws SQLException {
+    public List<Reject> execute(final List<Record> records, final JdbcService.JdbcDatasource dataSource) throws SQLException {
         buildQuery(records);
         final List<Reject> rejects = new ArrayList<>();
-        try (final Connection connection = getDataSource().getConnection()) {
+        try (final Connection connection = dataSource.getConnection()) {
             final String tableName = getConfiguration().getDataset().getTableName();
             final String tmpTableName = tmpTableName(tableName);
             final String fqTableName = namespace(connection) + "." + getPlatform().identifier(tableName);

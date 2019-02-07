@@ -34,6 +34,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
@@ -87,6 +88,27 @@ public class JdbcService {
                 .orElseThrow(() -> new IllegalStateException(i18n.errorDriverNotFound(dataStore.getDbType())));
     }
 
+    public static boolean checkTableExistence(final String tableName, final JdbcService.JdbcDatasource dataSource)
+            throws SQLException {
+        try (final Connection connection = dataSource.getConnection()) {
+            try (final ResultSet resultSet = connection.getMetaData().getTables(connection.getCatalog(), connection.getSchema(),
+                    tableName, new String[] { "TABLE", "SYNONYM" })) {
+                while (resultSet.next()) {
+                    if (ofNullable(ofNullable(resultSet.getString("TABLE_NAME")).orElseGet(() -> {
+                        try {
+                            return resultSet.getString("SYNONYM_NAME");
+                        } catch (final SQLException e) {
+                            return null;
+                        }
+                    })).filter(tableName::equals).isPresent()) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+    }
+
     public JdbcDatasource createDataSource(final JdbcConnection connection) {
         final JdbcConfiguration.Driver driver = getDriver(connection);
         return new JdbcDatasource(i18n, resolver, connection, driver, false, false);
@@ -126,7 +148,7 @@ public class JdbcService {
                 dataSource.setMaximumPoolSize(1);
                 dataSource.setConnectionTimeout(connection.getConnectionTimeOut() * 1000);
                 dataSource.setValidationTimeout(connection.getConnectionValidationTimeOut() * 1000);
-                PlatformFactory.get(connection).addDataSourceProperties(dataSource);
+                PlatformFactory.get(connection, i18nMessage).addDataSourceProperties(dataSource);
                 dataSource.addDataSourceProperty("rewriteBatchedStatements", String.valueOf(rewriteBatchedStatements));
                 // dataSource.addDataSourceProperty("cachePrepStmts", "true");
                 // dataSource.addDataSourceProperty("prepStmtCacheSize", "250");

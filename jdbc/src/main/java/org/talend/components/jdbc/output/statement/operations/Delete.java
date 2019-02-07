@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfig;
 import org.talend.components.jdbc.output.platforms.Platform;
 import org.talend.components.jdbc.service.I18nMessage;
-import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
@@ -35,7 +34,7 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 @Slf4j
-public class Delete extends QueryManager {
+public class Delete extends QueryManagerImpl {
 
     private final List<String> keys;
 
@@ -45,9 +44,8 @@ public class Delete extends QueryManager {
 
     private boolean namedParamsResolved;
 
-    public Delete(final Platform platform, final OutputConfig configuration, final I18nMessage i18n,
-            final JdbcService.JdbcDatasource dataSource) {
-        super(platform, configuration, i18n, dataSource);
+    public Delete(final Platform platform, final OutputConfig configuration, final I18nMessage i18n) {
+        super(platform, configuration, i18n);
         this.keys = new ArrayList<>(ofNullable(configuration.getKeys()).orElse(emptyList()));
         if (this.keys.isEmpty()) {
             throw new IllegalArgumentException(getI18n().errorNoKeyForDeleteQuery());

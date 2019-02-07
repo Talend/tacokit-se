@@ -92,7 +92,8 @@ class PlatformTests extends BaseJdbcTest {
         final JdbcConnection dataStore = newConnection(container);
         try (final JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(dataStore)) {
             try (final Connection connection = dataSource.getConnection()) {
-                PlatformFactory.get(dataStore).createTableIfNotExist(connection, testTable, asList("id"), -1, records);
+                PlatformFactory.get(dataStore, getI18nMessage()).createTableIfNotExist(connection, testTable, asList("id"), -1,
+                        records);
             }
         }
     }
@@ -104,7 +105,8 @@ class PlatformTests extends BaseJdbcTest {
         final JdbcConnection dataStore = newConnection(container);
         try (final JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(dataStore)) {
             try (final Connection connection = dataSource.getConnection()) {
-                PlatformFactory.get(dataStore).createTableIfNotExist(connection, testTable, asList("id", "email"), -1, records);
+                PlatformFactory.get(dataStore, getI18nMessage()).createTableIfNotExist(connection, testTable,
+                        asList("id", "email"), -1, records);
             }
         }
     }
@@ -116,7 +118,7 @@ class PlatformTests extends BaseJdbcTest {
         final JdbcConnection dataStore = newConnection(container);
         try (final JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(dataStore)) {
             try (final Connection connection = dataSource.getConnection()) {
-                Platform platform = PlatformFactory.get(dataStore);
+                Platform platform = PlatformFactory.get(dataStore, getI18nMessage());
                 platform.createTableIfNotExist(connection, testTable, asList("id", "email"), -1, records);
                 // recreate the table should not fail
                 platform.createTableIfNotExist(connection, testTable, asList("id", "email"), -1, records);

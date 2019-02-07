@@ -17,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfig;
 import org.talend.components.jdbc.output.platforms.Platform;
 import org.talend.components.jdbc.service.I18nMessage;
-import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
@@ -37,7 +36,7 @@ import static java.util.stream.Collectors.toList;
 
 @Slf4j
 @Getter
-public class Update extends QueryManager {
+public class Update extends QueryManagerImpl {
 
     private final List<String> keys;
 
@@ -45,9 +44,8 @@ public class Update extends QueryManager {
 
     private Map<Integer, Schema.Entry> queryParams;
 
-    public Update(final Platform platform, final OutputConfig configuration, final I18nMessage i18n,
-            final JdbcService.JdbcDatasource dataSource) {
-        super(platform, configuration, i18n, dataSource);
+    public Update(final Platform platform, final OutputConfig configuration, final I18nMessage i18n) {
+        super(platform, configuration, i18n);
         this.keys = new ArrayList<>(ofNullable(configuration.getKeys()).orElse(emptyList()));
         if (this.keys.isEmpty()) {
             throw new IllegalArgumentException(i18n.errorNoKeyForUpdateQuery());

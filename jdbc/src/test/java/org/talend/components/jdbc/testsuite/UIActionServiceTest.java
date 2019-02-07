@@ -117,8 +117,8 @@ class UIActionServiceTest extends BaseJdbcTest {
     private void createTestTable(String testTableName, JdbcConnection datastore) throws SQLException {
         try (JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(datastore, false)) {
             try (final Connection connection = dataSource.getConnection()) {
-                PlatformFactory.get(datastore).createTableIfNotExist(connection, testTableName, singletonList("id"), -1,
-                        singletonList(recordBuilderFactory.newRecordBuilder().withInt("id", 1).build()));
+                PlatformFactory.get(datastore, getI18nMessage()).createTableIfNotExist(connection, testTableName,
+                        singletonList("id"), -1, singletonList(recordBuilderFactory.newRecordBuilder().withInt("id", 1).build()));
                 connection.commit();
             }
         }

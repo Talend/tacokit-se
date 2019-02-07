@@ -51,7 +51,7 @@ import static java.util.Locale.ROOT;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.codec.binary.Hex.encodeHexString;
-import static org.talend.components.jdbc.output.statement.operations.QueryManager.valueOf;
+import static org.talend.components.jdbc.output.statement.operations.QueryManagerImpl.valueOf;
 
 @Slf4j
 public class SnowflakeCopy {

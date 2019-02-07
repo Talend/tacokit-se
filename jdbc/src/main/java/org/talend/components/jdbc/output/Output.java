@@ -14,17 +14,14 @@ package org.talend.components.jdbc.output;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfig;
-import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.output.platforms.Platform;
-import org.talend.components.jdbc.output.platforms.PlatformFactory;
-import org.talend.components.jdbc.output.statement.operations.QueryManager;
+import org.talend.components.jdbc.output.statement.QueryManager;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
-import org.talend.sdk.component.api.component.Icon;
-import org.talend.sdk.component.api.component.Version;
-import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.meta.Documentation;
-import org.talend.sdk.component.api.processor.*;
+import org.talend.sdk.component.api.processor.AfterGroup;
+import org.talend.sdk.component.api.processor.BeforeGroup;
+import org.talend.sdk.component.api.processor.ElementListener;
+import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.record.Record;
 
 import javax.annotation.PreDestroy;
@@ -34,14 +31,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.talend.components.jdbc.output.statement.QueryManagerFactory.getQueryManager;
+import static org.talend.components.jdbc.service.JdbcService.checkTableExistence;
 
 @Slf4j
-@Processor(name = "Output")
-@Version
-@Icon(value = Icon.IconType.DATASTORE)
-@Documentation("JDBC Output component")
-public class Output implements Serializable {
+public abstract class Output implements Serializable {
 
     private final OutputConfig configuration;
 
@@ -51,11 +44,7 @@ public class Output implements Serializable {
 
     private transient List<Record> records;
 
-    private transient QueryManager queryManager;
-
     private transient JdbcService.JdbcDatasource datasource;
-
-    private transient Platform platform;
 
     private Boolean tableExistsCheck;
 
@@ -63,15 +52,18 @@ public class Output implements Serializable {
 
     private transient boolean init;
 
-    public Output(@Option("configuration") final OutputConfig outputConfig, final JdbcService jdbcService,
-            final I18nMessage i18nMessage) {
+    public Output(final OutputConfig outputConfig, final JdbcService jdbcService, final I18nMessage i18nMessage) {
         this.configuration = outputConfig;
         this.jdbcService = jdbcService;
         this.i18n = i18nMessage;
     }
 
+    protected abstract QueryManager getQueryManager();
+
+    protected abstract Platform getPlatform();
+
     @BeforeGroup
-    public void beforeGroup() throws SQLException {
+    public void beforeGroup() {
         this.records = new ArrayList<>();
     }
 
@@ -87,12 +79,10 @@ public class Output implements Serializable {
 
     private void lazyInit() throws SQLException {
         this.init = true;
-        final JdbcConnection connection = configuration.getDataset().getConnection();
-        this.platform = PlatformFactory.get(connection);
-        this.datasource = jdbcService.createDataSource(connection, configuration.isRewriteBatchedStatements());
-        this.queryManager = getQueryManager(platform, i18n, configuration, datasource);
+        this.datasource = jdbcService.createDataSource(configuration.getDataset().getConnection(),
+                configuration.isRewriteBatchedStatements());
         if (this.tableExistsCheck == null) {
-            this.tableExistsCheck = this.queryManager.checkTableExistence(configuration.getDataset().getTableName());
+            this.tableExistsCheck = checkTableExistence(configuration.getDataset().getTableName(), datasource);
         }
         if (!this.tableExistsCheck && !this.configuration.isCreateTableIfNotExists()) {
             throw new IllegalStateException(this.i18n.errorTaberDoesNotExists(this.configuration.getDataset().getTableName()));
@@ -103,26 +93,19 @@ public class Output implements Serializable {
     public void afterGroup() throws SQLException {
         if (!tableExistsCheck && !tableCreated && configuration.isCreateTableIfNotExists()) {
             try (final Connection connection = datasource.getConnection()) {
-                platform.createTableIfNotExist(connection, configuration.getDataset().getTableName(), configuration.getKeys(),
-                        configuration.getVarcharLength(), records);
+                getPlatform().createTableIfNotExist(connection, configuration.getDataset().getTableName(),
+                        configuration.getKeys(), configuration.getVarcharLength(), records);
                 tableCreated = true;
             }
         }
 
         // TODO : handle discarded records
         try {
-            final List<Reject> discards = queryManager.execute(records);
+            final List<Reject> discards = getQueryManager().execute(records, datasource);
             discards.stream().map(Object::toString).forEach(log::error);
-        } catch (final Throwable e) {
+        } catch (final Exception e) {
             records.stream().map(r -> new Reject(e.getMessage(), r)).map(Reject::toString).forEach(log::error);
-            // unwrap sql exception to prevent class not found at runtime from the driver jar.
-            // driver jar is loaded dynamically at runtime by this component and class from it may not be accessible form other
-            // classloader
-            if (SQLException.class.isAssignableFrom(e.getClass())) {
-                throw (SQLException) e;
-            } else {
-                throw e;
-            }
+            throw new IllegalStateException(e);
         }
     }
 

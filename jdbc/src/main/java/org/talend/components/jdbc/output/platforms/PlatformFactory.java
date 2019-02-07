@@ -13,6 +13,7 @@
 package org.talend.components.jdbc.output.platforms;
 
 import org.talend.components.jdbc.datastore.JdbcConnection;
+import org.talend.components.jdbc.service.I18nMessage;
 
 import java.util.Locale;
 
@@ -28,27 +29,27 @@ import static org.talend.components.jdbc.output.platforms.SnowflakePlatform.SNOW
 
 public final class PlatformFactory {
 
-    public static Platform get(final JdbcConnection connection) {
+    public static Platform get(final JdbcConnection connection, final I18nMessage i18n) {
         final String dbType = ofNullable(connection.getHandler()).orElseGet(connection::getDbType);
         switch (dbType.toLowerCase(Locale.ROOT)) {
         case MYSQL:
-            return new MySQLPlatform();
+            return new MySQLPlatform(i18n);
         case MARIADB:
-            return new MariaDbPlatform();
+            return new MariaDbPlatform(i18n);
         case POSTGRESQL:
-            return new PostgreSQLPlatform();
+            return new PostgreSQLPlatform(i18n);
         case REDSHIFT:
-            return new RedshiftPlatform();
+            return new RedshiftPlatform(i18n);
         case SNOWFLAKE:
-            return new SnowflakePlatform();
+            return new SnowflakePlatform(i18n);
         case ORACLE:
-            return new OraclePlatform();
+            return new OraclePlatform(i18n);
         case MSSQL:
-            return new MSSQLPlatform();
+            return new MSSQLPlatform(i18n);
         case DERBY:
-            return new DerbyPlatform();
+            return new DerbyPlatform(i18n);
         default:
-            throw new RuntimeException("unsupported database " + dbType);
+            throw new IllegalArgumentException(i18n.errorUnsupportedDatabase(dbType));
         }
     }
 

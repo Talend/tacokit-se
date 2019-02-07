@@ -13,7 +13,9 @@
 package org.talend.components.jdbc.output.platforms;
 
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
@@ -22,14 +24,20 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
-import java.util.Objects;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.talend.sdk.component.api.record.Schema.Type.STRING;
 
 @Slf4j
+@Getter
 public abstract class Platform implements Serializable {
+
+    private final I18nMessage i18n;
+
+    protected Platform(I18nMessage i18n) {
+        this.i18n = i18n;
+    }
 
     abstract public String name();
 
