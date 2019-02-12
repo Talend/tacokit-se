@@ -20,7 +20,7 @@ import java.io.Serializable;
 @Slf4j
 @Getter
 @Version
-@Processor(name = "Output")
+@Processor(name = "SimpleOutput")
 @Icon(value = Icon.IconType.DATASTORE)
 @Documentation("JDBC Output component")
 public class SimpleOutput extends Output implements Serializable {
