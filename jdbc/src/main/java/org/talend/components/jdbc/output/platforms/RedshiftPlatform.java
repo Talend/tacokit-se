@@ -98,7 +98,7 @@ public class RedshiftPlatform extends Platform {
         case INT:
             return "INTEGER";
         case DATETIME:
-            return "TIMESTAMPT";
+            return "TIMESTAMP";
         case BYTES:
             throw new IllegalStateException(getI18n().errorRedshiftUnsupportedBytes(column.getName()));
         case RECORD:

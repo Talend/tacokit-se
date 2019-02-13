@@ -12,6 +12,7 @@
  */
 package org.talend.components.jdbc.output;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfig;
 import org.talend.components.jdbc.output.platforms.Platform;
@@ -38,6 +39,7 @@ public abstract class Output implements Serializable {
 
     private final OutputConfig configuration;
 
+    @Getter
     private final JdbcService jdbcService;
 
     private final I18nMessage i18n;
