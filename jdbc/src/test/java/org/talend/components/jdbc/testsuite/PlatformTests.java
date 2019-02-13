@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
 import static org.apache.derby.vti.XmlVTI.asList;
 import static org.talend.components.jdbc.Database.SNOWFLAKE;
 
@@ -92,8 +93,8 @@ class PlatformTests extends BaseJdbcTest {
         final JdbcConnection dataStore = newConnection(container);
         try (final JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(dataStore)) {
             try (final Connection connection = dataSource.getConnection()) {
-                PlatformFactory.get(dataStore, getI18nMessage()).createTableIfNotExist(connection, testTable, asList("id"), -1,
-                        records);
+                PlatformFactory.get(dataStore, getI18nMessage()).createTableIfNotExist(connection, testTable, asList("id"),
+                        emptyList(), emptyList(), -1, records);
             }
         }
     }
@@ -106,7 +107,7 @@ class PlatformTests extends BaseJdbcTest {
         try (final JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(dataStore)) {
             try (final Connection connection = dataSource.getConnection()) {
                 PlatformFactory.get(dataStore, getI18nMessage()).createTableIfNotExist(connection, testTable,
-                        asList("id", "email"), -1, records);
+                        asList("id", "email"), emptyList(), emptyList(), -1, records);
             }
         }
     }
@@ -119,9 +120,11 @@ class PlatformTests extends BaseJdbcTest {
         try (final JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(dataStore)) {
             try (final Connection connection = dataSource.getConnection()) {
                 Platform platform = PlatformFactory.get(dataStore, getI18nMessage());
-                platform.createTableIfNotExist(connection, testTable, asList("id", "email"), -1, records);
+                platform.createTableIfNotExist(connection, testTable, asList("id", "email"), emptyList(), emptyList(), -1,
+                        records);
                 // recreate the table should not fail
-                platform.createTableIfNotExist(connection, testTable, asList("id", "email"), -1, records);
+                platform.createTableIfNotExist(connection, testTable, asList("id", "email"), emptyList(), emptyList(), -1,
+                        records);
             }
         }
     }

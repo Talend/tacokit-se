@@ -51,12 +51,13 @@ public abstract class Platform implements Serializable {
     protected abstract boolean isTableExistsCreationError(final Throwable e);
 
     public void createTableIfNotExist(final Connection connection, final String name, final List<String> keys,
-            final int varcharLength, final List<Record> records) throws SQLException {
+            final List<String> sortKeys, final List<String> distributionKeys, final int varcharLength, final List<Record> records)
+            throws SQLException {
         if (records.isEmpty()) {
             return;
         }
 
-        final String sql = buildQuery(getTableModel(connection, name, keys, varcharLength, records));
+        final String sql = buildQuery(getTableModel(connection, name, keys, sortKeys, distributionKeys, varcharLength, records));
         try (final Statement statement = connection.createStatement()) {
             statement.executeUpdate(sql);
             connection.commit();
@@ -88,7 +89,8 @@ public abstract class Platform implements Serializable {
         return column.isNullable() && !column.isPrimaryKey() ? "NULL" : "NOT NULL";
     }
 
-    private Table getTableModel(final Connection connection, final String name, final List<String> keys, final int varcharLength,
+    private Table getTableModel(final Connection connection, final String name, final List<String> keys,
+            final List<String> sortKeys, final List<String> distributionKeys, final int varcharLength,
             final List<Record> records) {
         final Table.TableBuilder builder = Table.builder().name(name);
         try {
@@ -98,13 +100,11 @@ public abstract class Platform implements Serializable {
         }
         final List<Schema.Entry> entries = records.stream().flatMap(record -> record.getSchema().getEntries().stream()).distinct()
                 .collect(toList());
-        return builder
-                .columns(
-                        entries.stream()
-                                .map(entry -> Column.builder().entry(entry).primaryKey(keys.contains(entry.getName()))
-                                        .size(STRING == entry.getType() ? varcharLength : null).build())
-                                .collect(toList()))
-                .build();
+        return builder.columns(entries.stream()
+                .map(entry -> Column.builder().entry(entry).primaryKey(keys.contains(entry.getName()))
+                        .sortKey(sortKeys.contains(entry.getName())).distributionKey(distributionKeys.contains(entry.getName()))
+                        .size(STRING == entry.getType() ? varcharLength : null).build())
+                .collect(toList())).build();
     }
 
     /**

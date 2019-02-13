@@ -28,6 +28,10 @@ class Column implements Serializable {
 
     private final boolean primaryKey;
 
+    private final boolean sortKey;
+
+    private final boolean distributionKey;
+
     private final Integer size;
 
 }

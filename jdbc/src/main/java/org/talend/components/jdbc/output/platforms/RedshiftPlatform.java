@@ -17,7 +17,11 @@ import org.talend.components.jdbc.service.I18nMessage;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 /**
  * https://docs.aws.amazon.com/fr_fr/redshift/latest/dg/r_CREATE_TABLE_NEW.html
@@ -54,14 +58,28 @@ public class RedshiftPlatform extends Platform {
         }
         sql.append(identifier(table.getName()));
         sql.append("(");
-        sql.append(createColumns(table.getColumns()));
-        sql.append(createPKs(table.getColumns().stream().filter(Column::isPrimaryKey).collect(Collectors.toList())));
+        List<Column> columns = table.getColumns();
+        sql.append(createColumns(columns));
+        sql.append(createPKs(columns.stream().filter(Column::isPrimaryKey).collect(toList())));
         sql.append(")");
-        // todo create index
+        sql.append(createDistributionKeys(columns.stream().filter(Column::isDistributionKey).collect(toList())));
+        sql.append(createSortKeys(columns.stream().filter(Column::isSortKey).collect(toList())));
 
         log.debug("### create table query ###");
         log.debug(sql.toString());
         return sql.toString();
+    }
+
+    private String createSortKeys(final List<Column> columns) {
+        return columns.isEmpty() ?
+                "" :
+                "sortkey" + columns.stream().map(Column::getName).collect(joining(",", "(", ")"));
+    }
+
+    private String createDistributionKeys(final List<Column> columns) {
+        return columns.isEmpty() ?
+                "" :
+                "distkey" + columns.stream().map(Column::getName).collect(joining(",", "(", ")"));
     }
 
     @Override
@@ -79,7 +97,7 @@ public class RedshiftPlatform extends Platform {
         return identifier(column.getName())//
                 + " " + toDBType(column)//
                 + " " + isRequired(column)//
-        ;
+                ;
     }
 
     private String toDBType(final Column column) {

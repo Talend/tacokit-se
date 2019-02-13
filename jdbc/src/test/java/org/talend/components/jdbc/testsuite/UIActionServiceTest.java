@@ -38,6 +38,7 @@ import java.sql.SQLException;
 import java.util.Locale;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.*;
@@ -118,7 +119,8 @@ class UIActionServiceTest extends BaseJdbcTest {
         try (JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(datastore, false)) {
             try (final Connection connection = dataSource.getConnection()) {
                 PlatformFactory.get(datastore, getI18nMessage()).createTableIfNotExist(connection, testTableName,
-                        singletonList("id"), -1, singletonList(recordBuilderFactory.newRecordBuilder().withInt("id", 1).build()));
+                        singletonList("id"), emptyList(), emptyList(), -1,
+                        singletonList(recordBuilderFactory.newRecordBuilder().withInt("id", 1).build()));
                 connection.commit();
             }
         }
