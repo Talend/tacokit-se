@@ -71,15 +71,11 @@ public class RedshiftPlatform extends Platform {
     }
 
     private String createSortKeys(final List<Column> columns) {
-        return columns.isEmpty() ?
-                "" :
-                "sortkey" + columns.stream().map(Column::getName).collect(joining(",", "(", ")"));
+        return columns.isEmpty() ? "" : "sortkey" + columns.stream().map(Column::getName).collect(joining(",", "(", ")"));
     }
 
     private String createDistributionKeys(final List<Column> columns) {
-        return columns.isEmpty() ?
-                "" :
-                "distkey" + columns.stream().map(Column::getName).collect(joining(",", "(", ")"));
+        return columns.isEmpty() ? "" : "distkey" + columns.stream().map(Column::getName).collect(joining(",", "(", ")"));
     }
 
     @Override
@@ -97,7 +93,7 @@ public class RedshiftPlatform extends Platform {
         return identifier(column.getName())//
                 + " " + toDBType(column)//
                 + " " + isRequired(column)//
-                ;
+        ;
     }
 
     private String toDBType(final Column column) {
