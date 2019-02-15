@@ -20,6 +20,7 @@ import org.talend.components.jdbc.BaseJdbcTest;
 import org.talend.components.jdbc.Disabled;
 import org.talend.components.jdbc.DisabledDatabases;
 import org.talend.components.jdbc.WithDatabasesEnvironments;
+import org.talend.components.jdbc.configuration.DistributionStrategy;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
 import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.JdbcConnection;
@@ -119,7 +120,7 @@ class UIActionServiceTest extends BaseJdbcTest {
         try (JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(datastore, false)) {
             try (final Connection connection = dataSource.getConnection()) {
                 PlatformFactory.get(datastore, getI18nMessage()).createTableIfNotExist(connection, testTableName,
-                        singletonList("id"), emptyList(), emptyList(), -1,
+                        singletonList("id"), emptyList(), DistributionStrategy.KEYS, emptyList(), -1,
                         singletonList(recordBuilderFactory.newRecordBuilder().withInt("id", 1).build()));
                 connection.commit();
             }

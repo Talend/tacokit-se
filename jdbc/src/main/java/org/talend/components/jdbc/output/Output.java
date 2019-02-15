@@ -14,6 +14,7 @@ package org.talend.components.jdbc.output;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.configuration.DistributionStrategy;
 import org.talend.components.jdbc.configuration.OutputConfig;
 import org.talend.components.jdbc.output.platforms.Platform;
 import org.talend.components.jdbc.output.statement.QueryManager;
@@ -96,8 +97,8 @@ public abstract class Output implements Serializable {
         if (!tableExistsCheck && !tableCreated && configuration.isCreateTableIfNotExists()) {
             try (final Connection connection = datasource.getConnection()) {
                 getPlatform().createTableIfNotExist(connection, configuration.getDataset().getTableName(),
-                        configuration.getKeys(), configuration.getSortKeys(), configuration.getDistributionKeys(),
-                        configuration.getVarcharLength(), records);
+                        configuration.getKeys(), configuration.getSortKeys(), DistributionStrategy.KEYS,
+                        configuration.getDistributionKeys(), configuration.getVarcharLength(), records);
                 tableCreated = true;
             }
         }

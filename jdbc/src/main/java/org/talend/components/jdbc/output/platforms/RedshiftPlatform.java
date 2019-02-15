@@ -13,11 +13,11 @@
 package org.talend.components.jdbc.output.platforms;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.configuration.DistributionStrategy;
 import org.talend.components.jdbc.service.I18nMessage;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
@@ -62,7 +62,8 @@ public class RedshiftPlatform extends Platform {
         sql.append(createColumns(columns));
         sql.append(createPKs(columns.stream().filter(Column::isPrimaryKey).collect(toList())));
         sql.append(")");
-        sql.append(createDistributionKeys(columns.stream().filter(Column::isDistributionKey).collect(toList())));
+        sql.append(createDistributionKeys(table.getDistributionStrategy(),
+                columns.stream().filter(Column::isDistributionKey).collect(toList())));
         sql.append(createSortKeys(columns.stream().filter(Column::isSortKey).collect(toList())));
 
         log.debug("### create table query ###");
@@ -74,8 +75,18 @@ public class RedshiftPlatform extends Platform {
         return columns.isEmpty() ? "" : "sortkey" + columns.stream().map(Column::getName).collect(joining(",", "(", ")"));
     }
 
-    private String createDistributionKeys(final List<Column> columns) {
-        return columns.isEmpty() ? "" : "distkey" + columns.stream().map(Column::getName).collect(joining(",", "(", ")"));
+    private String createDistributionKeys(final DistributionStrategy distributionStrategy, final List<Column> columns) {
+        switch (distributionStrategy) {
+        case ALL:
+            return "diststyle all";
+        case EVEN:
+            return "diststyle even";
+        case KEYS:
+        default:
+            return columns.isEmpty() ? ""
+                    : "diststyle key distkey" + columns.stream().map(Column::getName).collect(joining(",", "(", ")"));
+        }
+
     }
 
     @Override

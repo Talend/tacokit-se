@@ -15,6 +15,7 @@ package org.talend.components.jdbc.output.platforms;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.configuration.DistributionStrategy;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -51,13 +52,14 @@ public abstract class Platform implements Serializable {
     protected abstract boolean isTableExistsCreationError(final Throwable e);
 
     public void createTableIfNotExist(final Connection connection, final String name, final List<String> keys,
-            final List<String> sortKeys, final List<String> distributionKeys, final int varcharLength, final List<Record> records)
-            throws SQLException {
+            final List<String> sortKeys, final DistributionStrategy distributionStrategy, final List<String> distributionKeys,
+            final int varcharLength, final List<Record> records) throws SQLException {
         if (records.isEmpty()) {
             return;
         }
 
-        final String sql = buildQuery(getTableModel(connection, name, keys, sortKeys, distributionKeys, varcharLength, records));
+        final String sql = buildQuery(
+                getTableModel(connection, name, keys, sortKeys, distributionStrategy, distributionKeys, varcharLength, records));
         try (final Statement statement = connection.createStatement()) {
             statement.executeUpdate(sql);
             connection.commit();
@@ -90,9 +92,9 @@ public abstract class Platform implements Serializable {
     }
 
     private Table getTableModel(final Connection connection, final String name, final List<String> keys,
-            final List<String> sortKeys, final List<String> distributionKeys, final int varcharLength,
-            final List<Record> records) {
-        final Table.TableBuilder builder = Table.builder().name(name);
+            final List<String> sortKeys, DistributionStrategy distributionStrategy, final List<String> distributionKeys,
+            final int varcharLength, final List<Record> records) {
+        final Table.TableBuilder builder = Table.builder().name(name).distributionStrategy(distributionStrategy);
         try {
             builder.catalog(connection.getCatalog()).schema(connection.getSchema());
         } catch (final SQLException e) {

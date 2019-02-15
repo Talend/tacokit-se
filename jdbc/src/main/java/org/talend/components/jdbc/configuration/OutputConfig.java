@@ -34,7 +34,7 @@ import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Ope
 @Data
 @GridLayout(value = { @GridLayout.Row("dataset"), @GridLayout.Row("createTableIfNotExists"), @GridLayout.Row("varcharLength"),
         @GridLayout.Row({ "actionOnData" }), @GridLayout.Row("keys"), @GridLayout.Row("sortKeys"),
-        @GridLayout.Row("distributionKeys"), @GridLayout.Row("ignoreUpdate") })
+        @GridLayout.Row("distributionStrategy"), @GridLayout.Row("distributionKeys"), @GridLayout.Row("ignoreUpdate") })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("dataset"),
         @GridLayout.Row("rewriteBatchedStatements") })
 @Documentation("Those properties define an output data set for the JDBC output component")
@@ -77,6 +77,13 @@ public class OutputConfig implements Serializable {
 
     @Option
     @ActiveIfs(operator = AND, value = { @ActiveIf(target = "../dataset.connection.dbType", value = { "Redshift" }),
+            @ActiveIf(target = "createTableIfNotExists", value = { "true" }) })
+    @Documentation("Define the distribution strategy of Redshift table")
+    private DistributionStrategy distributionStrategy = DistributionStrategy.KEYS;
+
+    @Option
+    @ActiveIfs(operator = AND, value = { @ActiveIf(target = "../dataset.connection.dbType", value = { "Redshift" }),
+            @ActiveIf(target = "../distributionStrategy", value = { "KEYS" }),
             @ActiveIf(target = "createTableIfNotExists", value = { "true" }) })
     @Suggestable(value = ACTION_SUGGESTION_TABLE_COLUMNS_NAMES, parameters = { "../dataset" })
     @Documentation("List of columns to be used as distribution keys for redshift")
