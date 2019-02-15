@@ -60,7 +60,7 @@ public class RedshiftPlatform extends Platform {
         sql.append("(");
         List<Column> columns = table.getColumns();
         sql.append(createColumns(columns));
-        sql.append(createPKs(table.getName(),columns.stream().filter(Column::isPrimaryKey).collect(toList())));
+        sql.append(createPKs(table.getName(), columns.stream().filter(Column::isPrimaryKey).collect(toList())));
         sql.append(")");
         sql.append(createDistributionKeys(table.getDistributionStrategy(),
                 columns.stream().filter(Column::isDistributionKey).collect(toList())));
