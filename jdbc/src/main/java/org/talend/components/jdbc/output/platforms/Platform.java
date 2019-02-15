@@ -25,6 +25,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.UUID;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -52,14 +53,16 @@ public abstract class Platform implements Serializable {
     protected abstract boolean isTableExistsCreationError(final Throwable e);
 
     public void createTableIfNotExist(final Connection connection, final String name, final List<String> keys,
-            final List<String> sortKeys, final DistributionStrategy distributionStrategy, final List<String> distributionKeys,
-            final int varcharLength, final List<Record> records) throws SQLException {
+            final List<String> sortKeys, final DistributionStrategy distributionStrategy,
+            final List<String> distributionKeys, final int varcharLength, final List<Record> records)
+            throws SQLException {
         if (records.isEmpty()) {
             return;
         }
 
         final String sql = buildQuery(
-                getTableModel(connection, name, keys, sortKeys, distributionStrategy, distributionKeys, varcharLength, records));
+                getTableModel(connection, name, keys, sortKeys, distributionStrategy, distributionKeys, varcharLength,
+                        records));
         try (final Statement statement = connection.createStatement()) {
             statement.executeUpdate(sql);
             connection.commit();
@@ -69,7 +72,9 @@ public abstract class Platform implements Serializable {
                 throw e;
             }
 
-            log.trace("create table issue was ignored. The table and it's name space has been created by an other worker", e);
+            log.trace(
+                    "create table issue was ignored. The table and it's name space has been created by an other worker",
+                    e);
         }
     }
 
@@ -77,14 +82,19 @@ public abstract class Platform implements Serializable {
         return name == null || name.isEmpty() ? name : delimiterToken() + name + delimiterToken();
     }
 
-    String createPKs(final List<Column> primaryKeys) {
-        return primaryKeys == null || primaryKeys.isEmpty() ? ""
-                : ", CONSTRAINT " + pkConstraintName(primaryKeys) + " PRIMARY KEY "
-                        + primaryKeys.stream().map(Column::getName).map(this::identifier).collect(joining(",", "(", ")"));
+    String createPKs(final String table, final List<Column> primaryKeys) {
+        return primaryKeys == null || primaryKeys.isEmpty() ?
+                "" :
+                ", CONSTRAINT " + pkConstraintName(table, primaryKeys) + " PRIMARY KEY " + primaryKeys.stream()
+                        .map(Column::getName)
+                        .map(this::identifier)
+                        .collect(joining(",", "(", ")"));
     }
 
-    private String pkConstraintName(List<Column> primaryKeys) {
-        return "pk_" + primaryKeys.stream().map(Column::getName).collect(joining("_"));
+    private String pkConstraintName(String table, List<Column> primaryKeys) {
+        final String uuid = UUID.randomUUID().toString();
+        return "pk_" + table + "_" + primaryKeys.stream().map(Column::getName).collect(joining("_")) + "_"
+                + uuid.substring(0, Math.min(4, uuid.length()));
     }
 
     protected String isRequired(final Column column) {
@@ -100,12 +110,18 @@ public abstract class Platform implements Serializable {
         } catch (final SQLException e) {
             log.warn("can't get database catalog or schema", e);
         }
-        final List<Schema.Entry> entries = records.stream().flatMap(record -> record.getSchema().getEntries().stream()).distinct()
+        final List<Schema.Entry> entries = records.stream()
+                .flatMap(record -> record.getSchema().getEntries().stream())
+                .distinct()
                 .collect(toList());
         return builder.columns(entries.stream()
-                .map(entry -> Column.builder().entry(entry).primaryKey(keys.contains(entry.getName()))
-                        .sortKey(sortKeys.contains(entry.getName())).distributionKey(distributionKeys.contains(entry.getName()))
-                        .size(STRING == entry.getType() ? varcharLength : null).build())
+                .map(entry -> Column.builder()
+                        .entry(entry)
+                        .primaryKey(keys.contains(entry.getName()))
+                        .sortKey(sortKeys.contains(entry.getName()))
+                        .distributionKey(distributionKeys.contains(entry.getName()))
+                        .size(STRING == entry.getType() ? varcharLength : null)
+                        .build())
                 .collect(toList())).build();
     }
 

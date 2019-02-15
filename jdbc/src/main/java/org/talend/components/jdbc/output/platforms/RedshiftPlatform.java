@@ -60,7 +60,7 @@ public class RedshiftPlatform extends Platform {
         sql.append("(");
         List<Column> columns = table.getColumns();
         sql.append(createColumns(columns));
-        sql.append(createPKs(columns.stream().filter(Column::isPrimaryKey).collect(toList())));
+        sql.append(createPKs(table.getName(),columns.stream().filter(Column::isPrimaryKey).collect(toList())));
         sql.append(")");
         sql.append(createDistributionKeys(table.getDistributionStrategy(),
                 columns.stream().filter(Column::isDistributionKey).collect(toList())));
@@ -78,13 +78,13 @@ public class RedshiftPlatform extends Platform {
     private String createDistributionKeys(final DistributionStrategy distributionStrategy, final List<Column> columns) {
         switch (distributionStrategy) {
         case ALL:
-            return "diststyle all";
+            return "diststyle all ";
         case EVEN:
-            return "diststyle even";
+            return "diststyle even ";
         case KEYS:
         default:
             return columns.isEmpty() ? ""
-                    : "diststyle key distkey" + columns.stream().map(Column::getName).collect(joining(",", "(", ")"));
+                    : "diststyle key distkey" + columns.stream().map(Column::getName).collect(joining(",", "(", ") "));
         }
 
     }
