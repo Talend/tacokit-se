@@ -36,15 +36,9 @@ import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Ope
 import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.OR;
 
 @Data
-@GridLayout(value = { @GridLayout.Row("dataset"),
-        @GridLayout.Row({ "actionOnData" }),
-        @GridLayout.Row("createTableIfNotExists"),
-        @GridLayout.Row("varcharLength"),
-        @GridLayout.Row("keys"),
-        @GridLayout.Row("sortKeys"),
-        @GridLayout.Row("distributionStrategy"),
-        @GridLayout.Row("distributionKeys"),
-        @GridLayout.Row("ignoreUpdate") })
+@GridLayout(value = { @GridLayout.Row("dataset"), @GridLayout.Row({ "actionOnData" }), @GridLayout.Row("createTableIfNotExists"),
+        @GridLayout.Row("varcharLength"), @GridLayout.Row("keys"), @GridLayout.Row("sortKeys"),
+        @GridLayout.Row("distributionStrategy"), @GridLayout.Row("distributionKeys"), @GridLayout.Row("ignoreUpdate") })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("dataset"),
         @GridLayout.Row("rewriteBatchedStatements") })
 @Documentation("Those properties define an output data set for the JDBC output component")
@@ -57,13 +51,13 @@ public class OutputConfig implements Serializable {
 
     @Option
     @Required
-    @Suggestable(value = ACTION_SUGGESTION_ACTION_ON_DATA, parameters = { "dataset" })
+    @Suggestable(value = ACTION_SUGGESTION_ACTION_ON_DATA, parameters = { "../dataset" })
     @Documentation("The action on data to be performed")
     private String actionOnData;
 
     @Option
     @Required
-    @ActiveIf(target = "actionOnData", value = { "INSERT", "UPSERT" })
+    @ActiveIf(target = "actionOnData", value = { "INSERT", "UPSERT", "BULK_LOAD" })
     @Documentation("Create table if don't exists")
     private boolean createTableIfNotExists = false;
 
@@ -73,7 +67,6 @@ public class OutputConfig implements Serializable {
     @Documentation("The length of varchar types. This value will be used to create varchar columns in this table."
             + "\n-1 means that the max supported length of the targeted database will be used.")
     private int varcharLength = -1;
-
 
     @Option
     @ActiveIf(target = "../createTableIfNotExists", value = { "true" })
