@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -23,14 +23,13 @@ import org.talend.sdk.component.api.record.Schema;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.*;
 
 @Slf4j
-public class Insert extends QueryManager {
+public class Insert extends JdbcAction {
 
     private Map<Integer, Schema.Entry> namedParams;
 
@@ -63,8 +62,8 @@ public class Insert extends QueryManager {
 
     @Override
     public boolean validateQueryParam(final Record record) {
-        return namedParams.values().stream().filter(e -> !e.isNullable()).map(e -> valueOf(record, e))
-                .allMatch(Optional::isPresent);
+        return record.getSchema().getEntries().stream().map(Schema.Entry::getName).collect(toSet()).containsAll(namedParams
+                .values().stream().filter(namedParam -> !namedParam.isNullable()).map(Schema.Entry::getName).collect(toSet()));
     }
 
     @Override

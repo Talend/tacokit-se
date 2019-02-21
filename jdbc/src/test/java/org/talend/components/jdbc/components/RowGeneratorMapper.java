@@ -1,15 +1,3 @@
-/*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package org.talend.components.jdbc.components;
 
 import org.talend.sdk.component.api.component.Icon;
@@ -36,21 +24,28 @@ public class RowGeneratorMapper implements Serializable {
 
     private RecordBuilderFactory recordBuilderFactory;
 
+    private final long recordSize;
+
     public RowGeneratorMapper(@Option("config") final RowGeneratorSource.Config config,
             final RecordBuilderFactory recordBuilderFactory) {
         this.recordBuilderFactory = recordBuilderFactory;
         this.config = config;
+        this.recordSize = recordBuilderFactory.newRecordBuilder().withString("t_string", "data0").withBoolean("t_boolean", true)
+                .withLong("t_long", 10000000000L).withDouble("t_double", 1000.85d).withFloat("t_float", 15.50f)
+                .withDateTime("t_date", new Date()).withBytes("t_bytes", "some data in bytes".getBytes(StandardCharsets.UTF_8))
+                .build().toString().getBytes().length;
+
     }
 
     @Assessor
     public long estimateSize() {
-        return 1L;
+        return "{id:1000, name:\"somename\"}".getBytes().length * config.getRowCount();
     }
 
     @Split
     public List<RowGeneratorMapper> split(@PartitionSize final long bundles) {
-        long nbBundle = Math.max(1, config.getRowCount() / 4);
-        final long bundleCount = config.getRowCount() / nbBundle;
+        long nbBundle = Math.max(1, estimateSize() / bundles);
+        final long bundleCount = bundles / recordSize;
         final int totalData = config.getRowCount();
         return LongStream.range(0, nbBundle).mapToObj(i -> {
             final int from = (int) (bundleCount * i);
@@ -65,7 +60,7 @@ public class RowGeneratorMapper implements Serializable {
             dataSetChunk.setWithNullValues(config.isWithNullValues());
             dataSetChunk.setStringPrefix(config.getStringPrefix());
             dataSetChunk.setWithBytes(config.isWithBytes());
-            dataSetChunk.setWithBoolean(config.isWithBoolean());
+            dataSetChunk.setWithMissingIdEvery(config.getWithMissingIdEvery());
             return new RowGeneratorMapper(dataSetChunk, recordBuilderFactory);
         }).filter(Objects::nonNull).collect(toList());
     }

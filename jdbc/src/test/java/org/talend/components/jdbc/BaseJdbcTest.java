@@ -1,15 +1,3 @@
-/*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package org.talend.components.jdbc;
 
 import lombok.Data;
@@ -129,9 +117,7 @@ public abstract class BaseJdbcTest {
     }
 
     public static void insertRows(final String table, final JdbcTestContainer container, final long rowCount,
-            final boolean withNullValues, final String stringPrefix) {
-        final boolean withBoolean = !container.getDatabaseType().equalsIgnoreCase("oracle");
-        final boolean withBytes = !container.getDatabaseType().equalsIgnoreCase("redshift");
+            final boolean withNullValues, final int withMissingIdEvery, final String stringPrefix) {
         final OutputConfig configuration = new OutputConfig();
         configuration.setDataset(newTableNameDataset(table, container));
         configuration.setActionOnData(OutputConfig.ActionOnData.INSERT);
@@ -142,7 +128,7 @@ public abstract class BaseJdbcTest {
         Job.components()
                 .component("rowGenerator",
                         "jdbcTest://RowGenerator?"
-                                + rowGeneratorConfig(rowCount, withNullValues, stringPrefix, withBoolean, withBytes))
+                                + rowGeneratorConfig(rowCount, withNullValues, withMissingIdEvery, stringPrefix))
                 .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput").build()
                 .run();
     }
@@ -163,11 +149,11 @@ public abstract class BaseJdbcTest {
         return dataset;
     }
 
-    public static String rowGeneratorConfig(final long rowCount, final boolean withNullValues, final String stringPrefix,
-            final boolean withBoolean, final boolean withBytes) {
+    public static String rowGeneratorConfig(final long rowCount, final boolean withNullValues, final int withMissingIdEvery,
+            final String stringPrefix) {
         return "config.rowCount=" + rowCount + "&config.withNullValues=" + withNullValues
-                + ofNullable(stringPrefix).map(p -> "&config.stringPrefix=" + stringPrefix).orElse("") + "&config.withBoolean="
-                + withBoolean + "&config.withBytes=" + withBytes;
+                + ofNullable(stringPrefix).map(p -> "&config.stringPrefix=" + stringPrefix).orElse("")
+                + "&config.withMissingIdEvery=" + withMissingIdEvery;
     }
 
 }

@@ -1,17 +1,9 @@
 def slackChannel = 'components-ci'
+def version = 'will be replaced'
+def image = 'will be replaced'
 
-def PRODUCTION_DEPLOYMENT_REPOSITORY = "TalendOpenSourceSnapshot"
-
-def branchName = env.BRANCH_NAME
-if (BRANCH_NAME.startsWith("PR-")) {
-    branchName = env.CHANGE_BRANCH
-}
-
-def escapedBranch = branchName.toLowerCase().replaceAll("/","_")
-def deploymentSuffix = env.BRANCH_NAME == "master" ? "${PRODUCTION_DEPLOYMENT_REPOSITORY}" : ("dev_branch_snapshots/branch_${escapedBranch}")
-def deploymentRepository = "https://artifacts-zl.talend.com/nexus/content/repositories/${deploymentSuffix}"
-def m2 = "/tmp/jenkins/tdi/m2/${deploymentSuffix}"
-def talendOssRepositoryArg = env.BRANCH_NAME == "master" ? "" : ("-Dtalend_oss_snapshots=https://nexus-smart-branch.datapwn.com/nexus/content/repositories/${deploymentSuffix}")
+def deploymentSuffix = env.BRANCH_NAME == "master" ? "" : ("tdi/${env.BRANCH_NAME}")
+def deploymentRepository = "https://artifacts-zl.talend.com/nexus/content/repositories/snapshots/${deploymentSuffix}"
 
 pipeline {
     agent {
@@ -35,7 +27,7 @@ spec:
             hostPath: {path: /var/run/docker.sock}
         -
             name: m2main
-            hostPath: { path: ${m2} }
+            hostPath: {path: /tmp/jenkins/tdi/m2}
 """
         }
     }
@@ -43,6 +35,17 @@ spec:
     environment {
         MAVEN_OPTS = '-Dmaven.artifact.threads=128 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss'
         TALEND_REGISTRY = 'registry.datapwn.com'
+    }
+
+    parameters {
+        string(
+                name: 'COMPONENT_SERVER_IMAGE_VERSION',
+                defaultValue: '1.1.2',
+                description: 'The Component Server docker image tag')
+        booleanParam(
+	        name: 'PUSH_DOCKER_IMAGE',
+	        defaultValue: false,
+		description: 'If dev branch, push generated docker image to datapwn (it is always done for master).')
     }
 
     options {
@@ -60,16 +63,9 @@ spec:
             steps {
                 container('main') {
                     // for next concurrent builds
-                    sh 'for i in ci_documentation ci_nexus ci_site; do rm -Rf $i; rsync -av . $i; done'
+                    sh 'for i in ci_docker ci_nexus ci_site; do rm -Rf $i; rsync -av . $i; done'
                     // real task
-                    withCredentials([
-                            usernamePassword(
-                                    credentialsId: 'nexus-artifact-zl-credentials',
-                                    usernameVariable: 'NEXUS_USER',
-                                    passwordVariable: 'NEXUS_PASSWORD')
-                    ]) {
-                        sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -e ${talendOssRepositoryArg}"
-                    }
+                    sh 'mvn clean install -T1C -Pdocker -PITs -e'
                 }
             }
             post {
@@ -88,7 +84,10 @@ spec:
         }
         stage('Post Build Steps') {
             parallel {
-                stage('Documentation') {
+                stage('Docker') {
+                    when {
+		        expression { sh(returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim() == 'master' || params.PUSH_DOCKER_IMAGE == true }
+                    }
                     steps {
                         container('main') {
                             withCredentials([
@@ -98,8 +97,13 @@ spec:
                                             usernameVariable: 'DOCKER_LOGIN')
                             ]) {
                                 sh """
-                     |cd ci_documentation
-                     |mvn -U -B clean install -DskipTests
+                     |cd ci_docker
+                     |mvn clean install -Pdocker -DskipTests
+                     |chmod +x ./connectors-se-docker/src/main/scripts/docker/*.sh
+                     |revision=`git rev-parse --abbrev-ref HEAD | tr / _`
+                     |./connectors-se-docker/src/main/scripts/docker/all.sh \$revision
+                     |
+                     |# collect doc
                      |chmod +x .jenkins/generate-doc.sh && .jenkins/generate-doc.sh
                      |""".stripMargin()
                             }
@@ -109,7 +113,11 @@ spec:
                         always {
                             publishHTML(target: [
                                     allowMissing: true, alwaysLinkToLastBuild: false, keepAll: true,
-                                    reportDir   : 'ci_documentation/target/talend-component-kit_documentation/', reportFiles: 'index.html', reportName: "Component Documentation"
+                                    reportDir   : 'ci_docker/connectors-se-docker/target', includes: 'docker.html', reportFiles: 'docker.html', reportName: "Docker Images"
+                            ])
+                            publishHTML(target: [
+                                    allowMissing: true, alwaysLinkToLastBuild: false, keepAll: true,
+                                    reportDir   : 'ci_docker/target/talend-component-kit_documentation/', reportFiles: 'index.html', reportName: "Component Documentation"
                             ])
                         }
                     }
@@ -117,7 +125,7 @@ spec:
                 stage('Site') {
                     steps {
                         container('main') {
-                            sh 'cd ci_site && mvn -U -B clean site site:stage -Dmaven.test.failure.ignore=true'
+                            sh 'cd ci_site && mvn clean site site:stage -T1C -Dmaven.test.failure.ignore=true'
                         }
                     }
                     post {
@@ -138,7 +146,7 @@ spec:
                                             usernameVariable: 'NEXUS_USER',
                                             passwordVariable: 'NEXUS_PASSWORD')
                             ]) {
-                                sh "cd ci_nexus && mvn -U -B -s .jenkins/settings.xml clean deploy -e -Pdocker -DskipTests ${talendOssRepositoryArg}"
+                                sh "cd ci_nexus && mvn -s .jenkins/settings.xml clean deploy -e -DskipTests -DaltDeploymentRepository=talend.snapshots::default::${deploymentRepository}"
                             }
                         }
                     }
@@ -149,6 +157,14 @@ spec:
     post {
         success {
             slackSend(color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})", channel: "${slackChannel}")
+            script {
+                if (params.COMPONENT_SERVER_IMAGE_VERSION) {
+                    println "Launching Connectors EE build with component server docker image >${params.COMPONENT_SERVER_IMAGE_VERSION}<"
+                    build job: '/connectors-ee/master',
+                            parameters: [string(name: 'COMPONENT_SERVER_IMAGE_VERSION', value: "${params.COMPONENT_SERVER_IMAGE_VERSION}")],
+                            wait: false, propagate: false
+                }
+            }
         }
         failure {
             slackSend(color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})", channel: "${slackChannel}")

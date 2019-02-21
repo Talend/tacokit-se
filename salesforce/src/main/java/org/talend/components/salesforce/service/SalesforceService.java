@@ -1,48 +1,27 @@
-/*
- * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- *
- */
-
 package org.talend.components.salesforce.service;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.Properties;
 
 import javax.xml.namespace.QName;
 
-import org.talend.components.salesforce.datastore.BasicDataStore;
-import org.talend.components.salesforce.soql.FieldDescription;
-import org.talend.components.salesforce.soql.SoqlQuery;
-import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-
 import com.sforce.async.AsyncApiException;
 import com.sforce.async.BulkConnection;
-import com.sforce.soap.partner.DescribeSObjectResult;
-import com.sforce.soap.partner.Field;
-import com.sforce.soap.partner.FieldType;
 import com.sforce.soap.partner.PartnerConnection;
 import com.sforce.soap.partner.fault.ApiFault;
 import com.sforce.ws.ConnectionException;
 import com.sforce.ws.ConnectorConfig;
 import com.sforce.ws.SessionRenewer;
+
+import org.talend.components.salesforce.datastore.BasicDataStore;
+import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,48 +29,42 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class SalesforceService {
 
-    public static final String RETIRED_ENDPOINT = "www.salesforce.com";
+    private static final int DEFAULT_TIMEOUT = 60000;
 
-    public static final String ACTIVE_ENDPOINT = "login.salesforce.com";
+    private static final String CONFIG_FILE_lOCATION_KEY = "org.talend.component.salesforce.config.file";
 
-    public static final String DEFAULT_API_VERSION = "44.0";
+    private static final String RETIRED_ENDPOINT = "www.salesforce.com";
+
+    private static final String ACTIVE_ENDPOINT = "login.salesforce.com";
+
+    private static final String DEFAULT_API_VERSION = "42.0";
 
     public static final String URL = "https://" + ACTIVE_ENDPOINT + "/services/Soap/u/" + DEFAULT_API_VERSION;
 
-    /** Properties file key for endpoint storage. */
-    public static final String ENDPOINT_PROPERTY_KEY = "salesforce.endpoint";
+    private Properties loadCustomConfiguration(final LocalConfiguration configuration) {
+        final String configFile = configuration.get(CONFIG_FILE_lOCATION_KEY);
+        try (final InputStream is = configFile != null && !configFile.isEmpty() ? (new FileInputStream(configFile)) : null) {
+            if (is != null) {
+                return new Properties() {
 
-    public static final String TIMEOUT_PROPERTY_KEY = "salesforce.timeout";
-
-    private static final int DEFAULT_TIMEOUT = 60000;
-
-    public static String guessModuleName(String soqlQuery) {
-        SoqlQuery query = SoqlQuery.getInstance();
-        query.init(soqlQuery);
-        return query.getDrivingEntityName();
-
-    }
-
-    public static List<String> guessColumnNamesFromSOQL(String soqlQuery) {
-        SoqlQuery query = SoqlQuery.getInstance();
-        query.init(soqlQuery);
-        List<String> columnNames = new ArrayList<>();
-        for (FieldDescription fieldDescription : query.getFieldDescriptions()) {
-            columnNames.add(fieldDescription.getFullName());
+                    {
+                        load(is);
+                    }
+                };
+            }
+        } catch (final IOException e) {
+            log.warn("not found the property file, will use the default value for endpoint and timeout", e);
         }
-        return columnNames;
 
+        return null;
     }
 
-    /**
-     * Create a partner connection
-     */
     public PartnerConnection connect(final BasicDataStore datastore, final LocalConfiguration localConfiguration)
             throws ConnectionException {
-        final Integer timeout = (localConfiguration != null && localConfiguration.get(TIMEOUT_PROPERTY_KEY) != null)
-                ? Integer.parseInt(localConfiguration.get(TIMEOUT_PROPERTY_KEY))
+        final Properties props = loadCustomConfiguration(localConfiguration);
+        final Integer timeout = (props != null) ? Integer.parseInt(props.getProperty("timeout", String.valueOf(DEFAULT_TIMEOUT)))
                 : DEFAULT_TIMEOUT;
-        String endpoint = getEndpoint(datastore, localConfiguration);
+        final String endpoint = getEndpoint(props);
         ConnectorConfig config = newConnectorConfig(endpoint);
         config.setAuthEndpoint(endpoint);
         config.setUsername(datastore.getUserId());
@@ -122,26 +95,12 @@ public class SalesforceService {
         return new PartnerConnection(config);
     }
 
-    /**
-     * Return the datastore endpoint, loading a default value if no value is present.
-     *
-     * @return the datastore endpoint value.
-     */
-    protected String getEndpoint(final BasicDataStore datastore, final LocalConfiguration localConfiguration) {
-        String endpoint = datastore.getEndpoint();
-        if (endpoint == null || endpoint.isEmpty()) {
-            if (localConfiguration != null) {
-                endpoint = localConfiguration.get(ENDPOINT_PROPERTY_KEY);
-            }
+    private String getEndpoint(final Properties props) {
+        final String endpoint = props != null ? props.getProperty("endpoint", URL) : URL;
+        if (endpoint.contains(RETIRED_ENDPOINT)) {
+            return endpoint.replaceFirst(RETIRED_ENDPOINT, ACTIVE_ENDPOINT);
         }
-        if (endpoint != null && !endpoint.isEmpty()) {
-            if (endpoint.contains(RETIRED_ENDPOINT)) {
-                endpoint = endpoint.replaceFirst(RETIRED_ENDPOINT, ACTIVE_ENDPOINT);
-            }
-            return endpoint;
-        } else {
-            return URL;
-        }
+        return endpoint;
     }
 
     private ConnectorConfig newConnectorConfig(final String ep) {
@@ -155,15 +114,13 @@ public class SalesforceService {
         };
     }
 
-    /**
-     * Connect with bulk mode and return the bulk connection instance
-     */
     public BulkConnection bulkConnect(final BasicDataStore datastore, final LocalConfiguration configuration)
             throws AsyncApiException, ConnectionException {
 
+        final Properties props = loadCustomConfiguration(configuration);
         final PartnerConnection partnerConnection = connect(datastore, configuration);
         final ConnectorConfig partnerConfig = partnerConnection.getConfig();
-        ConnectorConfig bulkConfig = newConnectorConfig(getEndpoint(datastore, configuration));
+        ConnectorConfig bulkConfig = newConnectorConfig(getEndpoint(props));
         bulkConfig.setSessionId(partnerConfig.getSessionId());
         // For session renew
         bulkConfig.setSessionRenewer(partnerConfig.getSessionRenewer());
@@ -194,9 +151,6 @@ public class SalesforceService {
         return new BulkConnection(bulkConfig);
     }
 
-    /**
-     * Handle connection exception
-     */
     public IllegalStateException handleConnectionException(final ConnectionException e) {
         if (e == null) {
             return new IllegalStateException("unexpected error. can't handle connection error.");
@@ -207,112 +161,4 @@ public class SalesforceService {
             return new IllegalStateException("connection error", e);
         }
     }
-
-    public Schema guessSchema(List<String> fieldNames, Map<String, Field> fieldMap, final RecordBuilderFactory factory) {
-        final Schema.Entry.Builder entryBuilder = factory.newEntryBuilder();
-        final Schema.Builder schemaBuilder = factory.newSchemaBuilder(org.talend.sdk.component.api.record.Schema.Type.RECORD);
-        if ((fieldNames == null || fieldNames.isEmpty()) || fieldMap == null || fieldMap.isEmpty()) {
-            return schemaBuilder.build();
-        } else {
-            for (String fieldName : fieldNames) {
-                Field field = fieldMap.get(fieldName);
-                Schema.Type type = null;
-                boolean nillable = true;
-                if (field != null) {
-                    nillable = field.getNillable();
-                    switch (field.getType()) {
-                    case _boolean:
-                        type = Schema.Type.BOOLEAN;
-                        break;
-                    case _double:
-                    case percent:
-                    case currency:
-                        type = Schema.Type.DOUBLE;
-                        break;
-                    case _int:
-                        type = Schema.Type.INT;
-                        break;
-                    case date:
-                    case datetime:
-                    case time:
-                        type = Schema.Type.DATETIME;
-                        break;
-                    case base64:
-                        type = Schema.Type.BYTES;
-                        break;
-                    default:
-                        type = Schema.Type.STRING;
-                        break;
-                    }
-                } else {
-                    // if field not exist in the field mapping of module, put string type as default
-                    type = Schema.Type.STRING;
-                }
-                schemaBuilder.withEntry(entryBuilder.withName(fieldName).withType(type).withNullable(nillable).build());
-            }
-            return schemaBuilder.build();
-        }
-    }
-
-    /**
-     * Retrieve module field map, filed name with filed
-     */
-    public Map<String, Field> getFieldMap(BasicDataStore dataStore, String moduleName,
-            final LocalConfiguration localConfiguration) {
-        try {
-            PartnerConnection connection = connect(dataStore, localConfiguration);
-            return getFieldMap(connection, moduleName);
-
-        } catch (ConnectionException e) {
-            throw handleConnectionException(e);
-        }
-    }
-
-    public Map<String, Field> getFieldMap(PartnerConnection connection, String moduleName) {
-        try {
-            DescribeSObjectResult module = connection.describeSObject(moduleName);
-            Map<String, Field> fieldMap = new TreeMap<>();
-            for (Field field : module.getFields()) {
-                fieldMap.put(field.getName(), field);
-            }
-            return fieldMap;
-
-        } catch (ConnectionException e) {
-            throw handleConnectionException(e);
-        }
-    }
-
-    /**
-     * Retrieve module field map, filed name with filed
-     */
-    public List<String> getFieldNameList(BasicDataStore dataStore, String moduleName,
-            final LocalConfiguration localConfiguration) {
-        try {
-            PartnerConnection connection = connect(dataStore, localConfiguration);
-            DescribeSObjectResult module = connection.describeSObject(moduleName);
-            List<String> fieldNameList = new ArrayList<>();
-            for (Field field : module.getFields()) {
-                if (isSuppotedType(field)) {
-                    fieldNameList.add(field.getName());
-                }
-            }
-            return fieldNameList;
-
-        } catch (ConnectionException e) {
-            throw handleConnectionException(e);
-        }
-    }
-
-    public boolean isSuppotedType(Field field) {
-        // filter the invalid compound columns for salesforce bulk query api
-        if (field == null || field.getType() == FieldType.address || // no address
-                field.getType() == FieldType.location || // no location
-                // no picklist that has a parent
-                (field.getType() == FieldType.picklist && field.getCompoundFieldName() != null
-                        && !field.getCompoundFieldName().trim().isEmpty())) {
-            return false;
-        }
-        return true;
-    }
-
 }

@@ -13,7 +13,7 @@ pipeline {
             spec:
               containers:
                 - name: maven
-                  image: jenkinsxio/builder-maven:0.1.60
+                  image: jenkinsxio/builder-maven:0.0.319
                   command:
                   - cat
                   tty: true

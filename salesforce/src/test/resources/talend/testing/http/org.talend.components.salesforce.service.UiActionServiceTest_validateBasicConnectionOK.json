@@ -1,0 +1,24 @@
+[
+  {
+    "request":{
+      "headers":{
+        "SOAPAction":"\"\"",
+        "Accept":"text/xml",
+        "Host":"login.salesforce.com",
+        "Accept-Encoding":"gzip",
+        "Content-Type":"text/xml; charset=UTF-8"
+      },
+      "method":"POST",
+      "uri":"https://login.salesforce.com/services/Soap/u/42.0"
+    },
+    "response":{
+      "headers":{
+        "Cache-Control":"no-cache,must-revalidate,max-age=0,no-store,private",
+        "Date":"Thu, 14 Jun 2018 12:43:26 GMT",
+        "Content-Type":"text/xml; charset=utf-8"
+      },
+      "payload":"<?xml version=\"1.0\" encoding=\"UTF-8\"?><soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns=\"urn:partner.soap.sforce.com\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><soapenv:Body><loginResponse><result><metadataServerUrl>https://eu11.salesforce.com/services/Soap/m/42.0/00D0Y000001dveq</metadataServerUrl><passwordExpired>false</passwordExpired><sandbox>false</sandbox><serverUrl>https://eu11.salesforce.com/services/Soap/u/42.0/00D0Y000001dveq</serverUrl><sessionId>00D0Y000001dveq!AR4AQHq5Cl56pM703EThiq18MQjlbktDvoyZC67FXV.V6.ulwUYNZcy4G8sD5BHF0zU4_oVDnY.Mqfw57iLoOxCBgYYUVzN1</sessionId><userId>0050Y000001hniQQAQ</userId><userInfo><accessibilityMode>false</accessibilityMode><chatterExternal>false</chatterExternal><currencySymbol>€</currencySymbol><orgAttachmentFileSizeLimit>5242880</orgAttachmentFileSizeLimit><orgDefaultCurrencyIsoCode>EUR</orgDefaultCurrencyIsoCode><orgDefaultCurrencyLocale>fr_FR_EURO</orgDefaultCurrencyLocale><orgDisallowHtmlAttachments>false</orgDisallowHtmlAttachments><orgHasPersonAccounts>false</orgHasPersonAccounts><organizationId>00D0Y000001dveqUAA</organizationId><organizationMultiCurrency>false</organizationMultiCurrency><organizationName>Talend</organizationName><profileId>00e0Y000001Qxs0QAC</profileId><roleId xsi:nil=\"true\"/><sessionSecondsValid>7200</sessionSecondsValid><userDefaultCurrencyIsoCode xsi:nil=\"true\"/><userEmail>akhabali@talend.com</userEmail><userFullName>Anas KHABALI</userFullName><userId>0050Y000001hniQQAQ</userId><userLanguage>en_US</userLanguage><userLocale>fr_FR</userLocale><userName>akhabali@talend.com</userName><userTimeZone>Europe/Paris</userTimeZone><userType>Standard</userType><userUiSkin>Theme3</userUiSkin></userInfo></result></loginResponse></soapenv:Body></soapenv:Envelope>",
+      "status":200
+    }
+  }
+]

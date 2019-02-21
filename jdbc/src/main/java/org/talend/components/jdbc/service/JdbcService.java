@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,7 +13,6 @@
 package org.talend.components.jdbc.service;
 
 import com.zaxxer.hikari.HikariDataSource;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.JdbcConfiguration;
 import org.talend.components.jdbc.datastore.JdbcConnection;
@@ -26,12 +25,9 @@ import org.talend.sdk.component.api.service.dependency.Resolver;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -72,6 +68,26 @@ public class JdbcService {
                 .map(Boolean::valueOf).orElse(false);
     }
 
+    private URL[] getDriverFiles(final JdbcConfiguration.Driver driver) {
+        return drivers.computeIfAbsent(driver, key -> {
+            final Collection<File> driverFiles = resolver.resolveFromDescriptor(
+                    new ByteArrayInputStream(driver.getPaths().stream().filter(p -> p != null && !p.trim().isEmpty())
+                            .collect(joining("\n")).getBytes(StandardCharsets.UTF_8)));
+            final String missingJars = driverFiles.stream().filter(f -> !f.exists()).map(File::getAbsolutePath)
+                    .collect(joining("\n"));
+            if (!missingJars.isEmpty()) {
+                throw new IllegalStateException(i18n.errorDriverLoad(driver.getId(), missingJars));
+            }
+            return driverFiles.stream().map(f -> {
+                try {
+                    return f.toURI().toURL();
+                } catch (MalformedURLException e) {
+                    throw new IllegalStateException(e);
+                }
+            }).toArray(URL[]::new);
+        });
+    }
+
     /**
      * @return return false if the sql query is not a read only query, true otherwise
      */
@@ -89,43 +105,40 @@ public class JdbcService {
 
     public JdbcDatasource createDataSource(final JdbcConnection connection) {
         final JdbcConfiguration.Driver driver = getDriver(connection);
-        return new JdbcDatasource(i18n, resolver, connection, driver, false, false);
+        return new JdbcDatasource(connection, getDriverFiles(driver), driver, false, false);
     }
 
     public JdbcDatasource createDataSource(final JdbcConnection connection, final boolean rewriteBatchedStatements) {
         final JdbcConfiguration.Driver driver = getDriver(connection);
-        return new JdbcDatasource(i18n, resolver, connection, driver, false, rewriteBatchedStatements);
+        return new JdbcDatasource(connection, getDriverFiles(driver), driver, false, rewriteBatchedStatements);
     }
 
     public static class JdbcDatasource implements AutoCloseable {
 
-        private final Resolver.ClassLoaderDescriptor classLoaderDescriptor;
+        private final URLClassLoader classLoader;
 
         private HikariDataSource dataSource;
 
-        JdbcDatasource(final I18nMessage i18nMessage, final Resolver resolver, final JdbcConnection connection,
-                final JdbcConfiguration.Driver driver, final boolean isAutoCommit, final boolean rewriteBatchedStatements) {
+        JdbcDatasource(final JdbcConnection connection, final URL[] driverFiles, final JdbcConfiguration.Driver driver,
+                final boolean isAutoCommit, final boolean rewriteBatchedStatements) {
+
             final Thread thread = Thread.currentThread();
             final ClassLoader prev = thread.getContextClassLoader();
-
-            classLoaderDescriptor = resolver.mapDescriptorToClassLoader(driver.getPaths());
-            String missingJars = driver.getPaths().stream().filter(p -> classLoaderDescriptor.resolvedDependencies().contains(p))
-                    .collect(joining("\n"));
-            if (!classLoaderDescriptor.resolvedDependencies().containsAll(driver.getPaths())) {
-                throw new IllegalStateException(i18nMessage.errorDriverLoad(driver.getId(), missingJars));
-            }
-
+            this.classLoader = new URLClassLoader(driverFiles, prev);
             try {
-                thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
+                thread.setContextClassLoader(classLoader);
                 dataSource = new HikariDataSource();
+                dataSource.setPoolName("Hikari-" + thread.getName() + "#" + thread.getId());
                 dataSource.setUsername(connection.getUserId());
                 dataSource.setPassword(connection.getPassword());
                 dataSource.setDriverClassName(driver.getClassName());
                 dataSource.setJdbcUrl(connection.getJdbcUrl());
                 dataSource.setAutoCommit(isAutoCommit);
                 dataSource.setMaximumPoolSize(1);
-                dataSource.setConnectionTimeout(connection.getConnectionTimeOut() * 1000);
-                dataSource.setValidationTimeout(connection.getConnectionValidationTimeOut() * 1000);
+                // todo : make this configurable
+                dataSource.setLeakDetectionThreshold(15 * 60 * 1000);
+                dataSource.setConnectionTimeout(30 * 1000);
+                dataSource.setValidationTimeout(10 * 1000);
                 PlatformFactory.get(connection).addDataSourceProperties(dataSource);
                 dataSource.addDataSourceProperty("rewriteBatchedStatements", String.valueOf(rewriteBatchedStatements));
                 // dataSource.addDataSourceProperty("cachePrepStmts", "true");
@@ -141,8 +154,8 @@ public class JdbcService {
             final Thread thread = Thread.currentThread();
             final ClassLoader prev = thread.getContextClassLoader();
             try {
-                thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
-                return wrap(classLoaderDescriptor.asClassLoader(), dataSource.getConnection(), Connection.class);
+                thread.setContextClassLoader(classLoader);
+                return dataSource.getConnection();
             } finally {
                 thread.setContextClassLoader(prev);
             }
@@ -150,48 +163,13 @@ public class JdbcService {
 
         @Override
         public void close() {
-            final Thread thread = Thread.currentThread();
-            final ClassLoader prev = thread.getContextClassLoader();
             try {
-                thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
                 dataSource.close();
             } finally {
-                thread.setContextClassLoader(prev);
                 try {
-                    classLoaderDescriptor.close();
-                } catch (final Exception e) {
+                    classLoader.close();
+                } catch (final IOException e) {
                     log.error("can't close driver classloader properly", e);
-                }
-            }
-        }
-
-        private static <T> T wrap(final ClassLoader classLoader, final Object delegate, final Class<T> api) {
-            return api.cast(
-                    Proxy.newProxyInstance(classLoader, new Class<?>[] { api }, new ContextualDelegate(delegate, classLoader)));
-        }
-
-        @AllArgsConstructor
-        private static class ContextualDelegate implements InvocationHandler {
-
-            private final Object delegate;
-
-            private final ClassLoader classLoader;
-
-            @Override
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                final Thread thread = Thread.currentThread();
-                final ClassLoader prev = thread.getContextClassLoader();
-                thread.setContextClassLoader(classLoader);
-                try {
-                    final Object invoked = method.invoke(delegate, args);
-                    if (method.getReturnType().getName().startsWith("java.sql.") && method.getReturnType().isInterface()) {
-                        return wrap(classLoader, invoked, method.getReturnType());
-                    }
-                    return invoked;
-                } catch (final InvocationTargetException ite) {
-                    throw ite.getTargetException();
-                } finally {
-                    thread.setContextClassLoader(prev);
                 }
             }
         }

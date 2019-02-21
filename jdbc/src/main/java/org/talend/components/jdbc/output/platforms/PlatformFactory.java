@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -17,35 +17,27 @@ import org.talend.components.jdbc.datastore.JdbcConnection;
 import java.util.Locale;
 
 import static java.util.Optional.ofNullable;
-import static org.talend.components.jdbc.output.platforms.DerbyPlatform.DERBY;
-import static org.talend.components.jdbc.output.platforms.MSSQLPlatform.MSSQL;
-import static org.talend.components.jdbc.output.platforms.MariaDbPlatform.MARIADB;
-import static org.talend.components.jdbc.output.platforms.MySQLPlatform.MYSQL;
-import static org.talend.components.jdbc.output.platforms.OraclePlatform.ORACLE;
-import static org.talend.components.jdbc.output.platforms.PostgreSQLPlatform.POSTGRESQL;
-import static org.talend.components.jdbc.output.platforms.RedshiftPlatform.REDSHIFT;
-import static org.talend.components.jdbc.output.platforms.SnowflakePlatform.SNOWFLAKE;
 
 public final class PlatformFactory {
 
     public static Platform get(final JdbcConnection connection) {
         final String dbType = ofNullable(connection.getHandler()).orElseGet(connection::getDbType);
         switch (dbType.toLowerCase(Locale.ROOT)) {
-        case MYSQL:
+        case MySQLPlatform.MYSQL:
             return new MySQLPlatform();
-        case MARIADB:
+        case MariaDbPlatform.MARIADB:
             return new MariaDbPlatform();
-        case POSTGRESQL:
+        case PostgreSQLPlatform.POSTGRESQL:
             return new PostgreSQLPlatform();
-        case REDSHIFT:
+        case RedshiftPlatform.REDSHIFT:
             return new RedshiftPlatform();
-        case SNOWFLAKE:
+        case SnowflakePlatform.SNOWFLAKE:
             return new SnowflakePlatform();
-        case ORACLE:
+        case OraclePlatform.ORACLE:
             return new OraclePlatform();
-        case MSSQL:
+        case MSSQLPlatform.MSSQL:
             return new MSSQLPlatform();
-        case DERBY:
+        case DerbyPlatform.DERBY:
             return new DerbyPlatform();
         default:
             throw new RuntimeException("unsupported database " + dbType);
@@ -53,6 +45,6 @@ public final class PlatformFactory {
     }
 
     private PlatformFactory() {
-        // no-op
+
     }
 }

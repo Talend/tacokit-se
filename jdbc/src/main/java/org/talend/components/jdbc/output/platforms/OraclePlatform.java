@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -53,7 +53,7 @@ public class OraclePlatform extends Platform {
         sql.append(identifier(table.getName()));
         sql.append("(");
         sql.append(createColumns(table.getColumns()));
-        sql.append(createPKs(table.getColumns().stream().filter(Column::isPrimaryKey).collect(Collectors.toList())));
+        sql.append(createPKs(table.getPrimaryKeys()));
         // todo create index
         sql.append(")");
 
@@ -81,13 +81,23 @@ public class OraclePlatform extends Platform {
         return identifier(column.getName())//
                 + " " + toDBType(column)//
                 + " " + isRequired(column)//
-        ;
+                + " " + defaultValue(column);
+    }
+
+    private String isRequired(final Column column) {
+        return column.isNullable() ? "NULL" : "NOT NULL";
+    }
+
+    private String defaultValue(Column column) {
+        return column.getDefaultValue() == null ? "" : "DEFAULT " + column.getDefaultValue();
     }
 
     private String toDBType(final Column column) {
         switch (column.getType()) {
         case STRING:
-            return column.getSize() <= -1 ? "VARCHAR(" + VARCHAR2_MAX + ")" : "VARCHAR(" + column.getSize() + ")";
+            return "VARCHAR(" + VARCHAR2_MAX + ")";
+        case BOOLEAN:
+            return "NUMBER(1)";
         case DOUBLE:
         case FLOAT:
         case LONG:
@@ -97,9 +107,8 @@ public class OraclePlatform extends Platform {
             return "BLOB";
         case DATETIME:
             return "TIMESTAMP(6)";
-        case BOOLEAN:
-        case RECORD:
-        case ARRAY:
+        case RECORD: // todo ??
+        case ARRAY: // todo ??
         default:
             throw new IllegalStateException("unsupported type for this database " + column);
         }

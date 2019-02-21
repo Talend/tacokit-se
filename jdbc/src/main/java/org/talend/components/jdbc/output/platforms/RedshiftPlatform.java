@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,7 +14,6 @@ package org.talend.components.jdbc.output.platforms;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,8 +32,7 @@ public class RedshiftPlatform extends Platform {
 
     @Override
     protected String delimiterToken() {
-        // https://docs.aws.amazon.com/redshift/latest/dg/r_names.html
-        return "\"";
+        return "";
     }
 
     @Override
@@ -50,7 +48,7 @@ public class RedshiftPlatform extends Platform {
         sql.append(identifier(table.getName()));
         sql.append("(");
         sql.append(createColumns(table.getColumns()));
-        sql.append(createPKs(table.getColumns().stream().filter(Column::isPrimaryKey).collect(Collectors.toList())));
+        sql.append(createPKs(table.getPrimaryKeys()));
         sql.append(")");
         // todo create index
 
@@ -61,9 +59,7 @@ public class RedshiftPlatform extends Platform {
 
     @Override
     protected boolean isTableExistsCreationError(final Throwable e) {
-        // name space creation issue in distributed exectution is not handled by "IF NOT EXISTS"
-        // https://www.postgresql.org/message-id/CA%2BTgmoZAdYVtwBfp1FL2sMZbiHCWT4UPrzRLNnX1Nb30Ku3-gg%40mail.gmail.com
-        return e instanceof SQLException && "23505".equals(((SQLException) e).getSQLState());
+        return false;
     }
 
     private String createColumns(final List<Column> columns) {
@@ -74,14 +70,22 @@ public class RedshiftPlatform extends Platform {
         return identifier(column.getName())//
                 + " " + toDBType(column)//
                 + " " + isRequired(column)//
-        ;
+                + " " + defaultValue(column);
+    }
+
+    private String isRequired(final Column column) {
+        return column.isNullable() ? "NULL" : "NOT NULL";
+    }
+
+    private String defaultValue(Column column) {
+        return column.getDefaultValue() == null ? "" : "DEFAULT " + column.getDefaultValue();
     }
 
     private String toDBType(final Column column) {
         switch (column.getType()) {
         case STRING:
             // https://docs.aws.amazon.com/fr_fr/redshift/latest/dg/r_Character_types.html
-            return column.getSize() <= -1 ? "VARCHAR(max)" : "VARCHAR(" + column.getSize() + ")";
+            return "VARCHAR(max)";
         case BOOLEAN:
             return "BOOLEAN";
         case DOUBLE:
@@ -94,9 +98,7 @@ public class RedshiftPlatform extends Platform {
             return "INTEGER";
         case DATETIME:
             return "TIMESTAMPT";
-        case BYTES:
-            throw new IllegalStateException(
-                    "Bytes are not supported in redshift. AWS users may use s3 to store there binary data." + column);
+        case BYTES: // Bytes are not supported in redshift. AWS users may use s3 to store there binary data.
         case RECORD:
         case ARRAY:
         default:

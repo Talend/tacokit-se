@@ -1,18 +1,5 @@
-/*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package org.talend.components.jdbc.output.statement.operations;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfig;
 import org.talend.components.jdbc.output.Reject;
@@ -35,8 +22,7 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.*;
 
 @Slf4j
-@Getter
-public class UpsertDefault extends QueryManager {
+public class UpsertDefault extends JdbcAction {
 
     private final Insert insert;
 
@@ -75,10 +61,8 @@ public class UpsertDefault extends QueryManager {
 
     @Override
     public boolean validateQueryParam(final Record record) {
-        final Set<Schema.Entry> entries = new HashSet<>(record.getSchema().getEntries());
-        return keys.stream().allMatch(k -> entries.stream().anyMatch(entry -> entry.getName().equals(k)))
-                && entries.stream().filter(entry -> keys.contains(entry.getName())).filter(entry -> !entry.isNullable())
-                        .map(entry -> valueOf(record, entry)).allMatch(Optional::isPresent);
+        return record.getSchema().getEntries().stream().map(Schema.Entry::getName).collect(toSet())
+                .containsAll(new HashSet<>(keys));
     }
 
     @Override

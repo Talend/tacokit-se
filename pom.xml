@@ -36,6 +36,7 @@
     <module>processing-tck</module>
     <module>jdbc</module>
     <module>salesforce</module>
+    <module>azurestorage</module>
   </modules>
 
   <scm>

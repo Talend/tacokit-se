@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,7 +12,6 @@
  */
 package org.talend.components.jdbc.output.statement.operations;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfig;
 import org.talend.components.jdbc.output.platforms.Platform;
@@ -21,23 +20,15 @@ import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Collections.emptyList;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.*;
 
 @Slf4j
-@Getter
-public class Update extends QueryManager {
+public class Update extends JdbcAction {
 
     private final List<String> keys;
 
@@ -57,10 +48,8 @@ public class Update extends QueryManager {
 
     @Override
     public boolean validateQueryParam(final Record record) {
-        final Set<Schema.Entry> entries = new HashSet<>(record.getSchema().getEntries());
-        return keys.stream().allMatch(k -> entries.stream().anyMatch(entry -> entry.getName().equals(k)))
-                && entries.stream().filter(entry -> keys.contains(entry.getName())).filter(entry -> !entry.isNullable())
-                        .map(entry -> valueOf(record, entry)).allMatch(Optional::isPresent);
+        return record.getSchema().getEntries().stream().map(Schema.Entry::getName).collect(toSet())
+                .containsAll(new HashSet<>(keys));
     }
 
     @Override

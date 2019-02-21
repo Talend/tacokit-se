@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -20,6 +20,7 @@ import org.talend.components.jdbc.BaseJdbcTest;
 import org.talend.components.jdbc.Disabled;
 import org.talend.components.jdbc.DisabledDatabases;
 import org.talend.components.jdbc.WithDatabasesEnvironments;
+import org.talend.components.jdbc.configuration.InputAdvancedCommonConfig;
 import org.talend.components.jdbc.configuration.InputQueryConfig;
 import org.talend.components.jdbc.configuration.InputTableNameConfig;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
@@ -29,6 +30,7 @@ import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.output.platforms.PlatformFactory;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit.environment.Environment;
+import org.talend.sdk.component.junit.environment.builtin.ContextualEnvironment;
 import org.talend.sdk.component.junit.environment.builtin.beam.DirectRunnerEnvironment;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
@@ -51,13 +53,14 @@ class InputTest extends BaseJdbcTest {
     void validQuery(final TestInfo testInfo, final JdbcTestContainer container) {
         final int rowCount = 50;
         final String testTableName = getTestTableName(testInfo);
-        insertRows(testTableName, container, rowCount, false, null);
+        insertRows(testTableName, container, rowCount, false, 0, null);
         final SqlQueryDataset sqlQueryDataset = new SqlQueryDataset();
         final JdbcConnection connection = newConnection(container);
         sqlQueryDataset.setConnection(connection);
-        sqlQueryDataset.setFetchSize(rowCount / 3);
         sqlQueryDataset.setSqlQuery("select * from " + PlatformFactory.get(connection).identifier(testTableName));
         final InputQueryConfig config = new InputQueryConfig();
+        config.setAdvancedCommonConfig(new InputAdvancedCommonConfig());
+        config.setFetchSize(rowCount / 3);
         config.setDataSet(sqlQueryDataset);
         final String configURI = configurationByExample().forInstance(config).configured().toQueryString();
         Job.components().component("jdbcInput", "Jdbc://QueryInput?" + configURI).component("collector", "test://collector")
@@ -116,7 +119,7 @@ class InputTest extends BaseJdbcTest {
     void validTableName(final TestInfo testInfo, final JdbcTestContainer container) {
         final int rowCount = 50;
         final String testTableName = getTestTableName(testInfo);
-        insertRows(testTableName, container, rowCount, false, null);
+        insertRows(testTableName, container, rowCount, false, 0, null);
         final InputTableNameConfig config = new InputTableNameConfig();
         config.setDataSet(newTableNameDataset(testTableName, container));
         final String configURI = configurationByExample().forInstance(config).configured().toQueryString();
@@ -141,21 +144,4 @@ class InputTest extends BaseJdbcTest {
                         .component("collector", "test://collector").connections().from("jdbcInput").to("collector").build()
                         .run());
     }
-
-    @TestTemplate
-    @DisplayName("TableName - valid table name with null values")
-    void validTableNameWithNullValues(final TestInfo testInfo, final JdbcTestContainer container) {
-        final int rowCount = 1;
-        final String testTableName = getTestTableName(testInfo);
-        insertRows(testTableName, container, rowCount, true, null);
-        final InputTableNameConfig config = new InputTableNameConfig();
-        config.setDataSet(newTableNameDataset(testTableName, container));
-        final String configURI = configurationByExample().forInstance(config).configured().toQueryString();
-        Job.components().component("jdbcInput", "Jdbc://TableNameInput?" + configURI).component("collector", "test://collector")
-                .connections().from("jdbcInput").to("collector").build().run();
-
-        final List<Record> collectedData = getComponentsHandler().getCollectedData(Record.class);
-        assertEquals(rowCount, collectedData.size());
-    }
-
 }

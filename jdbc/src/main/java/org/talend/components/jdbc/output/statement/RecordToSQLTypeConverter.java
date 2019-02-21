@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,12 +15,9 @@ package org.talend.components.jdbc.output.statement;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Optional;
+import java.sql.*;
+
+import static java.util.Optional.ofNullable;
 
 public enum RecordToSQLTypeConverter {
     RECORD {
@@ -31,6 +28,10 @@ public enum RecordToSQLTypeConverter {
             statement.setObject(index, record.get(Record.class, entry.getName()).toString());
         }
 
+        @Override
+        public int getSQLType() {
+            return Types.JAVA_OBJECT;
+        }
     },
     ARRAY {
 
@@ -38,110 +39,122 @@ public enum RecordToSQLTypeConverter {
         public void setValue(final PreparedStatement statement, final int index, final Schema.Entry entry, final Record record)
                 throws SQLException {
             statement.setArray(index, statement.getConnection().createArrayOf(entry.getName(),
-                    record.getOptionalArray(Object.class, entry.getName()).orElseGet(ArrayList::new).toArray()));
+                    record.getArray(Object.class, entry.getName()).toArray()));
         }
 
+        @Override
+        public int getSQLType() {
+            return Types.ARRAY;
+        }
     },
     STRING {
 
         @Override
         public void setValue(final PreparedStatement statement, final int index, final Schema.Entry entry, final Record record)
                 throws SQLException {
-            Optional<String> value = record.getOptionalString(entry.getName());
-            if (value.isPresent()) {
-                statement.setString(index, value.get());
-            } else {
-                statement.setNull(index, Types.VARCHAR);
-            }
+            statement.setString(index, record.getString(entry.getName()));
         }
 
+        @Override
+        public int getSQLType() {
+            return Types.VARCHAR;
+        }
     },
     BYTES {
 
         @Override
         public void setValue(final PreparedStatement statement, final int index, final Schema.Entry entry, final Record record)
                 throws SQLException {
-            statement.setBytes(index, record.getOptionalBytes(entry.getName()).orElse(null));
+            statement.setBytes(index, record.getBytes(entry.getName()));
         }
 
+        @Override
+        public int getSQLType() {
+            return Types.BLOB;
+        }
     },
     INT {
 
         @Override
         public void setValue(final PreparedStatement statement, final int index, final Schema.Entry entry, final Record record)
                 throws SQLException {
-            if (record.getOptionalInt(entry.getName()).isPresent()) {
-                statement.setInt(index, record.getInt(entry.getName()));
-            } else {
-                statement.setNull(index, Types.INTEGER);
-            }
+            statement.setInt(index, record.getInt(entry.getName()));
         }
 
+        @Override
+        public int getSQLType() {
+            return Types.INTEGER;
+        }
     },
     LONG {
 
         @Override
         public void setValue(final PreparedStatement statement, final int index, final Schema.Entry entry, final Record record)
                 throws SQLException {
-            if (record.getOptionalLong(entry.getName()).isPresent()) {
-                statement.setLong(index, record.getLong(entry.getName()));
-            } else {
-                statement.setNull(index, Types.BIGINT);
-            }
+            statement.setLong(index, record.getLong(entry.getName()));
         }
 
+        @Override
+        public int getSQLType() {
+            return Types.BIGINT;
+        }
     },
     FLOAT {
 
         @Override
         public void setValue(final PreparedStatement statement, final int index, final Schema.Entry entry, final Record record)
                 throws SQLException {
-            if (record.getOptionalFloat(entry.getName()).isPresent()) {
-                statement.setFloat(index, record.getFloat(entry.getName()));
-            } else {
-                statement.setNull(index, Types.FLOAT);
-            }
+            statement.setFloat(index, record.getFloat(entry.getName()));
         }
 
+        @Override
+        public int getSQLType() {
+            return Types.FLOAT;
+        }
     },
     DOUBLE {
 
         @Override
         public void setValue(final PreparedStatement statement, final int index, final Schema.Entry entry, final Record record)
                 throws SQLException {
-            if (record.getOptionalDouble(entry.getName()).isPresent()) {
-                statement.setDouble(index, record.getDouble(entry.getName()));
-            } else {
-                statement.setNull(index, Types.DOUBLE);
-            }
+            statement.setDouble(index, record.getDouble(entry.getName()));
         }
 
+        @Override
+        public int getSQLType() {
+            return Types.DOUBLE;
+        }
     },
     BOOLEAN {
 
         @Override
         public void setValue(final PreparedStatement statement, final int index, final Schema.Entry entry, final Record record)
                 throws SQLException {
-            if (record.getOptionalBoolean(entry.getName()).isPresent()) {
-                statement.setBoolean(index, record.getBoolean(entry.getName()));
-            } else {
-                statement.setNull(index, Types.BOOLEAN);
-            }
+            statement.setBoolean(index, record.getBoolean(entry.getName()));
         }
 
+        @Override
+        public int getSQLType() {
+            return Types.BOOLEAN;
+        }
     },
     DATETIME {
 
         @Override
         public void setValue(final PreparedStatement statement, final int index, final Schema.Entry entry, final Record record)
                 throws SQLException {
-            statement.setTimestamp(index, record.getOptionalDateTime(entry.getName())
+            statement.setTimestamp(index, ofNullable(record.getDateTime(entry.getName()))
                     .map(d -> new Timestamp(d.toInstant().toEpochMilli())).orElse(null));
         }
 
+        @Override
+        public int getSQLType() {
+            return Types.DATE;
+        }
     };
 
     public abstract void setValue(final PreparedStatement statement, final int index, final Schema.Entry entry,
             final Record record) throws SQLException;
 
+    public abstract int getSQLType();
 }

@@ -1,0 +1,191 @@
+[
+  {
+    "request":{
+      "headers":{
+        "SOAPAction":"\"\"",
+        "Accept":"text/xml",
+        "Host":"login.salesforce.com",
+        "Accept-Encoding":"gzip",
+        "Content-Type":"text/xml; charset=UTF-8"
+      },
+      "method":"POST",
+      "uri":"https://login.salesforce.com/services/Soap/u/42.0"
+    },
+    "response":{
+      "headers":{
+        "Cache-Control":"no-cache,must-revalidate,max-age=0,no-store,private",
+        "Date":"Tue, 12 Jun 2018 15:54:20 GMT",
+        "Content-Type":"text/xml; charset=utf-8"
+      },
+      "payload":"<?xml version=\"1.0\" encoding=\"UTF-8\"?><soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns=\"urn:partner.soap.sforce.com\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><soapenv:Body><loginResponse><result><metadataServerUrl>https://eu11.salesforce.com/services/Soap/m/42.0/00D0Y000001dveq</metadataServerUrl><passwordExpired>false</passwordExpired><sandbox>false</sandbox><serverUrl>https://eu11.salesforce.com/services/Soap/u/42.0/00D0Y000001dveq</serverUrl><sessionId>00D0Y000001dveq!AR4AQHZbgCd0KmxJ21ixle_cgduVdhgIha5IhH0DSyBLUa.xYlZnu9FZEWB5uX_WDVomTwkL2gZdJCoKASk1.KTthKAKhX07</sessionId><userId>0050Y000001hniQQAQ</userId><userInfo><accessibilityMode>false</accessibilityMode><chatterExternal>false</chatterExternal><currencySymbol>€</currencySymbol><orgAttachmentFileSizeLimit>5242880</orgAttachmentFileSizeLimit><orgDefaultCurrencyIsoCode>EUR</orgDefaultCurrencyIsoCode><orgDefaultCurrencyLocale>fr_FR_EURO</orgDefaultCurrencyLocale><orgDisallowHtmlAttachments>false</orgDisallowHtmlAttachments><orgHasPersonAccounts>false</orgHasPersonAccounts><organizationId>00D0Y000001dveqUAA</organizationId><organizationMultiCurrency>false</organizationMultiCurrency><organizationName>Talend</organizationName><profileId>00e0Y000001Qxs0QAC</profileId><roleId xsi:nil=\"true\"/><sessionSecondsValid>7200</sessionSecondsValid><userDefaultCurrencyIsoCode xsi:nil=\"true\"/><userEmail>akhabali@talend.com</userEmail><userFullName>Anas KHABALI</userFullName><userId>0050Y000001hniQQAQ</userId><userLanguage>en_US</userLanguage><userLocale>fr_FR</userLocale><userName>akhabali@talend.com</userName><userTimeZone>Europe/Paris</userTimeZone><userType>Standard</userType><userUiSkin>Theme3</userUiSkin></userInfo></result></loginResponse></soapenv:Body></soapenv:Envelope>",
+      "status":200
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "X-SFDC-Session":"00D0Y000001dveq!AR4AQHZbgCd0KmxJ21ixle_cgduVdhgIha5IhH0DSyBLUa.xYlZnu9FZEWB5uX_WDVomTwkL2gZdJCoKASk1.KTthKAKhX07",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Sforce-Enable-PKChunking":"chunkSize=100000",
+        "Host":"eu11.salesforce.com",
+        "Accept-Encoding":"gzip",
+        "Content-Type":"application/xml"
+      },
+      "method":"POST",
+      "uri":"https://eu11.salesforce.com/services/async/42.0/job/"
+    },
+    "response":{
+      "headers":{
+        "Transfer-Encoding":"chunked",
+        "X-Robots-Tag":"none",
+        "Strict-Transport-Security":"max-age=31536000; includeSubDomains",
+        "Cache-Control":"no-cache,must-revalidate,max-age=0,no-store,private",
+        "X-Content-Type-Options":"nosniff",
+        "Content-Security-Policy":"upgrade-insecure-requests",
+        "X-XSS-Protection":"1; mode=block",
+        "Date":"Tue, 12 Jun 2018 15:54:21 GMT",
+        "Location":"/services/async/42.0/job/7500Y00000ClHaDQAV",
+        "Content-Type":"application/xml"
+      },
+      "payload":"<?xml version=\"1.0\" encoding=\"UTF-8\"?><jobInfo\n   xmlns=\"http://www.force.com/2009/06/asyncapi/dataload\">\n <id>7500Y00000ClHaDQAV</id>\n <operation>query</operation>\n <object>Account</object>\n <createdById>0050Y000001hniQQAQ</createdById>\n <createdDate>2018-06-12T15:54:21.000Z</createdDate>\n <systemModstamp>2018-06-12T15:54:21.000Z</systemModstamp>\n <state>Open</state>\n <concurrencyMode>Parallel</concurrencyMode>\n <contentType>CSV</contentType>\n <numberBatchesQueued>0</numberBatchesQueued>\n <numberBatchesInProgress>0</numberBatchesInProgress>\n <numberBatchesCompleted>0</numberBatchesCompleted>\n <numberBatchesFailed>0</numberBatchesFailed>\n <numberBatchesTotal>0</numberBatchesTotal>\n <numberRecordsProcessed>0</numberRecordsProcessed>\n <numberRetries>0</numberRetries>\n <apiVersion>42.0</apiVersion>\n <numberRecordsFailed>0</numberRecordsFailed>\n <totalProcessingTime>0</totalProcessingTime>\n <apiActiveProcessingTime>0</apiActiveProcessingTime>\n <apexProcessingTime>0</apexProcessingTime>\n</jobInfo>",
+      "status":201
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "X-SFDC-Session":"00D0Y000001dveq!AR4AQHZbgCd0KmxJ21ixle_cgduVdhgIha5IhH0DSyBLUa.xYlZnu9FZEWB5uX_WDVomTwkL2gZdJCoKASk1.KTthKAKhX07",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Sforce-Enable-PKChunking":"false",
+        "Host":"eu11.salesforce.com",
+        "Accept-Encoding":"gzip",
+        "Content-Type":"text/csv"
+      },
+      "method":"POST",
+      "uri":"https://eu11.salesforce.com/services/async/42.0/job/7500Y00000ClHaDQAV/batch"
+    },
+    "response":{
+      "headers":{
+        "Transfer-Encoding":"chunked",
+        "X-Robots-Tag":"none",
+        "Strict-Transport-Security":"max-age=31536000; includeSubDomains",
+        "Cache-Control":"no-cache,must-revalidate,max-age=0,no-store,private",
+        "X-Content-Type-Options":"nosniff",
+        "Content-Security-Policy":"upgrade-insecure-requests",
+        "X-XSS-Protection":"1; mode=block",
+        "Date":"Tue, 12 Jun 2018 15:54:21 GMT",
+        "Location":"/services/async/42.0/job/7500Y00000ClHaDQAV/batch/7510Y00000FsyxfQAB",
+        "Content-Type":"application/xml"
+      },
+      "payload":"<?xml version=\"1.0\" encoding=\"UTF-8\"?><batchInfo\n   xmlns=\"http://www.force.com/2009/06/asyncapi/dataload\">\n <id>7510Y00000FsyxfQAB</id>\n <jobId>7500Y00000ClHaDQAV</jobId>\n <state>Queued</state>\n <createdDate>2018-06-12T15:54:21.000Z</createdDate>\n <systemModstamp>2018-06-12T15:54:21.000Z</systemModstamp>\n <numberRecordsProcessed>0</numberRecordsProcessed>\n <numberRecordsFailed>0</numberRecordsFailed>\n <totalProcessingTime>0</totalProcessingTime>\n <apiActiveProcessingTime>0</apiActiveProcessingTime>\n <apexProcessingTime>0</apexProcessingTime>\n</batchInfo>",
+      "status":201
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "X-SFDC-Session":"00D0Y000001dveq!AR4AQHZbgCd0KmxJ21ixle_cgduVdhgIha5IhH0DSyBLUa.xYlZnu9FZEWB5uX_WDVomTwkL2gZdJCoKASk1.KTthKAKhX07",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Host":"eu11.salesforce.com",
+        "Accept-Encoding":"gzip"
+      },
+      "method":"GET",
+      "uri":"https://eu11.salesforce.com/services/async/42.0/job/7500Y00000ClHaDQAV/batch/7510Y00000FsyxfQAB"
+    },
+    "response":{
+      "headers":{
+        "Transfer-Encoding":"chunked",
+        "X-Robots-Tag":"none",
+        "Strict-Transport-Security":"max-age=31536000; includeSubDomains",
+        "Cache-Control":"no-cache,must-revalidate,max-age=0,no-store,private",
+        "X-Content-Type-Options":"nosniff",
+        "Content-Security-Policy":"upgrade-insecure-requests",
+        "X-XSS-Protection":"1; mode=block",
+        "Date":"Tue, 12 Jun 2018 15:54:22 GMT",
+        "Content-Type":"application/xml"
+      },
+      "payload":"<?xml version=\"1.0\" encoding=\"UTF-8\"?><batchInfo\n   xmlns=\"http://www.force.com/2009/06/asyncapi/dataload\">\n <id>7510Y00000FsyxfQAB</id>\n <jobId>7500Y00000ClHaDQAV</jobId>\n <state>NotProcessed</state>\n <createdDate>2018-06-12T15:54:21.000Z</createdDate>\n <systemModstamp>2018-06-12T15:54:22.000Z</systemModstamp>\n <numberRecordsProcessed>0</numberRecordsProcessed>\n <numberRecordsFailed>0</numberRecordsFailed>\n <totalProcessingTime>0</totalProcessingTime>\n <apiActiveProcessingTime>0</apiActiveProcessingTime>\n <apexProcessingTime>0</apexProcessingTime>\n</batchInfo>",
+      "status":200
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "X-SFDC-Session":"00D0Y000001dveq!AR4AQHZbgCd0KmxJ21ixle_cgduVdhgIha5IhH0DSyBLUa.xYlZnu9FZEWB5uX_WDVomTwkL2gZdJCoKASk1.KTthKAKhX07",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Host":"eu11.salesforce.com",
+        "Accept-Encoding":"gzip"
+      },
+      "method":"GET",
+      "uri":"https://eu11.salesforce.com/services/async/42.0/job/7500Y00000ClHaDQAV/batch/"
+    },
+    "response":{
+      "headers":{
+        "Transfer-Encoding":"chunked",
+        "X-Robots-Tag":"none",
+        "Strict-Transport-Security":"max-age=31536000; includeSubDomains",
+        "Cache-Control":"no-cache,must-revalidate,max-age=0,no-store,private",
+        "X-Content-Type-Options":"nosniff",
+        "Content-Security-Policy":"upgrade-insecure-requests",
+        "X-XSS-Protection":"1; mode=block",
+        "Date":"Tue, 12 Jun 2018 15:54:22 GMT",
+        "Content-Type":"application/xml"
+      },
+      "payload":"<?xml version=\"1.0\" encoding=\"UTF-8\"?><batchInfoList\n   xmlns=\"http://www.force.com/2009/06/asyncapi/dataload\">\n <batchInfo>\n  <id>7510Y00000FsyxfQAB</id>\n  <jobId>7500Y00000ClHaDQAV</jobId>\n  <state>NotProcessed</state>\n  <createdDate>2018-06-12T15:54:21.000Z</createdDate>\n  <systemModstamp>2018-06-12T15:54:22.000Z</systemModstamp>\n  <numberRecordsProcessed>0</numberRecordsProcessed>\n  <numberRecordsFailed>0</numberRecordsFailed>\n  <totalProcessingTime>0</totalProcessingTime>\n  <apiActiveProcessingTime>0</apiActiveProcessingTime>\n  <apexProcessingTime>0</apexProcessingTime>\n </batchInfo>\n <batchInfo>\n  <id>7510Y00000FsyxkQAB</id>\n  <jobId>7500Y00000ClHaDQAV</jobId>\n  <state>Completed</state>\n  <createdDate>2018-06-12T15:54:22.000Z</createdDate>\n  <systemModstamp>2018-06-12T15:54:22.000Z</systemModstamp>\n  <numberRecordsProcessed>0</numberRecordsProcessed>\n  <numberRecordsFailed>0</numberRecordsFailed>\n  <totalProcessingTime>0</totalProcessingTime>\n  <apiActiveProcessingTime>0</apiActiveProcessingTime>\n  <apexProcessingTime>0</apexProcessingTime>\n </batchInfo>\n</batchInfoList>",
+      "status":200
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "X-SFDC-Session":"00D0Y000001dveq!AR4AQHZbgCd0KmxJ21ixle_cgduVdhgIha5IhH0DSyBLUa.xYlZnu9FZEWB5uX_WDVomTwkL2gZdJCoKASk1.KTthKAKhX07",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Host":"eu11.salesforce.com",
+        "Accept-Encoding":"gzip"
+      },
+      "method":"GET",
+      "uri":"https://eu11.salesforce.com/services/async/42.0/job/7500Y00000ClHaDQAV/batch/7510Y00000FsyxkQAB/result"
+    },
+    "response":{
+      "headers":{
+        "X-Robots-Tag":"none",
+        "Strict-Transport-Security":"max-age=31536000; includeSubDomains",
+        "Cache-Control":"no-cache,must-revalidate,max-age=0,no-store,private",
+        "X-Content-Type-Options":"nosniff",
+        "Content-Security-Policy":"upgrade-insecure-requests",
+        "X-XSS-Protection":"1; mode=block",
+        "Date":"Tue, 12 Jun 2018 15:54:23 GMT",
+        "Content-Type":"application/xml"
+      },
+      "payload":"<result-list xmlns=\"http://www.force.com/2009/06/asyncapi/dataload\"><result>7520Y000006poRc</result></result-list>",
+      "status":200
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "X-SFDC-Session":"00D0Y000001dveq!AR4AQHZbgCd0KmxJ21ixle_cgduVdhgIha5IhH0DSyBLUa.xYlZnu9FZEWB5uX_WDVomTwkL2gZdJCoKASk1.KTthKAKhX07",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Host":"eu11.salesforce.com",
+        "Accept-Encoding":"gzip"
+      },
+      "method":"GET",
+      "uri":"https://eu11.salesforce.com/services/async/42.0/job/7500Y00000ClHaDQAV/batch/7510Y00000FsyxfQAB/result/7520Y000006poRc"
+    },
+    "response":{
+      "headers":{
+        "Transfer-Encoding":"chunked",
+        "X-Robots-Tag":"none",
+        "Strict-Transport-Security":"max-age=31536000; includeSubDomains",
+        "Cache-Control":"no-cache,must-revalidate,max-age=0,no-store,private",
+        "X-Content-Type-Options":"nosniff",
+        "Content-Security-Policy":"upgrade-insecure-requests",
+        "X-XSS-Protection":"1; mode=block",
+        "Date":"Tue, 12 Jun 2018 15:54:23 GMT",
+        "Content-Type":"text/csv; charset=UTF-8"
+      },
+      "payload":"Records not found for this query",
+      "status":200
+    }
+  }
+]

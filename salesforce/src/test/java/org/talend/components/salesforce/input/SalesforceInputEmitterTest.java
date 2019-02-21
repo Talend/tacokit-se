@@ -1,216 +1,68 @@
 package org.talend.components.salesforce.input;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.talend.components.salesforce.service.SalesforceService.URL;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
-import org.junit.Assert;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
+import javax.json.JsonObject;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.talend.components.salesforce.SalesforceTestBase;
-import org.talend.components.salesforce.dataset.ModuleDataSet;
-import org.talend.components.salesforce.dataset.SOQLQueryDataSet;
+import org.talend.components.salesforce.SfHeaderFilter;
+import org.talend.components.salesforce.dataset.QueryDataSet;
 import org.talend.components.salesforce.datastore.BasicDataStore;
-import org.talend.components.salesforce.output.OutputConfiguration;
-import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+import org.talend.sdk.component.api.DecryptedServer;
+import org.talend.sdk.component.junit.BaseComponentsHandler;
+import org.talend.sdk.component.junit.http.api.HttpApiHandler;
+import org.talend.sdk.component.junit.http.junit5.HttpApi;
+import org.talend.sdk.component.junit.http.junit5.HttpApiInject;
+import org.talend.sdk.component.junit.http.junit5.HttpApiName;
+import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
+import org.talend.sdk.component.junit5.WithMavenServers;
+import org.talend.sdk.component.maven.MavenDecrypter;
+import org.talend.sdk.component.maven.Server;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
-@Disabled("Salesforce credentials is not ready on ci")
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@DisplayName("Suite of test for the Salesforce Input component")
 @WithComponents("org.talend.components.salesforce")
-public class SalesforceInputEmitterTest extends SalesforceTestBase {
-
-    private static final String UNIQUE_ID;
+@HttpApi(useSsl = true, headerFilter = SfHeaderFilter.class)
+@WithMavenServers //
+class SalesforceInputEmitterTest {
 
     static {
-        UNIQUE_ID = Integer.toString(ThreadLocalRandom.current().nextInt(1, 100000));
+        // System.setProperty("talend.junit.http.capture", "true");
     }
 
-    @Service
-    private RecordBuilderFactory factory;
+    @Injected
+    private BaseComponentsHandler componentsHandler;
 
-    @BeforeAll
-    public void testprepareData() {
+    @HttpApiInject
+    private HttpApiHandler<?> httpApiHandler;
 
-        // 1. prepare Account data
-        final OutputConfiguration configuration = new OutputConfiguration();
-        final ModuleDataSet moduleDataSet = new ModuleDataSet();
-        moduleDataSet.setModuleName("Account");
-        moduleDataSet.setDataStore(getDataStore());
-        configuration.setOutputAction(OutputConfiguration.OutputAction.INSERT);
-        configuration.setModuleDataSet(moduleDataSet);
+    @DecryptedServer(value = "salesforce-password", alwaysTryLookup = false)
+    private Server serverWithPassword;
 
-        RecordBuilderFactory factory = getComponentsHandler().findService(RecordBuilderFactory.class);
-
-        List<Record> records = new ArrayList<>(10);
-        for (int i = 0; i < 300; i++) {
-            Record.Builder recordBuilder = factory.newRecordBuilder();
-            recordBuilder.withString("Name", "TestName_" + i + "_" + UNIQUE_ID);
-            if (i % 40 == 0) {
-                recordBuilder.withInt("NumberOfEmployees", 8000);
-            }
-            if (i % 80 == 0) {
-                factory.newRecordBuilder().withDouble("AnnualRevenue", 5000.0);
-            }
-            records.add(recordBuilder.build());
-        }
-
-        final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
-        getComponentsHandler().setInputData(records);
-        Job.components().component("emitter", "test://emitter")
-                .component("salesforce-output", "Salesforce://SalesforceOutput?" + config).connections().from("emitter")
-                .to("salesforce-output").build().run();
-        getComponentsHandler().resetState();
-        // 2. prepare Contact data
-
-        moduleDataSet.setModuleName("Contact");
-        moduleDataSet.setDataStore(getDataStore());
-        configuration.setOutputAction(OutputConfiguration.OutputAction.INSERT);
-        configuration.setModuleDataSet(moduleDataSet);
-        configuration.setBatchMode(false);
-        configuration.setExceptionForErrors(true);
-
-        Record record = factory.newRecordBuilder().withString("FirstName", "F_test_types_" + UNIQUE_ID)
-                .withString("LastName", "L_test_types_" + UNIQUE_ID).withString("Email", "testalltype_" + UNIQUE_ID + "@test.com")
-                .withDouble("MailingLongitude", 115.7).withDouble("MailingLatitude", 39.4).withDateTime("Birthdate", new Date())
-                .build();
-        final String outputContactConfig = configurationByExample().forInstance(configuration).configured().toQueryString();
-        getComponentsHandler().setInputData(asList(record));
-        Job.components().component("emitter", "test://emitter")
-                .component("salesforce-output", "Salesforce://SalesforceOutput?" + outputContactConfig).connections()
-                .from("emitter").to("salesforce-output").build().run();
-        getComponentsHandler().resetState();
-    }
-
-    // Module Query part
-    @Test
-    @DisplayName("Test query with module name")
-    public void testModuleQuery() {
-        final ModuleDataSet moduleDataSet = new ModuleDataSet();
-        moduleDataSet.setModuleName("Account");
-        ModuleDataSet.ColumnSelectionConfig selectionConfig = new ModuleDataSet.ColumnSelectionConfig();
-        selectionConfig.setSelectColumnNames(Arrays.asList("Id", "Name"));
-        moduleDataSet.setColumnSelectionConfig(selectionConfig);
-        moduleDataSet.setDataStore(getDataStore());
-        moduleDataSet.setCondition("Name Like 'TestName_%" + UNIQUE_ID + "%'");
-
-        final String config = configurationByExample().forInstance(moduleDataSet).configured().toQueryString();
-        Job.components().component("salesforce-input", "Salesforce://ModuleQueryInput?" + config)
-                .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
-        final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
-        assertEquals(300, records.size());
-        Record record = records.get(0);
-        Schema schema = record.getSchema();
-        List<Schema.Entry> entries = schema.getEntries();
-        assertEquals(2, entries.size());
-    }
+    @DecryptedServer(value = "salesforce-securitykey", alwaysTryLookup = false)
+    private Server serverWithSecuritykey;
 
     @Test
-    @DisplayName("Test query null value with primitive type")
-    public void testQueryNullValues() {
-        final ModuleDataSet moduleDataSet = new ModuleDataSet();
-        moduleDataSet.setModuleName("Account");
-        ModuleDataSet.ColumnSelectionConfig selectionConfig = new ModuleDataSet.ColumnSelectionConfig();
-        selectionConfig.setSelectColumnNames(Arrays.asList("Id", "Name", "NumberOfEmployees", "AnnualRevenue"));
-        moduleDataSet.setColumnSelectionConfig(selectionConfig);
-        moduleDataSet.setDataStore(getDataStore());
-        moduleDataSet.setCondition(
-                "NumberOfEmployees = null and AnnualRevenue = null and Name Like 'TestName_%" + UNIQUE_ID + "%' limit 5");
-
-        final String config = configurationByExample().forInstance(moduleDataSet).configured().toQueryString();
-        Job.components().component("salesforce-input", "Salesforce://ModuleQueryInput?" + config)
-                .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
-        final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
-        assertEquals(5, records.size());
-        Record record = records.get(0);
-        Schema schema = record.getSchema();
-        List<Schema.Entry> entries = schema.getEntries();
-        assertEquals(4, entries.size());
-        assertEquals(Schema.Type.INT, entries.get(2).getType());
-        assertEquals(Schema.Type.DOUBLE, entries.get(3).getType());
-        assertNull(record.get(Object.class, "NumberOfEmployees"));
-        assertNull(record.get(Object.class, "AnnualRevenue"));
-    }
-
-    @Test
-    @DisplayName("Test query module record with limit")
-    public void testModuleQueryWithLimit() {
-        final ModuleDataSet moduleDataSet = new ModuleDataSet();
-        moduleDataSet.setModuleName("Account");
-        ModuleDataSet.ColumnSelectionConfig selectionConfig = new ModuleDataSet.ColumnSelectionConfig();
-        selectionConfig.setSelectColumnNames(Arrays.asList("Name"));
-        moduleDataSet.setColumnSelectionConfig(selectionConfig);
-        moduleDataSet.setDataStore(getDataStore());
-        moduleDataSet.setCondition("Name Like 'TestName_%" + UNIQUE_ID + "%' limit 10");
-
-        final String config = configurationByExample().forInstance(moduleDataSet).configured().toQueryString();
-        Job.components().component("salesforce-input", "Salesforce://ModuleQueryInput?" + config)
-                .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
-        final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
-        Assert.assertEquals(10, records.size());
-
-        records.stream().forEach(r -> assertTrue(records.iterator().next().getString("Name").contains("TestName")));
-    }
-
-    @Test
-    @DisplayName("Test query module record with all types")
-    public void testQueryAllType() {
-        final ModuleDataSet moduleDataSet = new ModuleDataSet();
-        moduleDataSet.setModuleName("Account");
-        ModuleDataSet.ColumnSelectionConfig selectionConfig = new ModuleDataSet.ColumnSelectionConfig();
-        selectionConfig.setSelectColumnNames(Arrays.asList("Id", "IsDeleted", "MasterRecordId", "Name", "Type", "ParentId",
-                "BillingStreet", "BillingCity", "BillingState", "BillingPostalCode", "BillingCountry", "BillingLatitude",
-                "BillingLongitude", "ShippingStreet", "ShippingCity", "ShippingState", "ShippingPostalCode", "ShippingCountry",
-                "ShippingLatitude", "ShippingLongitude", "Phone", "Fax", "AccountNumber", "Website", "PhotoUrl", "Sic",
-                "Industry", "AnnualRevenue", "NumberOfEmployees", "Ownership", "TickerSymbol", "Description", "Rating", "Site",
-                "OwnerId", "CreatedDate", "CreatedById", "LastModifiedDate", "LastModifiedById", "SystemModstamp",
-                "LastActivityDate", "LastViewedDate", "LastReferencedDate", "Jigsaw", "JigsawCompanyId", "AccountSource",
-                "SicDesc"));
-        moduleDataSet.setColumnSelectionConfig(selectionConfig);
-        moduleDataSet.setDataStore(getDataStore());
-        moduleDataSet.setCondition("Name Like 'TestName_%" + UNIQUE_ID + "%' and NumberOfEmployees != null");
-
-        final String config = configurationByExample().forInstance(moduleDataSet).configured().toQueryString();
-        Job.components().component("salesforce-input", "Salesforce://ModuleQueryInput?" + config)
-                .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
-        final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
-        Assert.assertEquals(8, records.size());
-        Record record = records.get(0);
-        assertEquals(8000, record.getInt("NumberOfEmployees"));
-    }
-
-    @Test
-    @DisplayName("Test query with bad credential")
-    public void testQueryWithBadCredential() {
-        final BasicDataStore datstore = new BasicDataStore();
-        datstore.setEndpoint(URL);
-        datstore.setUserId("badUser");
-        datstore.setPassword("badPasswd");
-        datstore.setSecurityKey("badSecurityKey");
-        final ModuleDataSet moduleDataSet = new ModuleDataSet();
-        moduleDataSet.setModuleName("account");
-        moduleDataSet.setDataStore(datstore);
-        final String config = configurationByExample().forInstance(moduleDataSet).configured().toQueryString();
+    @HttpApiName("${class}_${method}")
+    @DisplayName("Bad credentials case")
+    void inputWithBadCredential() {
+        final BasicDataStore datasore = new BasicDataStore();
+        datasore.setUserId("badUser");
+        datasore.setPassword("badPasswd");
+        datasore.setSecurityKey("badSecurityKey");
+        final QueryDataSet queryDataSet = new QueryDataSet();
+        queryDataSet.setModuleName("account");
+        queryDataSet.setSourceType(QueryDataSet.SourceType.MODULE_SELECTION);
+        queryDataSet.setDataStore(datasore);
+        final String config = configurationByExample().forInstance(queryDataSet).configured().toQueryString();
         final IllegalStateException ex = assertThrows(IllegalStateException.class,
                 () -> Job.components().component("salesforce-input", "Salesforce://Input?" + config)
                         .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build()
@@ -218,123 +70,124 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
     }
 
     @Test
-    @DisplayName("Test module query with invalid name")
-    public void testModuleQueryWithInvalideName() {
-        final ModuleDataSet moduleDataSet = new ModuleDataSet();
-        moduleDataSet.setModuleName("invalid0");
-        moduleDataSet.setDataStore(getDataStore());
-        final String config = configurationByExample().forInstance(moduleDataSet).configured().toQueryString();
+    @HttpApiName("${class}_${method}")
+    @DisplayName("Module selection case [valid]")
+    void inputWithModuleNameValid() {
+        final BasicDataStore datasore = new BasicDataStore();
+        datasore.setUserId(serverWithPassword.getUsername());
+        datasore.setPassword(serverWithPassword.getPassword());
+        datasore.setSecurityKey(serverWithSecuritykey.getPassword());
+        final QueryDataSet queryDataSet = new QueryDataSet();
+        queryDataSet.setModuleName("account");
+        queryDataSet.setSourceType(QueryDataSet.SourceType.MODULE_SELECTION);
+        queryDataSet.setSelectColumnIds(singletonList("Name"));
+        queryDataSet.setDataStore(datasore);
+        queryDataSet.setCondition("Name Like '%Oil%'");
+        final String config = configurationByExample().forInstance(queryDataSet).configured().toQueryString();
+        Job.components().component("salesforce-input", "Salesforce://Input?" + config).component("collector", "test://collector")
+                .connections().from("salesforce-input").to("collector").build().run();
+        final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
+        assertEquals(4, res.size());
+        assertTrue(res.iterator().next().getString("Name").contains("Oil"));
+    }
+
+    @Test
+    @HttpApiName("${class}_${method}")
+    @DisplayName("Module selection case [invalid]")
+    void inputWithModuleNameInvalid() {
+        final BasicDataStore datasore = new BasicDataStore();
+        datasore.setUserId(serverWithPassword.getUsername());
+        datasore.setPassword(serverWithPassword.getPassword());
+        datasore.setSecurityKey(serverWithSecuritykey.getPassword());
+        final QueryDataSet queryDataSet = new QueryDataSet();
+        queryDataSet.setModuleName("invalid0");
+        queryDataSet.setSourceType(QueryDataSet.SourceType.MODULE_SELECTION);
+        queryDataSet.setDataStore(datasore);
+        final String config = configurationByExample().forInstance(queryDataSet).configured().toQueryString();
         IllegalStateException ex = assertThrows(IllegalStateException.class,
-                () -> Job.components().component("salesforce-input", "Salesforce://ModuleQueryInput?" + config)
+                () -> Job.components().component("salesforce-input", "Salesforce://Input?" + config)
                         .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build()
                         .run());
     }
 
     @Test
-    @DisplayName("Test module query with invalid field")
-    public void testModuleQueryWithInvalidField() {
-        final ModuleDataSet moduleDataSet = new ModuleDataSet();
-        moduleDataSet.setModuleName("account");
-        ModuleDataSet.ColumnSelectionConfig selectionConfig = new ModuleDataSet.ColumnSelectionConfig();
-        selectionConfig.setSelectColumnNames(singletonList("InvalidField10x"));
-        moduleDataSet.setColumnSelectionConfig(selectionConfig);
-        moduleDataSet.setDataStore(getDataStore());
-        final String config = configurationByExample().forInstance(moduleDataSet).configured().toQueryString();
+    @HttpApiName("${class}_${method}")
+    @DisplayName("Module selection with fields case [invalid]")
+    void inputWithModuleNameValidAndInvalidField() {
+        final BasicDataStore datasore = new BasicDataStore();
+        datasore.setUserId(serverWithPassword.getUsername());
+        datasore.setPassword(serverWithPassword.getPassword());
+        datasore.setSecurityKey(serverWithSecuritykey.getPassword());
+        final QueryDataSet queryDataSet = new QueryDataSet();
+        queryDataSet.setModuleName("account");
+        queryDataSet.setSelectColumnIds(singletonList("InvalidField10x"));
+        queryDataSet.setSourceType(QueryDataSet.SourceType.MODULE_SELECTION);
+        queryDataSet.setDataStore(datasore);
+        final String config = configurationByExample().forInstance(queryDataSet).configured().toQueryString();
         IllegalStateException ex = assertThrows(IllegalStateException.class,
-                () -> Job.components().component("salesforce-input", "Salesforce://ModuleQueryInput?" + config)
-                        .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build()
-                        .run());
-    }
-
-    // SOQL Query part
-    @Test
-    @DisplayName("Test basic SOQL query")
-    public void testSOQLQueryBasicCase() {
-        final SOQLQueryDataSet soqlQueryDataSet = new SOQLQueryDataSet();
-        soqlQueryDataSet.setQuery("select Id,Name,IsDeleted from account where Name Like 'TestName_%" + UNIQUE_ID + "%'");
-        soqlQueryDataSet.setDataStore(getDataStore());
-
-        final String config = configurationByExample().forInstance(soqlQueryDataSet).configured().toQueryString();
-        Job.components().component("salesforce-input", "Salesforce://SOQLQueryInput?" + config)
-                .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
-        final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
-        Assert.assertEquals(300, records.size());
-        Record record = records.get(0);
-        Schema schema = record.getSchema();
-        assertNotNull(schema);
-        assertEquals(3, schema.getEntries().size());
-        assertTrue(record.getString("Name").contains("TestName"));
-    }
-
-    @Test
-    @DisplayName("Test SOQL query return empty result")
-    public void testSOQLQueryWithEmptyResult() {
-        final SOQLQueryDataSet soqlQueryDataSet = new SOQLQueryDataSet();
-        soqlQueryDataSet.setQuery("select  name from account where name = 'this name will never exist $'");
-        soqlQueryDataSet.setDataStore(getDataStore());
-
-        final String config = configurationByExample().forInstance(soqlQueryDataSet).configured().toQueryString();
-        Job.components().component("salesforce-input", "Salesforce://SOQLQueryInput?" + config)
-                .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
-        final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
-        Assert.assertEquals(0, records.size());
-    }
-
-    @Test
-    @DisplayName("Test SOQL query with Invalid query")
-    public void testSOQLQueryWithInvalidQuery() {
-        final SOQLQueryDataSet soqlQueryDataSet = new SOQLQueryDataSet();
-        soqlQueryDataSet.setQuery("from account");
-        soqlQueryDataSet.setDataStore(getDataStore());
-        final String config = configurationByExample().forInstance(soqlQueryDataSet).configured().toQueryString();
-        IllegalStateException ex = assertThrows(IllegalStateException.class,
-                () -> Job.components().component("salesforce-input", "Salesforce://SOQLQueryInput?" + config)
+                () -> Job.components().component("salesforce-input", "Salesforce://Input?" + config)
                         .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build()
                         .run());
     }
 
     @Test
-    @DisplayName("Test SOQL query with relationship")
-    public void testSOQLQueryChildToParent() {
-        final SOQLQueryDataSet soqlQueryDataSet = new SOQLQueryDataSet();
-        soqlQueryDataSet.setQuery("select Id,Name,CreatedBy.Name from Account where Name Like 'TestName_100%" + UNIQUE_ID + "%'");
-        soqlQueryDataSet.setDataStore(getDataStore());
+    @HttpApiName("${class}_${method}")
+    @DisplayName("Soql query selection [valid]")
+    void inputWithSoqlQueryValid() {
+        final BasicDataStore datasore = new BasicDataStore();
+        datasore.setUserId(serverWithPassword.getUsername());
+        datasore.setPassword(serverWithPassword.getPassword());
+        datasore.setSecurityKey(serverWithSecuritykey.getPassword());
+        final QueryDataSet queryDataSet = new QueryDataSet();
+        queryDataSet.setSourceType(QueryDataSet.SourceType.SOQL_QUERY);
+        queryDataSet.setQuery("select Name from account where Name Like  '%Oil%'");
+        queryDataSet.setDataStore(datasore);
+        final String config = configurationByExample().forInstance(queryDataSet).configured().toQueryString();
+        Job.components().component("salesforce-input", "Salesforce://Input?" + config).component("collector", "test://collector")
+                .connections().from("salesforce-input").to("collector").build().run();
 
-        final String config = configurationByExample().forInstance(soqlQueryDataSet).configured().toQueryString();
-        Job.components().component("salesforce-input", "Salesforce://SOQLQueryInput?" + config)
-                .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
-        final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
-        Assert.assertEquals(1, records.size());
-        Record record = records.get(0);
-        assertNotNull(record.getString("CreatedBy_Name"));
+        final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
+        assertEquals(4, res.size());
+        assertTrue(res.iterator().next().getString("Name").contains("Oil"));
     }
 
     @Test
-    @DisplayName("Test SOQL query with relationship without name")
-    public void testSOQLQueryChildToParentWithoutName() {
-        final SOQLQueryDataSet soqlQueryDataSet = new SOQLQueryDataSet();
-        soqlQueryDataSet.setQuery(
-                "select Contact.Name, Account.Name from Contact where MailingLongitude != null and MailingLongitude !=null and Birthdate !=null and Name Like 'F_test_types_%"
-                        + UNIQUE_ID + "%'");
-        soqlQueryDataSet.setDataStore(getDataStore());
-
-        final String config = configurationByExample().forInstance(soqlQueryDataSet).configured().toQueryString();
-        Job.components().component("salesforce-input", "Salesforce://SOQLQueryInput?" + config)
-                .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
-        final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
-        Assert.assertEquals(1, records.size());
-        Record record = records.get(0);
-        assertEquals("F_test_types_" + UNIQUE_ID + " " + "L_test_types_" + UNIQUE_ID, record.getString("Contact_Name"));
-        assertNull(record.getString("Account_Name"));
+    @HttpApiName("${class}_${method}")
+    @DisplayName("Soql query selection [invalid]")
+    void inputWithSoqlQueryInvalid() {
+        final BasicDataStore datasore = new BasicDataStore();
+        datasore.setUserId(serverWithPassword.getUsername());
+        datasore.setPassword(serverWithPassword.getPassword());
+        datasore.setSecurityKey(serverWithSecuritykey.getPassword());
+        final QueryDataSet queryDataSet = new QueryDataSet();
+        queryDataSet.setSourceType(QueryDataSet.SourceType.SOQL_QUERY);
+        queryDataSet.setQuery("from account");
+        queryDataSet.setDataStore(datasore);
+        final String config = configurationByExample().forInstance(queryDataSet).configured().toQueryString();
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> Job.components().component("salesforce-input", "Salesforce://Input?" + config)
+                        .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build()
+                        .run());
     }
 
-    @AfterAll
-    public void test99_cleanupTestRecords() {
-        cleanTestRecords("Account", "Name Like '%" + UNIQUE_ID + "%'");
-        checkModuleData("Account", "Name Like '%" + UNIQUE_ID + "%'", 0);
+    @Test
+    @HttpApiName("${class}_${method}")
+    @DisplayName("Soql query selection [empty result]")
+    void inputWithSoqlQueryEmptyResult() {
+        final BasicDataStore datasore = new BasicDataStore();
+        datasore.setUserId(serverWithPassword.getUsername());
+        datasore.setPassword(serverWithPassword.getPassword());
+        datasore.setSecurityKey(serverWithSecuritykey.getPassword());
+        final QueryDataSet queryDataSet = new QueryDataSet();
+        queryDataSet.setSourceType(QueryDataSet.SourceType.SOQL_QUERY);
+        queryDataSet.setQuery("select  name from account where name = 'this name will never exist $'");
+        queryDataSet.setDataStore(datasore);
 
-        cleanTestRecords("Contact", "Email Like '%" + UNIQUE_ID + "%'");
-        checkModuleData("Contact", "Email Like '%" + UNIQUE_ID + "%'", 0);
+        final String config = configurationByExample().forInstance(queryDataSet).configured().toQueryString();
+        Job.components().component("salesforce-input", "Salesforce://Input?" + config).component("collector", "test://collector")
+                .connections().from("salesforce-input").to("collector").build().run();
+
+        final List<JsonObject> records = componentsHandler.getCollectedData(JsonObject.class);
+        assertEquals(0, records.size());
     }
-
 }

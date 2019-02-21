@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -47,7 +47,7 @@ public class MSSQLPlatform extends Platform {
         sql.append(identifier(table.getName()));
         sql.append("(");
         sql.append(createColumns(table.getColumns()));
-        sql.append(createPKs(table.getColumns().stream().filter(Column::isPrimaryKey).collect(Collectors.toList())));
+        sql.append(createPKs(table.getPrimaryKeys()));
         sql.append(")");
         // todo create index
 
@@ -58,8 +58,7 @@ public class MSSQLPlatform extends Platform {
 
     @Override
     protected boolean isTableExistsCreationError(final Throwable e) {
-        return e instanceof SQLException && "S0001".equalsIgnoreCase(((SQLException) e).getSQLState())
-                && 2714 == ((SQLException) e).getErrorCode();
+        return e instanceof SQLException && "S0001".equalsIgnoreCase(((SQLException) e).getSQLState());
     }
 
     private String createColumns(final List<Column> columns) {
@@ -70,19 +69,21 @@ public class MSSQLPlatform extends Platform {
         return identifier(column.getName())//
                 + " " + toDBType(column)//
                 + " " + isRequired(column)//
-        ;
+                + (column.getDefaultValue() == null ? "" : " " + defaultValue(column));
     }
 
-    protected String isRequired(final Column column) {
-        return column.isNullable() && !column.isPrimaryKey() ? "" : "NOT NULL";
+    private String isRequired(final Column column) {
+        return column.isNullable() ? "" : "NOT NULL";
+    }
+
+    private String defaultValue(Column column) {
+        return column.getDefaultValue() == null ? "" : "DEFAULT " + column.getDefaultValue();
     }
 
     private String toDBType(final Column column) {
         switch (column.getType()) {
         case STRING:
-            // https://docs.microsoft.com/fr-fr/sql/relational-databases/tables/primary-and-foreign-key-constraints?view=sql-server-2017
-            return column.getSize() <= -1 ? (column.isPrimaryKey() ? "VARCHAR(900)" : "VARCHAR(max)")
-                    : "VARCHAR(" + column.getSize() + ")";
+            return "VARCHAR(max)";
         case BOOLEAN:
             return "BIT";
         case DOUBLE:
@@ -96,8 +97,8 @@ public class MSSQLPlatform extends Platform {
             return "VARBINARY(max)";
         case DATETIME:
             return "datetime2";
-        case RECORD:
-        case ARRAY:
+        case RECORD: // todo ??
+        case ARRAY: // todo ??
         default:
             throw new IllegalStateException("unsupported type for this database " + column);
         }
