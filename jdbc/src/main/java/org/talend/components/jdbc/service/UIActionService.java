@@ -14,6 +14,7 @@ package org.talend.components.jdbc.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.JdbcConfiguration;
+import org.talend.components.jdbc.configuration.OutputConfig;
 import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.sdk.component.api.configuration.Option;
@@ -28,10 +29,21 @@ import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparingInt;
@@ -53,6 +65,8 @@ public class UIActionService {
 
     public static final String ACTION_SUGGESTION_TABLE_NAMES = "ACTION_SUGGESTION_TABLE_NAMES";
 
+    public static final String ACTION_SUGGESTION_ACTION_ON_DATA = "ACTION_SUGGESTION_ACTION_ON_DATA";
+
     public static final String ACTION_SUGGESTION_TABLE_COLUMNS_NAMES = "ACTION_SUGGESTION_TABLE_COLUMNS_NAMES";
 
     @Service
@@ -69,6 +83,19 @@ public class UIActionService {
         return new Values(jdbcConfiguration.get().getDrivers().stream().filter(d -> jdbcService.driverNotDisabled(d))
                 .sorted(comparingInt(JdbcConfiguration.Driver::getOrder))
                 .map(driver -> new Values.Item(driver.getId(), driver.getDisplayName())).collect(toList()));
+    }
+
+    @Suggestions(ACTION_SUGGESTION_ACTION_ON_DATA)
+    public SuggestionValues getActionOnData(@Option final TableNameDataset dataset) {
+        final Iterator<ActionOnDataProvider> serviceIterator = ServiceLoader.load(ActionOnDataProvider.class).iterator();
+        if (serviceIterator.hasNext()) {
+            return new SuggestionValues(true, Stream.of(serviceIterator.next().getActions(dataset))
+                    .map(e -> new SuggestionValues.Item(e.name(), e.label(i18n))).collect(toList()));
+        }
+
+        return new SuggestionValues(true,
+                Stream.of(OutputConfig.ActionOnData.values()).filter(e -> !OutputConfig.ActionOnData.BULK_LOAD.equals(e))
+                        .map(e -> new SuggestionValues.Item(e.name(), e.label(i18n))).collect(toList()));
     }
 
     @Suggestions(ACTION_LIST_HANDLERS_DB)
@@ -123,7 +150,7 @@ public class UIActionService {
                 }
             }
         } catch (final Exception unexpected) {
-            // catch all exceptions for this ui action to return empty list
+            // catch all exceptions for this ui label to return empty list
             log.error(i18n.errorCantLoadTableSuggestions(), unexpected);
         }
 
@@ -147,7 +174,7 @@ public class UIActionService {
                     })).ifPresent(t -> items.add(new SuggestionValues.Item(t, t)));
                 }
             }
-        } catch (final Exception unexpected) { // catch all exceptions for this ui action to return empty list
+        } catch (final Exception unexpected) { // catch all exceptions for this ui label to return empty list
             log.error(i18n.errorCantLoadTableSuggestions(), unexpected);
         }
         return new SuggestionValues(true, items);

@@ -135,7 +135,7 @@ public abstract class BaseJdbcTest {
         final boolean withBytes = !container.getDatabaseType().equalsIgnoreCase("redshift");
         final OutputConfig configuration = new OutputConfig();
         configuration.setDataset(newTableNameDataset(table, container));
-        configuration.setActionOnData(OutputConfig.ActionOnData.INSERT);
+        configuration.setActionOnData(OutputConfig.ActionOnData.INSERT.name());
         configuration.setCreateTableIfNotExists(true);
         configuration.setKeys(asList("id"));
         configuration.setRewriteBatchedStatements(true);

@@ -76,4 +76,15 @@ public interface I18nMessage {
     String errorUnsupportedDatabase(String dbType);
 
     String errorUnsupportedType(String type, String field);
+
+    //
+    String actionOnDataInsert();
+
+    String actionOnDataUpdate();
+
+    String actionOnDataUpsert();
+
+    String actionOnDataDelete();
+
+    String actionOnDataBulkLoad();
 }

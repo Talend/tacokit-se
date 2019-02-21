@@ -13,7 +13,9 @@
 package org.talend.components.jdbc.configuration;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.talend.components.jdbc.dataset.TableNameDataset;
+import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -25,7 +27,9 @@ import org.talend.sdk.component.api.meta.Documentation;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
+import static org.talend.components.jdbc.service.UIActionService.ACTION_SUGGESTION_ACTION_ON_DATA;
 import static org.talend.components.jdbc.service.UIActionService.ACTION_SUGGESTION_TABLE_COLUMNS_NAMES;
 import static org.talend.sdk.component.api.configuration.condition.ActiveIf.EvaluationStrategy.CONTAINS;
 import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.AND;
@@ -53,45 +57,47 @@ public class OutputConfig implements Serializable {
 
     @Option
     @Required
-    @ActiveIf(target = "createTableIfNotExists", value = { "true" })
+    @ActiveIf(target = "../createTableIfNotExists", value = { "true" })
     @Documentation("The length of varchar types. This value will be used to create varchar columns in this table."
             + "\n-1 means that the max supported length of the targeted database will be used.")
     private int varcharLength = -1;
 
     @Option
-    @Documentation("The action to be performed")
-    private ActionOnData actionOnData = ActionOnData.INSERT;
+    @Required
+    @Suggestable(value = ACTION_SUGGESTION_ACTION_ON_DATA, parameters = { "dataset" })
+    @Documentation("The action on data to be performed")
+    private String actionOnData;
 
     @Option
-    @ActiveIf(target = "createTableIfNotExists", value = { "true" })
-    @Suggestable(value = ACTION_SUGGESTION_TABLE_COLUMNS_NAMES, parameters = { "../dataset" })
+    @ActiveIf(target = "../createTableIfNotExists", value = { "true" })
+    @Suggestable(value = ACTION_SUGGESTION_TABLE_COLUMNS_NAMES, parameters = { "dataset" })
     @Documentation("List of columns to be used as keys for this operation")
     private List<String> keys = new ArrayList<>();
 
     @Option
     @ActiveIfs(operator = AND, value = { @ActiveIf(target = "../dataset.connection.dbType", value = { "Redshift" }),
-            @ActiveIf(target = "createTableIfNotExists", value = { "true" }) })
+            @ActiveIf(target = "../createTableIfNotExists", value = { "true" }) })
     @Suggestable(value = ACTION_SUGGESTION_TABLE_COLUMNS_NAMES, parameters = { "../dataset" })
     @Documentation("List of columns to be used as sort keys for redshift")
     private List<String> sortKeys = new ArrayList<>();
 
     @Option
     @ActiveIfs(operator = AND, value = { @ActiveIf(target = "../dataset.connection.dbType", value = { "Redshift" }),
-            @ActiveIf(target = "createTableIfNotExists", value = { "true" }) })
+            @ActiveIf(target = "../createTableIfNotExists", value = { "true" }) })
     @Documentation("Define the distribution strategy of Redshift table")
     private DistributionStrategy distributionStrategy = DistributionStrategy.KEYS;
 
     @Option
     @ActiveIfs(operator = AND, value = { @ActiveIf(target = "../dataset.connection.dbType", value = { "Redshift" }),
             @ActiveIf(target = "../distributionStrategy", value = { "KEYS" }),
-            @ActiveIf(target = "createTableIfNotExists", value = { "true" }) })
+            @ActiveIf(target = "../createTableIfNotExists", value = { "true" }) })
     @Suggestable(value = ACTION_SUGGESTION_TABLE_COLUMNS_NAMES, parameters = { "../dataset" })
     @Documentation("List of columns to be used as distribution keys for redshift")
     private List<String> distributionKeys = new ArrayList<>();
 
     @Option
     @Suggestable(value = ACTION_SUGGESTION_TABLE_COLUMNS_NAMES, parameters = { "../dataset" })
-    @ActiveIf(target = "actionOnData", value = { "UPDATE", "UPSERT" })
+    @ActiveIf(target = "../actionOnData", value = { "UPDATE", "UPSERT" })
     @Documentation("List of columns to be ignored from update")
     private List<String> ignoreUpdate = new ArrayList<>();
 
@@ -101,10 +107,26 @@ public class OutputConfig implements Serializable {
     @Documentation("Rewrite batched statements, to execute one statement per batch combining values in the sql query")
     private boolean rewriteBatchedStatements = true;
 
+    public ActionOnData getActionOnData() {
+        if (actionOnData == null || actionOnData.isEmpty()) {
+            throw new IllegalArgumentException("label on data is required");
+        }
+
+        return ActionOnData.valueOf(actionOnData);
+    }
+
+    @RequiredArgsConstructor
     public enum ActionOnData {
-        INSERT,
-        UPDATE,
-        DELETE,
-        UPSERT
+        BULK_LOAD(I18nMessage::actionOnDataBulkLoad),
+        INSERT(I18nMessage::actionOnDataInsert),
+        UPDATE(I18nMessage::actionOnDataUpdate),
+        DELETE(I18nMessage::actionOnDataDelete),
+        UPSERT(I18nMessage::actionOnDataUpsert);
+
+        private final Function<I18nMessage, String> labelExtractor;
+
+        public String label(final I18nMessage messages) {
+            return labelExtractor.apply(messages);
+        }
     }
 }
