@@ -36,9 +36,15 @@ import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Ope
 import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.OR;
 
 @Data
-@GridLayout(value = { @GridLayout.Row("dataset"), @GridLayout.Row("createTableIfNotExists"), @GridLayout.Row("varcharLength"),
-        @GridLayout.Row({ "actionOnData" }), @GridLayout.Row("keys"), @GridLayout.Row("sortKeys"),
-        @GridLayout.Row("distributionStrategy"), @GridLayout.Row("distributionKeys"), @GridLayout.Row("ignoreUpdate") })
+@GridLayout(value = { @GridLayout.Row("dataset"),
+        @GridLayout.Row({ "actionOnData" }),
+        @GridLayout.Row("createTableIfNotExists"),
+        @GridLayout.Row("varcharLength"),
+        @GridLayout.Row("keys"),
+        @GridLayout.Row("sortKeys"),
+        @GridLayout.Row("distributionStrategy"),
+        @GridLayout.Row("distributionKeys"),
+        @GridLayout.Row("ignoreUpdate") })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("dataset"),
         @GridLayout.Row("rewriteBatchedStatements") })
 @Documentation("Those properties define an output data set for the JDBC output component")
@@ -48,6 +54,12 @@ public class OutputConfig implements Serializable {
     @Required
     @Documentation("Dataset configuration")
     private TableNameDataset dataset;
+
+    @Option
+    @Required
+    @Suggestable(value = ACTION_SUGGESTION_ACTION_ON_DATA, parameters = { "dataset" })
+    @Documentation("The action on data to be performed")
+    private String actionOnData;
 
     @Option
     @Required
@@ -62,11 +74,6 @@ public class OutputConfig implements Serializable {
             + "\n-1 means that the max supported length of the targeted database will be used.")
     private int varcharLength = -1;
 
-    @Option
-    @Required
-    @Suggestable(value = ACTION_SUGGESTION_ACTION_ON_DATA, parameters = { "dataset" })
-    @Documentation("The action on data to be performed")
-    private String actionOnData;
 
     @Option
     @ActiveIf(target = "../createTableIfNotExists", value = { "true" })
