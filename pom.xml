@@ -33,7 +33,6 @@
   </licenses>
 
   <modules>
-    <module>processing-tck</module>
     <module>jdbc</module>
     <module>salesforce</module>
   </modules>
