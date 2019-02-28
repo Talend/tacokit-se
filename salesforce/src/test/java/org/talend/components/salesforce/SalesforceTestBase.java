@@ -49,9 +49,7 @@ public class SalesforceTestBase implements Serializable {
 
         final ModuleDataSet inputDataSet = new ModuleDataSet();
         inputDataSet.setModuleName(module);
-        ModuleDataSet.ColumnSelectionConfig selectionConfig = new ModuleDataSet.ColumnSelectionConfig();
-        selectionConfig.setSelectColumnNames(Arrays.asList("Id"));
-        inputDataSet.setColumnSelectionConfig(selectionConfig);
+        inputDataSet.setSelectColumnNames(Arrays.asList("Id"));
         inputDataSet.setDataStore(getDataStore());
         inputDataSet.setCondition(condition);
 
@@ -77,9 +75,7 @@ public class SalesforceTestBase implements Serializable {
     protected void checkModuleData(String module, String condition, int expected) {
         final ModuleDataSet dataSet = new ModuleDataSet();
         dataSet.setModuleName(module);
-        ModuleDataSet.ColumnSelectionConfig selectionConfig = new ModuleDataSet.ColumnSelectionConfig();
-        selectionConfig.setSelectColumnNames(singletonList("Id"));
-        dataSet.setColumnSelectionConfig(selectionConfig);
+        dataSet.setSelectColumnNames(singletonList("Id"));
         dataSet.setDataStore(getDataStore());
         dataSet.setCondition(condition);
 

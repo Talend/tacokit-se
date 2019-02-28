@@ -123,6 +123,7 @@
                     </argLine>
                     <systemPropertyVariables>
                         <talend.jdbc.it>${jdbc.it}</talend.jdbc.it>
+                        <talend.jdbc.it.oracle.skip>true</talend.jdbc.it.oracle.skip>
                         <talend.component.junit.handler.state>static</talend.component.junit.handler.state>
                         <!--
                            You can activate the targetParallelism to control the parallelism of the test pipeline.

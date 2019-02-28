@@ -173,9 +173,7 @@ public class SalesforceOutputProcessorTest extends SalesforceTestBase {
         // 1. read data from salesforce
         final ModuleDataSet inputDataSet = new ModuleDataSet();
         inputDataSet.setModuleName("Account");
-        ModuleDataSet.ColumnSelectionConfig selectionConfig = new ModuleDataSet.ColumnSelectionConfig();
-        selectionConfig.setSelectColumnNames(Arrays.asList("Id", "Name"));
-        inputDataSet.setColumnSelectionConfig(selectionConfig);
+        inputDataSet.setSelectColumnNames(Arrays.asList("Id", "Name"));
         inputDataSet.setDataStore(getDataStore());
         inputDataSet.setCondition("Name Like '%" + UNIQUE_ID + "%'");
 

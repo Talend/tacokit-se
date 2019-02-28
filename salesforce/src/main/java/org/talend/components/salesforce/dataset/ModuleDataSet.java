@@ -15,13 +15,11 @@
 
 package org.talend.components.salesforce.dataset;
 
-import java.io.Serializable;
 import java.util.List;
 
 import org.talend.components.salesforce.datastore.BasicDataStore;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
-import org.talend.sdk.component.api.configuration.action.Updatable;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -31,8 +29,8 @@ import lombok.Data;
 
 @Data
 @DataSet("ModuleSelection")
-@GridLayout(value = { @GridLayout.Row("dataStore"), @GridLayout.Row("moduleName"), @GridLayout.Row("condition"),
-        @GridLayout.Row("columnSelectionConfig") })
+@GridLayout(value = { @GridLayout.Row("dataStore"), @GridLayout.Row("moduleName"), @GridLayout.Row("selectColumnNames"),
+        @GridLayout.Row("condition") })
 @Documentation("This dataset use module name, query condition and selected columns build SOQL to query records")
 public class ModuleDataSet implements QueryDataSet {
 
@@ -48,21 +46,12 @@ public class ModuleDataSet implements QueryDataSet {
     private String moduleName;
 
     @Option
-    @Documentation("condition of query")
-    private String condition;
+    @Documentation("selected column names")
+    @Suggestable(value = "listColumns", parameters = { "dataStore", "moduleName" })
+    private List<String> selectColumnNames;
 
     @Option
-    @Documentation("select columns to query")
-    @Updatable(value = "defaultColumns", parameters = { "dataStore", "moduleName" })
-    private ColumnSelectionConfig columnSelectionConfig;
-
-    @Data
-    @GridLayout({ @GridLayout.Row({ "selectColumnNames" }) })
-    public static class ColumnSelectionConfig implements Serializable {
-
-        @Option
-        @Documentation("selected column names")
-        private List<String> selectColumnNames;
-    }
+    @Documentation("condition of query")
+    private String condition;
 
 }

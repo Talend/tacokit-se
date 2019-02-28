@@ -23,7 +23,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.talend.components.salesforce.dataset.ModuleDataSet;
 import org.talend.components.salesforce.datastore.BasicDataStore;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
@@ -32,7 +31,6 @@ import org.talend.sdk.component.api.service.completion.Suggestions;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
-import org.talend.sdk.component.api.service.update.Update;
 
 import com.sforce.soap.partner.DescribeGlobalSObjectResult;
 import com.sforce.soap.partner.PartnerConnection;
@@ -91,18 +89,17 @@ public class UiActionService {
         }
     }
 
-    @Update("defaultColumns")
-    public ModuleDataSet.ColumnSelectionConfig defaultColumns(@Option("dataStore") final BasicDataStore dataStore,
+    @Suggestions("listColumns")
+    public SuggestionValues listColumns(@Option("dataStore") final BasicDataStore dataStore,
             @Option("moduleName") final String moduleName) {
-        try {
-            final ModuleDataSet.ColumnSelectionConfig config = new ModuleDataSet.ColumnSelectionConfig();
 
-            if (moduleName == null || moduleName.isEmpty()) {
-                config.setSelectColumnNames(new ArrayList<>());
-            } else {
-                config.setSelectColumnNames(service.getFieldNameList(dataStore, moduleName, localConfiguration));
+        try {
+            List<SuggestionValues.Item> items = new ArrayList<>();
+            List<String> columnNames = service.getFieldNameList(dataStore, moduleName, localConfiguration);
+            for (String columnName : columnNames) {
+                items.add(new SuggestionValues.Item(columnName, columnName));
             }
-            return config;
+            return new SuggestionValues(true, items);
         } catch (IllegalStateException e) {
             throw e;
         }

@@ -29,7 +29,6 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.talend.components.salesforce.SalesforceTestBase;
-import org.talend.components.salesforce.dataset.ModuleDataSet;
 import org.talend.components.salesforce.datastore.BasicDataStore;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
@@ -111,19 +110,19 @@ public class UiActionServiceTest extends SalesforceTestBase {
     @DisplayName("Test retrieve column names [Valid]")
     public void retrieveColumnsName() {
         final String moduleName = "Account";
-        ModuleDataSet.ColumnSelectionConfig filedNameList = service.defaultColumns(getDataStore(), moduleName);
+        SuggestionValues filedNameList = service.listColumns(getDataStore(), moduleName);
         assertNotNull(filedNameList);
-        assertNotNull(filedNameList.getSelectColumnNames());
+        List<String> fieldNames = new ArrayList<>();
+        filedNameList.getItems().stream().forEach(item -> fieldNames.add(item.getLabel()));
         assertTrue("Return module field name list is not include all expected fields!",
-                filedNameList.getSelectColumnNames()
-                        .containsAll(asList("Id", "IsDeleted", "MasterRecordId", "Name", "Type", "ParentId", "BillingStreet",
-                                "BillingCity", "BillingState", "BillingPostalCode", "BillingCountry", "BillingLatitude",
-                                "BillingLongitude", "ShippingStreet", "ShippingCity", "ShippingState", "ShippingPostalCode",
-                                "ShippingCountry", "ShippingLatitude", "ShippingLongitude", "Phone", "Fax", "AccountNumber",
-                                "Website", "PhotoUrl", "Sic", "Industry", "AnnualRevenue", "NumberOfEmployees", "Ownership",
-                                "TickerSymbol", "Description", "Rating", "Site", "OwnerId", "CreatedDate", "CreatedById",
-                                "LastModifiedDate", "LastModifiedById", "SystemModstamp", "LastActivityDate", "LastViewedDate",
-                                "LastReferencedDate", "Jigsaw", "JigsawCompanyId", "AccountSource", "SicDesc")));
+                fieldNames.containsAll(asList("Id", "IsDeleted", "MasterRecordId", "Name", "Type", "ParentId", "BillingStreet",
+                        "BillingCity", "BillingState", "BillingPostalCode", "BillingCountry", "BillingLatitude",
+                        "BillingLongitude", "ShippingStreet", "ShippingCity", "ShippingState", "ShippingPostalCode",
+                        "ShippingCountry", "ShippingLatitude", "ShippingLongitude", "Phone", "Fax", "AccountNumber", "Website",
+                        "PhotoUrl", "Sic", "Industry", "AnnualRevenue", "NumberOfEmployees", "Ownership", "TickerSymbol",
+                        "Description", "Rating", "Site", "OwnerId", "CreatedDate", "CreatedById", "LastModifiedDate",
+                        "LastModifiedById", "SystemModstamp", "LastActivityDate", "LastViewedDate", "LastReferencedDate",
+                        "Jigsaw", "JigsawCompanyId", "AccountSource", "SicDesc")));
 
     }
 

@@ -110,7 +110,7 @@ public class ModuleQueryEmitter extends AbstractQueryEmitter implements Serializ
 
     @Override
     List<String> getColumnNames() {
-        return ((ModuleDataSet) inputConfig.getDataSet()).getColumnSelectionConfig().getSelectColumnNames();
+        return ((ModuleDataSet) inputConfig.getDataSet()).getSelectColumnNames();
     }
 
     private List<String> getColumnNames(DescribeSObjectResult in) {
