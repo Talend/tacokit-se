@@ -82,11 +82,12 @@ public class RedshiftPlatform extends Platform {
         case EVEN:
             return "diststyle even ";
         case KEYS:
-        default:
             return columns.isEmpty() ? ""
                     : "diststyle key distkey" + columns.stream().map(Column::getName).collect(joining(",", "(", ") "));
+        default:
+        case AUTO:
+            return "diststyle auto ";
         }
-
     }
 
     @Override

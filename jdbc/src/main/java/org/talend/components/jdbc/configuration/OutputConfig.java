@@ -85,7 +85,7 @@ public class OutputConfig implements Serializable {
     @ActiveIfs(operator = AND, value = { @ActiveIf(target = "../dataset.connection.dbType", value = { "Redshift" }),
             @ActiveIf(target = "../createTableIfNotExists", value = { "true" }) })
     @Documentation("Define the distribution strategy of Redshift table")
-    private DistributionStrategy distributionStrategy = DistributionStrategy.KEYS;
+    private DistributionStrategy distributionStrategy = DistributionStrategy.AUTO;
 
     @Option
     @ActiveIfs(operator = AND, value = { @ActiveIf(target = "../dataset.connection.dbType", value = { "Redshift" }),
