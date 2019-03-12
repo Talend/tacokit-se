@@ -14,6 +14,7 @@ package org.talend.components.jdbc.output.platforms;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.DistributionStrategy;
+import org.talend.components.jdbc.configuration.RedshiftSortStrategy;
 import org.talend.components.jdbc.service.I18nMessage;
 
 import java.sql.SQLException;
@@ -64,15 +65,16 @@ public class RedshiftPlatform extends Platform {
         sql.append(")");
         sql.append(createDistributionKeys(table.getDistributionStrategy(),
                 columns.stream().filter(Column::isDistributionKey).collect(toList())));
-        sql.append(createSortKeys(columns.stream().filter(Column::isSortKey).collect(toList())));
+        sql.append(createSortKeys(table.getSortStrategy(), columns.stream().filter(Column::isSortKey).collect(toList())));
 
         log.debug("### create table query ###");
         log.debug(sql.toString());
         return sql.toString();
     }
 
-    private String createSortKeys(final List<Column> columns) {
-        return columns.isEmpty() ? "" : "sortkey" + columns.stream().map(Column::getName).collect(joining(",", "(", ")"));
+    private String createSortKeys(final RedshiftSortStrategy sortStrategy, final List<Column> columns) {
+        return columns.isEmpty() ? ""
+                : sortStrategy.name() + " sortkey" + columns.stream().map(Column::getName).collect(joining(",", "(", ")"));
     }
 
     private String createDistributionKeys(final DistributionStrategy distributionStrategy, final List<Column> columns) {

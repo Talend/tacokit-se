@@ -23,6 +23,7 @@ import org.talend.components.jdbc.DisabledDatabases;
 import org.talend.components.jdbc.WithDatabasesEnvironments;
 import org.talend.components.jdbc.configuration.DistributionStrategy;
 import org.talend.components.jdbc.configuration.OutputConfig;
+import org.talend.components.jdbc.configuration.RedshiftSortStrategy;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
 import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.output.platforms.PlatformFactory;
@@ -165,7 +166,8 @@ class OutputTest extends BaseJdbcTest {
         final String testTableName = getTestTableName(testInfo);
         try (final Connection connection = getJdbcService().createDataSource(dataStore).getConnection()) {
             PlatformFactory.get(dataStore, getI18nMessage()).createTableIfNotExist(connection, testTableName, emptyList(),
-                    emptyList(), DistributionStrategy.KEYS, emptyList(), -1, Collections.singletonList(builder.build()));
+                    RedshiftSortStrategy.COMPOUND, emptyList(), DistributionStrategy.KEYS, emptyList(), -1,
+                    Collections.singletonList(builder.build()));
         }
         runWithBad("id", "bad id", testTableName, container);
         runWithBad("t_long", "bad long", testTableName, container);
