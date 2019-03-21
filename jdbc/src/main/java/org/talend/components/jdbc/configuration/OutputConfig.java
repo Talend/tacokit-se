@@ -53,7 +53,7 @@ public class OutputConfig implements Serializable {
     @Required
     @Suggestable(value = ACTION_SUGGESTION_ACTION_ON_DATA, parameters = { "../dataset" })
     @Documentation("The action on data to be performed")
-    private String actionOnData;
+    private String actionOnData = "INSERT";
 
     @Option
     @Required
@@ -69,7 +69,8 @@ public class OutputConfig implements Serializable {
     private int varcharLength = -1;
 
     @Option
-    @ActiveIf(target = "../createTableIfNotExists", value = { "true" })
+    @ActiveIfs(operator = OR, value = { @ActiveIf(target = "../createTableIfNotExists", value = { "true" }),
+            @ActiveIf(target = "../actionOnData", value = { "INSERT", "BULK_LOAD" }, negate = true) })
     @Suggestable(value = ACTION_SUGGESTION_TABLE_COLUMNS_NAMES, parameters = { "dataset" })
     @Documentation("List of columns to be used as keys for this operation")
     private List<String> keys = new ArrayList<>();
