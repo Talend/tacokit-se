@@ -91,7 +91,7 @@ class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
     }
 
     @Test
-    void testReadNullByDateTime() {
+    void testReadByDateTimeNotSet() {
         AzureEventHubsInputConfiguration inputConfiguration = new AzureEventHubsInputConfiguration();
         final AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
         dataSet.setDatastore(getDataStore());
