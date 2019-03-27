@@ -4,6 +4,14 @@
           xsi:schemaLocation="
             http://maven.apache.org/SETTINGS/1.0.0
             https://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <mirrors>
+    <mirror>
+      <id>mirror-central</id>
+      <mirrorOf>central</mirrorOf>
+      <name>Internal Nexus Mirror</name>
+      <url>https://artifacts-zl.talend.com/nexus/content/groups/public</url>
+    </mirror>
+  </mirrors>
   <servers>
     <server>
       <id>talend.oss.snapshots</id>
