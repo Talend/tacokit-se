@@ -129,7 +129,7 @@ spec:
                 stage('Site') {
                     steps {
                         container('main') {
-                            sh 'cd ci_site && mvn -U -B -s .jenkins/settings.xml clean site site:stage -Dmaven.test.failure.ignore=true'
+                            sh 'cd ci_site && mvn -U -B -s .jenkins/settings.xml clean -DskipTests site site:stage -Dmaven.test.failure.ignore=true'
                         }
                     }
                     post {
