@@ -23,8 +23,10 @@ public class JMSTestExtention implements ExtensionContext.Store.CloseableResourc
     private TestContext testContext = new TestContext();
 
     private static final GenericContainer JMS_CONTAINER = new GenericContainer(
-            new ImageFromDockerfile().withFileFromClasspath("Dockerfile", "docker/Dockerfile").withFileFromPath("activemq.xml",
-                    Paths.get("src/test/resources/docker/activemq.xml"))).withExposedPorts(ACTIVEMQ_PORT)
+            new ImageFromDockerfile().withFileFromClasspath("Dockerfile", "docker/Dockerfile")
+                    .withFileFromPath("activemq.xml", Paths.get("src/test/resources/docker/activemq.xml"))
+                    .withFileFromPath("broker.ks", Paths.get("src/test/resources/docker/broker.ks")))
+                            .withExposedPorts(ACTIVEMQ_PORT)
                             .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofSeconds(200)));
 
     private static boolean started = false;
