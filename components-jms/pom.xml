@@ -34,6 +34,7 @@
         TIP: it is recommended to set this property into your settings.xml in an active by default profile.
         -->
         <testcontainers.version>1.10.3</testcontainers.version>
+        <activemq-all.version>5.15.5</activemq-all.version>
         <talend.component.studioHome/>
     </properties>
 
@@ -41,6 +42,12 @@
         <dependency>
             <groupId>javax.jms</groupId>
             <artifactId>javax.jms-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-all</artifactId>
+            <version>${activemq-all.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.talend.sdk.component</groupId>
