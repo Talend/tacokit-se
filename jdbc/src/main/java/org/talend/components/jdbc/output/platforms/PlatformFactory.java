@@ -20,6 +20,7 @@ import java.util.Locale;
 import static java.util.Optional.ofNullable;
 import static org.talend.components.jdbc.output.platforms.DerbyPlatform.DERBY;
 import static org.talend.components.jdbc.output.platforms.MSSQLPlatform.MSSQL;
+import static org.talend.components.jdbc.output.platforms.MSSQLPlatform.SQLDWH;
 import static org.talend.components.jdbc.output.platforms.MariaDbPlatform.MARIADB;
 import static org.talend.components.jdbc.output.platforms.MySQLPlatform.MYSQL;
 import static org.talend.components.jdbc.output.platforms.OraclePlatform.ORACLE;
@@ -45,6 +46,8 @@ public final class PlatformFactory {
         case ORACLE:
             return new OraclePlatform(i18n);
         case MSSQL:
+            return new MSSQLPlatform(i18n);
+        case SQLDWH:
             return new MSSQLPlatform(i18n);
         case DERBY:
             return new DerbyPlatform(i18n);
