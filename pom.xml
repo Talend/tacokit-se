@@ -85,10 +85,9 @@
         </talend_oss_snapshots>
 
         <frontend.version>1.7.5</frontend.version>
-        <node.version>v10.14.2</node.version>
-        <yarn.version>v1.12.3</yarn.version>
-        <yarn.environment>production</yarn.environment>
-        <i18n-scripts.version>0.2.0</i18n-scripts.version>
+        <node.version>v10.15.3</node.version>
+        <yarn.version>v1.15.2</yarn.version>
+        <i18n-scripts.version>0.2.1</i18n-scripts.version>
 
         <!-- The XTM customer id that manage the translation of this project-->
         <xtm.customer.id>23</xtm.customer.id>
@@ -641,10 +640,8 @@
 
     <profiles>
         <profile>
-            <id>i18nExport</id>
-            <properties>
-                <component.i18n.export.skip>false</component.i18n.export.skip>
-            </properties>
+            <!-- This profile extract, package and upload the i18n resource to xtm for translation. can be activated with -Pi18n-export -->
+            <id>i18n-export</id>
             <build>
                 <plugins>
                     <plugin>
@@ -665,7 +662,7 @@
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>yarn-install-i18n-scripts</id>
+                                <id>install-i18n-scripts</id>
                                 <phase>generate-sources</phase>
                                 <goals>
                                     <goal>yarn</goal>
@@ -675,30 +672,24 @@
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>yarn-i18n-extract</id>
+                                <id>i18n-extract</id>
                                 <phase>generate-resources</phase>
                                 <goals>
                                     <goal>yarn</goal>
                                 </goals>
                                 <configuration>
-                                    <skip>${component.i18n.export.skip}</skip>
                                     <arguments>talend-i18n extract</arguments>
-                                    <environmentVariables>
-                                        <NODE_ENV>${yarn.environment}</NODE_ENV>
-                                    </environmentVariables>
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>yarn-i18n-upload</id>
+                                <id>i18n-upload</id>
                                 <phase>generate-resources</phase>
                                 <goals>
                                     <goal>yarn</goal>
                                 </goals>
                                 <configuration>
-                                    <skip>${component.i18n.export.skip}</skip>
                                     <arguments>talend-i18n upload</arguments>
                                     <environmentVariables>
-                                        <NODE_ENV>${yarn.environment}</NODE_ENV>
                                         <XTM_API_URL>${xtm.api.url}</XTM_API_URL>
                                         <XTM_CUSTOMER_ID>${xtm.customer.id}</XTM_CUSTOMER_ID>
                                         <XTM_TOKEN>${env.XTM_TOKEN}</XTM_TOKEN>
@@ -709,9 +700,6 @@
                         <configuration>
                             <installDirectory>${maven.multiModuleProjectDirectory}/.node</installDirectory>
                             <workingDirectory>${project.basedir}/</workingDirectory>
-                            <environmentVariables>
-                                <NODE_ENV>development</NODE_ENV>
-                            </environmentVariables>
                         </configuration>
                     </plugin>
                 </plugins>
