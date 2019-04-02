@@ -55,6 +55,10 @@ spec:
         cron(env.BRANCH_NAME == "master" ? "@daily" : "")
     }
 
+    parameters {
+        booleanParam(name: 'PUSH_I18N_RESOURCES_TO_XTM', defaultValue: false, description: 'Export i18n resources to XTM to be translated.')
+    }
+
     stages {
         stage('Run maven') {
             steps {
@@ -139,6 +143,30 @@ spec:
                                             passwordVariable: 'NEXUS_PASSWORD')
                             ]) {
                                 sh "cd ci_nexus && mvn -U -B -s .jenkins/settings.xml clean deploy -e -Pdocker -DskipTests ${talendOssRepositoryArg}"
+                            }
+                        }
+                    }
+                }
+                stage('Xtm') {
+                    steps {
+                        container('main') {
+                            withCredentials([
+                                    usernamePassword(
+                                            credentialsId: 'xtm-credentials',
+                                            passwordVariable: 'XTM_TOKEN')
+                            ]) {
+                                script {
+                                    if(params.PUSH_I18N_RESOURCES_TO_XTM){
+                                        if ("akhabali/TDI-41939".equalsIgnoreCase(env.BRANCH_NAME) || "master".equalsIgnoreCase(env.BRANCH_NAME) || env.BRANCH_NAME.startsWith("maintenance/")) {
+
+                                           sh "mvn -U -B -s -e .jenkins/settings.xml clean package -DskipTests -Pi18n-export ${talendOssRepositoryArg}"
+
+                                        } else {
+                                            currentBuild.result = 'ABORTED'
+                                            error('You can only publish resources to xtm from a master or maintenance branch.\nThe branch was : ' + env.BRANCH_NAME)
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
