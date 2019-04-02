@@ -99,7 +99,7 @@ spec:
                             ]) {
                                 sh """
                      |cd ci_documentation
-                     |mvn -U -B clean install -DskipTests
+                     |mvn -U -B -s .jenkins/settings.xml clean install -DskipTests
                      |chmod +x .jenkins/generate-doc.sh && .jenkins/generate-doc.sh
                      |""".stripMargin()
                             }
@@ -117,7 +117,7 @@ spec:
                 stage('Site') {
                     steps {
                         container('main') {
-                            sh 'cd ci_site && mvn -U -B clean site site:stage -Dmaven.test.failure.ignore=true'
+                            sh 'cd ci_site && mvn -U -B -s .jenkins/settings.xml clean site site:stage -Dmaven.test.failure.ignore=true'
                         }
                     }
                     post {
