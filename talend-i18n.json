@@ -1,0 +1,12 @@
+{
+  "extract": {
+    "method": "expression",
+    "rootPath": "mvnModules",
+    "script": "extract-i18n",
+    "expression": "Messages.properties",
+    "target": "./target/i18n"
+  },
+  "load": {
+    "project": "UI - Connectors-se"
+  }
+}
