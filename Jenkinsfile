@@ -56,7 +56,7 @@ spec:
     }
 
     parameters {
-        booleanParam(name: 'PUSH_I18N_RESOURCES_TO_XTM', defaultValue: false, description: 'Export i18n resources to XTM to be translated.')
+        booleanParam(name: 'PUSH_I18N_RESOURCES_TO_XTM', defaultValue: false, description: 'export the project i18n resources to XTM to be translated. This action can be performed from master or maintenance branches only.')
     }
 
     stages {
@@ -163,7 +163,7 @@ spec:
 
                                         } else {
                                             currentBuild.result = 'ABORTED'
-                                            error('You can only publish resources to xtm from a master or maintenance branch.\nThe branch was : ' + env.BRANCH_NAME)
+                                            error('You can only publish resources to xtm from master or maintenance branches.\nThe branch was : ' + env.BRANCH_NAME)
                                         }
                                     }
                                 }
