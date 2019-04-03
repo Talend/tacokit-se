@@ -492,6 +492,7 @@
                     <forkCount>1</forkCount>
                     <reuseForks>true</reuseForks>
                     <trimStackTrace>false</trimStackTrace>
+                    <runOrder>alphabetical</runOrder>
                     <systemPropertyVariables>
                         <talend.component.junit.maven.repositories>
                             https://artifacts-zl.talend.com/nexus/content/groups/public
