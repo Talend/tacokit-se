@@ -42,7 +42,7 @@ import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Ope
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("dataset"),
         @GridLayout.Row("rewriteBatchedStatements") })
 @Documentation("Those properties define an output data set for the JDBC output component")
-public class OutputConfig implements Serializable, OutputConfigInterface {
+public class OutputConfig implements Serializable {
 
     @Option
     @Required
@@ -120,11 +120,6 @@ public class OutputConfig implements Serializable, OutputConfigInterface {
         }
 
         return ActionOnData.valueOf(actionOnData);
-    }
-
-    @Override
-    public OutputConfig getOutputConfig() {
-        return this;
     }
 
     @RequiredArgsConstructor
