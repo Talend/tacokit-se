@@ -13,6 +13,7 @@
 package org.talend.components.jdbc.datastore;
 
 import lombok.Data;
+import lombok.ToString;
 import org.talend.components.jdbc.service.UIActionService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
@@ -32,6 +33,7 @@ import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_HAN
 import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_SUPPORTED_DB;
 
 @Data
+@ToString(exclude = { "password" })
 @GridLayout({ @GridLayout.Row({ "dbType", "handler" }), @GridLayout.Row("jdbcUrl"), @GridLayout.Row("userId"),
         @GridLayout.Row("password") })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("connectionTimeOut"),
