@@ -157,13 +157,11 @@ spec:
                             ]) {
                                 script {
                                     if(params.PUSH_I18N_RESOURCES_TO_XTM){
-                                        if ("akhabali/TDI-41939".equalsIgnoreCase(env.BRANCH_NAME) || "master".equalsIgnoreCase(env.BRANCH_NAME) || env.BRANCH_NAME.startsWith("maintenance/")) {
-
+                                        if ("akhabali/TDI-41939".equalsIgnoreCase(BRANCH_NAME) || "master".equalsIgnoreCase(BRANCH_NAME) || BRANCH_NAME.startsWith("maintenance/")) {
                                            sh "mvn -U -B -s -e .jenkins/settings.xml clean package -DskipTests -Pi18n-export ${talendOssRepositoryArg}"
-
                                         } else {
                                             currentBuild.result = 'ABORTED'
-                                            error('You can only publish resources to xtm from master or maintenance branches.\nThe branch was : ' + env.BRANCH_NAME)
+                                            error('You can only publish resources to xtm from master or maintenance branches.\nThe branch was : ' + BRANCH_NAME)
                                         }
                                     }
                                 }
