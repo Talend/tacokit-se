@@ -16,6 +16,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.DistributionStrategy;
 import org.talend.components.jdbc.configuration.OutputConfig;
+import org.talend.components.jdbc.configuration.OutputConfigInterface;
 import org.talend.components.jdbc.output.platforms.Platform;
 import org.talend.components.jdbc.output.statement.QueryManager;
 import org.talend.components.jdbc.service.I18nMessage;
@@ -55,8 +56,8 @@ public abstract class Output implements Serializable {
 
     private transient boolean init;
 
-    public Output(final OutputConfig outputConfig, final JdbcService jdbcService, final I18nMessage i18nMessage) {
-        this.configuration = outputConfig;
+    public Output(final OutputConfigInterface outputConfig, final JdbcService jdbcService, final I18nMessage i18nMessage) {
+        this.configuration = outputConfig.getOutputConfig();
         this.jdbcService = jdbcService;
         this.i18n = i18nMessage;
     }
