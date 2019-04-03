@@ -9,7 +9,6 @@ if (BRANCH_NAME.startsWith("PR-")) {
 
 def escapedBranch = branchName.toLowerCase().replaceAll("/","_")
 def deploymentSuffix = env.BRANCH_NAME == "master" ? "${PRODUCTION_DEPLOYMENT_REPOSITORY}" : ("dev_branch_snapshots/branch_${escapedBranch}")
-def deploymentRepository = "https://artifacts-zl.talend.com/nexus/content/repositories/${deploymentSuffix}"
 def m2 = "/tmp/jenkins/tdi/m2/${deploymentSuffix}"
 def talendOssRepositoryArg = env.BRANCH_NAME == "master" ? "" : ("-Dtalend_oss_snapshots=https://nexus-smart-branch.datapwn.com/nexus/content/repositories/${deploymentSuffix}")
 
@@ -157,7 +156,7 @@ spec:
                             ]) {
                                 script {
                                     if(params.PUSH_I18N_RESOURCES_TO_XTM){
-                                        if ("akhabali/TDI-41939".equalsIgnoreCase(BRANCH_NAME) || "master".equalsIgnoreCase(BRANCH_NAME) || BRANCH_NAME.startsWith("maintenance/")) {
+                                        if ('akhabali/TDI-41939' == env.BRANCH_NAME || 'master' == env.BRANCH_NAME || (env.BRANCH_NAME != null && env.BRANCH_NAME.startsWith('maintenance/'))) {
                                            sh "mvn -U -B -s -e .jenkins/settings.xml clean package -DskipTests -Pi18n-export ${talendOssRepositoryArg}"
                                         } else {
                                             currentBuild.result = 'ABORTED'
