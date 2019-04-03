@@ -23,7 +23,7 @@ spec:
     containers:
         -
             name: main
-            image: 'jenkinsxio/builder-maven:0.1.60'
+            image: 'twalter/maven-docker'
             command: [cat]
             tty: true
             volumeMounts: [{name: docker, mountPath: /var/run/docker.sock}, {name: m2main, mountPath: /root/.m2/repository}]
@@ -158,7 +158,7 @@ spec:
                                 script {
                                     if(params.PUSH_I18N_RESOURCES_TO_XTM){
                                         if ('akhabali/TDI-41939' == env.BRANCH_NAME || 'master' == env.BRANCH_NAME || (env.BRANCH_NAME != null && env.BRANCH_NAME.startsWith('maintenance/'))) {
-                                           sh "mvn -e -U -B -s .jenkins/settings.xml clean package -DskipTests -pl . -Pi18n-export ${talendOssRepositoryArg}"
+                                           sh "mvn -e -B -s .jenkins/settings.xml clean package -DskipTests -pl . -Pi18n-export ${talendOssRepositoryArg}"
                                         } else {
                                             currentBuild.result = 'ABORTED'
                                             error('You can only publish resources to xtm from master or maintenance branches.\nThe branch was : ' + BRANCH_NAME)
