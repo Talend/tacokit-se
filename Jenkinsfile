@@ -23,7 +23,7 @@ spec:
     containers:
         -
             name: main
-            image: 'twalter/maven-docker'
+            image: 'jenkinsxio/builder-maven:0.1.60'
             command: [cat]
             tty: true
             volumeMounts: [{name: docker, mountPath: /var/run/docker.sock}, {name: m2main, mountPath: /root/.m2/repository}]
