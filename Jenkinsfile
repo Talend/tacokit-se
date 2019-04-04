@@ -23,7 +23,7 @@ spec:
     containers:
         -
             name: main
-            image: 'jenkinsxio/builder-maven:0.1.60'
+            image: 'khabali/docker-sdkman:latest'
             command: [cat]
             tty: true
             volumeMounts: [{name: docker, mountPath: /var/run/docker.sock}, {name: m2main, mountPath: /root/.m2/repository}]
@@ -161,7 +161,7 @@ spec:
                                            sh "mvn -e -B -s .jenkins/settings.xml clean package -DskipTests -pl . -Pi18n-export ${talendOssRepositoryArg}"
                                         } else {
                                             currentBuild.result = 'ABORTED'
-                                            error('You can only publish resources to xtm from master or maintenance branches.\nThe branch was : ' + BRANCH_NAME)
+                                            error('You can only publish resources to xtm from master or maintenance branches.\nThe branch was : ' + env.BRANCH_NAME)
                                         }
                                     }
                                 }
