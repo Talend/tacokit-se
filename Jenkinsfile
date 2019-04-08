@@ -7,7 +7,7 @@ if (BRANCH_NAME.startsWith("PR-")) {
     branchName = env.CHANGE_BRANCH
 }
 
-def escapedBranch = branchName.toLowerCase().replaceAll("/","_")
+def escapedBranch = branchName.toLowerCase().replaceAll("/", "_")
 def deploymentSuffix = env.BRANCH_NAME == "master" ? "${PRODUCTION_DEPLOYMENT_REPOSITORY}" : ("dev_branch_snapshots/branch_${escapedBranch}")
 def m2 = "/tmp/jenkins/tdi/m2/${deploymentSuffix}"
 def talendOssRepositoryArg = env.BRANCH_NAME == "master" ? "" : ("-Dtalend_oss_snapshots=https://nexus-smart-branch.datapwn.com/nexus/content/repositories/${deploymentSuffix}")
@@ -147,6 +147,13 @@ spec:
                     }
                 }
                 stage('Xtm') {
+                    when {
+                            expression {
+                                BRANCH_NAME ==~ /(master|maintenance|akhabali\/TDI-41939)/ &&
+                                params.PUSH_I18N_RESOURCES_TO_XTM == 'true'
+                            }
+                        }
+                    }
                     steps {
                         container('main') {
                             withCredentials([
@@ -160,14 +167,7 @@ spec:
                                             passwordVariable: 'XTM_TOKEN')
                             ]) {
                                 script {
-                                    if(params.PUSH_I18N_RESOURCES_TO_XTM){
-                                        if ('akhabali/TDI-41939' == env.BRANCH_NAME || 'master' == env.BRANCH_NAME || (env.BRANCH_NAME != null && env.BRANCH_NAME.startsWith('maintenance/'))) {
-                                           sh "cd ci_xtm && mvn -e -B -s .jenkins/settings.xml clean package -DskipTests -pl . -Pi18n-export ${talendOssRepositoryArg}"
-                                        } else {
-                                            currentBuild.result = 'ABORTED'
-                                            error('You can only publish resources to xtm from master or maintenance branches.\nThe branch was : ' + env.BRANCH_NAME)
-                                        }
-                                    }
+                                    sh "cd ci_xtm && mvn -e -B -s .jenkins/settings.xml clean package -DskipTests -pl . -Pi18n-export ${talendOssRepositoryArg}"
                                 }
                             }
                         }
@@ -176,12 +176,13 @@ spec:
             }
         }
     }
-    post {
-        success {
-            slackSend(color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})", channel: "${slackChannel}")
-        }
-        failure {
-            slackSend(color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})", channel: "${slackChannel}")
-        }
+}
+post {
+    success {
+        slackSend(color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})", channel: "${slackChannel}")
     }
+    failure {
+        slackSend(color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})", channel: "${slackChannel}")
+    }
+}
 }
