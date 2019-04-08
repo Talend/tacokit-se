@@ -151,6 +151,10 @@ spec:
                         container('main') {
                             withCredentials([
                                     usernamePassword(
+                                            credentialsId: 'nexus-artifact-zl-credentials',
+                                            usernameVariable: 'NEXUS_USER',
+                                            passwordVariable: 'NEXUS_PASSWORD'),
+                                    usernamePassword(
                                             credentialsId: 'xtm-credentials',
                                             usernameVariable: 'XTM_USER',
                                             passwordVariable: 'XTM_TOKEN')
