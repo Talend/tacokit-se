@@ -148,10 +148,9 @@ spec:
                 }
                 stage('Xtm') {
                     when {
-                            expression {
-                                BRANCH_NAME ==~ /(master|maintenance|akhabali\/TDI-41939)/ &&
-                                params.PUSH_I18N_RESOURCES_TO_XTM == 'true'
-                            }
+                        expression {
+                            BRANCH_NAME ==~ /(master|maintenance|akhabali\/TDI-41939)/ &&
+                                    params.PUSH_I18N_RESOURCES_TO_XTM == 'true'
                         }
                     }
                     steps {
@@ -176,13 +175,12 @@ spec:
             }
         }
     }
-}
-post {
-    success {
-        slackSend(color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})", channel: "${slackChannel}")
+    post {
+        success {
+            slackSend(color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})", channel: "${slackChannel}")
+        }
+        failure {
+            slackSend(color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})", channel: "${slackChannel}")
+        }
     }
-    failure {
-        slackSend(color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})", channel: "${slackChannel}")
-    }
-}
 }
