@@ -87,7 +87,6 @@
         <frontend.version>1.7.5</frontend.version>
         <node.version>v10.15.3</node.version>
         <yarn.version>v1.15.2</yarn.version>
-        <i18n-scripts.version>0.2.1</i18n-scripts.version>
 
         <!-- The XTM customer id that manage the translation of this project-->
         <xtm.customer.id>23</xtm.customer.id>
@@ -668,7 +667,7 @@
                                     <goal>yarn</goal>
                                 </goals>
                                 <configuration>
-                                    <arguments>add @talend/i18n-scripts@${i18n-scripts.version}</arguments>
+                                    <arguments>install</arguments>
                                 </configuration>
                             </execution>
                             <execution>
