@@ -23,7 +23,7 @@ spec:
     containers:
         -
             name: main
-            image: 'khabali/docker-sdkman:latest'
+            image: 'khabali/jenkins-java-build-container:latest'
             command: [cat]
             tty: true
             volumeMounts: [{name: docker, mountPath: /var/run/docker.sock}, {name: m2main, mountPath: /root/.m2/repository}]
@@ -63,7 +63,7 @@ spec:
             steps {
                 container('main') {
                     // for next concurrent builds
-                    sh 'for i in ci_documentation ci_nexus ci_site; do rm -Rf $i; rsync -av . $i; done'
+                    sh 'for i in ci_documentation ci_nexus ci_site ci_xtm; do rm -Rf $i; rsync -av . $i; done'
                     // real task
                     withCredentials([
                             usernamePassword(
@@ -158,7 +158,7 @@ spec:
                                 script {
                                     if(params.PUSH_I18N_RESOURCES_TO_XTM){
                                         if ('akhabali/TDI-41939' == env.BRANCH_NAME || 'master' == env.BRANCH_NAME || (env.BRANCH_NAME != null && env.BRANCH_NAME.startsWith('maintenance/'))) {
-                                           sh "mvn -e -B -s .jenkins/settings.xml clean package -DskipTests -pl . -Pi18n-export ${talendOssRepositoryArg}"
+                                           sh "cd ci_xtm && mvn -e -B -s .jenkins/settings.xml clean package -DskipTests -pl . -Pi18n-export ${talendOssRepositoryArg}"
                                         } else {
                                             currentBuild.result = 'ABORTED'
                                             error('You can only publish resources to xtm from master or maintenance branches.\nThe branch was : ' + env.BRANCH_NAME)
