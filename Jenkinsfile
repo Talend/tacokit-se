@@ -148,9 +148,11 @@ spec:
                 }
                 stage('Xtm') {
                     when {
-                        expression {
-                            BRANCH_NAME ==~ /(master|maintenance|akhabali\/TDI-41939)/ &&
-                                    params.PUSH_I18N_RESOURCES_TO_XTM == true
+                        expression { params.PUSH_I18N_RESOURCES_TO_XTM == true }
+                        anyOf {
+                            branch 'master'
+                            expression { BRANCH_NAME.startsWith('maintenance/') }
+                            branch 'akhabali/TDI-41939' // for dev todo : to be removed before merging
                         }
                     }
                     steps {
