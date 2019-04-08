@@ -150,7 +150,7 @@ spec:
                     when {
                         expression {
                             BRANCH_NAME ==~ /(master|maintenance|akhabali\/TDI-41939)/ &&
-                                    params.PUSH_I18N_RESOURCES_TO_XTM == 'true'
+                                    params.PUSH_I18N_RESOURCES_TO_XTM == true
                         }
                     }
                     steps {
