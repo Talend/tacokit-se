@@ -8,5 +8,15 @@
   },
   "load": {
     "project": "UI - Connectors-se"
+  },
+  "github": {
+    "url": "https://github.com/Talend/i18n-product.git"
+  },
+  "module": {
+    "type": "mvn",
+    "repository": {
+      "id": "talend_nexus_deployment",
+      "url": "https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceRelease/"
+    }
   }
 }
