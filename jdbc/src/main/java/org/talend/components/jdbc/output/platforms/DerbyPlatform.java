@@ -21,10 +21,6 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
 
-/**
- * syntax detail can be found at <a href="https://dev.mysql.com/doc/refman/8.0/en/create-table.html syntax
- * detail">https://dev.mysql.com/doc/refman/8.0/en/create-table.html</a>
- */
 @Slf4j
 public class DerbyPlatform extends Platform {
 

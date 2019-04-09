@@ -50,7 +50,8 @@ public abstract class Platform implements Serializable {
     protected abstract String buildQuery(final Table table);
 
     /**
-     * @param e if the exception if a table allready exist ignore it. otherwise re throw e
+     * @param e if the exception if a table already exist ignore it. otherwise re throw e
+     * @return true if the error is because the table already exist
      */
     protected abstract boolean isTableExistsCreationError(final Throwable e);
 
@@ -116,6 +117,7 @@ public abstract class Platform implements Serializable {
 
     /**
      * Add platform related properties to jdbc connections
+     * @param dataSource the data source object to be configured
      */
     public void addDataSourceProperties(final HikariDataSource dataSource) {
         // to be override by impl

@@ -74,6 +74,8 @@ public class JdbcService {
     }
 
     /**
+     *
+     * @param query the query to check
      * @return return false if the sql query is not a read only query, true otherwise
      */
     public boolean isNotReadOnlySQLQuery(final String query) {
