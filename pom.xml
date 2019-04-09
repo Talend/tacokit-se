@@ -639,7 +639,6 @@
 
     <profiles>
         <profile>
-            <!-- This profile extract, package and upload the i18n resource to xtm for translation. can be activated with -Pi18n-export -->
             <id>i18n-export</id>
             <build>
                 <plugins>
@@ -705,7 +704,6 @@
             </build>
         </profile>
         <profile>
-            <!-- This profile extract, package and upload the i18n resource to xtm for translation. can be activated with -Pi18n-export -->
             <id>i18n-deploy</id>
             <build>
                 <plugins>
