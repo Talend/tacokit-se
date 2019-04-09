@@ -55,7 +55,8 @@ spec:
     }
 
     parameters {
-        booleanParam(name: 'PUSH_I18N_RESOURCES_TO_XTM', defaultValue: false, description: 'export the project i18n resources to XTM to be translated. This action can be performed from master or maintenance branches only.')
+        booleanParam(name: 'PUSH_TO_XTM', defaultValue: false, description: 'Export the project i18n resources to Xtm to be translated. This action can be performed from master or maintenance branches only.')
+        booleanParam(name: 'DEPLOY_FROM_XTM', defaultValue: false, description: 'Download and deploy i18n resources from Xtm to nexus for this branch.')
     }
 
     stages {
@@ -146,9 +147,9 @@ spec:
                         }
                     }
                 }
-                stage('Xtm') {
+                stage('Push to Xtm') {
                     when {
-                        expression { params.PUSH_I18N_RESOURCES_TO_XTM == true }
+                        expression { params.PUSH_TO_XTM == true }
                         anyOf {
                             branch 'master'
                             expression { BRANCH_NAME.startsWith('maintenance/') }
@@ -168,7 +169,36 @@ spec:
                                             passwordVariable: 'XTM_TOKEN')
                             ]) {
                                 script {
-                                    sh "cd ci_xtm && mvn -e -B -s .jenkins/settings.xml clean package -DskipTests -pl . -Pi18n-export ${talendOssRepositoryArg}"
+                                    sh "cd ci_xtm && mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-export"
+                                }
+                            }
+                        }
+                    }
+                }
+                stage('Deploy from Xtm') {
+                    when {
+                        expression { params.DEPLOY_FROM_XTM == true }
+                        anyOf {
+                            branch 'master'
+                            expression { BRANCH_NAME.startsWith('maintenance/') }
+                            branch 'akhabali/TDI-41939' // for dev todo : to be removed before merging
+                        }
+                    }
+                    steps {
+                        container('main') {
+                            withCredentials([
+                                    usernamePassword(
+                                            credentialsId: 'nexus-artifact-zl-credentials',
+                                            usernameVariable: 'NEXUS_USER',
+                                            passwordVariable: 'NEXUS_PASSWORD'),
+                                    usernamePassword(
+                                            credentialsId: 'xtm-credentials',
+                                            usernameVariable: 'XTM_USER',
+                                            passwordVariable: 'XTM_TOKEN')
+                            ]) {
+                                script {
+                                    sh "cd ci_xtm && mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-deploy"
+                                    sh "cd tmp/repository && mvn -s .jenkins/settings.xml clean deploy"
                                 }
                             }
                         }
