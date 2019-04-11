@@ -14,14 +14,10 @@ import lombok.Data;
 
 @Data
 @DataStore
-@GridLayout({ @GridLayout.Row({ "resource" }), @GridLayout.Row({ "type" }), @GridLayout.Row({ "basic" }),
-        @GridLayout.Row({ "bearerToken" }), @GridLayout.Row({ "oauth2" }), })
+@GridLayout({ @GridLayout.Row({ "type" }), @GridLayout.Row({ "basic" }), @GridLayout.Row({ "bearerToken" }),
+        @GridLayout.Row({ "oauth2" }), })
 @Documentation("Http authentication data store")
 public class Authentication implements Serializable {
-
-    @Option
-    @Documentation("End of url to complete base url of the datastore")
-    private String resource;
 
     @Option
     @Documentation("")

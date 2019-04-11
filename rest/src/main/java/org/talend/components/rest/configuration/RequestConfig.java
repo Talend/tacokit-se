@@ -28,19 +28,13 @@ import static java.util.stream.Collectors.toMap;
 import static org.talend.components.rest.configuration.RequestBody.Type.X_WWW_FORM_URLENCODED;
 
 @Data
-@GridLayout({ @GridLayout.Row({ "dataset" }), @GridLayout.Row({ "methodType" }), @GridLayout.Row({ "hasHeaders" }),
-        @GridLayout.Row({ "headers" }), @GridLayout.Row({ "hasQueryParam" }), @GridLayout.Row({ "queryParams" }),
-        @GridLayout.Row({ "body" }), })
+@GridLayout({ @GridLayout.Row({ "dataset" }), @GridLayout.Row({ "hasHeaders" }), @GridLayout.Row({ "headers" }),
+        @GridLayout.Row({ "hasQueryParam" }), @GridLayout.Row({ "queryParams" }), @GridLayout.Row({ "body" }), })
 public class RequestConfig implements Serializable {
 
     @Option
     @Documentation("Identification of the resource to access")
     private Dataset dataset;
-
-    @Option
-    @DefaultValue("GET")
-    @Documentation("Action on the resource")
-    private HttpMethod methodType;
 
     @Option
     @Documentation("Http request contains headers")
@@ -89,6 +83,15 @@ public class RequestConfig implements Serializable {
         default:
             return false;
         }
+    }
+
+    public RequestBody body() {
+        RequestBody _body = null;
+        if (hasPayLoad()) {
+            _body = this.body;
+        }
+
+        return _body;
     }
 
 }
