@@ -61,10 +61,13 @@ spec:
 
     stages {
         stage('Run maven') {
+            when {
+                expression { params.PUSH_TO_XTM == false && params.DEPLOY_FROM_XTM == false }
+            }
             steps {
                 container('main') {
                     // for next concurrent builds
-                    sh 'for i in ci_documentation ci_nexus ci_site ci_xtm; do rm -Rf $i; rsync -av . $i; done'
+                    sh 'for i in ci_documentation ci_nexus ci_site; do rm -Rf $i; rsync -av . $i; done'
                     // real task
                     withCredentials([
                             usernamePassword(
@@ -91,6 +94,9 @@ spec:
             }
         }
         stage('Post Build Steps') {
+            when {
+                expression { params.PUSH_TO_XTM == false && params.DEPLOY_FROM_XTM == false }
+            }
             parallel {
                 stage('Documentation') {
                     steps {
@@ -147,60 +153,60 @@ spec:
                         }
                     }
                 }
-                stage('Push to Xtm') {
-                    when {
-                        expression { params.PUSH_TO_XTM == true }
-                        anyOf {
-                            branch 'master'
-                            expression { BRANCH_NAME.startsWith('maintenance/') }
-                            branch 'akhabali/TDI-41939' // for dev todo : to be removed before merging
-                        }
-                    }
-                    steps {
-                        container('main') {
-                            withCredentials([
-                                    usernamePassword(
-                                            credentialsId: 'nexus-artifact-zl-credentials',
-                                            usernameVariable: 'NEXUS_USER',
-                                            passwordVariable: 'NEXUS_PASSWORD'),
-                                    usernamePassword(
-                                            credentialsId: 'xtm-credentials',
-                                            usernameVariable: 'XTM_USER',
-                                            passwordVariable: 'XTM_TOKEN')
-                            ]) {
-                                script {
-                                    sh "cd ci_xtm && mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-export"
-                                }
-                            }
+            }
+        }
+        stage('Push to Xtm') {
+            when {
+                expression { params.PUSH_TO_XTM == true }
+                anyOf {
+                    branch 'master'
+                    expression { BRANCH_NAME.startsWith('maintenance/') }
+                    branch 'akhabali/TDI-41939' // for dev todo : to be removed before merging
+                }
+            }
+            steps {
+                container('main') {
+                    withCredentials([
+                            usernamePassword(
+                                    credentialsId: 'nexus-artifact-zl-credentials',
+                                    usernameVariable: 'NEXUS_USER',
+                                    passwordVariable: 'NEXUS_PASSWORD'),
+                            usernamePassword(
+                                    credentialsId: 'xtm-credentials',
+                                    usernameVariable: 'XTM_USER',
+                                    passwordVariable: 'XTM_TOKEN')
+                    ]) {
+                        script {
+                            sh "mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-export"
                         }
                     }
                 }
-                stage('Deploy from Xtm') {
-                    when {
-                        expression { params.DEPLOY_FROM_XTM == true }
-                        anyOf {
-                            branch 'master'
-                            expression { BRANCH_NAME.startsWith('maintenance/') }
-                            branch 'akhabali/TDI-41939' // for dev todo : to be removed before merging
-                        }
-                    }
-                    steps {
-                        container('main') {
-                            withCredentials([
-                                    usernamePassword(
-                                            credentialsId: 'nexus-artifact-zl-credentials',
-                                            usernameVariable: 'NEXUS_USER',
-                                            passwordVariable: 'NEXUS_PASSWORD'),
-                                    usernamePassword(
-                                            credentialsId: 'xtm-credentials',
-                                            usernameVariable: 'XTM_USER',
-                                            passwordVariable: 'XTM_TOKEN')
-                            ]) {
-                                script {
-                                    sh "cd ci_xtm && mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-deploy"
-                                    sh "cd tmp/repository && mvn -s .jenkins/settings.xml clean deploy"
-                                }
-                            }
+            }
+        }
+        stage('Deploy from Xtm') {
+            when {
+                expression { params.DEPLOY_FROM_XTM == true }
+                anyOf {
+                    branch 'master'
+                    expression { BRANCH_NAME.startsWith('maintenance/') }
+                    branch 'akhabali/TDI-41939' // for dev todo : to be removed before merging
+                }
+            }
+            steps {
+                container('main') {
+                    withCredentials([
+                            usernamePassword(
+                                    credentialsId: 'nexus-artifact-zl-credentials',
+                                    usernameVariable: 'NEXUS_USER',
+                                    passwordVariable: 'NEXUS_PASSWORD'),
+                            usernamePassword(
+                                    credentialsId: 'xtm-credentials',
+                                    usernameVariable: 'XTM_USER',
+                                    passwordVariable: 'XTM_TOKEN')
+                    ]) {
+                        script {
+                            sh "mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-deploy"
+                            sh "cd tmp/repository && mvn -s .jenkins/settings.xml clean deploy"
                         }
                     }
                 }
