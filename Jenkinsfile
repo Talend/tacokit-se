@@ -202,7 +202,11 @@ spec:
                             usernamePassword(
                                     credentialsId: 'xtm-credentials',
                                     usernameVariable: 'XTM_USER',
-                                    passwordVariable: 'XTM_TOKEN')
+                                    passwordVariable: 'XTM_TOKEN'),
+                            usernamePassword(
+                                    credentialsId: 'talend-connectors-github',
+                                    usernameVariable: 'GITHUB_LOGIN',
+                                    passwordVariable: 'GITHUB_TOKEN')
                     ]) {
                         script {
                             sh "mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-deploy"
