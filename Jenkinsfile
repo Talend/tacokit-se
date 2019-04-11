@@ -204,7 +204,7 @@ spec:
                                     usernameVariable: 'XTM_USER',
                                     passwordVariable: 'XTM_TOKEN'),
                             usernamePassword(
-                                    credentialsId: 'talend-connectors-github',
+                                    credentialsId: 'github',
                                     usernameVariable: 'GITHUB_LOGIN',
                                     passwordVariable: 'GITHUB_TOKEN')
                     ]) {
