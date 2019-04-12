@@ -45,15 +45,15 @@ public abstract class Output implements Serializable {
 
     private final I18nMessage i18n;
 
-    private transient List<Record> records;
+    protected transient List<Record> records;
 
-    private transient JdbcService.JdbcDatasource datasource;
+    protected transient JdbcService.JdbcDatasource datasource;
 
     private Boolean tableExistsCheck;
 
     private boolean tableCreated;
 
-    private transient boolean init;
+    protected transient boolean init;
 
     public Output(final OutputConfig outputConfig, final JdbcService jdbcService, final I18nMessage i18nMessage) {
         this.configuration = outputConfig;
