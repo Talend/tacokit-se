@@ -210,7 +210,7 @@ spec:
                     ]) {
                         script {
                             sh "mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-deploy"
-                            sh "cd tmp/repository && mvn -s .jenkins/settings.xml clean deploy"
+                            sh "cd tmp/repository && mvn -s ../../.jenkins/settings.xml clean deploy"
                         }
                     }
                 }
