@@ -15,11 +15,8 @@ package org.talend.components.rest.service;
 public class BaseTest {
 
     // Set true to enabled capture when writing test
-
-    /*
-     * static {
-     * System.setProperty("talend.junit.http.capture", "true");
-     * }
-     */
+    /*static {
+        System.setProperty("talend.junit.http.capture", "true");
+    }*/
 
 }

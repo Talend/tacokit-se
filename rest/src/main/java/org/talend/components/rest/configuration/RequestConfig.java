@@ -28,58 +28,34 @@ import static java.util.stream.Collectors.toMap;
 import static org.talend.components.rest.configuration.RequestBody.Type.X_WWW_FORM_URLENCODED;
 
 @Data
-@GridLayout({ @GridLayout.Row({ "dataset" }), @GridLayout.Row({ "hasHeaders" }), @GridLayout.Row({ "headers" }),
-        @GridLayout.Row({ "hasQueryParam" }), @GridLayout.Row({ "queryParams" }), @GridLayout.Row({ "body" }), })
+@GridLayout({ @GridLayout.Row({ "dataset" }) })
 public class RequestConfig implements Serializable {
 
     @Option
     @Documentation("Identification of the resource to access")
     private Dataset dataset;
 
-    @Option
-    @Documentation("Http request contains headers")
-    private Boolean hasHeaders = false;
-
-    @Option
-    @ActiveIf(target = "hasHeaders", value = "true")
-    @Documentation("Http request headers")
-    private List<Param> headers = new ArrayList<>();
-
-    @Option
-    @Documentation("Http request contains query params")
-    private Boolean hasQueryParam = false;
-
-    @Option
-    @ActiveIf(target = "hasQueryParam", value = "true")
-    @Documentation("Http request query params")
-    private List<Param> queryParams = new ArrayList<>();
-
-    @Option
-    @ActiveIf(target = "methodType", value = { "POST", "PUT", "PATCH", "DELETE", "OPTIONS" })
-    @Documentation("")
-    private RequestBody body;
-
     public Map<String, String> queryParams() {
-        return queryParams.stream().collect(toMap(Param::getKey, Param::getValue));
+        return dataset.getQueryParams().stream().collect(toMap(Param::getKey, Param::getValue));
     }
 
     public Map<String, String> headers() {
-        final Map<String, String> h = headers.stream().collect(toMap(Param::getKey, Param::getValue));
-        if (body != null && hasPayLoad() && X_WWW_FORM_URLENCODED.equals(body.getType())) {
+        final Map<String, String> h = dataset.getHeaders().stream().collect(toMap(Param::getKey, Param::getValue));
+        if (dataset.getBody() != null && hasPayLoad() && X_WWW_FORM_URLENCODED.equals(dataset.getBody().getType())) {
             h.put("Content-Type", "application/x-www-form-urlencoded");
         }
         return h;
     }
 
     public boolean hasPayLoad() {
-        switch (body.getType()) {
+        switch (dataset.getBody().getType()) {
         case RAW:
-            return body.getRawValue() != null && !body.getRawValue().isEmpty();
+            return dataset.getBody().getRawValue() != null && !dataset.getBody().getRawValue().isEmpty();
         case BINARY:
-            return body.getBinaryPath() != null && !body.getBinaryPath().isEmpty();
+            return dataset.getBody().getBinaryPath() != null && !dataset.getBody().getBinaryPath().isEmpty();
         case X_WWW_FORM_URLENCODED:
         case FORM_DATA:
-            return body.getParams() != null && !body.getParams().isEmpty();
+            return dataset.getBody().getParams() != null && !dataset.getBody().getParams().isEmpty();
         default:
             return false;
         }
@@ -88,7 +64,7 @@ public class RequestConfig implements Serializable {
     public RequestBody body() {
         RequestBody _body = null;
         if (hasPayLoad()) {
-            _body = this.body;
+            _body = this.dataset.getBody();
         }
 
         return _body;

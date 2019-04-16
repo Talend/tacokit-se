@@ -68,24 +68,18 @@ class ClientTest extends BaseTest {
         dse.setDatastore(dso);
         dse.setAuthentication(auth);
         dse.setMethodType(HttpMethod.GET);
-        dse.setConnectionTimeout(10);
-        dse.setReadTimeout(10);
+        dse.setConnectionTimeout(1000);
+        dse.setReadTimeout(1000);
 
         RequestBody body = new RequestBody();
         body.setType(RequestBody.Type.RAW);
 
         config.setDataset(dse);
-        config.setBody(body);
-        config.setHasHeaders(false);
-        config.setHasQueryParam(false);
-        config.setHasQueryParam(false);
+        config.getDataset().setBody(body);
+        config.getDataset().setHasHeaders(false);
+        config.getDataset().setHasQueryParam(false);
+        config.getDataset().setHasQueryParam(false);
 
-        // String url = this.buildUrl(config);
-
-        /*
-         * Response<JsonObject> resp = client.execute(config, client, config.getDataset().getMethodType().name(), url,
-         * config.headers(), config.queryParams(), config.body());
-         */
         Record resp = service.execute(config);
 
         assertEquals(200, resp.getInt("status"));
@@ -115,11 +109,9 @@ class ClientTest extends BaseTest {
         JsonObject headersJson = bodyJson.getJsonObject("headers");
         headersJson.keySet().stream().forEach(k -> assertEquals(headersValid.get(k), headersJson.getString(k)));
 
-        JsonObject originJson = bodyJson.getJsonObject("origin");
-        assertEquals("84.14.92.154, 84.14.92.154", originJson.getString("origin"));
-
-        JsonObject url = bodyJson.getJsonObject("url");
-        assertEquals("https://httpbin.org/get", originJson.getString("url"));
+        //JsonObject originJson = bodyJson.getJsonObject("origin");
+        assertEquals("93.24.102.140, 93.24.102.140", bodyJson.getString("origin"));
+        assertEquals("https://httpbin.org/get", bodyJson.getString("url"));
     }
 
 }

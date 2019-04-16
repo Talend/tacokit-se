@@ -24,14 +24,17 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @Version(1)
 @Data
 @DataSet("Dataset")
 @GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "methodType" }), @GridLayout.Row({ "resource" }),
-        @GridLayout.Row({ "authentication" }) })
+        @GridLayout.Row({ "authentication" }), @GridLayout.Row({ "hasHeaders" }), @GridLayout.Row({ "headers" }),
+        @GridLayout.Row({ "hasQueryParam" }), @GridLayout.Row({ "queryParams" }), @GridLayout.Row({ "body" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "redirect", "force_302_redirect" }),
-        @GridLayout.Row({ "connectionTimeout" }), @GridLayout.Row({ "readTimeout" }), })
+        @GridLayout.Row({ "connectionTimeout" }), @GridLayout.Row({ "readTimeout" }) })
 @Documentation("Define the resource and authentication")
 public class Dataset implements Serializable {
 
@@ -70,5 +73,28 @@ public class Dataset implements Serializable {
     @Documentation("")
     @ActiveIf(target = "redirect", value = "true")
     private Boolean force_302_redirect;
+
+    @Option
+    @Documentation("Http request contains headers")
+    private Boolean hasHeaders = false;
+
+    @Option
+    @ActiveIf(target = "hasHeaders", value = "true")
+    @Documentation("Http request headers")
+    private List<Param> headers = new ArrayList<>();
+
+    @Option
+    @Documentation("Http request contains query params")
+    private Boolean hasQueryParam = false;
+
+    @Option
+    @ActiveIf(target = "hasQueryParam", value = "true")
+    @Documentation("Http request query params")
+    private List<Param> queryParams = new ArrayList<>();
+
+    @Option
+    @ActiveIf(target = "methodType", value = { "POST", "PUT", "PATCH", "DELETE", "OPTIONS" })
+    @Documentation("")
+    private RequestBody body;
 
 }
