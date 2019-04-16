@@ -77,8 +77,8 @@ class ClientTest extends BaseTest {
         config.setDataset(dse);
         config.getDataset().setBody(body);
         config.getDataset().setHasHeaders(false);
-        config.getDataset().setHasQueryParam(false);
-        config.getDataset().setHasQueryParam(false);
+        config.getDataset().setHasQueryParams(false);
+        config.getDataset().setHasPathParams(false);
 
         Record resp = service.execute(config);
 
@@ -109,7 +109,7 @@ class ClientTest extends BaseTest {
         JsonObject headersJson = bodyJson.getJsonObject("headers");
         headersJson.keySet().stream().forEach(k -> assertEquals(headersValid.get(k), headersJson.getString(k)));
 
-        //JsonObject originJson = bodyJson.getJsonObject("origin");
+        // JsonObject originJson = bodyJson.getJsonObject("origin");
         assertEquals("93.24.102.140, 93.24.102.140", bodyJson.getString("origin"));
         assertEquals("https://httpbin.org/get", bodyJson.getString("url"));
     }

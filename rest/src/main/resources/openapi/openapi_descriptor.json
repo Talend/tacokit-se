@@ -1,0 +1,297 @@
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "title" : "MyTaskAPI",
+    "description" : "An API for managing a list of tasks that need to be done. ",
+    "termsOfService" : "",
+    "contact" : { },
+    "version" : "1.1.0"
+  },
+  "paths" : {
+    "/tasks/" : {
+      "get" : {
+        "summary" : "Load the list of Tasks",
+        "parameters" : [ {
+          "name" : "$size",
+          "in" : "query",
+          "description" : "Size of the page to retrieve.",
+          "schema" : {
+            "type" : "integer",
+            "description" : "Size of the page to retrieve."
+          },
+          "example" : 10
+        }, {
+          "name" : "$page",
+          "in" : "query",
+          "description" : "Number of the page to retrieve.",
+          "schema" : {
+            "type" : "integer",
+            "description" : "Number of the page to retrieve."
+          },
+          "example" : 1
+        }, {
+          "name" : "$sort",
+          "in" : "query",
+          "description" : "Order in which to retrieve the results. Multiple sort criteria can be passed. Example: sort=age ASC,height DESC",
+          "schema" : {
+            "type" : "string",
+            "description" : "Order in which to retrieve the results. Multiple sort criteria can be passed. Example: sort=age ASC,height DESC"
+          },
+          "example" : "createdAt DESC"
+        }, {
+          "name" : "id",
+          "in" : "query",
+          "description" : "Allows to filter the collection of results by the value of field `id`",
+          "schema" : {
+            "type" : "string",
+            "description" : "Allows to filter the collection of results by the value of field `id`"
+          },
+          "example" : "47ee3550-b619-11e6-8408-0bdb025a7cfa"
+        }, {
+          "name" : "name",
+          "in" : "query",
+          "description" : "Allows to filter the collection of results by the value of field `name`",
+          "schema" : {
+            "type" : "string",
+            "description" : "Allows to filter the collection of results by the value of field `name`"
+          },
+          "example" : "Learn about hypermedia APIs"
+        }, {
+          "name" : "createdAt",
+          "in" : "query",
+          "description" : "Allows to filter the collection of results by the value of field `createdAt`",
+          "schema" : {
+            "type" : "string",
+            "description" : "Allows to filter the collection of results by the value of field `createdAt`"
+          },
+          "example" : "2016.07.03"
+        }, {
+          "name" : "completed",
+          "in" : "query",
+          "description" : "Allows to filter the collection of results by the value of field `completed`",
+          "schema" : {
+            "type" : "boolean",
+            "description" : "Allows to filter the collection of results by the value of field `completed`"
+          },
+          "example" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Status 200",
+            "headers" : {
+              "X-Page-Count" : {
+                "schema" : {
+                  "type" : "integer"
+                },
+                "example" : 1
+              },
+              "X-Page-Number" : {
+                "schema" : {
+                  "type" : "integer"
+                },
+                "example" : 1
+              },
+              "X-Page-Size" : {
+                "schema" : {
+                  "type" : "integer"
+                },
+                "example" : 25
+              },
+              "X-Total-Count" : {
+                "schema" : {
+                  "type" : "integer"
+                },
+                "example" : 2
+              }
+            },
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Task"
+                  }
+                },
+                "example" : "[{\n  \"id\": \"47ee3550-b619-11e6-8408-0bdb025a7cfa\",\n  \"name\": \"Feed the fish\",\n  \"completed\": false,\n  \"createdAt\": \"2016.07.03\"\n}]"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Status 400",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "summary" : "Create a new Task",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Task"
+              },
+              "example" : "{\n  \"name\": \"Feed the fish\",\n  \"completed\": false,\n  \"createdAt\": \"2016.07.03\"\n}"
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Status 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                },
+                "example" : "{\n  \"id\": \"47ee3550-b619-11e6-8408-0bdb025a7cfa\",\n  \"name\": \"Feed the fish\",\n  \"completed\": false,\n  \"createdAt\": \"2016.07.03\"\n}"
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "HTTP_BASIC" : [ ]
+        } ]
+      }
+    },
+    "/tasks/{taskid}" : {
+      "get" : {
+        "summary" : "Load a specific Task",
+        "responses" : {
+          "200" : {
+            "description" : "Status 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                },
+                "example" : "{\n  \"id\": \"47ee3550-b619-11e6-8408-0bdb025a7cfa\",\n  \"name\": \"Feed the fish\",\n  \"completed\": false,\n  \"createdAt\": \"2016.07.03\"\n}"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Status 400",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "summary" : "Update a Task",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Task"
+              },
+              "example" : "{\n  \"name\": \"Feed the fish\",\n  \"completed\": false,\n  \"createdAt\": \"2016.07.03\"\n}"
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Status 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                },
+                "example" : "{\n  \"id\": \"47ee3550-b619-11e6-8408-0bdb025a7cfa\",\n  \"name\": \"Feed the fish\",\n  \"completed\": false,\n  \"createdAt\": \"2016.07.03\"\n}"
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "HTTP_BASIC" : [ ]
+        } ]
+      },
+      "delete" : {
+        "summary" : "Delete a Task",
+        "responses" : {
+          "200" : {
+            "description" : "Status 200"
+          }
+        },
+        "security" : [ {
+          "HTTP_BASIC" : [ ]
+        } ]
+      },
+      "parameters" : [ {
+        "name" : "taskid",
+        "in" : "path",
+        "required" : true,
+        "description" : "Identifier of the Task",
+        "schema" : {
+          "type" : "string",
+          "description" : "Identifier of the Task"
+        },
+        "example" : "47ee3550-b619-11e6-8408-0bdb025a7cfa"
+      } ]
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "Task" : {
+        "type" : "object",
+        "required" : [ "completed", "id", "name" ],
+        "description" : "An object that represents a Task.",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Auto-generated primary key field",
+            "example" : "3fa2eb40-b61c-11e6-9de0-fdbe71bceebb"
+          },
+          "name" : {
+            "type" : "string",
+            "example" : "Figure out how to colonize Mars"
+          },
+          "completed" : {
+            "type" : "boolean"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "example" : "2016.10.06"
+          }
+        },
+        "example" : "{\n  \"id\": \"47ee3550-b619-11e6-8408-0bdb025a7cfa\",\n  \"name\": \"Feed the fish\",\n  \"completed\": false,\n  \"createdAt\": \"2016.07.03\"\n}"
+      },
+      "Error" : {
+        "type" : "object",
+        "required" : [ "code" ],
+        "description" : "This general error structure is used throughout this API.",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "minimum" : 400,
+            "maximum" : 599
+          },
+          "description" : {
+            "type" : "string",
+            "example" : "Bad query parameter [$size]: Invalid integer value [abc]"
+          },
+          "reasonPhrase" : {
+            "type" : "string",
+            "example" : "Bad Request"
+          }
+        },
+        "example" : "{\n  \"code\": 400,\n  \"description\": \"Bad query parameter [$size]: Invalid integer value [abc]\",\n  \"reasonPhrase\": \"Bad Request\"\n}"
+      }
+    },
+    "securitySchemes" : {
+      "HTTP_BASIC" : {
+        "type" : "http",
+        "scheme" : "basic",
+        "description" : "All GET methods are public, meaning that *you can read all the data*. Write operations require authentication and therefore are forbidden to the general public."
+      }
+    }
+  }
+}

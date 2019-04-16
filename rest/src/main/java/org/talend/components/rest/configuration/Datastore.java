@@ -35,4 +35,11 @@ public class Datastore implements Serializable {
     @Documentation("")
     private String base;
 
+    /*
+     * @Option
+     * 
+     * @Documentation("")
+     * private boolean useDescriptor;
+     */
+
 }

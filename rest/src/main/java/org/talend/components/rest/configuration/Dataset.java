@@ -30,9 +30,10 @@ import java.util.List;
 @Version(1)
 @Data
 @DataSet("Dataset")
-@GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "methodType" }), @GridLayout.Row({ "resource" }),
-        @GridLayout.Row({ "authentication" }), @GridLayout.Row({ "hasHeaders" }), @GridLayout.Row({ "headers" }),
-        @GridLayout.Row({ "hasQueryParam" }), @GridLayout.Row({ "queryParams" }), @GridLayout.Row({ "body" }) })
+@GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "resource" }), @GridLayout.Row({ "methodType" }),
+        @GridLayout.Row({ "authentication" }), @GridLayout.Row({ "hasPathParams" }), @GridLayout.Row({ "pathParams" }),
+        @GridLayout.Row({ "hasHeaders" }), @GridLayout.Row({ "headers" }), @GridLayout.Row({ "hasQueryParams" }),
+        @GridLayout.Row({ "queryParams" }), @GridLayout.Row({ "body" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "redirect", "force_302_redirect" }),
         @GridLayout.Row({ "connectionTimeout" }), @GridLayout.Row({ "readTimeout" }) })
 @Documentation("Define the resource and authentication")
@@ -75,6 +76,15 @@ public class Dataset implements Serializable {
     private Boolean force_302_redirect;
 
     @Option
+    @Documentation("Http request contains path parameters")
+    private Boolean hasPathParams = false;
+
+    @Option
+    @ActiveIf(target = "hasPathParams", value = "true")
+    @Documentation("Http path parameters")
+    private List<Param> pathParams = new ArrayList<>();
+
+    @Option
     @Documentation("Http request contains headers")
     private Boolean hasHeaders = false;
 
@@ -85,7 +95,7 @@ public class Dataset implements Serializable {
 
     @Option
     @Documentation("Http request contains query params")
-    private Boolean hasQueryParam = false;
+    private Boolean hasQueryParams = false;
 
     @Option
     @ActiveIf(target = "hasQueryParam", value = "true")
