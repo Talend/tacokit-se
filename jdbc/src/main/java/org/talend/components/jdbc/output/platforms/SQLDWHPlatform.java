@@ -11,11 +11,11 @@ import java.sql.Statement;
 import java.util.List;
 
 @Slf4j
-public class SQLDWHPlaform extends MSSQLPlatform {
+public class SQLDWHPlatform extends MSSQLPlatform {
 
     public static final String SQLDWH = "sqldwh";
 
-    public SQLDWHPlaform(I18nMessage i18n) {
+    public SQLDWHPlatform(I18nMessage i18n) {
         super(i18n);
     }
 
