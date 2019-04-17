@@ -20,12 +20,12 @@ import java.util.Locale;
 import static java.util.Optional.ofNullable;
 import static org.talend.components.jdbc.output.platforms.DerbyPlatform.DERBY;
 import static org.talend.components.jdbc.output.platforms.MSSQLPlatform.MSSQL;
-import static org.talend.components.jdbc.output.platforms.MSSQLPlatform.SQLDWH;
 import static org.talend.components.jdbc.output.platforms.MariaDbPlatform.MARIADB;
 import static org.talend.components.jdbc.output.platforms.MySQLPlatform.MYSQL;
 import static org.talend.components.jdbc.output.platforms.OraclePlatform.ORACLE;
 import static org.talend.components.jdbc.output.platforms.PostgreSQLPlatform.POSTGRESQL;
 import static org.talend.components.jdbc.output.platforms.RedshiftPlatform.REDSHIFT;
+import static org.talend.components.jdbc.output.platforms.SQLDWHPlaform.SQLDWH;
 import static org.talend.components.jdbc.output.platforms.SnowflakePlatform.SNOWFLAKE;
 
 public final class PlatformFactory {
@@ -48,7 +48,7 @@ public final class PlatformFactory {
         case MSSQL:
             return new MSSQLPlatform(i18n);
         case SQLDWH:
-            return new MSSQLPlatform(i18n);
+            return new SQLDWHPlaform(i18n);
         case DERBY:
             return new DerbyPlatform(i18n);
         default:
