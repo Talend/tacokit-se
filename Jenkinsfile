@@ -12,6 +12,8 @@ def deploymentSuffix = env.BRANCH_NAME == "master" ? "${PRODUCTION_DEPLOYMENT_RE
 def m2 = "/tmp/jenkins/tdi/m2/${deploymentSuffix}"
 def talendOssRepositoryArg = env.BRANCH_NAME == "master" ? "" : ("-Dtalend_oss_snapshots=https://nexus-smart-branch.datapwn.com/nexus/content/repositories/${deploymentSuffix}")
 
+def calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+
 pipeline {
     agent {
         kubernetes {
@@ -157,7 +159,16 @@ spec:
         }
         stage('Push to Xtm') {
             when {
-                expression { params.PUSH_TO_XTM == true }
+                anyOf{
+                    expression { params.PUSH_TO_XTM == true }
+                    allOf{
+                        triggeredBy 'TimerTrigger'
+                        expression {
+                            // run also every THURSDAY of week 2 and 4
+                            (calendar.get(Calendar.WEEK_OF_MONTH) == 2 ||  calendar.get(Calendar.WEEK_OF_MONTH) == 3) && calendar.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY
+                        }
+                    }
+                }
                 anyOf {
                     branch 'master'
                     expression { BRANCH_NAME.startsWith('maintenance/') }
