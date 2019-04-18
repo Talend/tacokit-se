@@ -162,10 +162,9 @@ spec:
                 anyOf{
                     expression { params.PUSH_TO_XTM == true }
                     allOf{
-                        //triggeredBy 'TimerTrigger'
+                        triggeredBy 'TimerTrigger'
                         expression {
-                            // run also every THURSDAY of week 2 and 4
-                            (calendar.get(Calendar.WEEK_OF_MONTH) == 2 ||  calendar.get(Calendar.WEEK_OF_MONTH) == 3) && calendar.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY
+                            (calendar.get(Calendar.WEEK_OF_MONTH) == 2 ||  calendar.get(Calendar.WEEK_OF_MONTH) == 4) && calendar.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY
                         }
                     }
                 }
