@@ -12,9 +12,7 @@ def deploymentSuffix = env.BRANCH_NAME == "master" ? "${PRODUCTION_DEPLOYMENT_RE
 def m2 = "/tmp/jenkins/tdi/m2/${deploymentSuffix}"
 def talendOssRepositoryArg = env.BRANCH_NAME == "master" ? "" : ("-Dtalend_oss_snapshots=https://nexus-smart-branch.datapwn.com/nexus/content/repositories/${deploymentSuffix}")
 
-def now = new Date()
-def dayOfWeek = now.getAt(Calendar.DAY_OF_WEEK)
-def weekOfMonth = now.getAt(Calendar.WEEK_OF_MONTH)
+def calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
 
 pipeline {
     agent {
@@ -167,7 +165,7 @@ spec:
                         triggeredBy 'TimerTrigger'
                         expression {
                             // run also every THURSDAY of week 2 and 4
-                            (weekOfMonth == 2 ||  weekOfMonth == 3) && dayOfWeek == Calendar.THURSDAY
+                            (calendar.get(Calendar.WEEK_OF_MONTH) == 2 ||  calendar.get(Calendar.WEEK_OF_MONTH) == 3) && calendar.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY
                         }
                     }
                 }
