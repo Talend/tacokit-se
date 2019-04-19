@@ -30,18 +30,15 @@ public class AzureStorageConnectionAccount {
     @Documentation("Name of the storage account you need to access. "
             + "A storage account name can be found in the Storage accounts dashboard of the Microsoft Azure Storage system to be used. "
             + "Ensure that the administrator of the system has granted you the appropriate access permissions to this storage account.")
-    @ActiveIf(target = "useAzureSharedSignature", value = "false")
     private String accountName;
 
     @Option
     @Documentation("The key associated with the storage account you need to access. "
             + "Two keys are available for each account and by default, either of them can be used for this access.")
     @Credential
-    @ActiveIf(target = "useAzureSharedSignature", value = "false")
     private String accountKey;
 
     @Option
     @Documentation("The protocol for connection to be created.")
-    @ActiveIf(target = "useAzureSharedSignature", value = "false")
     private Protocol protocol = Protocol.HTTPS;
 }

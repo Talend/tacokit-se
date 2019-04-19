@@ -20,7 +20,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
 
-@GridLayout({ @GridLayout.Row("useAzureSharedSignature"), @GridLayout.Row("azureSharedAccessSignature") })
+@GridLayout({ @GridLayout.Row("azureSharedAccessSignature") })
 @Data
 public class AzureStorageConnectionSignature {
 
@@ -33,6 +33,5 @@ public class AzureStorageConnectionSignature {
             + "For more information, see Azure documentation.\n" + "Note that the SAS has valid period, "
             + "you can set the start time at which the SAS becomes valid and the expiry time after which the SAS is no longer valid when generating it, "
             + "and you need to make sure your SAS is still valid when running your Job.")
-    @ActiveIf(target = "useAzureSharedSignature", value = "true")
     private String azureSharedAccessSignature;
 }
