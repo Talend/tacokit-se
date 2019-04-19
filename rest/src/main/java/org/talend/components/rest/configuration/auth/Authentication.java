@@ -13,7 +13,6 @@ import org.talend.sdk.component.api.meta.Documentation;
 import lombok.Data;
 
 @Data
-@DataStore
 @GridLayout({ @GridLayout.Row({ "type" }), @GridLayout.Row({ "basic" }), @GridLayout.Row({ "bearerToken" }),
         @GridLayout.Row({ "oauth2" }), })
 @Documentation("Http authentication data store")

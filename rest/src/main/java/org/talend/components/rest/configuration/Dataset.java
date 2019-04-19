@@ -16,6 +16,8 @@ import lombok.Data;
 import org.talend.components.rest.configuration.auth.Authentication;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Suggestable;
+import org.talend.sdk.component.api.configuration.action.Updatable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Min;
 import org.talend.sdk.component.api.configuration.type.DataSet;
@@ -35,7 +37,8 @@ import java.util.List;
         @GridLayout.Row({ "hasHeaders" }), @GridLayout.Row({ "headers" }), @GridLayout.Row({ "hasQueryParams" }),
         @GridLayout.Row({ "queryParams" }), @GridLayout.Row({ "body" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "redirect", "force_302_redirect" }),
-        @GridLayout.Row({ "connectionTimeout" }), @GridLayout.Row({ "readTimeout" }) })
+        @GridLayout.Row({ "hasThrottling", "throttling" }), @GridLayout.Row({ "connectionTimeout" }),
+        @GridLayout.Row({ "readTimeout" }) })
 @Documentation("Define the resource and authentication")
 public class Dataset implements Serializable {
 
@@ -50,6 +53,7 @@ public class Dataset implements Serializable {
 
     @Option
     @Documentation("End of url to complete base url of the datastore")
+    @Suggestable(value = "getPaths", parameters = { "../datastore/useDescriptor", "../datastore/descriptorUrl" })
     private String resource;
 
     @Option
@@ -98,7 +102,7 @@ public class Dataset implements Serializable {
     private Boolean hasQueryParams = false;
 
     @Option
-    @ActiveIf(target = "hasQueryParam", value = "true")
+    @ActiveIf(target = "hasQueryParams", value = "true")
     @Documentation("Http request query params")
     private List<Param> queryParams = new ArrayList<>();
 
@@ -106,5 +110,15 @@ public class Dataset implements Serializable {
     @ActiveIf(target = "methodType", value = { "POST", "PUT", "PATCH", "DELETE", "OPTIONS" })
     @Documentation("")
     private RequestBody body;
+
+    @Option
+    @Documentation("")
+    private boolean hasThrottling;
+
+    @Option
+    @Documentation("")
+    @ActiveIf(target = "hasThrottling", value = "true")
+    @DefaultValue("250")
+    private Integer throttling;
 
 }

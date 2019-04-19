@@ -15,8 +15,12 @@ package org.talend.components.rest.configuration;
 import lombok.Data;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Suggestable;
+import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Pattern;
+import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataStore;
+import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
@@ -26,20 +30,24 @@ import java.io.Serializable;
 @Data
 @DataStore("Datastore")
 @Documentation("Define where is the REST API and its description.")
-@GridLayout({ @GridLayout.Row({ "base" }) })
+@GridLayout({ @GridLayout.Row({ "base" }), @GridLayout.Row({ "useDescriptor" }), @GridLayout.Row({ "descriptorUrl" }) })
 public class Datastore implements Serializable {
 
     @Option
-    // @Pattern("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)")
+    @Required
     @Pattern("^https?://.+$")
     @Documentation("")
+    @Suggestable(value = "getBase", parameters = { "useDescriptor", "descriptorUrl" })
     private String base;
 
-    /*
-     * @Option
-     * 
-     * @Documentation("")
-     * private boolean useDescriptor;
-     */
+    @Option
+    @Documentation("")
+    private boolean useDescriptor;
+
+    @Option
+    @Documentation("")
+    @ActiveIf(target = "useDescriptor", value = "true")
+    @DefaultValue("https://gist.githubusercontent.com/ypiel-talend/02330699995f9105c523cc28e7104d71/raw/4448fa5a8cd36705bb7c73e22eaa906b573d397a/gistfile1.txt")
+    private String descriptorUrl;
 
 }

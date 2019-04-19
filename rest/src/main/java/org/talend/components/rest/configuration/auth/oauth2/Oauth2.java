@@ -2,6 +2,7 @@ package org.talend.components.rest.configuration.auth.oauth2;
 
 import java.io.Serializable;
 
+import lombok.NoArgsConstructor;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.DefaultValue;
@@ -12,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "grantType" }),
         @GridLayout.Row({ "passwordGrant" }), @GridLayout.Row({ "authMethod" }), })

@@ -18,6 +18,11 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.talend.apimgmt.common</groupId>
+            <artifactId>tadt-definitions.translator</artifactId>
+            <version>7.2.5</version>
+        </dependency>
         <!-- Testing -->
         <dependency>
             <groupId>org.hamcrest</groupId>
@@ -50,6 +55,13 @@
             <scope>compile</scope>
         </dependency>
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>talend.releases</id>
+            <url>https://artifacts-zl.talend.com/nexus/content/repositories/releases/</url>
+        </repository>
+    </repositories>
 
     <build>
         <plugins>
