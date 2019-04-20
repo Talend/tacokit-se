@@ -1,0 +1,3 @@
+# do not change line endings for .sh scripts
+*.sh text eol=lf
+

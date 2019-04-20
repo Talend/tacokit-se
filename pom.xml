@@ -33,8 +33,9 @@
     </licenses>
 
     <modules>
-        <module>jdbc</module>
-        <module>salesforce</module>
+        <!--<module>jdbc</module>-->
+        <!--<module>salesforce</module>-->
+        <module>zendesk</module>
     </modules>
 
     <scm>
