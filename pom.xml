@@ -33,8 +33,9 @@
     </licenses>
 
     <modules>
-        <module>jdbc</module>
-        <module>salesforce</module>
+        <!--<module>jdbc</module>-->
+        <!--<module>salesforce</module>-->
+        <module>solr</module>
     </modules>
 
     <scm>
