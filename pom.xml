@@ -35,6 +35,7 @@
     <modules>
         <module>jdbc</module>
         <module>salesforce</module>
+        <module>azurecommon</module>
     </modules>
 
     <scm>
