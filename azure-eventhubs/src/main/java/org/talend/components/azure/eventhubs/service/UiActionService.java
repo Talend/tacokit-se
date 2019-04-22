@@ -26,8 +26,10 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.asyncvalidation.AsyncValidation;
 import org.talend.sdk.component.api.service.asyncvalidation.ValidationResult;
+import org.talend.sdk.component.api.service.completion.DynamicValues;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.completion.Suggestions;
+import org.talend.sdk.component.api.service.completion.Values;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 
@@ -132,6 +134,16 @@ public class UiActionService {
             }
             executorService.shutdown();
         }
+    }
+
+    @DynamicValues("PROPOSABLE_OFFSET")
+    public Values proposableOffset() {
+        final Values values = new Values();
+        final List<Values.Item> items = new ArrayList<>();
+        items.add(new Values.Item("-1", "-1"));
+        items.add(new Values.Item("@latest", "@latest"));
+        values.setItems(items);
+        return values;
     }
 
 }

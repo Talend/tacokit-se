@@ -109,7 +109,7 @@ public class AzureEventHubsSource implements Serializable {
                         if (!configuration.isUseMaxNum()) {
                             return null;
                         } else {
-
+                            continue;
                         }
                     }
                     receivedEvents = iterable.iterator();
@@ -137,13 +137,14 @@ public class AzureEventHubsSource implements Serializable {
     @PreDestroy
     public void release() {
         try {
-            // log.info("release client...");
-            receiver.close().thenComposeAsync(aVoid -> ehClient.close(), executorService).whenCompleteAsync((t, u) -> {
-                if (u != null) {
-                    log.warn("closing failed with error:", u.toString());
-                }
-            }, executorService).get();
-
+            if (receiver != null) {
+                // log.info("release client...");
+                receiver.close().thenComposeAsync(aVoid -> ehClient.close(), executorService).whenCompleteAsync((t, u) -> {
+                    if (u != null) {
+                        log.warn("closing failed with error:", u.toString());
+                    }
+                }, executorService).get();
+            }
             executorService.shutdown();
         } catch (Exception e) {
             throw new IllegalStateException(e.getMessage(), e);

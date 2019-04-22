@@ -18,6 +18,7 @@ import java.io.Serializable;
 
 import org.talend.components.azure.eventhubs.dataset.AzureEventHubsDataSet;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Proposable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.condition.ActiveIfs;
 import org.talend.sdk.component.api.configuration.constraint.Min;
@@ -50,6 +51,7 @@ public class AzureEventHubsInputConfiguration implements Serializable {
 
     @Option
     @ActiveIf(target = "receiverOptions", value = "OFFSET")
+    @Proposable("PROPOSABLE_OFFSET")
     @Documentation("The byte offset of the event.\n" + " \"-1\" is the start of a partition stream in EventHub.\n"
             + "\"@latest\" current end of a partition stream in EventHub")
     private String offset = "-1";

@@ -76,7 +76,7 @@ class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
         final AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
         dataSet.setDatastore(getDataStore());
         dataSet.setEventHubName(EVENTHUB_NAME);
-        dataSet.setPartitionId("3");
+        dataSet.setPartitionId("2");
 
         inputConfiguration.setConsumerGroupName("consumer-group-1");
         inputConfiguration.setReceiverOptions(AzureEventHubsInputConfiguration.ReceiverOptions.DATETIME);
@@ -88,6 +88,30 @@ class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
                 .component("collector", "test://collector").connections().from("azureeventhubs-input").to("collector").build()
                 .run();
         final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
+    }
+
+    @Test
+    void testReadNullByDateTime() {
+        AzureEventHubsInputConfiguration inputConfiguration = new AzureEventHubsInputConfiguration();
+        final AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
+        dataSet.setDatastore(getDataStore());
+        dataSet.setEventHubName(EVENTHUB_NAME);
+        dataSet.setPartitionId("2");
+
+        inputConfiguration.setConsumerGroupName("consumer-group-1");
+        inputConfiguration.setReceiverOptions(AzureEventHubsInputConfiguration.ReceiverOptions.DATETIME);
+        inputConfiguration.setUseMaxNum(true);
+        inputConfiguration.setMaxNumReceived(5L);
+        inputConfiguration.setReceiveTimeout(10L);
+        inputConfiguration.setDataset(dataSet);
+
+        final String config = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
+        Job.components().component("azureeventhubs-input", "AzureEventHubs://AzureEventHubsInputMapper?" + config)
+                .component("collector", "test://collector").connections().from("azureeventhubs-input").to("collector").build()
+                .run();
+        final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
+        Assert.assertNotNull(records);
+        Assert.assertEquals(5, records.size());
     }
 
     @Test
