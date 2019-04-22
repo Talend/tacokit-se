@@ -14,6 +14,7 @@ package org.talend.components.azure.common.connection;
 
 import java.io.Serializable;
 
+import org.talend.components.azure.common.service.AzureComponentServices;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -22,13 +23,12 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
-import static org.talend.components.azure.common.service.AzureComponentServices.TEST_CONNECTION;
 
 @GridLayout({ @GridLayout.Row("accountConnection"), @GridLayout.Row("useAzureSharedSignature"),
         @GridLayout.Row("signatureConnection") })
 @Data
 @DataStore
-@Checkable(TEST_CONNECTION)
+@Checkable(AzureComponentServices.TEST_CONNECTION)
 public class AzureCloudConnection implements Serializable {
 
     @Option

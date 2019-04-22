@@ -15,7 +15,6 @@ package org.talend.components.azure.common.connection;
 
 import org.talend.components.azure.common.Protocol;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;

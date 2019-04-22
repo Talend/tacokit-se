@@ -18,9 +18,9 @@ import java.util.HashMap;
 
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.azure.common.Protocol;
+import org.talend.components.azure.common.connection.AzureStorageConnectionSignature;
 import org.talend.components.azure.common.connection.AzureCloudConnection;
 import org.talend.components.azure.common.connection.AzureStorageConnectionAccount;
-import org.talend.components.azure.common.connection.AzureStorageConnectionSignature;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
