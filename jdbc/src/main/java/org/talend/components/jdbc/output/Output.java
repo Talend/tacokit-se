@@ -38,10 +38,10 @@ import static org.talend.components.jdbc.service.JdbcService.checkTableExistence
 @Slf4j
 public abstract class Output implements Serializable {
 
-    protected final OutputConfig configuration;
+    private final OutputConfig configuration;
 
     @Getter
-    protected final JdbcService jdbcService;
+    private final JdbcService jdbcService;
 
     private final I18nMessage i18n;
 
@@ -49,7 +49,7 @@ public abstract class Output implements Serializable {
 
     private transient JdbcService.JdbcDatasource datasource;
 
-    protected Boolean tableExistsCheck;
+    private Boolean tableExistsCheck;
 
     private boolean tableCreated;
 
