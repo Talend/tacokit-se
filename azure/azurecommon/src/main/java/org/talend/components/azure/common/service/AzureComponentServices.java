@@ -18,8 +18,8 @@ import java.util.HashMap;
 
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.azure.common.Protocol;
+import org.talend.components.azure.common.connection.AzureStorageConnectable;
 import org.talend.components.azure.common.connection.AzureStorageConnectionSignature;
-import org.talend.components.azure.common.connection.AzureCloudConnection;
 import org.talend.components.azure.common.connection.AzureStorageConnectionAccount;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
@@ -37,11 +37,6 @@ import com.microsoft.azure.storage.blob.CloudBlobClient;
 
 @Service
 public class AzureComponentServices {
-
-    /**
-     * The name of HealthCheck service
-     */
-    public static final String TEST_CONNECTION = "testConnection";
 
     public static final RetryPolicy DEFAULT_RETRY_POLICY = new RetryExponentialRetry(10, 3);
 
@@ -62,17 +57,6 @@ public class AzureComponentServices {
 
     @Service
     private MessageService i18nService;
-
-    @HealthCheck(TEST_CONNECTION)
-    public HealthCheckStatus testConnection(@Option AzureCloudConnection azureConnection) {
-        return azureConnection.isUseAzureSharedSignature() ? testConnection(azureConnection.getSignatureConnection())
-                : testConnection(azureConnection.getAccountConnection());
-    }
-
-    public CloudStorageAccount createStorageAccount(AzureCloudConnection azureConnection) throws URISyntaxException {
-        return azureConnection.isUseAzureSharedSignature() ? createStorageAccount(azureConnection.getSignatureConnection())
-                : createStorageAccount(azureConnection.getAccountConnection());
-    }
 
     public CloudStorageAccount createStorageAccount(AzureStorageConnectionAccount azureConnection) throws URISyntaxException {
         StorageCredentials credentials = new StorageCredentialsAccountAndKey(azureConnection.getAccountName(),
@@ -122,7 +106,7 @@ public class AzureComponentServices {
         return String.format(USER_AGENT_FORMAT, applicationVersion, componentVersion);
     }
 
-    private HealthCheckStatus testConnection(Object azureConnection) {
+    public HealthCheckStatus testConnection(AzureStorageConnectable azureConnection) {
         final int maxContainers = 1;
         try {
             CloudStorageAccount cloudStorageAccount = azureConnection instanceof AzureStorageConnectionSignature

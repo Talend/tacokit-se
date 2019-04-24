@@ -13,6 +13,8 @@
 
 package org.talend.components.azure.common.connection;
 
+import java.io.Serializable;
+
 import org.talend.components.azure.common.Protocol;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -23,7 +25,7 @@ import lombok.Data;
 
 @GridLayout({ @GridLayout.Row("accountName"), @GridLayout.Row("accountKey"), @GridLayout.Row("protocol") })
 @Data
-public class AzureStorageConnectionAccount {
+public class AzureStorageConnectionAccount implements AzureStorageConnectable, Serializable {
 
     @Option
     @Documentation("Name of the storage account you need to access. "

@@ -97,8 +97,9 @@ public abstract class Output implements Serializable {
         if (!tableExistsCheck && !tableCreated && configuration.isCreateTableIfNotExists()) {
             try (final Connection connection = datasource.getConnection()) {
                 getPlatform().createTableIfNotExist(connection, configuration.getDataset().getTableName(),
-                        configuration.getKeys(), configuration.getSortKeys(), configuration.getDistributionStrategy(),
-                        configuration.getDistributionKeys(), configuration.getVarcharLength(), records);
+                        configuration.getKeys(), configuration.getSortStrategy(), configuration.getSortKeys(),
+                        configuration.getDistributionStrategy(), configuration.getDistributionKeys(),
+                        configuration.getVarcharLength(), records);
                 tableCreated = true;
             }
         }

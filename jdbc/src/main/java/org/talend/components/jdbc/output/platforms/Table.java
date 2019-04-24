@@ -15,6 +15,7 @@ package org.talend.components.jdbc.output.platforms;
 import lombok.Builder;
 import lombok.Data;
 import org.talend.components.jdbc.configuration.DistributionStrategy;
+import org.talend.components.jdbc.configuration.RedshiftSortStrategy;
 
 import java.io.Serializable;
 import java.util.List;
@@ -34,4 +35,6 @@ class Table implements Serializable {
     private final List<Column> indexes;
 
     private final DistributionStrategy distributionStrategy;
+
+    private final RedshiftSortStrategy sortStrategy;
 }

@@ -22,6 +22,7 @@ import org.talend.components.jdbc.Disabled;
 import org.talend.components.jdbc.DisabledDatabases;
 import org.talend.components.jdbc.WithDatabasesEnvironments;
 import org.talend.components.jdbc.configuration.DistributionStrategy;
+import org.talend.components.jdbc.configuration.RedshiftSortStrategy;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
 import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.output.platforms.Platform;
@@ -95,7 +96,7 @@ class PlatformTests extends BaseJdbcTest {
         try (final JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(dataStore)) {
             try (final Connection connection = dataSource.getConnection()) {
                 PlatformFactory.get(dataStore, getI18nMessage()).createTableIfNotExist(connection, testTable, asList("id"),
-                        emptyList(), DistributionStrategy.KEYS, emptyList(), -1, records);
+                        RedshiftSortStrategy.COMPOUND, emptyList(), DistributionStrategy.KEYS, emptyList(), -1, records);
             }
         }
     }
@@ -108,7 +109,8 @@ class PlatformTests extends BaseJdbcTest {
         try (final JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(dataStore)) {
             try (final Connection connection = dataSource.getConnection()) {
                 PlatformFactory.get(dataStore, getI18nMessage()).createTableIfNotExist(connection, testTable,
-                        asList("id", "email"), emptyList(), DistributionStrategy.KEYS, emptyList(), -1, records);
+                        asList("id", "email"), RedshiftSortStrategy.COMPOUND, emptyList(), DistributionStrategy.KEYS, emptyList(),
+                        -1, records);
             }
         }
     }
@@ -121,11 +123,11 @@ class PlatformTests extends BaseJdbcTest {
         try (final JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(dataStore)) {
             try (final Connection connection = dataSource.getConnection()) {
                 Platform platform = PlatformFactory.get(dataStore, getI18nMessage());
-                platform.createTableIfNotExist(connection, testTable, asList("id", "email"), emptyList(),
-                        DistributionStrategy.KEYS, emptyList(), -1, records);
+                platform.createTableIfNotExist(connection, testTable, asList("id", "email"), RedshiftSortStrategy.COMPOUND,
+                        emptyList(), DistributionStrategy.KEYS, emptyList(), -1, records);
                 // recreate the table should not fail
-                platform.createTableIfNotExist(connection, testTable, asList("id", "email"), emptyList(),
-                        DistributionStrategy.KEYS, emptyList(), -1, records);
+                platform.createTableIfNotExist(connection, testTable, asList("id", "email"), RedshiftSortStrategy.COMPOUND,
+                        emptyList(), DistributionStrategy.KEYS, emptyList(), -1, records);
             }
         }
     }
