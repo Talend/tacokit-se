@@ -14,7 +14,6 @@ package org.talend.components.jdbc.output;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.jdbc.configuration.DistributionStrategy;
 import org.talend.components.jdbc.configuration.OutputConfig;
 import org.talend.components.jdbc.output.platforms.Platform;
 import org.talend.components.jdbc.output.statement.QueryManager;

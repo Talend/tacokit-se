@@ -119,6 +119,7 @@ public abstract class Platform implements Serializable {
 
     /**
      * Add platform related properties to jdbc connections
+     * 
      * @param dataSource the data source object to be configured
      */
     public void addDataSourceProperties(final HikariDataSource dataSource) {

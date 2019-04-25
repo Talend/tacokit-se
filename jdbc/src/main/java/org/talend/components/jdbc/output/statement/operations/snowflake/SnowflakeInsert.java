@@ -25,8 +25,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.joining;
 import static org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeCopy.putAndCopy;
 import static org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeCopy.tmpTableName;
 
@@ -47,14 +47,12 @@ public class SnowflakeInsert extends Insert {
             final String fqTmpTableName = namespace(connection) + "." + getPlatform().identifier(tmpTableName);
             final String fqStageName = namespace(connection) + ".%" + getPlatform().identifier(tmpTableName);
             rejects.addAll(putAndCopy(connection, records, fqStageName, fqTableName, fqTmpTableName));
-            if (records.size() != rejects.size()) {
+            if (rejects.isEmpty()) {
                 try (final Statement statement = connection.createStatement()) {
-                    statement
-                            .execute(
-                                    "insert into " + fqTableName
-                                            + getQueryParams().values().stream().map(e -> getPlatform().identifier(e.getName()))
-                                                    .collect(Collectors.joining(",", "(", ")"))
-                                            + " select * from " + fqTmpTableName);
+                    final String fields = getQueryParams().values().stream().map(e -> getPlatform().identifier(e.getName()))
+                            .collect(joining(","));
+                    statement.execute(
+                            "insert into " + fqTableName + "(" + fields + ") select " + fields + " from " + fqTmpTableName);
                 }
             }
             connection.commit();
