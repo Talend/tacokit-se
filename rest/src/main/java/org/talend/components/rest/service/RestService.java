@@ -22,7 +22,6 @@ import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import javax.json.JsonObject;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 

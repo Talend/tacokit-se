@@ -53,7 +53,7 @@ public class Dataset implements Serializable {
 
     @Option
     @Documentation("End of url to complete base url of the datastore")
-    @Suggestable(value = "getPaths", parameters = { "../datastore/useDescriptor", "../datastore/descriptorUrl" })
+    @Suggestable(value = "getPaths", parameters = { "../datastore" })
     private String resource;
 
     @Option

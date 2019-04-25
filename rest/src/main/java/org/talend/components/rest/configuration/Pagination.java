@@ -17,6 +17,7 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.OptionsOrder;
 import org.talend.sdk.component.api.meta.Documentation;
+import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 
 import java.io.Serializable;
 

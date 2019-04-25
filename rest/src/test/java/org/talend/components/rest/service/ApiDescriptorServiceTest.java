@@ -9,8 +9,6 @@ import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @WithComponents(value = "org.talend.components.rest")
 class ApiDescriptorServiceTest extends BaseTest {
 
@@ -24,8 +22,12 @@ class ApiDescriptorServiceTest extends BaseTest {
     void getBase() {
         // Inject needed services
         handler.injectServices(this);
-        SuggestionValues suggestions = apiDescriptorService.getBase(true,
+
+        Datastore ds = new Datastore();
+        ds.setUseDescriptor(true);
+        ds.setDescriptorUrl(
                 "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v2.0/json/petstore.json");
+        SuggestionValues suggestions = apiDescriptorService.getBase(ds);
     }
 
     @Test

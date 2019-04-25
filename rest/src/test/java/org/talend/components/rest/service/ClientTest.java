@@ -17,9 +17,7 @@ import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 
 import javax.json.JsonObject;
-import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
-import javax.json.JsonString;
 import javax.json.JsonValue;
 
 import java.io.ByteArrayInputStream;

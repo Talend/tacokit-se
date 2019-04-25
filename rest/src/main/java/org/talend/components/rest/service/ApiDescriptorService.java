@@ -16,10 +16,10 @@ import com.restlet.definitions.rwadef40.Definition;
 import com.restlet.definitions.translator.Translator;
 import com.restlet.definitions.translator.destination.rwadef.Rwadef40Format;
 import com.restlet.definitions.translator.sources.openapi30.OpenApi30Source;
-import com.restlet.definitions.translator.sources.swagger20.Swagger20Source;
 import com.restlet.definitions.utils.utilitary.MediaType;
 import com.restlet.definitions.utils.validation.TranslationResult;
 import org.talend.components.rest.configuration.Dataset;
+import org.talend.components.rest.configuration.Datastore;
 import org.talend.components.rest.configuration.Param;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
@@ -56,8 +56,10 @@ public class ApiDescriptorService {
     }
 
     @Suggestions("getBase")
-    public SuggestionValues getBase(@Option("useDescriptor") boolean useDescriptor,
-            @Option("descriptorUrl") String descriptorUrl) {
+    public SuggestionValues getBase(@Option final Datastore datastore) {
+        final boolean useDescriptor = datastore.isUseDescriptor();
+        final String descriptorUrl = datastore.getDescriptorUrl();
+
         final SuggestionValues values = new SuggestionValues();
 
         if (!useDescriptor) {
@@ -79,15 +81,12 @@ public class ApiDescriptorService {
     }
 
     @Suggestions("getPaths")
-    public SuggestionValues getPaths(@Option("useDescriptor") boolean useDescriptor,
-            @Option("descriptorUrl") String descriptorUrl) {
+    public SuggestionValues getPaths(@Option final Datastore datastore) {
+
+        final boolean useDescriptor = datastore.isUseDescriptor();
+        final String descriptorUrl = datastore.getDescriptorUrl();
 
         final SuggestionValues values = new SuggestionValues();
-
-        /*
-         * boolean useDescriptor = datastore.isUseDescriptor();
-         * String descriptorUrl = datastore.getDescriptorUrl();
-         */
 
         if (!useDescriptor) {
             values.setItems(Collections.emptyList());

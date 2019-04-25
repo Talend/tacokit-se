@@ -37,7 +37,7 @@ public class Datastore implements Serializable {
     @Required
     @Pattern("^https?://.+$")
     @Documentation("")
-    @Suggestable(value = "getBase", parameters = { "useDescriptor", "descriptorUrl" })
+    @Suggestable(value = "getBase", parameters = { ".." })
     private String base;
 
     @Option
@@ -47,6 +47,7 @@ public class Datastore implements Serializable {
     @Option
     @Documentation("")
     @ActiveIf(target = "useDescriptor", value = "true")
+    // @DefaultValue("local_configuration:myfamily.model.key")
     @DefaultValue("https://gist.githubusercontent.com/ypiel-talend/02330699995f9105c523cc28e7104d71/raw/4448fa5a8cd36705bb7c73e22eaa906b573d397a/gistfile1.txt")
     private String descriptorUrl;
 
