@@ -53,10 +53,7 @@ public class SQLDWHPlatform extends MSSQLPlatform {
         sql.append(identifier(table.getName()));
         sql.append("(");
         sql.append(createColumns(table.getColumns()));
-        sql.append(createPKs(table.getName(),
-                table.getColumns().stream().filter(Column::isPrimaryKey).collect(Collectors.toList())));
         sql.append(")");
-        // todo create index
 
         log.debug("### create table query ###");
         log.debug(sql.toString());
