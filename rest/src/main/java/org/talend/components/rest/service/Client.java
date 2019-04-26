@@ -23,6 +23,6 @@ public interface Client extends HttpClient {
     Response<JsonObject> execute(@ConfigurerOption("configuration") RequestConfig config,
             @ConfigurerOption("httpClient") Client httpClient, // Needed to do intermediate call for example to get oauth token
             @HttpMethod String httpMethod, @Url String url, @Headers Map<String, String> headers,
-            @QueryParams Map<String, String> queryParams, RequestBody body);
+            @QueryParams() Map<String, String> queryParams, RequestBody body);
 
 }

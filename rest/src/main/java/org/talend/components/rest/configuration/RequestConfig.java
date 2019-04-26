@@ -30,23 +30,12 @@ import static org.talend.components.rest.configuration.RequestBody.Type.X_WWW_FO
 
 @Data
 @GridLayout({ @GridLayout.Row({ "dataset" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "usePagination" }),
-        @GridLayout.Row({ "pagination" }), @GridLayout.Row({ "dataset" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataset" }) })
 public class RequestConfig implements Serializable {
 
     @Option
     @Documentation("Identification of the resource to access")
-    @Updatable(value = "autoload", parameters = { "." })
     private Dataset dataset;
-
-    @Option
-    @Documentation("")
-    private boolean usePagination;
-
-    @Option
-    @Documentation("")
-    @ActiveIf(target = "usePagination", value = "true")
-    private Pagination pagination;
 
     public Map<String, String> queryParams() {
         return dataset.getQueryParams().stream().collect(toMap(Param::getKey, Param::getValue));

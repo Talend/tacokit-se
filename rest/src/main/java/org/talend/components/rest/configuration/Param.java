@@ -14,7 +14,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@GridLayout({ @GridLayout.Row({ "key", "value" }), })
+@GridLayout({ @GridLayout.Row({ "key", "value" }) })
 @Documentation("")
 public class Param implements Serializable {
 

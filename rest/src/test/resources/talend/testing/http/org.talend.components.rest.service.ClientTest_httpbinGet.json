@@ -11,14 +11,18 @@
     },
     "response":{
       "headers":{
+        "X-Frame-Options":"DENY",
+        "Referrer-Policy":"no-referrer-when-downgrade",
         "Server":"nginx",
         "Access-Control-Allow-Origin":"*",
+        "X-Content-Type-Options":"nosniff",
         "Access-Control-Allow-Credentials":"true",
         "Connection":"keep-alive",
-        "Content-Length":"254",
+        "X-XSS-Protection":"1; mode=block",
+        "Content-Length":"252",
         "Content-Type":"application/json"
       },
-      "payload":"{\n  \"args\": {}, \n  \"headers\": {\n    \"Accept\": \"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2\", \n    \"Host\": \"httpbin.org\", \n    \"User-Agent\": \"Java/1.8.0_131\"\n  }, \n  \"origin\": \"93.24.102.140, 93.24.102.140\", \n  \"url\": \"https://httpbin.org/get\"\n}\n",
+      "payload":"{\n  \"args\": {}, \n  \"headers\": {\n    \"Accept\": \"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2\", \n    \"Host\": \"httpbin.org\", \n    \"User-Agent\": \"Java/1.8.0_211\"\n  }, \n  \"origin\": \"84.14.92.154, 84.14.92.154\", \n  \"url\": \"https://httpbin.org/get\"\n}\n",
       "status":200
     }
   }

@@ -93,16 +93,6 @@ public class RestService {
 
         builder.withInt("status", resp.status());
 
-        /*
-         * Record.Builder headerBuilder = recordBuilderFactory.newRecordBuilder();
-         * resp.headers().forEach((k, v) -> headerBuilder.withString(k, String.join(",", v)));
-         * 
-         * Record r = headerBuilder.build();
-         * Schema.Entry e = entryBuilder.withName("headers").withType(Schema.Type.RECORD).withNullable(false)
-         * .withElementSchema(r.getSchema()).build();
-         * builder.withRecord(e, r);
-         */
-
         Schema.Entry headerKeyEntry = recordBuilderFactory.newEntryBuilder().withName("key").withType(Schema.Type.STRING)
                 .withNullable(false).build();
         Schema.Entry headerValueEntry = recordBuilderFactory.newEntryBuilder().withName("value").withType(Schema.Type.STRING)

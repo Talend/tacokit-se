@@ -1,0 +1,29 @@
+[
+  {
+    "request":{
+      "headers":{
+        "content-length":"0",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Connection":"keep-alive"
+      },
+      "method":"GET",
+      "uri":"https://httpbin.org/get?params2=%3Cname%3EDupont+%26+Dupond%3C/name%3E&params1=value1"
+    },
+    "response":{
+      "headers":{
+        "X-Frame-Options":"DENY",
+        "Referrer-Policy":"no-referrer-when-downgrade",
+        "Server":"nginx",
+        "Access-Control-Allow-Origin":"*",
+        "X-Content-Type-Options":"nosniff",
+        "Access-Control-Allow-Credentials":"true",
+        "Connection":"keep-alive",
+        "X-XSS-Protection":"1; mode=block",
+        "Content-Length":"383",
+        "Content-Type":"application/json"
+      },
+      "payload":"{\n  \"args\": {\n    \"params1\": \"value1\", \n    \"params2\": \"<name>Dupont & Dupond</name>\"\n  }, \n  \"headers\": {\n    \"Accept\": \"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2\", \n    \"Host\": \"httpbin.org\", \n    \"User-Agent\": \"Java/1.8.0_211\"\n  }, \n  \"origin\": \"84.14.92.154, 84.14.92.154\", \n  \"url\": \"https://httpbin.org/get?params2=<name>Dupont+%26+Dupond<%2Fname>&params1=value1\"\n}\n",
+      "status":200
+    }
+  }
+]
