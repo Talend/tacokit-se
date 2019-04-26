@@ -44,7 +44,9 @@ public class RestService {
 
     private Record handleResponse(final Response<JsonObject> firstResp, final RequestConfig config) {
         Record rec = null;
+
         Response<JsonObject> finalResp = redirect(firstResp, config);
+
         if (isSuccess(finalResp.status())) {
             rec = buildRecord(finalResp);
         } else {
@@ -107,13 +109,9 @@ public class RestService {
                 .withNullable(false).build();
         Schema.Builder schemaBuilderHeader = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD);
         Schema headerElementSchema = schemaBuilderHeader.withEntry(headerKeyEntry).withEntry(headerValueEntry).build();
-        Record.Builder arrayHeaderBuilder = recordBuilderFactory.newRecordBuilder(headerElementSchema);
-
-        // List<Record.Builder> headers = Arrays.asList(arrayHeaderBuilder.withString("key", "TOTOT").withString("value",
-        // "TITIT"));
-        // resp.headers().forEach((k, v) -> headerBuilder.withString(k, String.join(",", v)));
-        List<Record> headers = resp.headers().entrySet().stream().map(
-                e -> arrayHeaderBuilder.withString("key", e.getKey()).withString("value", String.join(",", e.getValue())).build())
+        List<Record> headers = resp
+                .headers().entrySet().stream().map(e -> recordBuilderFactory.newRecordBuilder(headerElementSchema)
+                        .withString("key", e.getKey()).withString("value", String.join(",", e.getValue())).build())
                 .collect(Collectors.toList());
 
         Schema.Entry.Builder arrayEntryBuilder = recordBuilderFactory.newEntryBuilder();

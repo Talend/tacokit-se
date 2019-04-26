@@ -89,10 +89,14 @@ class ClientTest extends BaseTest {
         headerToCheck.put("Access-Control-Allow-Origin", "*");
         headerToCheck.put("Access-Control-Allow-Credentials", "true");
         headerToCheck.put("Connection", "keep-alive");
-        headerToCheck.put("Content-Length", "252");
+        headerToCheck.put("Content-Length", "254");
         headerToCheck.put("Content-Type", "application/json");
         headerToCheck.put("X-Talend-Proxy-JUnit", "true"); // added by the unit test http proxy
-        headers.forEach(e -> assertEquals(headerToCheck.get(e.getString("key")), e.getString("value")));
+        headers.forEach(e -> {
+            assertEquals(headerToCheck.get(e.getString("key")), e.getString("value"));
+            headerToCheck.remove(e.getString("key"));
+        });
+        assertEquals(headerToCheck.size(), 0);
 
         String bodyS = resp.getString("body");
         JsonObject bodyJson = jsonReaderFactory.createReader(new ByteArrayInputStream((bodyS == null ? "" : bodyS).getBytes()))

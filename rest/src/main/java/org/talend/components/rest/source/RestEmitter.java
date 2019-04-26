@@ -13,7 +13,7 @@
 package org.talend.components.rest.source;
 
 import org.talend.components.rest.configuration.RequestConfig;
-import org.talend.components.rest.service.Client;
+import org.talend.components.rest.service.RestService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -24,6 +24,9 @@ import org.talend.sdk.component.api.record.Record;
 
 import javax.annotation.PostConstruct;
 import java.io.Serializable;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 
 @Version(1)
 @Icon(value = Icon.IconType.CUSTOM, custom = "Http")
@@ -33,21 +36,24 @@ public class RestEmitter implements Serializable {
 
     private final RequestConfig config;
 
-    private final Client client;
+    private final RestService client;
 
-    public RestEmitter(@Option("configuration") final RequestConfig config, final Client client) {
+    private final Queue<Record> records = new LinkedList<>();
+
+    public RestEmitter(@Option("configuration") final RequestConfig config, final RestService client) {
         this.config = config;
         this.client = client;
     }
 
     @PostConstruct
     public void init() {
-
+        Record record = client.execute(config);
+        records.add(record);
     }
 
     @Producer
     public Record next() {
-        return null;
+        return records.poll();
     }
 
 }
