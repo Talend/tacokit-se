@@ -19,6 +19,7 @@ import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
+import org.talend.sdk.component.api.configuration.action.Validable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.condition.ActiveIfs;
 import org.talend.sdk.component.api.configuration.constraint.Required;
@@ -32,6 +33,7 @@ import java.util.function.Function;
 
 import static org.talend.components.jdbc.service.UIActionService.ACTION_SUGGESTION_ACTION_ON_DATA;
 import static org.talend.components.jdbc.service.UIActionService.ACTION_SUGGESTION_TABLE_COLUMNS_NAMES;
+import static org.talend.components.jdbc.service.UIActionService.ACTION_VALIDATE_SORT_KEYS;
 import static org.talend.sdk.component.api.configuration.condition.ActiveIf.EvaluationStrategy.CONTAINS;
 import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.AND;
 import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.OR;
@@ -84,8 +86,10 @@ public class OutputConfig implements Serializable {
     private RedshiftSortStrategy sortStrategy = RedshiftSortStrategy.COMPOUND;
 
     @Option
+    @Validable(value = ACTION_VALIDATE_SORT_KEYS, parameters = { "../sortStrategy", "../sortKeys" })
     @ActiveIfs(operator = AND, value = { @ActiveIf(target = "../dataset.connection.dbType", value = { "Redshift" }),
-            @ActiveIf(target = "../createTableIfNotExists", value = { "true" }) })
+            @ActiveIf(target = "../createTableIfNotExists", value = { "true" }),
+            @ActiveIf(target = "../sortStrategy", value = { "NONE" }, negate = true), })
     @Suggestable(value = ACTION_SUGGESTION_TABLE_COLUMNS_NAMES, parameters = { "../dataset" })
     @Documentation("List of columns to be used as sort keys for redshift")
     private List<String> sortKeys = new ArrayList<>();
