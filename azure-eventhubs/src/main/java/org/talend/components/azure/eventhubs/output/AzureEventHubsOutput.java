@@ -70,8 +70,6 @@ public class AzureEventHubsOutput implements Serializable {
 
     private ScheduledExecutorService executorService;
 
-    private EventHubClient ehClient;
-
     private EventHubClient sender;
 
     private Jsonb jsonb;
@@ -107,7 +105,6 @@ public class AzureEventHubsOutput implements Serializable {
         connStr.setSasKey(configuration.getDataset().getDatastore().getSasKey());
         connStr.setEventHubName(configuration.getDataset().getEventHubName());
         // log.info("init client...");
-        ehClient = EventHubClient.createSync(connStr.toString(), executorService);
         sender = EventHubClient.createSync(connStr.toString(), executorService);
         jsonb = JsonbBuilder.create();
 
@@ -122,7 +119,6 @@ public class AzureEventHubsOutput implements Serializable {
                 options.partitionKey = configuration.getKeyColumn();
             }
             final EventDataBatch events = sender.createBatch(options);
-            EventData sendEvent;
             for (Record record : records) {
                 byte[] payloadBytes = recordToCsvByteArray(record);
                 events.tryAdd(EventData.create(payloadBytes));
@@ -147,11 +143,17 @@ public class AzureEventHubsOutput implements Serializable {
         // TODO make delimited configurable
         StringBuilder sb = new StringBuilder();
         Schema schema = record.getSchema();
+        boolean isFirstColumn = true;
         for (Schema.Entry field : schema.getEntries()) {
-            if (sb.length() != 0) {
+            if (!isFirstColumn) {
                 sb.append(";");
+            } else {
+                isFirstColumn = false;
             }
-            sb.append(record.getString(field.getName()));
+            if (record.getString(field.getName()) != null) {
+                sb.append(record.getString(field.getName()));
+            }
+
         }
         byte[] bytes = sb.toString().getBytes(Charset.forName("UTF-8"));
         sb.setLength(0);
