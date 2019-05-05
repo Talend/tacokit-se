@@ -125,7 +125,7 @@ public class AzureEventHubsOutput implements Serializable {
             }
             sender.sendSync(events);
         } catch (final Exception e) {
-            throw new IllegalStateException(e);
+            throw new IllegalStateException(e.getMessage(), e);
         }
     }
 
@@ -139,7 +139,7 @@ public class AzureEventHubsOutput implements Serializable {
         }
     }
 
-    private byte[] recordToCsvByteArray(Record record) {
+    private byte[] recordToCsvByteArray(Record record) throws IOException {
         // TODO make delimited configurable
         StringBuilder sb = new StringBuilder();
         Schema schema = record.getSchema();
@@ -150,13 +150,57 @@ public class AzureEventHubsOutput implements Serializable {
             } else {
                 isFirstColumn = false;
             }
-            if (record.getString(field.getName()) != null) {
-                sb.append(record.getString(field.getName()));
-            }
+            sb.append(getStringValue(record, field));
 
         }
         byte[] bytes = sb.toString().getBytes(Charset.forName("UTF-8"));
         sb.setLength(0);
         return bytes;
+    }
+
+    private String getStringValue(Record record, Schema.Entry field) throws IOException {
+        Object value = null;
+        switch (field.getType()) {
+        case STRING:
+            value = record.getString(field.getName());
+            break;
+        case BOOLEAN:
+            if (record.getOptionalBoolean(field.getName()).isPresent()) {
+                value = record.getBoolean(field.getName());
+            }
+            break;
+        case DOUBLE:
+            if (record.getOptionalDouble(field.getName()).isPresent()) {
+                value = record.getDouble(field.getName());
+            }
+            break;
+        case FLOAT:
+            if (record.getOptionalFloat(field.getName()).isPresent()) {
+                value = record.getFloat(field.getName());
+            }
+            break;
+        case LONG:
+            if (record.getOptionalLong(field.getName()).isPresent()) {
+                value = record.getLong(field.getName());
+            }
+            break;
+        case INT:
+            if (record.getOptionalInt(field.getName()).isPresent()) {
+                value = record.getInt(field.getName());
+            }
+            break;
+        case DATETIME:
+            value = record.getDateTime(field.getName());
+            break;
+        case BYTES:
+            if (record.getOptionalBytes(field.getName()).isPresent()) {
+                value = new String(record.getBytes(field.getName()), "UTF-8");
+            }
+            break;
+        default:
+            throw new IllegalStateException(messages.errorUnsupportedType(field.getType().name(), field.getName()));
+        }
+        return value == null ? "" : String.valueOf(value);
+
     }
 }
