@@ -161,17 +161,16 @@ spec:
             when {
                 anyOf{
                     expression { params.PUSH_TO_XTM == true }
-                    allOf{
-                        triggeredBy 'TimerTrigger'
-                        expression {
-                            (calendar.get(Calendar.WEEK_OF_MONTH) == 2 ||  calendar.get(Calendar.WEEK_OF_MONTH) == 4) && calendar.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY
-                        }
-                    }
+//                    allOf{
+//                        triggeredBy 'TimerTrigger'
+//                        expression {
+//                            (calendar.get(Calendar.WEEK_OF_MONTH) == 2 ||  calendar.get(Calendar.WEEK_OF_MONTH) == 4) && calendar.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY
+//                        }
+//                    }
                 }
                 anyOf {
                     branch 'master'
                     expression { BRANCH_NAME.startsWith('maintenance/') }
-                    branch 'akhabali/TDI-41939' // for dev todo : to be removed before merging
                 }
             }
             steps {
@@ -199,7 +198,6 @@ spec:
                 anyOf {
                     branch 'master'
                     expression { BRANCH_NAME.startsWith('maintenance/') }
-                    branch 'akhabali/TDI-41939' // for dev todo : to be removed before merging
                 }
             }
             steps {

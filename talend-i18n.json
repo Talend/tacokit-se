@@ -7,7 +7,7 @@
     "target": "./target/i18n"
   },
   "load": {
-    "project": "UI - Connectors-se"
+    "project": "Connectors-se"
   },
   "github": {
     "url": "https://github.com/Talend/i18n-product.git"
