@@ -22,7 +22,11 @@ import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import javax.json.JsonObject;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -35,6 +39,9 @@ public class RestService {
 
     @Service
     RecordBuilderFactory recordBuilderFactory;
+
+    // Pattern to retrieve {xxxx} in a non-greddy way
+    private final Pattern pathPattern = Pattern.compile("\\{.+?\\}");
 
     public Record execute(final RequestConfig config) {
         Response<JsonObject> resp = client.execute(config, client, config.getDataset().getMethodType().name(),
@@ -67,7 +74,33 @@ public class RestService {
     }
 
     private String buildUrl(final RequestConfig config) {
-        return config.getDataset().getDatastore().getBase() + '/' + config.getDataset().getResource();
+        return config.getDataset().getDatastore().getBase() + '/' + this.setPathParams(config.getDataset().getResource(), config.getDataset().getHasPathParams(), config.pathParams());
+    }
+
+    public String setPathParams(String resource, boolean hasPathParams, Map<String, String> params) {
+        if (!hasPathParams) {
+            return resource;
+        }
+
+        // Find parameters
+        final List<String> found = new ArrayList<>();
+        Matcher matcher = pathPattern.matcher(resource);
+
+        while (matcher.find()) {
+            found.add(matcher.group());
+        }
+
+        for (String param : found) {
+            String name = param.substring(1).substring(0, param.length() - 2);
+            if (!params.containsKey(name)) {
+                throw new RuntimeException("No value found for path param " + param);
+            }
+
+            // We have to transform {name} to \{name\} and then replace all occurences with desired value
+            resource = resource.replaceAll("\\"+param.substring(0, param.length()-1)+"\\}", params.get(name));
+        }
+
+        return resource;
     }
 
     private boolean isSuccess(int code) {

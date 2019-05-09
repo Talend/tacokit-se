@@ -31,13 +31,19 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
-@HttpApi(useSsl = true)
+// @HttpApi(useSsl = true)
 @WithComponents(value = "org.talend.components.rest")
 class ClientTest {
 
-    static {
-        System.setProperty("talend.junit.http.capture", "true");
-    }
+    private final static String HTTP_BIN_BASE = "http://tal-rd22.talend.lan:8084";
+
+    private final static String DONT_CHECK = "%DONT_CHECK%";
+
+    /*
+     * static {
+     * System.setProperty("talend.junit.http.capture", "true");
+     * }
+     */
 
     /*
      * @Service
@@ -66,7 +72,7 @@ class ClientTest {
 
         Client client = service.getClient();
 
-        config.getDataset().getDatastore().setBase("https://httpbin.org");
+        config.getDataset().getDatastore().setBase(HTTP_BIN_BASE);
         config.getDataset().setResource("get");
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setConnectionTimeout(5000);
@@ -79,23 +85,24 @@ class ClientTest {
         List<Record> headers = Collections.unmodifiableList(new ArrayList<>(resp.getArray(Record.class, "headers")));
 
         Map<String, String> headerToCheck = new HashMap<>();
-        headerToCheck.put("X-Frame-Options", "DENY");
-        headerToCheck.put("Referrer-Policy", "no-referrer-when-downgrade");
-        headerToCheck.put("Server", "nginx");
+        headerToCheck.put("Server", "gunicorn/19.7.1");
         headerToCheck.put("Access-Control-Allow-Origin", "*");
-        headerToCheck.put("X-Content-Type-Options", "nosniff");
         headerToCheck.put("Access-Control-Allow-Credentials", "true");
-        headerToCheck.put("Connection", "keep-alive");
-        headerToCheck.put("X-XSS-Protection", "1; mode=block");
-        headerToCheck.put("Content-Length", "252");
+        headerToCheck.put("Connection", "close");
+        headerToCheck.put("Content-Length", "298");
+        headerToCheck.put("X-Powered-By", "Flask");
         headerToCheck.put("Content-Type", "application/json");
-        headerToCheck.put("X-Talend-Proxy-JUnit", "true"); // added by the unit test http proxy
+        headerToCheck.put("Date", DONT_CHECK);
+        headerToCheck.put("X-Processed-Time", DONT_CHECK);
 
         headers.forEach(e -> {
-            assertEquals(headerToCheck.get(e.getString("key")), e.getString("value"));
+            String expected = headerToCheck.get(e.getString("key"));
+            if (!DONT_CHECK.equals(expected)) {
+                assertEquals(expected, e.getString("value"));
+            }
             headerToCheck.remove(e.getString("key"));
         });
-        assertEquals(headerToCheck.size(), 0);
+        assertTrue(headerToCheck.isEmpty());
 
         String bodyS = resp.getString("body");
         JsonObject bodyJson = jsonReaderFactory.createReader(new ByteArrayInputStream((bodyS == null ? "" : bodyS).getBytes()))
@@ -105,32 +112,51 @@ class ClientTest {
 
         Map<String, String> headersValid = new HashMap<>();
         headersValid.put("Accept", "text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2");
-        headersValid.put("Host", "httpbin.org");
-        headersValid.put("User-Agent", "Java/1.8.0_211");
-        JsonObject headersJson = bodyJson.getJsonObject("headers");
-        headersJson.keySet().stream().forEach(k -> assertEquals(headersValid.get(k), headersJson.getString(k)));
+        headersValid.put("Connection", "keep-alive");
+        headersValid.put("Host", HTTP_BIN_BASE.substring(7));
+        headersValid.put("User-Agent", DONT_CHECK);
 
-        assertEquals("84.14.92.154, 84.14.92.154", bodyJson.getString("origin"));
-        assertEquals("https://httpbin.org/get", bodyJson.getString("url"));
+        JsonObject headersJson = bodyJson.getJsonObject("headers");
+        headersJson.keySet().stream().forEach(k -> {
+            if (!DONT_CHECK.equals(headersValid.get(k))) {
+                assertEquals(headersValid.get(k), headersJson.getString(k));
+            }
+            headersValid.remove(k);
+        });
+        headersValid.keySet().stream().forEach(k -> System.out.println("==> " + k));
+        assertTrue(headersValid.isEmpty());
+
+        assertEquals(HTTP_BIN_BASE + "/get", bodyJson.getString("url"));
     }
 
+    /**
+     * If there are some parameters set, if false is given to setHasXxxx those parameters should not be passed.
+     * @throws Exception
+     */
     @Test
-    void httpbinGetWithQueryParams() throws Exception {
+    void testParamsDisabled() throws Exception {
         // Inject needed services
         handler.injectServices(this);
 
         Client client = service.getClient();
 
-        config.getDataset().getDatastore().setBase("https://httpbin.org");
-        config.getDataset().setResource("get");
-        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().getDatastore().setBase(HTTP_BIN_BASE);
         config.getDataset().setConnectionTimeout(5000);
         config.getDataset().setReadTimeout(5000);
 
+        HttpMethod[] verbs = {HttpMethod.DELETE, HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT};
+        config.getDataset().setResource("get");
+        config.getDataset().setMethodType(HttpMethod.GET);
+
         List<Param> queryParams = new ArrayList<>();
         queryParams.add(new Param("params1", "value1"));
-        queryParams.add(new Param("params2", "<name>Dupont & Dupond</name>"));
+        config.getDataset().setHasQueryParams(false);
         config.getDataset().setQueryParams(queryParams);
+
+        List<Param> headerParams = new ArrayList<>();
+        headerParams.add(new Param("Header1", "simple value"));
+        config.getDataset().setHasHeaders(false);
+        config.getDataset().setHeaders(headerParams);
 
         Record resp = service.execute(config);
 
@@ -139,8 +165,85 @@ class ClientTest {
         JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(resp.getString("body")));
         JsonObject payload = payloadReader.readObject();
 
-        assertEquals("value1", payload.getJsonObject("args").getString("params1"));
-        assertEquals("<name>Dupont & Dupond</name>", payload.getJsonObject("args").getString("params2"));
+        assertEquals(0, payload.getJsonObject("args").size());
+        assertEquals(4, payload.getJsonObject("headers").size());
+
+    }
+
+
+    @Test
+    void testQueryAndHeaderParams() throws Exception {
+        // Inject needed services
+        handler.injectServices(this);
+
+        Client client = service.getClient();
+
+        config.getDataset().getDatastore().setBase(HTTP_BIN_BASE);
+        config.getDataset().setConnectionTimeout(5000);
+        config.getDataset().setReadTimeout(5000);
+
+        HttpMethod[] verbs = {HttpMethod.DELETE, HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT};
+        for (HttpMethod m : verbs) {
+            config.getDataset().setResource(m.name().toLowerCase());
+            config.getDataset().setMethodType(m);
+
+            List<Param> queryParams = new ArrayList<>();
+            queryParams.add(new Param("params1", "value1"));
+            queryParams.add(new Param("params2", "<name>Dupont & Dupond</name>"));
+            config.getDataset().setHasQueryParams(true);
+            config.getDataset().setQueryParams(queryParams);
+
+            List<Param> headerParams = new ArrayList<>();
+            headerParams.add(new Param("Header1", "simple value"));
+            headerParams.add(new Param("Header2", "<name>header Dupont & Dupond</name>"));
+            config.getDataset().setHasHeaders(true);
+            config.getDataset().setHeaders(headerParams);
+
+            Record resp = service.execute(config);
+
+            assertEquals(200, resp.getInt("status"));
+
+            JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(resp.getString("body")));
+            JsonObject payload = payloadReader.readObject();
+
+            assertEquals("value1", payload.getJsonObject("args").getString("params1"));
+            assertEquals("<name>Dupont & Dupond</name>", payload.getJsonObject("args").getString("params2"));
+            assertEquals("simple value", payload.getJsonObject("headers").getString("Header1"));
+            assertEquals("<name>header Dupont & Dupond</name>", payload.getJsonObject("headers").getString("Header2"));
+        }
+    }
+
+    @Test
+    void testPathParams() throws Exception {
+        // Inject needed services
+        handler.injectServices(this);
+
+        Client client = service.getClient();
+
+        config.getDataset().getDatastore().setBase(HTTP_BIN_BASE);
+        config.getDataset().setConnectionTimeout(5000);
+        config.getDataset().setReadTimeout(5000);
+        config.getDataset().setResource("get/{resource}/{id}/{field}");
+        config.getDataset().setMethodType(HttpMethod.GET);
+
+        config.getDataset().setHasQueryParams(false);
+        config.getDataset().setHasHeaders(false);
+
+        List<Param> pathParams = new ArrayList<>();
+        pathParams.add(new Param("resource", "leads"));
+        pathParams.add(new Param("id", "124"));
+        pathParams.add(new Param("field", "name"));
+        config.getDataset().setHasPathParams(true);
+        config.getDataset().setPathParams(pathParams);
+
+        Record resp = service.execute(config);
+
+        assertEquals(200, resp.getInt("status"));
+
+        JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(resp.getString("body")));
+        JsonObject payload = payloadReader.readObject();
+
+        assertEquals("", payload.getString("url"));
 
     }
 

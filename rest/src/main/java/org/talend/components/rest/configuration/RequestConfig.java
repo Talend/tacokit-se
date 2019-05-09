@@ -22,6 +22,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,15 +38,33 @@ public class RequestConfig implements Serializable {
     @Documentation("Identification of the resource to access")
     private Dataset dataset;
 
+    public Map<String, String> pathParams() {
+        if(!getDataset().getHasPathParams()){
+            return new HashMap<String, String>();
+        }
+
+        return dataset.getPathParams().stream().collect(toMap(Param::getKey, Param::getValue));
+    }
+
     public Map<String, String> queryParams() {
+        if(!getDataset().getHasQueryParams()){
+            return new HashMap<String, String>();
+        }
+
         return dataset.getQueryParams().stream().collect(toMap(Param::getKey, Param::getValue));
     }
 
     public Map<String, String> headers() {
-        final Map<String, String> h = dataset.getHeaders().stream().collect(toMap(Param::getKey, Param::getValue));
+        final Map<String, String> h = new HashMap<String, String>();
         if (dataset.getBody() != null && hasPayLoad() && X_WWW_FORM_URLENCODED.equals(dataset.getBody().getType())) {
             h.put("Content-Type", "application/x-www-form-urlencoded");
         }
+
+        if(!getDataset().getHasHeaders()){
+            return h;
+        }
+
+        h.putAll(dataset.getHeaders().stream().collect(toMap(Param::getKey, Param::getValue)));
         return h;
     }
 
