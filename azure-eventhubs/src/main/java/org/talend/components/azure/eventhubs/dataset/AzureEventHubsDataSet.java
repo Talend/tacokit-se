@@ -31,7 +31,7 @@ import lombok.Data;
 
 @Data
 @DataSet("AzureEventHubsDataSet")
-@GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "eventHubName" }), @GridLayout.Row({ "partitionId" }) })
+@GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "eventHubName" }) })
 @Documentation("The dataset consume message in eventhubs")
 public class AzureEventHubsDataSet implements Serializable {
 
@@ -44,12 +44,5 @@ public class AzureEventHubsDataSet implements Serializable {
     @Validable(value = "checkEventHub", parameters = { "datastore", "." })
     @Documentation("The name of the event hub connect to")
     private String eventHubName;
-
-    @Option
-    @Required
-    @DefaultValue("0")
-    @Suggestable(value = "listPartitionIds", parameters = { "datastore", "eventHubName" })
-    @Documentation("The partition Id that the receiver belongs to. All data received will be from this partition only")
-    String partitionId;
 
 }

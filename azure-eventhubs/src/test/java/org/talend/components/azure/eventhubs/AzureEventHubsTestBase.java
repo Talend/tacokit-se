@@ -36,7 +36,7 @@ public class AzureEventHubsTestBase implements Serializable {
 
     public static String SASKEY;
 
-    protected static final String EVENTHUB_NAME = "test-event-hub";
+    protected static final String SHARED_EVENTHUB_NAME = "eh-test";
 
     static {
         final MavenDecrypter decrypter = new MavenDecrypter();

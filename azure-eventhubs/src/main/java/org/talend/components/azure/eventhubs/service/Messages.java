@@ -24,4 +24,8 @@ public interface Messages {
     String healthCheckFailed(final String cause);
 
     String errorUnsupportedType(String fieldType, String fieldName);
+
+    String errorWrongSequenceNumber(long seq, long latestSeq);
+
+    String errorNoAvailableReceiver();
 }

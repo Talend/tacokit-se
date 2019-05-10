@@ -28,10 +28,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 import org.apache.beam.sdk.Pipeline;
-import org.junit.Rule;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 import org.talend.components.azure.eventhubs.AzureEventHubsTestBase;
 import org.talend.components.azure.eventhubs.dataset.AzureEventHubsDataSet;
 import org.talend.components.azure.eventhubs.source.AzureEventHubsInputConfiguration;
@@ -42,7 +40,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
-@Disabled("not ready")
+@Disabled("Run manually follow the comment")
 @WithComponents("org.talend.components.azure.eventhubs")
 class AzureEventHubsOutputTest extends AzureEventHubsTestBase {
 
@@ -55,15 +53,11 @@ class AzureEventHubsOutputTest extends AzureEventHubsTestBase {
     @Service
     private RecordBuilderFactory factory;
 
-    @Rule
-    public ExpectedException expectedEx = ExpectedException.none();
-
     @Test
     void testSimpleSend() {
         AzureEventHubsOutputConfiguration outputConfiguration = new AzureEventHubsOutputConfiguration();
         final AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
-        dataSet.setEventHubName(EVENTHUB_NAME);
-        dataSet.setPartitionId("0");
+        dataSet.setEventHubName(SHARED_EVENTHUB_NAME);
         dataSet.setDatastore(getDataStore());
         outputConfiguration.setPartitionType(AzureEventHubsOutputConfiguration.PartitionType.COLUMN);
 
@@ -89,8 +83,7 @@ class AzureEventHubsOutputTest extends AzureEventHubsTestBase {
     void testFirstColumnEmpty() {
         AzureEventHubsOutputConfiguration outputConfiguration = new AzureEventHubsOutputConfiguration();
         final AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
-        dataSet.setEventHubName(EVENTHUB_NAME);
-        dataSet.setPartitionId("0");
+        dataSet.setEventHubName(SHARED_EVENTHUB_NAME);
         dataSet.setDatastore(getDataStore());
         outputConfiguration.setPartitionType(AzureEventHubsOutputConfiguration.PartitionType.COLUMN);
 
@@ -139,8 +132,7 @@ class AzureEventHubsOutputTest extends AzureEventHubsTestBase {
     void testAllType() {
         AzureEventHubsOutputConfiguration outputConfiguration = new AzureEventHubsOutputConfiguration();
         final AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
-        dataSet.setEventHubName(EVENTHUB_NAME);
-        dataSet.setPartitionId("0");
+        dataSet.setEventHubName(SHARED_EVENTHUB_NAME);
         dataSet.setDatastore(getDataStore());
         outputConfiguration.setPartitionType(AzureEventHubsOutputConfiguration.PartitionType.COLUMN);
 
@@ -207,8 +199,7 @@ class AzureEventHubsOutputTest extends AzureEventHubsTestBase {
             try {
                 AzureEventHubsOutputConfiguration outputConfiguration = new AzureEventHubsOutputConfiguration();
                 final AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
-                dataSet.setEventHubName(EVENTHUB_NAME);
-                dataSet.setPartitionId("0");
+                dataSet.setEventHubName(SHARED_EVENTHUB_NAME);
                 dataSet.setDatastore(getDataStore());
                 outputConfiguration.setPartitionType(AzureEventHubsOutputConfiguration.PartitionType.COLUMN);
 
@@ -245,10 +236,6 @@ class AzureEventHubsOutputTest extends AzureEventHubsTestBase {
                 .run();
         final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
         assertNotNull(records);
-        for (Record record : records) {
-            System.out.println(record.getString(column));
-        }
-        System.out.println(filterValue);
         List<Record> filteredRecords = records.stream()
                 .filter(e -> (e.getString(column) != null && e.getString(column).contains(filterValue)))
                 .collect(Collectors.toList());
