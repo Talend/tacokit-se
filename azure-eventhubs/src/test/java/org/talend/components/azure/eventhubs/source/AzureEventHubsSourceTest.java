@@ -15,8 +15,8 @@
 package org.talend.components.azure.eventhubs.source;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.talend.components.azure.eventhubs.source.AzureEventHubsInputConfiguration.DEFAULT_CONSUMER_GROUP;
-import static org.talend.components.azure.eventhubs.source.AzureEventHubsSource.PAYLOAD_COLUMN;
+import static org.talend.components.azure.eventhubs.common.AzureEventHubsConstant.DEFAULT_CONSUMER_GROUP;
+import static org.talend.components.azure.eventhubs.common.AzureEventHubsConstant.PAYLOAD_COLUMN;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 import java.util.ArrayList;
@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Rule;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -46,13 +48,12 @@ import lombok.extern.slf4j.Slf4j;
  * Note: as event data can't be deleted by API, so need drop this event hub and recreate before start the unit test
  */
 @Slf4j
+@Disabled("Run manually follow the comment")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @WithComponents("org.talend.components.azure.eventhubs")
 class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
 
     protected static final String EVENTHUB_NAME = "eh-source-test";
-
-    protected static final String CONSUME_GROUP = "consumer-group-1";
 
     protected static final String DEFAULT_PARTITION_ID = "1";
 
@@ -68,31 +69,35 @@ class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
         UNIQUE_ID = Integer.toString(ThreadLocalRandom.current().nextInt(1, 100000));
     }
 
-    // @BeforeAll
+    @BeforeAll
     void prepareData() {
         log.warn("a) Eventhub \"" + EVENTHUB_NAME + "\" was created ? ");
         log.warn("b) Partition count is 6 ? ");
         log.warn("c) Consume group \"" + CONSUME_GROUP + "\" ?");
-        AzureEventHubsOutputConfiguration outputConfiguration = new AzureEventHubsOutputConfiguration();
-        final AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
-        dataSet.setEventHubName(EVENTHUB_NAME);
-        dataSet.setDatastore(getDataStore());
+        for (int index = 0; index < 6; index++) {
+            AzureEventHubsOutputConfiguration outputConfiguration = new AzureEventHubsOutputConfiguration();
+            final AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
+            dataSet.setEventHubName(EVENTHUB_NAME);
+            outputConfiguration.setPartitionType(AzureEventHubsOutputConfiguration.PartitionType.SPECIFY_PARTITION_ID);
+            outputConfiguration.setPartitionId(Integer.toString(index));
+            dataSet.setConnection(getDataStore());
 
-        outputConfiguration.setDataset(dataSet);
+            outputConfiguration.setDataset(dataSet);
 
-        RecordBuilderFactory factory = getComponentsHandler().findService(RecordBuilderFactory.class);
-        List<Record> records = new ArrayList<>();
-        for (int i = 0; i < 1000; i++) {
-            records.add(factory.newRecordBuilder().withString("pk", "talend_pk_1")
-                    .withString("Name", "TestName_" + i + "_" + UNIQUE_ID).build());
+            RecordBuilderFactory factory = getComponentsHandler().findService(RecordBuilderFactory.class);
+            List<Record> records = new ArrayList<>();
+            for (int i = 0; i < 100; i++) {
+                records.add(factory.newRecordBuilder().withString("pk", "talend_pk_1")
+                        .withString("Name", "TestName_" + i + "_" + UNIQUE_ID).build());
+            }
+
+            final String config = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
+            getComponentsHandler().setInputData(records);
+            Job.components().component("emitter", "test://emitter")
+                    .component("azureeventhubs-output", "AzureEventHubs://AzureEventHubsOutput?" + config).connections()
+                    .from("emitter").to("azureeventhubs-output").build().run();
+            getComponentsHandler().resetState();
         }
-
-        final String config = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
-        getComponentsHandler().setInputData(records);
-        Job.components().component("emitter", "test://emitter")
-                .component("azureeventhubs-output", "AzureEventHubs://AzureEventHubsOutput?" + config).connections()
-                .from("emitter").to("azureeventhubs-output").build().run();
-        getComponentsHandler().resetState();
     }
 
     @Test
@@ -100,7 +105,7 @@ class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
     void testReadByOffset() {
         AzureEventHubsInputConfiguration inputConfiguration = new AzureEventHubsInputConfiguration();
         final AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
-        dataSet.setDatastore(getDataStore());
+        dataSet.setConnection(getDataStore());
         dataSet.setEventHubName(EVENTHUB_NAME);
         inputConfiguration.setConsumerGroupName(CONSUME_GROUP);
         inputConfiguration.setReceiverOptions(AzureEventHubsInputConfiguration.ReceiverOptions.OFFSET);
@@ -119,7 +124,7 @@ class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
         List<Record> filteredRecords = records.stream()
                 .filter(e -> (e.getString(PAYLOAD_COLUMN) != null && e.getString(PAYLOAD_COLUMN).contains(UNIQUE_ID)))
                 .collect(Collectors.toList());
-        Assert.assertEquals(1000, filteredRecords.size());
+        Assert.assertEquals(100, filteredRecords.size());
     }
 
     @Test
@@ -127,7 +132,7 @@ class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
     void testReadBySeq() {
         AzureEventHubsInputConfiguration inputConfiguration = new AzureEventHubsInputConfiguration();
         final AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
-        dataSet.setDatastore(getDataStore());
+        dataSet.setConnection(getDataStore());
         dataSet.setEventHubName(EVENTHUB_NAME);
 
         inputConfiguration.setSpecifyPartitionId(true);
@@ -135,6 +140,7 @@ class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
         inputConfiguration.setConsumerGroupName(CONSUME_GROUP);
         inputConfiguration.setReceiverOptions(AzureEventHubsInputConfiguration.ReceiverOptions.SEQUENCE);
         inputConfiguration.setSequenceNum(-1L);
+        inputConfiguration.setReceiveTimeout(20L);
         inputConfiguration.setDataset(dataSet);
 
         final String config = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
@@ -146,7 +152,7 @@ class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
         List<Record> filteredRecords = records.stream()
                 .filter(e -> (e.getString(PAYLOAD_COLUMN) != null && e.getString(PAYLOAD_COLUMN).contains(UNIQUE_ID)))
                 .collect(Collectors.toList());
-        Assert.assertEquals(1000, filteredRecords.size());
+        Assert.assertEquals(100, filteredRecords.size());
     }
 
     @Test
@@ -154,7 +160,7 @@ class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
     void testReadByDateTime() {
         AzureEventHubsInputConfiguration inputConfiguration = new AzureEventHubsInputConfiguration();
         final AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
-        dataSet.setDatastore(getDataStore());
+        dataSet.setConnection(getDataStore());
         dataSet.setEventHubName(EVENTHUB_NAME);
 
         inputConfiguration.setSpecifyPartitionId(true);
@@ -162,6 +168,7 @@ class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
         inputConfiguration.setConsumerGroupName(CONSUME_GROUP);
         inputConfiguration.setReceiverOptions(AzureEventHubsInputConfiguration.ReceiverOptions.DATETIME);
         inputConfiguration.setEnqueuedDateTime("2019-04-04T00:00:00.000Z");
+        inputConfiguration.setReceiveTimeout(20L);
         inputConfiguration.setDataset(dataSet);
 
         final String config = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
@@ -173,7 +180,7 @@ class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
         List<Record> filteredRecords = records.stream()
                 .filter(e -> (e.getString(PAYLOAD_COLUMN) != null && e.getString(PAYLOAD_COLUMN).contains(UNIQUE_ID)))
                 .collect(Collectors.toList());
-        Assert.assertEquals(1000, filteredRecords.size());
+        Assert.assertEquals(100, filteredRecords.size());
     }
 
     @Test
@@ -181,7 +188,7 @@ class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
     void testReadByDateTimeNotSet() {
         AzureEventHubsInputConfiguration inputConfiguration = new AzureEventHubsInputConfiguration();
         final AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
-        dataSet.setDatastore(getDataStore());
+        dataSet.setConnection(getDataStore());
         dataSet.setEventHubName(EVENTHUB_NAME);
 
         inputConfiguration.setSpecifyPartitionId(true);
@@ -208,7 +215,7 @@ class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
     void testReadTimeOut() {
         AzureEventHubsInputConfiguration inputConfiguration = new AzureEventHubsInputConfiguration();
         final AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
-        dataSet.setDatastore(getDataStore());
+        dataSet.setConnection(getDataStore());
         dataSet.setEventHubName(EVENTHUB_NAME);
 
         inputConfiguration.setSpecifyPartitionId(true);
@@ -228,7 +235,7 @@ class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
         List<Record> filteredRecords = records.stream()
                 .filter(e -> (e.getString(PAYLOAD_COLUMN) != null && e.getString(PAYLOAD_COLUMN).contains(UNIQUE_ID)))
                 .collect(Collectors.toList());
-        Assert.assertEquals(1000, filteredRecords.size());
+        Assert.assertEquals(100, filteredRecords.size());
     }
 
     @Test
@@ -236,7 +243,7 @@ class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
     void testReadMaxNumReceived() {
         AzureEventHubsInputConfiguration inputConfiguration = new AzureEventHubsInputConfiguration();
         final AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
-        dataSet.setDatastore(getDataStore());
+        dataSet.setConnection(getDataStore());
         dataSet.setEventHubName(EVENTHUB_NAME);
 
         inputConfiguration.setSpecifyPartitionId(true);
@@ -246,6 +253,7 @@ class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
         inputConfiguration.setOffset(AzureEventHubsInputConfiguration.EventOffsetPosition.START_OF_STREAM);
         inputConfiguration.setUseMaxNum(true);
         inputConfiguration.setMaxNumReceived(10L);
+        inputConfiguration.setReceiveTimeout(20L);
         inputConfiguration.setDataset(dataSet);
 
         final String config = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
@@ -254,10 +262,7 @@ class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
                 .run();
         final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
         Assert.assertNotNull(records);
-        List<Record> filteredRecords = records.stream()
-                .filter(e -> (e.getString(PAYLOAD_COLUMN) != null && e.getString(PAYLOAD_COLUMN).contains(UNIQUE_ID)))
-                .collect(Collectors.toList());
-        Assert.assertEquals(10, filteredRecords.size());
+        Assert.assertEquals(10, records.size());
     }
 
     @Test
@@ -265,12 +270,13 @@ class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
     void testReadFromAllPartition() {
         AzureEventHubsInputConfiguration inputConfiguration = new AzureEventHubsInputConfiguration();
         final AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
-        dataSet.setDatastore(getDataStore());
+        dataSet.setConnection(getDataStore());
         dataSet.setEventHubName(EVENTHUB_NAME);
 
         inputConfiguration.setConsumerGroupName(DEFAULT_CONSUMER_GROUP);
         inputConfiguration.setReceiverOptions(AzureEventHubsInputConfiguration.ReceiverOptions.OFFSET);
         inputConfiguration.setOffset(AzureEventHubsInputConfiguration.EventOffsetPosition.START_OF_STREAM);
+        inputConfiguration.setReceiveTimeout(20L);
         inputConfiguration.setDataset(dataSet);
 
         final String config = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
@@ -282,7 +288,7 @@ class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
         List<Record> filteredRecords = records.stream()
                 .filter(e -> (e.getString(PAYLOAD_COLUMN) != null && e.getString(PAYLOAD_COLUMN).contains(UNIQUE_ID)))
                 .collect(Collectors.toList());
-        Assert.assertEquals(1000, filteredRecords.size());
+        Assert.assertEquals(600, filteredRecords.size());
     }
 
     @Test
@@ -290,13 +296,14 @@ class AzureEventHubsSourceTest extends AzureEventHubsTestBase {
     void testPositionLargeThanLatest() {
         AzureEventHubsInputConfiguration inputConfiguration = new AzureEventHubsInputConfiguration();
         final AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
-        dataSet.setDatastore(getDataStore());
+        dataSet.setConnection(getDataStore());
         dataSet.setEventHubName(EVENTHUB_NAME);
 
         inputConfiguration.setConsumerGroupName(DEFAULT_CONSUMER_GROUP);
         inputConfiguration.setReceiverOptions(AzureEventHubsInputConfiguration.ReceiverOptions.SEQUENCE);
         // Set sequence number bigger than current latest eventhub data
         inputConfiguration.setSequenceNum(10000000L);
+        inputConfiguration.setReceiveTimeout(20L);
         inputConfiguration.setDataset(dataSet);
 
         assertThrows(IllegalStateException.class, () -> {

@@ -26,7 +26,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 import lombok.Data;
 
 @Data
-@DataStore("AzureEventHubsConnection")
+@DataStore("AzureEventHubsDataStore")
 @Checkable("checkEndpoint")
 @GridLayout({ @GridLayout.Row({ "endpoint" }), @GridLayout.Row({ "sasKeyName" }), @GridLayout.Row({ "sasKey" }) })
 @Documentation("The connection to the azure eventhubs")

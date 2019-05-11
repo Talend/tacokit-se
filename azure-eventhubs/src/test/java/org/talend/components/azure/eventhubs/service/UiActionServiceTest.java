@@ -73,9 +73,9 @@ class UiActionServiceTest extends AzureEventHubsTestBase {
     @DisplayName("Test eventhub name OK [Valid]")
     public void checkExistEventHub() {
         final AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
-        dataSet.setDatastore(getDataStore());
+        dataSet.setConnection(getDataStore());
         dataSet.setEventHubName(SHARED_EVENTHUB_NAME);
-        final ValidationResult status = service.checkEventHub(dataSet.getDatastore(), dataSet.getEventHubName(), i18n);
+        final ValidationResult status = service.checkEventHub(dataSet.getConnection(), dataSet.getEventHubName(), i18n);
         assertEquals(ValidationResult.Status.OK, status.getStatus());
     }
 
@@ -83,9 +83,9 @@ class UiActionServiceTest extends AzureEventHubsTestBase {
     @DisplayName("Test eventhub name Failed [Invalid]")
     public void checkNotExistEventHub() {
         final AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
-        dataSet.setDatastore(getDataStore());
+        dataSet.setConnection(getDataStore());
         dataSet.setEventHubName(BAD_SHARED_EVENTHUB_NAME);
-        final ValidationResult status = service.checkEventHub(dataSet.getDatastore(), dataSet.getEventHubName(), i18n);
+        final ValidationResult status = service.checkEventHub(dataSet.getConnection(), dataSet.getEventHubName(), i18n);
         assertNotNull(status);
         assertEquals(ValidationResult.Status.KO, status.getStatus());
         assertFalse(status.getComment().isEmpty());
@@ -126,7 +126,7 @@ class UiActionServiceTest extends AzureEventHubsTestBase {
         dataStore.setSasKey(SASKEY);
 
         AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
-        dataSet.setDatastore(dataStore);
+        dataSet.setConnection(dataStore);
         dataSet.setEventHubName(SHARED_EVENTHUB_NAME);
         final SuggestionValues idValues = service.listPartitionIds(dataSet);
         assertNotNull(idValues);

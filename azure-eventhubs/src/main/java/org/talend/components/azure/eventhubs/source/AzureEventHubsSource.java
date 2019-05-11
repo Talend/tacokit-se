@@ -14,11 +14,13 @@
 
 package org.talend.components.azure.eventhubs.source;
 
+import static org.talend.components.azure.eventhubs.common.AzureEventHubsConstant.DEFAULT_CHARSET;
+import static org.talend.components.azure.eventhubs.common.AzureEventHubsConstant.PAYLOAD_COLUMN;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Iterator;
@@ -56,10 +58,6 @@ import lombok.extern.slf4j.Slf4j;
 @Documentation("Source to consume eventhubs messages")
 public class AzureEventHubsSource implements Serializable {
 
-    protected static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
-
-    protected static final String PAYLOAD_COLUMN = "payload";
-
     private final AzureEventHubsInputConfiguration configuration;
 
     private final UiActionService service;
@@ -93,11 +91,11 @@ public class AzureEventHubsSource implements Serializable {
         try {
             executorService = Executors.newScheduledThreadPool(8);
             final ConnectionStringBuilder connStr = new ConnectionStringBuilder()//
-                    .setEndpoint(new URI(configuration.getDataset().getDatastore().getEndpoint()));
-            connStr.setSasKeyName(configuration.getDataset().getDatastore().getSasKeyName());
-            connStr.setSasKey(configuration.getDataset().getDatastore().getSasKey());
+                    .setEndpoint(new URI(configuration.getDataset().getConnection().getEndpoint()));
+            connStr.setSasKeyName(configuration.getDataset().getConnection().getSasKeyName());
+            connStr.setSasKey(configuration.getDataset().getConnection().getSasKey());
             connStr.setEventHubName(configuration.getDataset().getEventHubName());
-            // log.info("init client...");
+
             ehClient = EventHubClient.createSync(connStr.toString(), executorService);
             receiverManager = new ReceiverManager();
             if (configuration.isSpecifyPartitionId()) {
@@ -135,7 +133,7 @@ public class AzureEventHubsSource implements Serializable {
         while (true) {
             try {
                 if (receivedEvents == null || !receivedEvents.hasNext()) {
-                    log.info("fetch messages...");
+                    log.debug("fetch messages...");
                     // TODO let it configurable?
                     Iterable<EventData> iterable = receiverManager.getBatchEventData(100);
                     if (iterable == null) {
@@ -154,9 +152,6 @@ public class AzureEventHubsSource implements Serializable {
                     if (eventData != null) {
                         Record.Builder recordBuilder = builderFactory.newRecordBuilder();
                         recordBuilder.withString(PAYLOAD_COLUMN, new String(eventData.getBytes(), DEFAULT_CHARSET));
-                        // TODO remove this later
-                        log.info(eventData.getSystemProperties().getSequenceNumber() + " --> "
-                                + new String(eventData.getBytes(), DEFAULT_CHARSET));
                         count++;
                         return recordBuilder.build();
                     }
@@ -221,7 +216,7 @@ public class AzureEventHubsSource implements Serializable {
             this.partitionInQueue = new LinkedList<>();
         }
 
-        protected void addPartitions(String... partitionIds) throws ExecutionException, InterruptedException {
+        void addPartitions(String... partitionIds) throws ExecutionException, InterruptedException {
             for (String partitionId : partitionIds) {
                 // This would check whether position config is validate or not at the moment
                 if (!eventPositionMap.containsKey(partitionId)) {

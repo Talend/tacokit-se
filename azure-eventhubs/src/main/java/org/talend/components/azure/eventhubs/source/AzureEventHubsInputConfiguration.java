@@ -30,6 +30,9 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
 
+import static org.talend.components.azure.eventhubs.common.AzureEventHubsConstant.DEFAULT_CONSUMER_GROUP;
+import static org.talend.components.azure.eventhubs.common.AzureEventHubsConstant.DEFAULT_PARTITION_ID;
+
 @Data
 @GridLayout({ @GridLayout.Row({ "dataset" }), @GridLayout.Row({ "specifyPartitionId" }), @GridLayout.Row({ "partitionId" }),
         @GridLayout.Row({ "consumerGroupName" }), @GridLayout.Row({ "receiverOptions" }), @GridLayout.Row({ "offset" }),
@@ -37,8 +40,6 @@ import lombok.Data;
         @GridLayout.Row({ "useMaxNum" }), @GridLayout.Row({ "maxNumReceived" }), @GridLayout.Row({ "receiveTimeout" }) })
 @Documentation("Consume message from eventhubs configuration")
 public class AzureEventHubsInputConfiguration implements Serializable {
-
-    protected static final String DEFAULT_CONSUMER_GROUP = "$Default";
 
     @Option
     @Documentation("The dataset to consume")
@@ -50,10 +51,10 @@ public class AzureEventHubsInputConfiguration implements Serializable {
 
     @Option
     @ActiveIf(target = "specifyPartitionId", value = "true")
-    @DefaultValue("0")
-    @Suggestable(value = "listPartitionIds", parameters = { "dataset" })
+    @DefaultValue(DEFAULT_PARTITION_ID)
+    @Suggestable(value = "listPartitionIds", parameters = { "../dataset" })
     @Documentation("The partition Id that the receiver belongs to. All data received will be from this partition only")
-    String partitionId;
+    private String partitionId;
 
     @Option
     @Documentation("The consumer group name that this receiver should be grouped under")
