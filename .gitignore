@@ -26,3 +26,9 @@ hs_err_pid*
 *.iml
 target
 
+# yarn and node
+.node
+package-lock.json
+yarn.lock
+node_modules
+tmp/

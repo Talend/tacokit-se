@@ -121,6 +121,12 @@ public class JdbcService {
         return new JdbcDatasource(i18n, resolver, connection, getDriver(connection), false, rewriteBatchedStatements);
     }
 
+    public JdbcDatasource createDataSource(final JdbcConnection connection, boolean isAutoCommit,
+            final boolean rewriteBatchedStatements) {
+        final JdbcConfiguration.Driver driver = getDriver(connection);
+        return new JdbcDatasource(i18n, resolver, connection, driver, isAutoCommit, rewriteBatchedStatements);
+    }
+
     public static class JdbcDatasource implements AutoCloseable {
 
         private final Resolver.ClassLoaderDescriptor classLoaderDescriptor;

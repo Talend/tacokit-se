@@ -84,6 +84,14 @@
         <validation.model>true</validation.model>
         <talend_oss_snapshots>https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceSnapshot/
         </talend_oss_snapshots>
+
+        <frontend.version>1.7.5</frontend.version>
+        <node.version>v10.15.3</node.version>
+        <yarn.version>v1.15.2</yarn.version>
+
+        <!-- The XTM customer id that manage the translation of this project-->
+        <xtm.customer.id>12240076</xtm.customer.id>
+        <xtm.api.url>https://www.xtm-cloud.com/rest-api</xtm.api.url>
     </properties>
 
     <dependencyManagement>
@@ -631,6 +639,141 @@
     </reporting>
 
     <profiles>
+        <profile>
+            <id>i18n-export</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.github.eirslett</groupId>
+                        <artifactId>frontend-maven-plugin</artifactId>
+                        <version>${frontend.version}</version>
+                        <inherited>false</inherited> <!-- execute on root only -->
+                        <executions>
+                            <execution>
+                                <id>install-node-and-yarn</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>install-node-and-yarn</goal>
+                                </goals>
+                                <configuration>
+                                    <nodeVersion>${node.version}</nodeVersion>
+                                    <yarnVersion>${yarn.version}</yarnVersion>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>install-i18n-scripts</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>yarn</goal>
+                                </goals>
+                                <configuration>
+                                    <arguments>install</arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>i18n-extract</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>yarn</goal>
+                                </goals>
+                                <configuration>
+                                    <arguments>talend-i18n extract</arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>i18n-upload</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>yarn</goal>
+                                </goals>
+                                <configuration>
+                                    <arguments>talend-i18n upload</arguments>
+                                    <environmentVariables>
+                                        <XTM_API_URL>${xtm.api.url}</XTM_API_URL>
+                                        <XTM_CUSTOMER_ID>${xtm.customer.id}</XTM_CUSTOMER_ID>
+                                        <XTM_TOKEN>${env.XTM_TOKEN}</XTM_TOKEN>
+                                    </environmentVariables>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <installDirectory>${maven.multiModuleProjectDirectory}/.node</installDirectory>
+                            <workingDirectory>${project.basedir}/</workingDirectory>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>i18n-deploy</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.github.eirslett</groupId>
+                        <artifactId>frontend-maven-plugin</artifactId>
+                        <version>${frontend.version}</version>
+                        <inherited>false</inherited> <!-- execute on root only -->
+                        <executions>
+                            <execution>
+                                <id>install-node-and-yarn</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>install-node-and-yarn</goal>
+                                </goals>
+                                <configuration>
+                                    <nodeVersion>${node.version}</nodeVersion>
+                                    <yarnVersion>${yarn.version}</yarnVersion>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>install-i18n-scripts</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>yarn</goal>
+                                </goals>
+                                <configuration>
+                                    <arguments>install</arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>i18n-download</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>yarn</goal>
+                                </goals>
+                                <configuration>
+                                    <arguments>talend-i18n download</arguments>
+                                    <environmentVariables>
+                                        <XTM_API_URL>${xtm.api.url}</XTM_API_URL>
+                                        <XTM_CUSTOMER_ID>${xtm.customer.id}</XTM_CUSTOMER_ID>
+                                        <XTM_TOKEN>${env.XTM_TOKEN}</XTM_TOKEN>
+                                    </environmentVariables>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <!-- This step only format the xtm resources to mvn project format. a mvn deploy is needed to publish the translation dependency to nexus -->
+                                <id>i18n-deploy</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>yarn</goal>
+                                </goals>
+                                <configuration>
+                                    <arguments>talend-i18n deploy</arguments>
+                                    <environmentVariables>
+                                        <GITHUB_LOGIN>${env.GITHUB_LOGIN}</GITHUB_LOGIN>
+                                        <GITHUB_TOKEN>${env.GITHUB_TOKEN}</GITHUB_TOKEN>
+                                    </environmentVariables>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <installDirectory>${maven.multiModuleProjectDirectory}/.node</installDirectory>
+                            <workingDirectory>${project.basedir}/</workingDirectory>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>documentation-html</id>
             <build>

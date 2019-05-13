@@ -1,0 +1,22 @@
+{
+  "extract": {
+    "method": "expression",
+    "rootPath": "mvnModules",
+    "script": "extract-i18n",
+    "expression": "Messages.properties",
+    "target": "./target/i18n"
+  },
+  "load": {
+    "project": "Connectors-se"
+  },
+  "github": {
+    "url": "https://github.com/Talend/i18n-product.git"
+  },
+  "module": {
+    "type": "mvn",
+    "repository": {
+      "id": "talend_nexus_deployment",
+      "url": "https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceRelease/"
+    }
+  }
+}

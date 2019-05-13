@@ -1,0 +1,11 @@
+{
+  "name": "connectors-se-i18n",
+  "version": "1.0.0",
+  "repository": "https://github.com/Talend/connectors-se.git",
+  "author": "Anas Khabali <akhabali@talend.com>",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@talend/i18n-scripts": "0.3.0"
+  }
+
+}

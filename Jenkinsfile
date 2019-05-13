@@ -7,11 +7,12 @@ if (BRANCH_NAME.startsWith("PR-")) {
     branchName = env.CHANGE_BRANCH
 }
 
-def escapedBranch = branchName.toLowerCase().replaceAll("/","_")
+def escapedBranch = branchName.toLowerCase().replaceAll("/", "_")
 def deploymentSuffix = env.BRANCH_NAME == "master" ? "${PRODUCTION_DEPLOYMENT_REPOSITORY}" : ("dev_branch_snapshots/branch_${escapedBranch}")
-def deploymentRepository = "https://artifacts-zl.talend.com/nexus/content/repositories/${deploymentSuffix}"
 def m2 = "/tmp/jenkins/tdi/m2/${deploymentSuffix}"
 def talendOssRepositoryArg = env.BRANCH_NAME == "master" ? "" : ("-Dtalend_oss_snapshots=https://nexus-smart-branch.datapwn.com/nexus/content/repositories/${deploymentSuffix}")
+
+def calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
 
 pipeline {
     agent {
@@ -24,7 +25,7 @@ spec:
     containers:
         -
             name: main
-            image: 'jenkinsxio/builder-maven:0.1.60'
+            image: 'khabali/jenkins-java-build-container:latest'
             command: [cat]
             tty: true
             volumeMounts: [{name: docker, mountPath: /var/run/docker.sock}, {name: m2main, mountPath: /root/.m2/repository}]
@@ -55,8 +56,16 @@ spec:
         cron(env.BRANCH_NAME == "master" ? "@daily" : "")
     }
 
+    parameters {
+        booleanParam(name: 'PUSH_TO_XTM', defaultValue: false, description: 'Export the project i18n resources to Xtm to be translated. This action can be performed from master or maintenance branches only.')
+        booleanParam(name: 'DEPLOY_FROM_XTM', defaultValue: false, description: 'Download and deploy i18n resources from Xtm to nexus for this branch.')
+    }
+
     stages {
         stage('Run maven') {
+            when {
+                expression { params.PUSH_TO_XTM == false && params.DEPLOY_FROM_XTM == false }
+            }
             steps {
                 container('main') {
                     // for next concurrent builds
@@ -87,6 +96,9 @@ spec:
             }
         }
         stage('Post Build Steps') {
+            when {
+                expression { params.PUSH_TO_XTM == false && params.DEPLOY_FROM_XTM == false }
+            }
             parallel {
                 stage('Documentation') {
                     steps {
@@ -140,6 +152,73 @@ spec:
                             ]) {
                                 sh "cd ci_nexus && mvn -U -B -s .jenkins/settings.xml clean deploy -e -Pdocker -DskipTests ${talendOssRepositoryArg}"
                             }
+                        }
+                    }
+                }
+            }
+        }
+        stage('Push to Xtm') {
+            when {
+                anyOf{
+                    expression { params.PUSH_TO_XTM == true }
+//                    allOf{
+//                        triggeredBy 'TimerTrigger'
+//                        expression {
+//                            (calendar.get(Calendar.WEEK_OF_MONTH) == 2 ||  calendar.get(Calendar.WEEK_OF_MONTH) == 4) && calendar.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY
+//                        }
+//                    }
+                }
+                anyOf {
+                    branch 'master'
+                    expression { BRANCH_NAME.startsWith('maintenance/') }
+                }
+            }
+            steps {
+                container('main') {
+                    withCredentials([
+                            usernamePassword(
+                                    credentialsId: 'nexus-artifact-zl-credentials',
+                                    usernameVariable: 'NEXUS_USER',
+                                    passwordVariable: 'NEXUS_PASSWORD'),
+                            usernamePassword(
+                                    credentialsId: 'xtm-credentials',
+                                    usernameVariable: 'XTM_USER',
+                                    passwordVariable: 'XTM_TOKEN')
+                    ]) {
+                        script {
+                            sh "mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-export"
+                        }
+                    }
+                }
+            }
+        }
+        stage('Deploy from Xtm') {
+            when {
+                expression { params.DEPLOY_FROM_XTM == true }
+                anyOf {
+                    branch 'master'
+                    expression { BRANCH_NAME.startsWith('maintenance/') }
+                }
+            }
+            steps {
+                container('main') {
+                    withCredentials([
+                            usernamePassword(
+                                    credentialsId: 'nexus-artifact-zl-credentials',
+                                    usernameVariable: 'NEXUS_USER',
+                                    passwordVariable: 'NEXUS_PASSWORD'),
+                            usernamePassword(
+                                    credentialsId: 'xtm-credentials',
+                                    usernameVariable: 'XTM_USER',
+                                    passwordVariable: 'XTM_TOKEN'),
+                            usernamePassword(
+                                    credentialsId: 'github-i18n-product',
+                                    usernameVariable: 'GITHUB_LOGIN',
+                                    passwordVariable: 'GITHUB_TOKEN')
+                    ]) {
+                        script {
+                            sh "mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-deploy"
+                            sh "cd tmp/repository && mvn -s ../../.jenkins/settings.xml clean deploy"
                         }
                     }
                 }
