@@ -5,7 +5,7 @@ import java.io.Serializable;
 import org.talend.components.rest.configuration.auth.oauth2.Oauth2;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
-import org.talend.sdk.component.api.configuration.type.DataStore;
+import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -30,6 +30,7 @@ public class Authentication implements Serializable {
     @Option
     @Credential
     @ActiveIf(target = "type", value = "Bearer")
+    @DefaultValue("")
     @Documentation("")
     private String bearerToken;
 

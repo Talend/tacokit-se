@@ -30,6 +30,15 @@ public class RequestConfigurer extends OAuth1.Configurer {
             connection.withReadTimeout(config.getDataset().getReadTimeout());
         }
 
+        switch (config.getDataset().getAuthentication().getType()) {
+        case Basic:
+            connection.withHeader("Authorization", config.getDataset().getAuthentication().getBasic().getAuthorizationHeader());
+            break;
+        case Bearer:
+            connection.withHeader("Authorization", "Bearer " + config.getDataset().getAuthentication().getBearerToken());
+            break;
+        }
+
     }
 
 }

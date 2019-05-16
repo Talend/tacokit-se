@@ -5,17 +5,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
-import org.talend.components.rest.configuration.RequestBody;
 import org.talend.components.rest.configuration.RequestConfig;
+import org.talend.components.rest.configuration.auth.Authentication;
+import org.talend.components.rest.configuration.auth.Authorization;
+import org.talend.components.rest.configuration.auth.Basic;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
-import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 
 import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
 import javax.json.JsonValue;
@@ -35,6 +35,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @WithComponents(value = "org.talend.components.rest")
 class ClientTest {
 
+    private final static String HTTP_BIN_BASE_LATEST = "https://httpbin.org";
+
     private final static String HTTP_BIN_BASE = "http://tal-rd22.talend.lan:8084";
 
     private final static String DONT_CHECK = "%DONT_CHECK%";
@@ -45,10 +47,6 @@ class ClientTest {
      * }
      */
 
-    /*
-     * @Service
-     * Client client;
-     */
     @Service
     RestService service;
 
@@ -62,21 +60,22 @@ class ClientTest {
 
     @BeforeEach
     void buildConfig() {
-        config = RequestConfigBuilder.getEmptyRequestConfig();
-    }
-
-    @Test
-    void httpbinGet() throws Exception {
         // Inject needed services
         handler.injectServices(this);
 
         Client client = service.getClient();
 
+        config = RequestConfigBuilder.getEmptyRequestConfig();
+
         config.getDataset().getDatastore().setBase(HTTP_BIN_BASE);
-        config.getDataset().setResource("get");
-        config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setConnectionTimeout(5000);
         config.getDataset().setReadTimeout(5000);
+    }
+
+    @Test
+    void httpbinGet() throws Exception {
+        config.getDataset().setResource("get");
+        config.getDataset().setMethodType(HttpMethod.GET);
 
         Record resp = service.execute(config);
 
@@ -131,20 +130,12 @@ class ClientTest {
 
     /**
      * If there are some parameters set, if false is given to setHasXxxx those parameters should not be passed.
+     *
      * @throws Exception
      */
     @Test
     void testParamsDisabled() throws Exception {
-        // Inject needed services
-        handler.injectServices(this);
-
-        Client client = service.getClient();
-
-        config.getDataset().getDatastore().setBase(HTTP_BIN_BASE);
-        config.getDataset().setConnectionTimeout(5000);
-        config.getDataset().setReadTimeout(5000);
-
-        HttpMethod[] verbs = {HttpMethod.DELETE, HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT};
+        HttpMethod[] verbs = { HttpMethod.DELETE, HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT };
         config.getDataset().setResource("get");
         config.getDataset().setMethodType(HttpMethod.GET);
 
@@ -170,19 +161,9 @@ class ClientTest {
 
     }
 
-
     @Test
     void testQueryAndHeaderParams() throws Exception {
-        // Inject needed services
-        handler.injectServices(this);
-
-        Client client = service.getClient();
-
-        config.getDataset().getDatastore().setBase(HTTP_BIN_BASE);
-        config.getDataset().setConnectionTimeout(5000);
-        config.getDataset().setReadTimeout(5000);
-
-        HttpMethod[] verbs = {HttpMethod.DELETE, HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT};
+        HttpMethod[] verbs = { HttpMethod.DELETE, HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT };
         for (HttpMethod m : verbs) {
             config.getDataset().setResource(m.name().toLowerCase());
             config.getDataset().setMethodType(m);
@@ -214,37 +195,96 @@ class ClientTest {
     }
 
     @Test
-    void testPathParams() throws Exception {
-        // Inject needed services
-        handler.injectServices(this);
+    void testBasicAuth() throws Exception {
+        String user = "my_user";
+        String pwd = "my_password";
 
-        Client client = service.getClient();
+        Basic basic = new Basic();
+        basic.setUsername(user);
+        basic.setPassword(pwd);
 
-        config.getDataset().getDatastore().setBase(HTTP_BIN_BASE);
-        config.getDataset().setConnectionTimeout(5000);
-        config.getDataset().setReadTimeout(5000);
-        config.getDataset().setResource("get/{resource}/{id}/{field}");
+        Authentication auth = new Authentication();
+        auth.setType(Authorization.AuthorizationType.Basic);
+        auth.setBasic(basic);
+
+        config.getDataset().setAuthentication(auth);
+        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().setResource("/basic-auth/{user}/{pwd}");
+        config.setStopIfNotOk(false);
+
+        // httpbin expects login/pwd given in header Basic as path param
+        config.getDataset().setResource("/basic-auth/" + user + "/wrong_" + pwd);
+        Record respForbidden = service.execute(config);
+        assertEquals(401, respForbidden.getInt("status"));
+
+        config.getDataset().setResource("/basic-auth/" + user + "/" + pwd);
+        Record respOk = service.execute(config);
+        assertEquals(200, respOk.getInt("status"));
+    }
+
+    @Test
+    void testBearerAuth() throws Exception {
+        String token = "123456789";
+
+        Authentication auth = new Authentication();
+        auth.setType(Authorization.AuthorizationType.Bearer);
+
+        config.getDataset().getDatastore().setBase(HTTP_BIN_BASE_LATEST);
+        config.getDataset().setAuthentication(auth);
+        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().setResource("/bearer");
+        config.setStopIfNotOk(false);
+
+        auth.setBearerToken("");
+        Record respKo = service.execute(config);
+        assertEquals(401, respKo.getInt("status"));
+
+        auth.setBearerToken("token-123456789");
+        Record respOk = service.execute(config);
+        assertEquals(200, respOk.getInt("status"));
+    }
+
+    @Test
+    void testRedirect() throws Exception {
+        String redirect_url = HTTP_BIN_BASE + "/get?redirect=ok";
+        config.getDataset().setResource("redirect-to?url=" + redirect_url);
+
         config.getDataset().setMethodType(HttpMethod.GET);
 
-        config.getDataset().setHasQueryParams(false);
-        config.getDataset().setHasHeaders(false);
-
-        List<Param> pathParams = new ArrayList<>();
-        pathParams.add(new Param("resource", "leads"));
-        pathParams.add(new Param("id", "124"));
-        pathParams.add(new Param("field", "name"));
-        config.getDataset().setHasPathParams(true);
-        config.getDataset().setPathParams(pathParams);
-
         Record resp = service.execute(config);
-
         assertEquals(200, resp.getInt("status"));
 
         JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(resp.getString("body")));
         JsonObject payload = payloadReader.readObject();
 
-        assertEquals("", payload.getString("url"));
-
+        assertEquals("ok", payload.getJsonObject("args").getString("redirect"));
     }
+
+   /* @Test
+    void testReadStreaming() throws Exception {
+        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().setResource("/stream/10");
+
+        Record resp = service.execute(config);
+        assertEquals(200, resp.getInt("status"));
+    }
+
+    @Test
+    void testReadBytes() throws Exception {
+        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().setResource("/bytes/100");
+
+        Record resp = service.execute(config);
+        assertEquals(200, resp.getInt("status"));
+    }
+
+    @Test
+    void testReadHml() throws Exception {
+        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().setResource("links/10/0");
+
+        Record resp = service.execute(config);
+        assertEquals(200, resp.getInt("status"));
+    }*/
 
 }

@@ -31,15 +31,20 @@ import static org.talend.components.rest.configuration.RequestBody.Type.X_WWW_FO
 
 @Data
 @GridLayout({ @GridLayout.Row({ "dataset" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataset" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataset" }), @GridLayout.Row({ "stopIfNotOk" }) })
 public class RequestConfig implements Serializable {
 
     @Option
     @Documentation("Identification of the resource to access")
     private Dataset dataset;
 
+    @Option
+    @Documentation("Raise an error if the HTTP status code is not 200")
+    @DefaultValue("false")
+    private boolean stopIfNotOk;
+
     public Map<String, String> pathParams() {
-        if(!getDataset().getHasPathParams()){
+        if (!getDataset().getHasPathParams()) {
             return new HashMap<String, String>();
         }
 
@@ -47,7 +52,7 @@ public class RequestConfig implements Serializable {
     }
 
     public Map<String, String> queryParams() {
-        if(!getDataset().getHasQueryParams()){
+        if (!getDataset().getHasQueryParams()) {
             return new HashMap<String, String>();
         }
 
@@ -60,7 +65,7 @@ public class RequestConfig implements Serializable {
             h.put("Content-Type", "application/x-www-form-urlencoded");
         }
 
-        if(!getDataset().getHasHeaders()){
+        if (!getDataset().getHasHeaders()) {
             return h;
         }
 

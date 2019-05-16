@@ -31,7 +31,7 @@ import java.util.Queue;
 @Version(1)
 @Icon(value = Icon.IconType.CUSTOM, custom = "Http")
 @Emitter(name = "Input")
-@Documentation("")
+@Documentation("Http REST Input component")
 public class RestEmitter implements Serializable {
 
     private final RequestConfig config;

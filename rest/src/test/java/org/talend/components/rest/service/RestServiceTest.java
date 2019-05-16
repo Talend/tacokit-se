@@ -1,23 +1,16 @@
 package org.talend.components.rest.service;
 
-
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestConfig;
-import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import javax.json.JsonReaderFactory;
-
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,18 +32,16 @@ public class RestServiceTest {
 
     private RequestConfig config;
 
-
     @BeforeEach
     void buildConfig() {
-        config = RequestConfigBuilder.getEmptyRequestConfig();
-    }
-
-
-    @Test
-    void setPahParams() throws Exception {
         // Inject needed services
         handler.injectServices(this);
 
+        config = RequestConfigBuilder.getEmptyRequestConfig();
+    }
+
+    @Test
+    void setPahParams() throws Exception {
         config.getDataset().getDatastore().setBase("");
         config.getDataset().setConnectionTimeout(5000);
         config.getDataset().setReadTimeout(5000);
@@ -60,16 +51,24 @@ public class RestServiceTest {
         config.getDataset().setHasQueryParams(false);
         config.getDataset().setHasHeaders(false);
 
-        List<Param> pathParams = new ArrayList<>();
-        pathParams.add(new Param("resource", "leads"));
-        pathParams.add(new Param("id", "124"));
-        pathParams.add(new Param("field", "name"));
-        config.getDataset().setHasPathParams(true);
-        config.getDataset().setPathParams(pathParams);
+        List<String[]> paramList = new ArrayList<>();
+        paramList.add(new String[] { "leads", "124", "name" });
+        paramList.add(new String[] { "{leads}", "{124}", "{name}" });
 
-        String finalResource = service.setPathParams(config.getDataset().getResource(), config.getDataset().getHasPathParams(), config.pathParams());
+        for (String[] params : paramList) {
+            List<Param> pathParams = new ArrayList<>();
+            pathParams.add(new Param("resource", params[0]));
+            pathParams.add(new Param("id", params[1]));
+            pathParams.add(new Param("field", params[2]));
+            config.getDataset().setHasPathParams(true);
+            config.getDataset().setPathParams(pathParams);
 
-        assertEquals("get/leads/124/name/id/124/resource/leads/end", finalResource);
+            String finalResource = service.setPathParams(config.getDataset().getResource(),
+                    config.getDataset().getHasPathParams(), config.pathParams());
+
+            assertEquals("get/" + params[0] + "/" + params[1] + "/" + params[2] + "/id/" + params[1] + "/resource/" + params[0]
+                    + "/end", finalResource);
+        }
 
     }
 
