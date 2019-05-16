@@ -76,9 +76,9 @@ public class AzureEventHubsInputConfiguration implements Serializable {
     private Long sequenceNum = -1L;
 
     @Option
-    @ActiveIf(target = "receiverOptions", value = { "OFFSET", "SEQUENCE" })
+    @ActiveIf(target = "receiverOptions", value = "SEQUENCE")
     @Documentation("Will include the specified event when set to true; otherwise, the next event is returned")
-    private boolean inclusiveFlag;
+    private boolean inclusiveFlag = true;
 
     @Option
     @ActiveIf(target = "receiverOptions", value = "DATETIME")
