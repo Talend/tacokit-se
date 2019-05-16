@@ -28,6 +28,7 @@ import org.talend.sdk.component.junit5.WithComponents;
 class JsonConverterTest extends AdlsGen2TestBase {
 
     private JsonConverter converter = JsonConverter.of();
+
     private JsonObject json;
 
     @BeforeEach
@@ -54,7 +55,7 @@ class JsonConverterTest extends AdlsGen2TestBase {
     @Test
     void readJsonSample() throws Exception {
         System.err.println(json);
-        Record record =converter.toRecord(json);
+        Record record = converter.toRecord(json);
         System.err.println(record);
     }
 

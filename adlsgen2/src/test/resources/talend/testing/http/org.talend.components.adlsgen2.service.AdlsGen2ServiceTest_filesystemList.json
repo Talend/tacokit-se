@@ -13,15 +13,15 @@
     },
     "response":{
       "headers":{
-        "Transfer-Encoding":"chunked",
         "x-ms-version":"2018-11-09",
         "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
-        "x-ms-request-id":"ecd0010d-a01f-007e-2f6c-f3df92000000",
-        "x-ms-continuation":"",
+        "x-ms-error-code":"AuthenticationFailed",
+        "Content-Length":"268",
+        "x-ms-request-id":"56dd20ae-b01f-002f-0bb7-0b421e000000",
         "Content-Type":"application/json;charset=utf-8"
       },
-      "payload":"{\"filesystems\":[{\"etag\":\"0x8D6A7934A105538\",\"lastModified\":\"Wed, 13 Mar 2019 09:07:16 GMT\",\"name\":\"adls-gen2\"},{\"etag\":\"0x8D6ABB21A491827\",\"lastModified\":\"Mon, 18 Mar 2019 14:57:55 GMT\",\"name\":\"ufs\"}]}\n",
-      "status":200
+      "payload":"{\"error\":{\"code\":\"AuthenticationFailed\",\"message\":\"Server failed to authenticate the request. Make sure the value of Authorization header is formed correctly including the signature.\\nRequestId:56dd20ae-b01f-002f-0bb7-0b421e000000\\nTime:2019-05-16T07:19:28.5071588Z\"}}",
+      "status":403
     }
   }
 ]

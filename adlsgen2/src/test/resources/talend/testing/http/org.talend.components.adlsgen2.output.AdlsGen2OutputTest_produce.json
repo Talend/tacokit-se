@@ -13,14 +13,15 @@
     },
     "response":{
       "headers":{
-        "Transfer-Encoding":"chunked",
         "x-ms-version":"2018-11-09",
         "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
-        "x-ms-request-id":"19cf71a6-101f-007b-046c-f30d49000000",
+        "x-ms-error-code":"AuthenticationFailed",
+        "Content-Length":"268",
+        "x-ms-request-id":"536ad389-401f-002b-14b7-0bcf19000000",
         "Content-Type":"application/json;charset=utf-8"
       },
-      "payload":"{\"paths\":[{\"etag\":\"Wed, 20 Mar 2019 15:47:46 GMT\",\"group\":\"$superuser\",\"isDirectory\":\"true\",\"lastModified\":\"Wed, 20 Mar 2019 15:47:46 GMT\",\"name\":\"New Folder  secondary\",\"owner\":\"$superuser\",\"permissions\":\"rwxr-x---\"},{\"contentLength\":\"162\",\"etag\":\"Tue, 09 Apr 2019 11:27:23 GMT\",\"group\":\"$superuser\",\"lastModified\":\"Tue, 09 Apr 2019 11:27:23 GMT\",\"name\":\"customers_test_produce.csv\",\"owner\":\"$superuser\",\"permissions\":\"rw-r-----\"},{\"etag\":\"Wed, 03 Apr 2019 09:18:53 GMT\",\"group\":\"$superuser\",\"isDirectory\":\"true\",\"lastModified\":\"Wed, 03 Apr 2019 09:18:53 GMT\",\"name\":\"demo_gen2\",\"owner\":\"$superuser\",\"permissions\":\"rwxr-x---\"},{\"etag\":\"Wed, 13 Mar 2019 10:40:09 GMT\",\"group\":\"$superuser\",\"isDirectory\":\"true\",\"lastModified\":\"Wed, 13 Mar 2019 10:40:09 GMT\",\"name\":\"myNewFolder\",\"owner\":\"$superuser\",\"permissions\":\"rwxr-x---\"},{\"etag\":\"Mon, 25 Mar 2019 13:02:39 GMT\",\"group\":\"$superuser\",\"isDirectory\":\"true\",\"lastModified\":\"Mon, 25 Mar 2019 13:02:39 GMT\",\"name\":\"myNewFolder02\",\"owner\":\"$superuser\",\"permissions\":\"rwxr-x---\"},{\"etag\":\"Mon, 25 Mar 2019 13:00:24 GMT\",\"group\":\"$superuser\",\"isDirectory\":\"true\",\"lastModified\":\"Mon, 25 Mar 2019 13:00:24 GMT\",\"name\":\"myNewFolder2\",\"owner\":\"$superuser\",\"permissions\":\"rwxr-x---\"}]}\n",
-      "status":200
+      "payload":"{\"error\":{\"code\":\"AuthenticationFailed\",\"message\":\"Server failed to authenticate the request. Make sure the value of Authorization header is formed correctly including the signature.\\nRequestId:536ad389-401f-002b-14b7-0bcf19000000\\nTime:2019-05-16T07:19:19.6139193Z\"}}",
+      "status":403
     }
   },
   {
@@ -39,88 +40,13 @@
       "headers":{
         "x-ms-version":"2018-11-09",
         "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
-        "ETag":"\"0x8D6C1840810BFFD\"",
-        "Last-Modified":"Mon, 15 Apr 2019 09:23:33 GMT",
-        "Content-Length":"0",
-        "x-ms-request-id":"c982a381-c01f-008c-506c-f327db000000"
+        "x-ms-error-code":"AuthenticationFailed",
+        "Content-Length":"268",
+        "x-ms-request-id":"f3716beb-901f-0017-4eb7-0be6de000000",
+        "Content-Type":"application/json;charset=utf-8"
       },
-      "payload":"",
-      "status":201
-    }
-  },
-  {
-    "request":{
-      "headers":{
-        "x-ms-version":"2018-11-09",
-        "Accept":"application/json, */*",
-        "Connection":"keep-alive",
-        "Content-Length":"54",
-        "Content-Type":"application/json; charset=utf-8"
-      },
-      "method":"PATCH",
-      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/customers_test_produce.csv?action=append&position=0&sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-05-01T17:44:11Z&st=2019-03-25T10:44:11Z&spr=https&sig=sign-here"
-    },
-    "response":{
-      "headers":{
-        "x-ms-version":"2018-11-09",
-        "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
-        "Content-Length":"0",
-        "x-ms-request-server-encrypted":"true",
-        "x-ms-request-id":"8e1bb483-b01f-005d-766c-f34551000000",
-        "Content-MD5":"qqHvDC0KUJ709u0pFcNxjQ=="
-      },
-      "payload":"",
-      "status":202
-    }
-  },
-  {
-    "request":{
-      "headers":{
-        "x-ms-version":"2018-11-09",
-        "Accept":"application/json, */*",
-        "Connection":"keep-alive",
-        "Content-Length":"54",
-        "Content-Type":"application/json; charset=utf-8"
-      },
-      "method":"PATCH",
-      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/customers_test_produce.csv?action=append&position=54&sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-05-01T17:44:11Z&st=2019-03-25T10:44:11Z&spr=https&sig=sign-here"
-    },
-    "response":{
-      "headers":{
-        "x-ms-version":"2018-11-09",
-        "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
-        "Content-Length":"0",
-        "x-ms-request-server-encrypted":"true",
-        "x-ms-request-id":"c4fb2761-301f-006c-496c-f3a442000000",
-        "Content-MD5":"qqHvDC0KUJ709u0pFcNxjQ=="
-      },
-      "payload":"",
-      "status":202
-    }
-  },
-  {
-    "request":{
-      "headers":{
-        "x-ms-version":"2018-11-09",
-        "Accept":"application/json, */*",
-        "Connection":"keep-alive",
-        "Content-Length":"54",
-        "Content-Type":"application/json; charset=utf-8"
-      },
-      "method":"PATCH",
-      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/customers_test_produce.csv?action=append&position=108&sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-05-01T17:44:11Z&st=2019-03-25T10:44:11Z&spr=https&sig=sign-here"
-    },
-    "response":{
-      "headers":{
-        "x-ms-version":"2018-11-09",
-        "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
-        "Content-Length":"0",
-        "x-ms-request-server-encrypted":"true",
-        "x-ms-request-id":"112b3243-b01f-0000-306c-f34fd5000000",
-        "Content-MD5":"qqHvDC0KUJ709u0pFcNxjQ=="
-      },
-      "payload":"",
-      "status":202
+      "payload":"{\"error\":{\"code\":\"AuthenticationFailed\",\"message\":\"Server failed to authenticate the request. Make sure the value of Authorization header is formed correctly including the signature.\\nRequestId:f3716beb-901f-0017-4eb7-0be6de000000\\nTime:2019-05-16T07:19:19.8518967Z\"}}",
+      "status":403
     }
   },
   {
@@ -133,20 +59,19 @@
         "Content-Type":"application/json; charset=utf-8"
       },
       "method":"PATCH",
-      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/customers_test_produce.csv?action=flush&position=162&sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-05-01T17:44:11Z&st=2019-03-25T10:44:11Z&spr=https&sig=sign-here"
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/customers_test_produce.csv?action=flush&position=0&sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-05-01T17:44:11Z&st=2019-03-25T10:44:11Z&spr=https&sig=sign-here"
     },
     "response":{
       "headers":{
         "x-ms-version":"2018-11-09",
         "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
-        "ETag":"\"0x8D6C18408A0D13D\"",
-        "Last-Modified":"Mon, 15 Apr 2019 09:23:34 GMT",
-        "Content-Length":"0",
-        "x-ms-request-server-encrypted":"true",
-        "x-ms-request-id":"00b6e721-d01f-004b-6f6c-f3b386000000"
+        "x-ms-error-code":"AuthenticationFailed",
+        "Content-Length":"268",
+        "x-ms-request-id":"dbd091f9-c01f-008c-5bb7-0b27db000000",
+        "Content-Type":"application/json;charset=utf-8"
       },
-      "payload":"",
-      "status":200
+      "payload":"{\"error\":{\"code\":\"AuthenticationFailed\",\"message\":\"Server failed to authenticate the request. Make sure the value of Authorization header is formed correctly including the signature.\\nRequestId:dbd091f9-c01f-008c-5bb7-0b27db000000\\nTime:2019-05-16T07:19:20.0740540Z\"}}",
+      "status":403
     }
   }
 ]

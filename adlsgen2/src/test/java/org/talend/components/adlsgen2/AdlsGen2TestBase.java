@@ -190,7 +190,7 @@ public class AdlsGen2TestBase implements Serializable {
         CsvConverter.recordBuilderFactory = svcRcdBld;
         AvroConverter.recordBuilderFactory = svcRcdBld;
         AvroConverter.i18n = i18;
-        JsonConverter.recordBuilderFactory =svcRcdBld;
+        JsonConverter.recordBuilderFactory = svcRcdBld;
         ParquetConverter.recordBuilderFactory = svcRcdBld;
         UnknownConverter.recordBuilderFactory = svcRcdBld;
     }

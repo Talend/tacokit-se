@@ -39,7 +39,7 @@ class SharedKeyCredentialsUtilsTest extends AdlsGen2TestBase {
     private SharedKeyUtils utils;
 
     @BeforeEach
-    protected void setUp()throws Exception {
+    protected void setUp() throws Exception {
         super.setUp();
         try {
             utils = new SharedKeyUtils(accountName, accountKey);

@@ -15,13 +15,13 @@
       "headers":{
         "x-ms-version":"2018-11-09",
         "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
-        "x-ms-error-code":"PathNotFound",
-        "Content-Length":"163",
-        "x-ms-request-id":"f74debca-c01f-0057-186c-f3e1e6000000",
+        "x-ms-error-code":"AuthenticationFailed",
+        "Content-Length":"268",
+        "x-ms-request-id":"c37fe277-e01f-0022-1bb7-0b8aca000000",
         "Content-Type":"application/json;charset=utf-8"
       },
-      "payload":"{\"error\":{\"code\":\"PathNotFound\",\"message\":\"The specified path does not exist.\\nRequestId:f74debca-c01f-0057-186c-f3e1e6000000\\nTime:2019-04-15T09:23:46.1776864Z\"}}",
-      "status":404
+      "payload":"{\"error\":{\"code\":\"AuthenticationFailed\",\"message\":\"Server failed to authenticate the request. Make sure the value of Authorization header is formed correctly including the signature.\\nRequestId:c37fe277-e01f-0022-1bb7-0b8aca000000\\nTime:2019-05-16T07:19:27.5547563Z\"}}",
+      "status":403
     }
   }
 ]
