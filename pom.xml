@@ -437,6 +437,12 @@
                             <goal>car</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <id>talend-scan-descriptor</id>
+                        <goals>
+                            <goal>scan-descriptor</goal>
+                        </goals>
+                    </execution>
                 </executions>
                 <dependencies>
                     <dependency>
