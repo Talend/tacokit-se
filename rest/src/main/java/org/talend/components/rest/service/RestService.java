@@ -53,6 +53,10 @@ public class RestService {
     // Pattern to retrieve {xxxx} in a non-greddy way
     private final Pattern pathPattern = Pattern.compile("\\{.+?\\}");
 
+    public Record execute(final RequestConfig config, Record record) {
+        return execute(config);
+    }
+
     public Record execute(final RequestConfig config) {
         Response<JsonObject> resp = client.execute(config, client, config.getDataset().getMethodType().name(),
                 this.buildUrl(config), config.headers(), config.queryParams(), config.body());

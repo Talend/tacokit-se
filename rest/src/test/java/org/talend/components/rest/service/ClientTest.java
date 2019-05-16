@@ -260,31 +260,33 @@ class ClientTest {
         assertEquals("ok", payload.getJsonObject("args").getString("redirect"));
     }
 
-   /* @Test
-    void testReadStreaming() throws Exception {
-        config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setResource("/stream/10");
-
-        Record resp = service.execute(config);
-        assertEquals(200, resp.getInt("status"));
-    }
-
-    @Test
-    void testReadBytes() throws Exception {
-        config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setResource("/bytes/100");
-
-        Record resp = service.execute(config);
-        assertEquals(200, resp.getInt("status"));
-    }
-
-    @Test
-    void testReadHml() throws Exception {
-        config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setResource("links/10/0");
-
-        Record resp = service.execute(config);
-        assertEquals(200, resp.getInt("status"));
-    }*/
+    /*
+     * @Test
+     * void testReadStreaming() throws Exception {
+     * config.getDataset().setMethodType(HttpMethod.GET);
+     * config.getDataset().setResource("/stream/10");
+     * 
+     * Record resp = service.execute(config);
+     * assertEquals(200, resp.getInt("status"));
+     * }
+     * 
+     * @Test
+     * void testReadBytes() throws Exception {
+     * config.getDataset().setMethodType(HttpMethod.GET);
+     * config.getDataset().setResource("/bytes/100");
+     * 
+     * Record resp = service.execute(config);
+     * assertEquals(200, resp.getInt("status"));
+     * }
+     * 
+     * @Test
+     * void testReadHml() throws Exception {
+     * config.getDataset().setMethodType(HttpMethod.GET);
+     * config.getDataset().setResource("links/10/0");
+     * 
+     * Record resp = service.execute(config);
+     * assertEquals(200, resp.getInt("status"));
+     * }
+     */
 
 }
