@@ -13,13 +13,11 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 
-import static org.talend.components.adlsgen2.common.service.ADLSGen2Service.ACTION_SUGGESTION_FILESYSTEMS;
-
 @Version(1)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@GridLayout({ @GridLayout.Row("accountName"), @GridLayout.Row("accountKey"), @GridLayout.Row("fileSystem") })
+@GridLayout({ @GridLayout.Row("accountName"), @GridLayout.Row("accountKey") })
 public class AdlsGen2Connection implements Serializable {
 
     @Option
@@ -34,17 +32,6 @@ public class AdlsGen2Connection implements Serializable {
     @Documentation("Storage Shared Key")
     @Credential
     private String accountKey;
-
-    @Option
-    @Documentation("fileSystem")
-    @Suggestable(value = ACTION_SUGGESTION_FILESYSTEMS, parameters = { "accountName", "accountKey" })
-    private String fileSystem;
-
-    // @Option
-    // @Required
-    // @Documentation("Path to Blob Object")
-    // @Suggestable(value = ACTION_SUGGESTION_PATHS, parameters = { "accountName", "accountKey","fileSystem","blobPath" })
-    // private String blobPath = "tempFolder" + nanoTime();
 
     public String apiUrl() {
         return String.format(Constants.DFS_URL, getAccountName());

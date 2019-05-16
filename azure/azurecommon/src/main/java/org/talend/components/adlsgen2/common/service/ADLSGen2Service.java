@@ -47,8 +47,6 @@ public class ADLSGen2Service implements Serializable {
 
     public static final String ACTION_SUGGESTION_PATHS = "ACTION_SUGGESTION_PATHS";
 
-    public static final String ACTION_SUGGESTION_FILESYSTEMS = "ACTION_SUGGESTION_FILESYSTEMS";
-
     @Service
     private AdlsGen2APIClient client;
 
@@ -92,7 +90,6 @@ public class ADLSGen2Service implements Serializable {
 
     }
 
-    @Suggestions(ACTION_SUGGESTION_FILESYSTEMS)
     public SuggestionValues filesystemList(@Option("accountName") String accountName,
             @Option("accountKey") final String accountKey) {
         AdlsGen2Connection connection = new AdlsGen2Connection();
@@ -123,15 +120,15 @@ public class ADLSGen2Service implements Serializable {
         return new SuggestionValues(true, fs.stream().map(e -> new SuggestionValues.Item(e, e)).collect(Collectors.toList()));
     }
 
-    public List<String> pathList(@Option("adlsGen2Connection") final AdlsGen2Connection connection, boolean recursive,
-            String path, boolean isDirectory) throws URISyntaxException, InvalidKeyException {
+    public List<String> pathList(@Option("adlsGen2Connection") final AdlsGen2Connection connection, String filesystem,
+            boolean recursive, String path, boolean isDirectory) throws URISyntaxException, InvalidKeyException {
         client.base(connection.apiUrl());
-        URI uri = new URI(connection.apiUrl() + "/" + connection.getFileSystem() + "?resource=filesystem&recursive=" + recursive
-                + "&directory=" + path);
+        URI uri = new URI(
+                connection.apiUrl() + "/" + filesystem + "?resource=filesystem&recursive=" + recursive + "&directory=" + path);
         HttpRequestBase get = createClient(connection, uri, "GET");
 
         Response<JsonObject> jsonObjectResponse = client.pathList(connection, get.getFirstHeader(AUTHORIZATION).getValue(),
-                get.getFirstHeader(DATE).getValue(), recursive, connection.getFileSystem(), path);
+                get.getFirstHeader(DATE).getValue(), recursive, filesystem, path);
         if (404 == jsonObjectResponse.status()) {
             List<String> strings = jsonObjectResponse.headers().get("x-ms-error-code");
             if (strings.contains("PathNotFound")) {
@@ -156,29 +153,29 @@ public class ADLSGen2Service implements Serializable {
     }
 
     @Suggestions(ACTION_SUGGESTION_PATHS)
-    public SuggestionValues pathList(@Option("accountName") String accountName, @Option("accountKey") final String accountKey) {
+    public SuggestionValues pathList(@Option("accountName") String accountName, @Option("accountKey") final String accountKey,
+            String filesystem) {
         AdlsGen2Connection connection = new AdlsGen2Connection();
         connection.setAccountKey(accountKey);
         connection.setAccountName(accountName);
         List<String> paths = Collections.emptyList();
         try {
-            paths = pathList(connection, false, SQLDWH_WORKING_DIR, true);
+            paths = pathList(connection, filesystem, false, SQLDWH_WORKING_DIR, true);
         } catch (URISyntaxException | InvalidKeyException e) {
             return new SuggestionValues();
         }
         return new SuggestionValues(true, paths.stream().map(e -> new SuggestionValues.Item(e, e)).collect(Collectors.toList()));
     }
 
-    public void pathDelete(@Configuration("connection") final AdlsGen2Connection connection, String path) {
+    public void pathDelete(@Configuration("connection") final AdlsGen2Connection connection, String filesystem, String path) {
         client.base(connection.apiUrl());
         try {
-            String uri = String.join("/", connection.apiUrl(), connection.getFileSystem(), path) + "?recursive=true";
+            String uri = String.join("/", connection.apiUrl(), filesystem, path) + "?recursive=true";
             HttpRequestBase delete = createClient(connection, new URI(uri), "DELETE");
             delete.setHeader(IF_UNMODIFIED_SINCE, createTime);
 
             Response<JsonObject> jsonObjectResponse = client.pathDelete(connection,
-                    delete.getFirstHeader(AUTHORIZATION).getValue(), delete.getFirstHeader(DATE).getValue(),
-                    connection.getFileSystem(), path);
+                    delete.getFirstHeader(AUTHORIZATION).getValue(), delete.getFirstHeader(DATE).getValue(), filesystem, path);
             if (404 == jsonObjectResponse.status()) {
                 List<String> strings = jsonObjectResponse.headers().get("x-ms-error-code");
                 if (strings.contains("PathNotFound")) {
@@ -191,16 +188,16 @@ public class ADLSGen2Service implements Serializable {
         log.info("Delete path " + path + " success.");
     }
 
-    public void createPath(@Configuration("connection") final AdlsGen2Connection connection, String filePath)
+    public void createPath(@Configuration("connection") final AdlsGen2Connection connection, String filesystem, String filePath)
             throws InvalidKeyException, URISyntaxException {
         final String now = getGMT();
         client.base(connection.apiUrl());
 
-        URI uri = new URI(connection.apiUrl() + "/" + connection.getFileSystem() + "/" + filePath + "?resource=file");
+        URI uri = new URI(connection.apiUrl() + "/" + filesystem + "/" + filePath + "?resource=file");
         HttpRequestBase put = createClient(connection, uri, "PUT");
 
         Response<JsonObject> jsonObjectResponse = client.pathCreate(connection, put.getFirstHeader(AUTHORIZATION).getValue(),
-                put.getFirstHeader(DATE).getValue(), connection.getFileSystem(), filePath, "");
+                put.getFirstHeader(DATE).getValue(), filesystem, filePath, "");
         Response<JsonObject> result = handleResponse(jsonObjectResponse);
         log.info("Create path " + filePath + "success.");
 
@@ -208,13 +205,12 @@ public class ADLSGen2Service implements Serializable {
 
     // org.talend.sdk.component.api.service.http.HttpClient is using HttpURLConnection under the hood which does not support PATCH
     // method.
-    public void appendPath(@Configuration("connection") final AdlsGen2Connection connection, String fullPath, Path tempFilePath)
-            throws InvalidKeyException, URISyntaxException, IOException {
+    public void appendPath(@Configuration("connection") final AdlsGen2Connection connection, String filesystem, String fullPath,
+            Path tempFilePath) throws InvalidKeyException, URISyntaxException, IOException {
         final String now = getGMT();
         client.base(connection.apiUrl());
         String position = "0";// position should be 0 here
-        URI uri = new URI(
-                connection.apiUrl() + "/" + connection.getFileSystem() + "/" + fullPath + "?action=append&position=" + position);
+        URI uri = new URI(connection.apiUrl() + "/" + filesystem + "/" + fullPath + "?action=append&position=" + position);
         HttpPatch patch = new HttpPatch(uri);
         patch.setHeader(DATE, now);
         patch.setHeader(VERSION, TARGET_STORAGE_VERSION);
@@ -239,12 +235,11 @@ public class ADLSGen2Service implements Serializable {
 
     // org.talend.sdk.component.api.service.http.HttpClient is using HttpURLConnection under the hood which does not support PATCH
     // method.
-    public void flushPath(@Configuration("connection") final AdlsGen2Connection connection, String fullPath, long fileLongth)
-            throws InvalidKeyException, URISyntaxException, IOException {
+    public void flushPath(@Configuration("connection") final AdlsGen2Connection connection, String filesystem, String fullPath,
+            long fileLongth) throws InvalidKeyException, URISyntaxException, IOException {
         final String now = getGMT();
         client.base(connection.apiUrl());
-        URI uri = new URI(
-                connection.apiUrl() + "/" + connection.getFileSystem() + "/" + fullPath + "?action=flush&position=" + fileLongth);
+        URI uri = new URI(connection.apiUrl() + "/" + filesystem + "/" + fullPath + "?action=flush&position=" + fileLongth);
         HttpPatch patch = new HttpPatch(uri);
         patch.setHeader(DATE, now);
         patch.setHeader(VERSION, TARGET_STORAGE_VERSION);
