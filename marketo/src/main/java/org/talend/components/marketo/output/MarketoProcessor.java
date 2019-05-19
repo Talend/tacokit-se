@@ -27,6 +27,7 @@ import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.processor.AfterGroup;
+import org.talend.sdk.component.api.processor.BeforeGroup;
 import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.processor.Processor;
@@ -64,11 +65,17 @@ public class MarketoProcessor extends MarketoSourceOrProcessor {
         strategy.init();
     }
 
+    @BeforeGroup
+    public void begin(){
+        log.debug("[begin] clearing records.");
+        records.clear();
+    }
+
     @ElementListener
     public void map(@Input final Record incomingData) {
         JsonObject data = marketoService.toJson(incomingData);
-        records.add(data);
         log.debug("[map] received: {}.", data);
+        records.add(data);
     }
 
     @AfterGroup
@@ -83,7 +90,6 @@ public class MarketoProcessor extends MarketoSourceOrProcessor {
         JsonObject payload = strategy.getPayload(records);
         log.debug("[map] payload : {}.", payload);
         JsonObject result = strategy.runAction(payload);
-        records.clear();
         log.debug("[map] result  : {}.", result);
         result.getJsonArray(ATTR_RESULT).getValuesAs(JsonObject.class).stream().filter(strategy::isRejected).forEach(e -> {
             log.error(getErrors(e.getJsonArray(ATTR_REASONS)));
