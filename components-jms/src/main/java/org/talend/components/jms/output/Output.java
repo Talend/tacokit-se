@@ -43,7 +43,7 @@ import static org.talend.components.jms.MessageConst.MESSAGE_CONTENT;
 
 @Slf4j
 @Version(1)
-@Icon(value = Icon.IconType.CUSTOM, custom = "JMSOutput")
+@Icon(value = Icon.IconType.JMS)
 @Processor(name = "Output")
 @Documentation("Main class for JMSOutput records processing")
 public class Output implements Serializable {
