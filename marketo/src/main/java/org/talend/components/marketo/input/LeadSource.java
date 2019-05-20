@@ -12,17 +12,23 @@
 // ============================================================================
 package org.talend.components.marketo.input;
 
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.EnumMap;
 import java.util.function.Supplier;
 
 import javax.json.JsonObject;
 
+import org.talend.components.marketo.dataset.MarketoDataSet;
+import org.talend.components.marketo.dataset.MarketoDataSet.DateTimeMode;
+import org.talend.components.marketo.dataset.MarketoDataSet.LeadAction;
 import org.talend.components.marketo.dataset.MarketoInputConfiguration;
-import org.talend.components.marketo.dataset.MarketoInputConfiguration.LeadAction;
 import org.talend.components.marketo.service.LeadClient;
 import org.talend.components.marketo.service.ListClient;
 import org.talend.components.marketo.service.MarketoService;
 import org.talend.sdk.component.api.configuration.Option;
+
+import lombok.extern.slf4j.Slf4j;
 
 import static java.util.stream.Collectors.joining;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ACCESS_TOKEN;
@@ -30,9 +36,11 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_FIELDS;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_FILTER_TYPE;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_FILTER_VALUES;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_NEXT_PAGE_TOKEN;
+import static org.talend.components.marketo.MarketoApiConstants.DATETIME_FORMAT;
 import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED;
 import static org.talend.components.marketo.MarketoApiConstants.REQUEST_PARAM_QUERY_METHOD_GET;
 
+@Slf4j
 public class LeadSource extends MarketoSource {
 
     private final LeadClient leadClient;
@@ -48,16 +56,14 @@ public class LeadSource extends MarketoSource {
         this.leadClient.base(this.configuration.getDataSet().getDataStore().getEndpoint());
         this.listClient = service.getListClient();
         this.listClient.base(this.configuration.getDataSet().getDataStore().getEndpoint());
-        action.put(LeadAction.getLead, this::getLead);
-        action.put(LeadAction.getMultipleLeads, this::getMultipleLeads);
-        action.put(LeadAction.getLeadActivity, this::getLeadActivities);
-        action.put(LeadAction.getLeadChanges, this::getLeadChanges);
-        action.put(LeadAction.getLeadsByList, this::getLeadsByListId);
+        action.put(MarketoDataSet.LeadAction.getLeadActivity, this::getLeadActivities);
+        action.put(MarketoDataSet.LeadAction.getLeadChanges, this::getLeadChanges);
+        action.put(MarketoDataSet.LeadAction.getLeadsByList, this::getLeadsByListId);
     }
 
     @Override
     public JsonObject runAction() {
-        Supplier<JsonObject> meth = action.get(configuration.getLeadAction());
+        Supplier<JsonObject> meth = action.get(configuration.getDataSet().getLeadAction());
         if (meth == null) {
             throw new IllegalArgumentException(i18n.invalidOperation());
         }
@@ -66,13 +72,15 @@ public class LeadSource extends MarketoSource {
 
     private JsonObject getLeadsByListId() {
         Integer listId = Integer.parseInt(configuration.getDataSet().getListId());
-        String fields = configuration.getFields() == null ? null : configuration.getFields().stream().collect(joining(","));
+        String fields = configuration.getDataSet().getFields() == null ? null
+                : configuration.getDataSet().getFields().stream().collect(joining(","));
         return handleResponse(listClient.getLeadsByListId(accessToken, nextPageToken, listId, fields));
     }
 
     private JsonObject getLead() {
         Integer leadId = configuration.getLeadId();
-        String fields = configuration.getFields() == null ? null : configuration.getFields().stream().collect(joining(","));
+        String fields = configuration.getDataSet().getFields() == null ? null
+                : configuration.getDataSet().getFields().stream().collect(joining(","));
         return handleResponse(leadClient.getLeadById(accessToken, leadId, fields));
     }
 
@@ -107,7 +115,8 @@ public class LeadSource extends MarketoSource {
     private JsonObject getMultipleLeads() {
         String filterType = configuration.getLeadKeyName();
         String filterValues = configuration.getLeadKeyValues();
-        String fields = configuration.getFields() == null ? null : configuration.getFields().stream().collect(joining(","));
+        String fields = configuration.getDataSet().getFields() == null ? null
+                : configuration.getDataSet().getFields().stream().collect(joining(","));
         if (isLeadUrlSizeGreaterThan8k(filterType, filterValues, fields)) {
             return handleResponse(leadClient.getLeadByFilterType(HEADER_CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED,
                     REQUEST_PARAM_QUERY_METHOD_GET, accessToken, nextPageToken, buildLeadForm(filterType, filterValues, fields)));
@@ -115,6 +124,20 @@ public class LeadSource extends MarketoSource {
             return handleResponse(
                     leadClient.getLeadByFilterTypeByQueryString(accessToken, filterType, filterValues, fields, nextPageToken));
         }
+    }
+
+    private String computeDateTimeFromConfiguration() {
+        log.warn("[computeDateTimeFromConfiguration] SinceDateTime [{}] : {}.", configuration.getDataSet().getDateTimeMode(),
+                configuration.getDataSet().getSinceDateTime());
+        String result;
+        if (DateTimeMode.absolute.equals(configuration.getDataSet().getDateTimeMode())) {
+            result = configuration.getDataSet().getSinceDateTime();
+        } else {
+            result = ZonedDateTime.now().minusDays(Integer.parseInt(configuration.getDataSet().getSinceDateTime()))
+                    .format(DateTimeFormatter.ofPattern(DATETIME_FORMAT));
+        }
+        log.warn("[computeDateTimeFromConfiguration] SinceDateTime = {}.", result);
+        return result;
     }
 
     /**
@@ -126,14 +149,14 @@ public class LeadSource extends MarketoSource {
      */
     private JsonObject getLeadActivities() {
         if (nextPageToken == null) {
-            nextPageToken = getPagingToken(configuration.getSinceDateTime());
+            nextPageToken = getPagingToken(computeDateTimeFromConfiguration());
         }
         String activityTypeIds = "";
-        if (!configuration.getActivityTypeIds().isEmpty()) {
-            activityTypeIds = configuration.getActivityTypeIds().stream().collect(joining(","));
+        if (!configuration.getDataSet().getActivityTypeIds().isEmpty()) {
+            activityTypeIds = configuration.getDataSet().getActivityTypeIds().stream().collect(joining(","));
         }
         String assetIds = configuration.getAssetIds();
-        Integer listId = configuration.getListId();
+        String listId = configuration.getDataSet().getListId();
         String leadIds = configuration.getLeadIds();
         return handleResponse(
                 leadClient.getLeadActivities(accessToken, nextPageToken, activityTypeIds, assetIds, listId, leadIds));
@@ -144,11 +167,12 @@ public class LeadSource extends MarketoSource {
      */
     private JsonObject getLeadChanges() {
         if (nextPageToken == null) {
-            nextPageToken = getPagingToken(configuration.getSinceDateTime());
+            nextPageToken = getPagingToken(computeDateTimeFromConfiguration());
         }
-        Integer listId = configuration.getListId();
+        String listId = configuration.getDataSet().getListId();
         String leadIds = configuration.getLeadIds();
-        String fields = configuration.getFields() == null ? null : configuration.getFields().stream().collect(joining(","));
+        String fields = configuration.getDataSet().getFields() == null ? null
+                : configuration.getDataSet().getFields().stream().collect(joining(","));
         return handleResponse(leadClient.getLeadChanges(accessToken, nextPageToken, listId, leadIds, fields));
     }
 

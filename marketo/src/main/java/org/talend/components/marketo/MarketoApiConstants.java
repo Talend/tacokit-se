@@ -131,4 +131,6 @@ public class MarketoApiConstants {
     public static final String ATTR_PRIMARY_ATTRIBUTE_VALUE_ID = "primaryAttributeValueId";
 
     public static final String ATTR_SEARCHABLE_FIELDS = "searchableFields";
+
+    public static final String DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 }

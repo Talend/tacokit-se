@@ -14,6 +14,9 @@ package org.talend.components.marketo.service;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Period;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,7 +27,6 @@ import javax.json.JsonObject;
 import javax.json.JsonValue;
 
 import org.talend.components.marketo.MarketoApiConstants;
-import org.talend.components.marketo.dataset.MarketoDataSet;
 import org.talend.components.marketo.datastore.MarketoDataStore;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Schema;
@@ -44,6 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ACCESS_TOKEN;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ID;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_NAME;
+import static org.talend.components.marketo.MarketoApiConstants.DATETIME_FORMAT;
 import static org.talend.components.marketo.service.AuthorizationClient.CLIENT_CREDENTIALS;
 
 @Slf4j
@@ -53,6 +56,8 @@ public class UIActionService extends MarketoService {
     public static final String ACTIVITIES_LIST = "ACTIVITIES_LIST";
 
     public static final String LEAD_KEY_NAME_LIST = "LEAD_KEY_NAME_LIST";
+
+    public static final String DATE_RANGES = "DATE_RANGES";
 
     public static final String LIST_NAMES = "LIST_NAMES";
 
@@ -209,14 +214,10 @@ public class UIActionService extends MarketoService {
     }
 
     @Suggestions(FIELD_NAMES)
-    public SuggestionValues getFieldNames(@Option final MarketoDataSet dataSet) {
-        final String entity = dataSet.getEntity().name();
-        final String customObjectName = "";
-        log.debug("[getFieldNames] datastore:{}; entity: {}; customObjectName: {}.", dataSet.getDataStore(), entity,
-                customObjectName);
+    public SuggestionValues getFieldNames(@Option final MarketoDataStore dataStore) {
         try {
             List<Item> fieldNames = new ArrayList<>();
-            Schema schema = getEntitySchema(dataSet.getDataStore(), entity, customObjectName, "");
+            Schema schema = getEntitySchema(dataStore);
             for (Entry f : schema.getEntries()) {
                 fieldNames.add(new SuggestionValues.Item(f.getName(), f.getName()));
             }
@@ -241,6 +242,36 @@ public class UIActionService extends MarketoService {
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage());
         }
+    }
+
+    @Suggestions(DATE_RANGES)
+    public SuggestionValues getDateSuggestions(final String mode) {
+        List<Item> suggestedDates = new ArrayList<>();
+        DateTimeFormatter fmtr = DateTimeFormatter.ofPattern(DATETIME_FORMAT);
+        // TODO localize this
+        String[] labels = { "One week ago", "Two weeks ago", "A month ago", "3 months ago", "6 months ago", "A year ago",
+                "Two years ago" };
+        Integer[] values = { //
+                Period.ofWeeks(1).getDays(), //
+                Period.ofWeeks(2).getDays(), //
+                Period.ofMonths(1).getDays(), //
+                Period.ofMonths(3).getDays(), //
+                Period.ofMonths(6).getDays(), //
+                Period.ofYears(1).getDays(), //
+                Period.ofYears(2).getDays() //
+        };
+        String label;
+        String value;
+        for (int i = 0; i < labels.length; ++i) {
+            label = labels[i];
+            if ("relative".equals(mode)) {
+                value = values[i].toString();
+            } else {
+                value = ZonedDateTime.now().minusDays(values[i]).format(fmtr);
+            }
+            suggestedDates.add(new SuggestionValues.Item(value, label));
+        }
+        return new SuggestionValues(true, suggestedDates);
     }
 
     @AsyncValidation(VALIDATION_URL_PROPERTY)

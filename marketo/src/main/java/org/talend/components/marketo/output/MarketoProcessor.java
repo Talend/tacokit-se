@@ -66,7 +66,7 @@ public class MarketoProcessor extends MarketoSourceOrProcessor {
     }
 
     @BeforeGroup
-    public void begin(){
+    public void begin() {
         log.debug("[begin] clearing records.");
         records.clear();
     }

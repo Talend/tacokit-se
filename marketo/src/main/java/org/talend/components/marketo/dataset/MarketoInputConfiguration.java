@@ -13,11 +13,6 @@
 package org.talend.components.marketo.dataset;
 
 import java.io.Serializable;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
@@ -30,26 +25,18 @@ import org.talend.sdk.component.api.meta.Documentation;
 import lombok.Data;
 import lombok.ToString;
 
-import static org.talend.components.marketo.service.UIActionService.ACTIVITIES_LIST;
-import static org.talend.components.marketo.service.UIActionService.FIELD_NAMES;
 import static org.talend.components.marketo.service.UIActionService.LEAD_KEY_NAME_LIST;
 import static org.talend.components.marketo.service.UIActionService.VALIDATION_INTEGER_PROPERTY;
-import static org.talend.components.marketo.service.UIActionService.VALIDATION_LIST_PROPERTY;
 import static org.talend.components.marketo.service.UIActionService.VALIDATION_STRING_PROPERTY;
 
 @Data
 @GridLayout({ //
         @GridLayout.Row({ "dataSet" }), //
-        @GridLayout.Row({ "leadAction" }), //
         @GridLayout.Row({ "leadKeyName" }), //
         @GridLayout.Row({ "leadKeyValues" }), //
         @GridLayout.Row({ "leadId", }), //
         @GridLayout.Row({ "leadIds" }), //
         @GridLayout.Row({ "assetIds" }), //
-        @GridLayout.Row({ "listId" }), //
-        @GridLayout.Row({ "activityTypeIds" }), //
-        @GridLayout.Row({ "sinceDateTime" }), //
-        @GridLayout.Row({ "fields" }), //
 }) //
 @Documentation("Marketo Source Configuration")
 @ToString(callSuper = true)
@@ -63,13 +50,6 @@ public class MarketoInputConfiguration implements Serializable {
     @Option
     @Documentation("Marketo DataSet")
     private MarketoDataSet dataSet;
-
-    /*
-     * Lead DataSet parameters
-     */
-    @Option
-    @Documentation("Lead Action")
-    private LeadAction leadAction = LeadAction.getLeadsByList;
 
     @Option
     @ActiveIf(target = "leadAction", value = "getLead")
@@ -91,21 +71,9 @@ public class MarketoInputConfiguration implements Serializable {
     @Documentation("Values (Comma-separated)")
     private String leadKeyValues;
 
-    @Option
-    @ActiveIf(target = "leadAction", value = { "getLeadChanges", "getLeadActivity" })
-    @Documentation("Static List Id")
-    private Integer listId;
-
     /*
      * Changes & Activities
      */
-    @Option
-    @ActiveIf(target = "leadAction", value = { "getLeadChanges", "getLeadActivity" })
-    @Validable(VALIDATION_STRING_PROPERTY)
-    @Documentation("Since Date Time")
-    private String sinceDateTime = ZonedDateTime.now().minusMonths(7)
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd" + " HH:mm:ss"));
-
     @Option
     @ActiveIf(target = "leadAction", value = { "getLeadChanges", "getLeadActivity" })
     @Documentation("Lead Ids (Comma-separated Lead Ids)")
@@ -115,28 +83,6 @@ public class MarketoInputConfiguration implements Serializable {
     @ActiveIf(target = "leadAction", value = { "getLeadActivity" })
     @Documentation("Asset Ids (Comma-separated Asset Ids)")
     private String assetIds;
-
-    @Option
-    @ActiveIf(target = "leadAction", value = "getLeadActivity")
-    @Suggestable(value = ACTIVITIES_LIST, parameters = { "../dataSet/dataStore" })
-    @Validable(VALIDATION_LIST_PROPERTY)
-    @Documentation("Activity Type Ids (10 max supported")
-    private List<String> activityTypeIds = Collections.emptyList();
-
-    @Option
-    @ActiveIf(target = "leadAction", negate = true, value = { "getLeadActivity" })
-    @Suggestable(value = FIELD_NAMES, parameters = { "../dataSet" })
-    @Validable(VALIDATION_LIST_PROPERTY)
-    @Documentation("Fields")
-    private List<String> fields = Arrays.asList("id", "firstName", "lastName", "email", "createdAt", "updatedAt");
-
-    public enum LeadAction {
-        getLead,
-        getMultipleLeads,
-        getLeadActivity,
-        getLeadChanges,
-        getLeadsByList
-    }
 
     public enum ListAction {
         list,

@@ -186,7 +186,7 @@ public interface LeadClient extends HttpClient {
     Response<JsonObject> getLeadChanges( //
             @Query(ATTR_ACCESS_TOKEN) String accessToken, //
             @Query(ATTR_NEXT_PAGE_TOKEN) String nextPageToken, //
-            @Query(ATTR_LIST_ID) Integer listId, //
+            @Query(ATTR_LIST_ID) String listId, //
             @Query(ATTR_LEAD_IDS) String leadIds, //
             @Query(ATTR_FIELDS) String fields //
     );
@@ -225,7 +225,7 @@ public interface LeadClient extends HttpClient {
             @Query(ATTR_NEXT_PAGE_TOKEN) String nextPageToken, //
             @Query("activityTypeIds") String activityTypeIds, //
             @Query("assetIds") String assetIds, //
-            @Query(ATTR_LIST_ID) Integer listId, //
+            @Query(ATTR_LIST_ID) String listId, //
             @Query(ATTR_LEAD_IDS) String leadIds //
     );
 
