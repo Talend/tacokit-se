@@ -50,8 +50,6 @@ public class InputSource implements Serializable {
 
     private final JsonBuilderFactory jsonBuilderFactory;
 
-    private int counter = 0;
-
     private Connection connection;
 
     private Context jndiContext;
@@ -121,26 +119,18 @@ public class InputSource implements Serializable {
 
     @Producer
     public JsonObject next() {
-
         String textMessage = null;
-        if (counter >= configuration.getMaximumMessages()) {
-            return null;
-        } else {
-
-            Message message = null;
-            try {
-                message = consumer.receive(configuration.getTimeout() * 1000);
-                if (message != null) {
-                    textMessage = ((TextMessage) message).getText();
-                    message.acknowledge();
-                    counter++;
-                }
-            } catch (JMSException e) {
-                log.error(i18n.errorCantReceiveMessage(), e);
+        Message message = null;
+        try {
+            message = consumer.receive(configuration.getTimeout() * 1000);
+            if (message != null) {
+                textMessage = ((TextMessage) message).getText();
+                message.acknowledge();
             }
-            return message != null ? buildJSON(textMessage) : null;
-
+        } catch (JMSException e) {
+            log.error(i18n.errorCantReceiveMessage(), e);
         }
+        return message != null ? buildJSON(textMessage) : null;
     }
 
     private JsonObject buildJSON(String text) {

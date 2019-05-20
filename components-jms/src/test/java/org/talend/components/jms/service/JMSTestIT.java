@@ -176,7 +176,6 @@ public class JMSTestIT {
 
         // Forbid message receiving
         InputMapperConfiguration inputMapperConfiguration = getInputConfiguration();
-        inputMapperConfiguration.setMaximumMessages(NO_MESSAGES);
         final String inputConfig = configurationByExample().forInstance(inputMapperConfiguration).configured().toQueryString();
 
         Job.components().component("jms-input", "JMS://Input?" + inputConfig).component("collector", "test://collector")
@@ -187,7 +186,6 @@ public class JMSTestIT {
 
         // Allow message receiving
         InputMapperConfiguration inputMapperConfiguration2 = getInputConfiguration();
-        inputMapperConfiguration.setMaximumMessages(TEN_MESSAGES);
         final String inputConfig2 = configurationByExample().forInstance(inputMapperConfiguration2).configured().toQueryString();
 
         Job.components().component("jms-input", "JMS://Input?" + inputConfig2).component("collector", "test://collector")
@@ -227,7 +225,6 @@ public class JMSTestIT {
         basicConfiguration.setConnection(dataStore);
         configuration.setSubscriptionConfig(subsConfig);
         configuration.setBasicConfig(basicConfiguration);
-        configuration.setMaximumMessages(TEN_MESSAGES);
         configuration.setTimeout(TIMEOUT);
         return configuration;
     }

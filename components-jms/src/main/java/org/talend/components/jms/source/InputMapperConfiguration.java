@@ -23,8 +23,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 import java.io.Serializable;
 
 @GridLayout(value = { @GridLayout.Row({ "basicConfig" }), @GridLayout.Row({ "subscriptionConfig" }),
-        @GridLayout.Row({ "timeout" }), @GridLayout.Row({ "maximumMessages" }),
-        @GridLayout.Row({ "messageSelector" }) }, names = GridLayout.FormType.MAIN)
+        @GridLayout.Row({ "timeout" }), @GridLayout.Row({ "messageSelector" }) }, names = GridLayout.FormType.MAIN)
 @Documentation("Main configuration class for JMSInput component")
 @Data
 public class InputMapperConfiguration implements Serializable {
@@ -42,12 +41,6 @@ public class InputMapperConfiguration implements Serializable {
     @Min(0)
     @Documentation("JMS receive message timeout. A timeout of zero never expires, and the call blocks indefinitely.")
     private Integer timeout = 0;
-
-    @Option
-    @Min(0)
-    @Documentation("Maximum messages defines a number of messages this component will listen to. "
-            + "After reaching the maximum component will stop receiving messages")
-    private Integer maximumMessages = 100;
 
     @Option
     @Documentation("Message Selector Expression used to receive only messages whose headers and properties match the selector")
