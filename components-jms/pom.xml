@@ -35,6 +35,7 @@
         -->
         <testcontainers.version>1.10.3</testcontainers.version>
         <activemq-all.version>5.15.5</activemq-all.version>
+        <jms-api.version>2.0.1</jms-api.version>
         <talend.component.studioHome/>
     </properties>
 
@@ -42,6 +43,7 @@
         <dependency>
             <groupId>javax.jms</groupId>
             <artifactId>javax.jms-api</artifactId>
+            <version>${jms-api.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.activemq</groupId>
