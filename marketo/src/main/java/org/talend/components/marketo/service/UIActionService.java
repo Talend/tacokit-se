@@ -74,6 +74,7 @@ public class UIActionService extends MarketoService {
     public static final String VALIDATION_INTEGER_PROPERTY = "VALIDATION_INTEGER_PROPERTY";
 
     public static final String VALIDATION_LIST_PROPERTY = "VALIDATION_LIST_PROPERTY";
+    public static final String DATE_MODE_RELATIVE = "relative";
 
     @HealthCheck(HEALTH_CHECK)
     public HealthCheckStatus doHealthCheck(@Option(MarketoDataStore.NAME) MarketoDataStore dataStore, final I18nMessage i18n) {
@@ -248,10 +249,16 @@ public class UIActionService extends MarketoService {
     public SuggestionValues getDateSuggestions(final String mode) {
         List<Item> suggestedDates = new ArrayList<>();
         DateTimeFormatter fmtr = DateTimeFormatter.ofPattern(DATETIME_FORMAT);
-        // TODO localize this
-        String[] labels = { "One week ago", "Two weeks ago", "A month ago", "3 months ago", "6 months ago", "A year ago",
-                "Two years ago" };
-        Integer[] values = { //
+        final String[] labels = { //
+                i18n.periodAgo1w(), //
+                i18n.periodAgo2w(), //
+                i18n.periodAgo1m(), //
+                i18n.periodAgo3m(), //
+                i18n.periodAgo6m(), //
+                i18n.periodAgo1y(), //
+                i18n.periodAgo2y(), //
+        };
+        final Integer[] values = { //
                 Period.ofWeeks(1).getDays(), //
                 Period.ofWeeks(2).getDays(), //
                 Period.ofMonths(1).getDays(), //
@@ -264,8 +271,8 @@ public class UIActionService extends MarketoService {
         String value;
         for (int i = 0; i < labels.length; ++i) {
             label = labels[i];
-            if ("relative".equals(mode)) {
-                value = values[i].toString();
+            if (DATE_MODE_RELATIVE.equals(mode)) {
+                value = String.valueOf(values[i]);
             } else {
                 value = ZonedDateTime.now().minusDays(values[i]).format(fmtr);
             }
