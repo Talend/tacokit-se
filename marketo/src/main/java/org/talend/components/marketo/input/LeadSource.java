@@ -12,6 +12,7 @@
 // ============================================================================
 package org.talend.components.marketo.input;
 
+import java.time.Period;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.EnumMap;
@@ -127,16 +128,20 @@ public class LeadSource extends MarketoSource {
     }
 
     private String computeDateTimeFromConfiguration() {
-        log.warn("[computeDateTimeFromConfiguration] SinceDateTime [{}] : {}/{}.", configuration.getDataSet().getDateTimeMode(),
-                configuration.getDataSet().getSinceDateTimeRelative(), configuration.getDataSet().getSinceDateTimeAbsolute());
         String result;
         if (DateTimeMode.absolute.equals(configuration.getDataSet().getDateTimeMode())) {
             result = configuration.getDataSet().getSinceDateTimeAbsolute();
         } else {
-            result = ZonedDateTime.now().minusDays(Integer.parseInt(configuration.getDataSet().getSinceDateTimeRelative()))
+            result = ZonedDateTime.now().minus(Period.parse(configuration.getDataSet().getSinceDateTimeRelative()))
                     .format(DateTimeFormatter.ofPattern(DATETIME_FORMAT));
+
         }
-        log.warn("[computeDateTimeFromConfiguration] SinceDateTime = {}.", result);
+        log.warn("[computeDateTimeFromConfiguration] SinceDateTime [{}] : {} / {} => {}",
+                configuration.getDataSet().getDateTimeMode(), //
+                configuration.getDataSet().getSinceDateTimeRelative(), //
+                configuration.getDataSet().getSinceDateTimeAbsolute(), //
+                result);
+
         return result;
     }
 

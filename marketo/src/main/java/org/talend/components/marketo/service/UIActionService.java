@@ -14,8 +14,6 @@ package org.talend.components.marketo.service;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.Period;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -45,7 +43,6 @@ import lombok.extern.slf4j.Slf4j;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ACCESS_TOKEN;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ID;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_NAME;
-import static org.talend.components.marketo.MarketoApiConstants.DATETIME_FORMAT;
 import static org.talend.components.marketo.service.AuthorizationClient.CLIENT_CREDENTIALS;
 
 @Slf4j
@@ -248,7 +245,6 @@ public class UIActionService extends MarketoService {
     @Suggestions(DATE_RANGES)
     public SuggestionValues getDateSuggestions(final String mode) {
         List<Item> suggestedDates = new ArrayList<>();
-        DateTimeFormatter fmtr = DateTimeFormatter.ofPattern(DATETIME_FORMAT);
         final String[] labels = { //
                 i18n.periodAgo1w(), //
                 i18n.periodAgo2w(), //
@@ -258,20 +254,13 @@ public class UIActionService extends MarketoService {
                 i18n.periodAgo1y(), //
                 i18n.periodAgo2y(), //
         };
-        final Integer[] values = { //
-                Period.ofWeeks(1).getDays(), //
-                Period.ofWeeks(2).getDays(), //
-                Period.ofMonths(1).getDays(), //
-                Period.ofMonths(3).getDays(), //
-                Period.ofMonths(6).getDays(), //
-                Period.ofYears(1).getDays(), //
-                Period.ofYears(2).getDays() //
-        };
+        final String[] values = { //
+                "P7D", "P14D", "P1M", "P3M", "P6M", "P1Y", "P2Y" };
         String label;
         String value;
         for (int i = 0; i < labels.length; ++i) {
             label = labels[i];
-            value = String.valueOf(values[i]);
+            value = values[i];
             suggestedDates.add(new SuggestionValues.Item(value, label));
         }
         return new SuggestionValues(true, suggestedDates);
