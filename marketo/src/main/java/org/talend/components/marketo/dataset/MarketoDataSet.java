@@ -14,6 +14,8 @@ package org.talend.components.marketo.dataset;
 
 import java.io.Serializable;
 import java.time.Period;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -23,6 +25,7 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.action.Validable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.condition.ActiveIfs;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -36,6 +39,7 @@ import static org.talend.components.marketo.service.UIActionService.FIELD_NAMES;
 import static org.talend.components.marketo.service.UIActionService.LIST_NAMES;
 import static org.talend.components.marketo.service.UIActionService.VALIDATION_LIST_PROPERTY;
 import static org.talend.components.marketo.service.UIActionService.VALIDATION_STRING_PROPERTY;
+import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.AND;
 
 @Data
 @DataSet
@@ -44,7 +48,7 @@ import static org.talend.components.marketo.service.UIActionService.VALIDATION_S
 @GridLayout({ @GridLayout.Row("dataStore"), //
         @GridLayout.Row("leadAction"), //
         @GridLayout.Row("listId"), //
-        @GridLayout.Row({ "sinceDateTime", "dateTimeMode" }), //
+        @GridLayout.Row({ "dateTimeMode", "sinceDateTimeRelative", "sinceDateTimeAbsolute" }), //
         @GridLayout.Row({ "activityTypeIds" }), //
         @GridLayout.Row("fields"), //
 
@@ -70,11 +74,23 @@ public class MarketoDataSet implements Serializable {
     private DateTimeMode dateTimeMode = DateTimeMode.relative;
 
     @Option
-    @ActiveIf(target = "leadAction", value = { "getLeadChanges", "getLeadActivity" })
+    @ActiveIfs(operator = AND, value = { //
+            @ActiveIf(target = "leadAction", value = { "getLeadChanges", "getLeadActivity" }), //
+            @ActiveIf(target = "dateTimeMode", value = { "relative" }) })
     @Suggestable(value = DATE_RANGES, parameters = { "../dateTimeMode" })
     @Validable(VALIDATION_STRING_PROPERTY)
     @Documentation("Since Date Time")
-    private String sinceDateTime = String.valueOf(Period.ofWeeks(2).getDays());
+    private String sinceDateTimeRelative = String.valueOf(Period.ofWeeks(2).getDays());
+
+    @Option
+    @ActiveIfs(operator = AND, value = { //
+            @ActiveIf(target = "leadAction", value = { "getLeadChanges", "getLeadActivity" }), //
+            @ActiveIf(target = "dateTimeMode", value = { "absolute" }) })
+    @Suggestable(value = DATE_RANGES, parameters = { "../dateTimeMode" })
+    @Validable(VALIDATION_STRING_PROPERTY)
+    @Documentation("Since Date Time")
+    private String sinceDateTimeAbsolute = ZonedDateTime.now().minusMonths(2)
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd" + " HH:mm:ss"));
 
     @Option
     @ActiveIf(target = "leadAction", value = "getLeadActivity")

@@ -127,13 +127,13 @@ public class LeadSource extends MarketoSource {
     }
 
     private String computeDateTimeFromConfiguration() {
-        log.warn("[computeDateTimeFromConfiguration] SinceDateTime [{}] : {}.", configuration.getDataSet().getDateTimeMode(),
-                configuration.getDataSet().getSinceDateTime());
+        log.warn("[computeDateTimeFromConfiguration] SinceDateTime [{}] : {}/{}.", configuration.getDataSet().getDateTimeMode(),
+                configuration.getDataSet().getSinceDateTimeRelative(), configuration.getDataSet().getSinceDateTimeAbsolute());
         String result;
         if (DateTimeMode.absolute.equals(configuration.getDataSet().getDateTimeMode())) {
-            result = configuration.getDataSet().getSinceDateTime();
+            result = configuration.getDataSet().getSinceDateTimeAbsolute();
         } else {
-            result = ZonedDateTime.now().minusDays(Integer.parseInt(configuration.getDataSet().getSinceDateTime()))
+            result = ZonedDateTime.now().minusDays(Integer.parseInt(configuration.getDataSet().getSinceDateTimeRelative()))
                     .format(DateTimeFormatter.ofPattern(DATETIME_FORMAT));
         }
         log.warn("[computeDateTimeFromConfiguration] SinceDateTime = {}.", result);

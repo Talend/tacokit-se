@@ -74,6 +74,7 @@ public class UIActionService extends MarketoService {
     public static final String VALIDATION_INTEGER_PROPERTY = "VALIDATION_INTEGER_PROPERTY";
 
     public static final String VALIDATION_LIST_PROPERTY = "VALIDATION_LIST_PROPERTY";
+
     public static final String DATE_MODE_RELATIVE = "relative";
 
     @HealthCheck(HEALTH_CHECK)
