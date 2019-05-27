@@ -15,7 +15,6 @@ package org.talend.components.marketo.service;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Period;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -272,11 +271,7 @@ public class UIActionService extends MarketoService {
         String value;
         for (int i = 0; i < labels.length; ++i) {
             label = labels[i];
-            if (DATE_MODE_RELATIVE.equals(mode)) {
-                value = String.valueOf(values[i]);
-            } else {
-                value = ZonedDateTime.now().minusDays(values[i]).format(fmtr);
-            }
+            value = String.valueOf(values[i]);
             suggestedDates.add(new SuggestionValues.Item(value, label));
         }
         return new SuggestionValues(true, suggestedDates);
