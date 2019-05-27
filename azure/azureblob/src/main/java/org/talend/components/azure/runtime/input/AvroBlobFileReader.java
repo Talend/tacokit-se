@@ -51,6 +51,8 @@ public class AvroBlobFileReader extends BlobFileReader {
 
         private DataFileStream<GenericRecord> avroItemIterator;
 
+        private InputStream input;
+
         private AvroFileRecordIterator(Iterable<ListBlobItem> blobItemsList, RecordBuilderFactory recordBuilderFactory) {
             super(blobItemsList, recordBuilderFactory);
             takeFirstItem();
@@ -69,7 +71,8 @@ public class AvroBlobFileReader extends BlobFileReader {
         protected void readItem() {
             closePreviousInputStream();
 
-            try (InputStream input = getCurrentItem().openInputStream()) {
+            try {
+                input = getCurrentItem().openInputStream();
                 DatumReader<GenericRecord> reader = new GenericDatumReader<>();
                 avroItemIterator = new DataFileStream<>(input, reader);
             } catch (Exception e) {
@@ -96,6 +99,7 @@ public class AvroBlobFileReader extends BlobFileReader {
             if (avroItemIterator != null) {
                 try {
                     avroItemIterator.close();
+                    input.close();
                 } catch (IOException e) {
                     log.warn("Can't close stream", e);
                 }
