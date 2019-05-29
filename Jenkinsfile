@@ -76,8 +76,14 @@ spec:
                                     credentialsId: 'nexus-artifact-zl-credentials',
                                     usernameVariable: 'NEXUS_USER',
                                     passwordVariable: 'NEXUS_PASSWORD')
+                            , usernamePassword(
+                                credentialsId: 'onedrive-integration',
+                                usernameVariable: 'ONEDRIVE_INTEGRATION_USER',
+                                passwordVariable: 'ONEDRIVE_INTEGRATION_PASSWORD')
                     ]) {
-                        sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -e ${talendOssRepositoryArg}"
+                        script {
+                            sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/ -e ${talendOssRepositoryArg}"
+                        }
                     }
                 }
             }

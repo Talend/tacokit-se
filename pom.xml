@@ -33,10 +33,11 @@
     </licenses>
 
     <modules>
-        <module>jdbc</module>
-        <module>salesforce</module>
-        <module>azure</module>
-        <module>azure-eventhubs</module>
+<!--        <module>jdbc</module>-->
+<!--        <module>salesforce</module>-->
+<!--        <module>azure</module>-->
+<!--        <module>azure-eventhubs</module>-->
+        <module>onedrive</module>
     </modules>
 
     <scm>

@@ -29,6 +29,11 @@
         <timeout>30000</timeout>
       </configuration>
     </server>
+    <server>
+      <id>onedrive</id>
+      <username>${env.ONEDRIVE_INTEGRATION_USER}</username>
+      <password>${env.ONEDRIVE_INTEGRATION_PASSWORD}</password>
+    </server>
   </servers>
 
   <mirrors>
