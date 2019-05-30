@@ -21,14 +21,12 @@ import java.io.Serializable;
 public class AdlsGen2Connection implements Serializable {
 
     @Option
-    @Required
     @Documentation("Name of the storage account you need to access. "
             + "A storage account name can be found in the Storage accounts dashboard of the Microsoft Azure Storage system to be used. "
             + "Ensure that the administrator of the system has granted you the appropriate access permissions to this storage account.")
     private String accountName;
 
     @Option
-    @Required
     @Documentation("Storage Shared Key")
     @Credential
     private String accountKey;
