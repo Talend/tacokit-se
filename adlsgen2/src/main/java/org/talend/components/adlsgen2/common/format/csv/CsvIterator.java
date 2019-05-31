@@ -41,8 +41,7 @@ public class CsvIterator implements Iterator<Record> {
 
     private CsvIterator(CsvConverter converter, Reader inReader) {
         reader = inReader;
-        converter = CsvConverter.of().withFormat(csv);
-        log.warn("[CsvIterator] {}", converter);
+        this.converter = converter;
         try {
             parser = this.converter.getCsvFormat().parse(reader);
             // in the case of no schema is defined in the config and there's a header set in config

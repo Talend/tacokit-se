@@ -12,11 +12,14 @@
  */
 package org.talend.components.adlsgen2.common.format.csv;
 
-import java.io.IOException;
-import java.io.StringWriter;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import javax.inject.Inject;
 
 import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang.StringUtils;
 import org.talend.components.adlsgen2.common.converter.RecordConverter;
@@ -26,18 +29,18 @@ import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class CsvConverter implements RecordConverter<CSVRecord> {
 
-    private StringWriter writer;
-
+    @Getter
     private CSVFormat csvFormat;
 
-    private CSVPrinter printer;
-
     @Service
+    @Inject
     public static RecordBuilderFactory recordBuilderFactory;
 
     private Schema schema;
@@ -111,6 +114,51 @@ public class CsvConverter implements RecordConverter<CSVRecord> {
         }
 
         return format;
+    }
+
+    @Override
+    public Schema inferSchema(CSVRecord record) {
+        Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD);
+        Set<String> existNames = new HashSet<>();
+        String fieldName, finalName;
+        int index = 0;
+        // record.toMap() return an unsorted map, so will loose fields ordering.
+        // see CsvIterator constructor.
+        if (runtimeHeaders != null) {
+            for (Entry<String, Integer> f : runtimeHeaders.entrySet()) {
+                Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
+                finalName = RecordConverter.getCorrectSchemaFieldName(f.getKey(), index++, existNames);
+                existNames.add(finalName);
+                builder.withEntry(entryBuilder.withName(finalName).withType(Schema.Type.STRING).build());
+            }
+        } else {
+            for (int i = 0; i < record.size(); i++) {
+                Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
+                finalName = "field" + i;
+                builder.withEntry(entryBuilder.withName(finalName).withType(Schema.Type.STRING).build());
+            }
+        }
+        Schema inferedSchema = builder.build();
+        log.debug("[inferSchema] {}", inferedSchema);
+        return inferedSchema;
+    }
+
+    @Override
+    public Record toRecord(CSVRecord value) {
+        if (schema == null) {
+            schema = inferSchema(value);
+        }
+        Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder(schema);
+        for (int i = 0; i < schema.getEntries().size(); i++) {
+            recordBuilder.withString(schema.getEntries().get(i), value.get(i));
+        }
+        Record record = recordBuilder.build();
+        return record;
+    }
+
+    @Override
+    public CSVRecord fromRecord(Record record) {
+        throw new UnsupportedOperationException("#fromRecord()");
     }
 
 }

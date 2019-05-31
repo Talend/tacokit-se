@@ -12,6 +12,8 @@
  */
 package org.talend.components.adlsgen2.common.converter;
 
+import java.util.Set;
+
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
@@ -22,5 +24,55 @@ public interface RecordConverter<T> {
     Record toRecord(T record);
 
     T fromRecord(Record record);
+
+    /**
+     * correct the field name and make it valid for AVRO schema
+     * for example :
+     * input : "CA HT", output "CA_HT"
+     * input : "column?!^Name", output "column___Name"
+     * input : "P1_Vente_Qté", output "P1_Vente_Qt_"
+     *
+     * @param name : the name will be correct
+     * @param nameIndex : a index which is used to generate the column name when too much underline in the name
+     * @param previousNames : the previous valid names, this is used to make sure that every name is different
+     * @return the valid name, if the input name is null or empty, or the previousNames is null, return the input name directly
+     */
+    static String getCorrectSchemaFieldName(String name, int nameIndex, Set<String> previousNames) {
+        if (name == null || name.isEmpty() || previousNames == null) {
+            return name;
+        }
+
+        StringBuilder str = new StringBuilder();
+        int underLineCount = 0;
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
+            if (((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || ((c >= '0') && (c <= '9') && (i != 0))) {
+                str.append(c);
+            } else if (c == '_') {
+                str.append(c);
+                underLineCount++;
+            } else {
+                str.append('_');
+                underLineCount++;
+            }
+        }
+
+        String result = underLineCount > (name.length() / 2) ? "Column" + nameIndex : str.toString();
+
+        return getUniqueNameForSchemaField(result, previousNames);
+    }
+
+    static String getUniqueNameForSchemaField(String name, Set<String> previousNames) {
+        boolean allIsDifferent = false;
+        int index = 0;
+        String currentName = name;
+        while (!allIsDifferent) {
+            allIsDifferent = !previousNames.contains(currentName);
+            if (!allIsDifferent) {
+                currentName += (++index);
+            }
+        }
+        return currentName;
+    }
 
 }
