@@ -58,7 +58,6 @@ public class LeadSource extends MarketoSource {
         this.listClient = service.getListClient();
         this.listClient.base(this.configuration.getDataSet().getDataStore().getEndpoint());
         action.put(MarketoDataSet.LeadAction.getLeadActivity, this::getLeadActivities);
-        action.put(MarketoDataSet.LeadAction.getLeadChanges, this::getLeadChanges);
         action.put(MarketoDataSet.LeadAction.getLeadsByList, this::getLeadsByListId);
     }
 

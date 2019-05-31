@@ -45,14 +45,14 @@ public class LeadStrategy extends OutputComponentStrategy implements ProcessorSt
     @Override
     public JsonObject getPayload(List<JsonObject> incomingData) {
         JsonArray input = jsonFactory.createArrayBuilder(incomingData).build();
-        if (OutputAction.sync.equals(configuration.getAction())) {
+        if (OutputAction.delete.equals(configuration.getAction())) {
             return jsonFactory.createObjectBuilder() //
-                    .add(ATTR_ACTION, configuration.getSyncMethod().name()) //
-                    .add(ATTR_LOOKUP_FIELD, configuration.getLookupField()) //
                     .add(ATTR_INPUT, input) //
                     .build();
         } else {
             return jsonFactory.createObjectBuilder() //
+                    .add(ATTR_ACTION, configuration.getAction().name()) //
+                    .add(ATTR_LOOKUP_FIELD, configuration.getLookupField()) //
                     .add(ATTR_INPUT, input) //
                     .build();
         }
@@ -61,12 +61,11 @@ public class LeadStrategy extends OutputComponentStrategy implements ProcessorSt
     @Override
     public JsonObject runAction(JsonObject payload) {
         switch (configuration.getAction()) {
-        case sync:
-            return syncLeads(payload);
         case delete:
             return deleteLeads(payload);
+        default:
+            return syncLeads(payload);
         }
-        throw new UnsupportedOperationException(i18n.invalidOperation());
     }
 
     private JsonObject deleteLeads(JsonObject payload) {

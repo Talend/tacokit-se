@@ -179,9 +179,6 @@ public class MarketoService {
         case getLeadActivity:
             s = getLeadActivitiesSchema();
             break;
-        case getLeadChanges:
-            s = getLeadChangesSchema();
-            break;
         }
         log.warn("[getEntitySchema] schema: {}", s.getEntries().stream().map(Entry::getName).collect(toList()));
         return s;

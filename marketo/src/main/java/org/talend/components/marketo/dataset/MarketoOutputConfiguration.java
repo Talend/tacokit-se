@@ -29,7 +29,6 @@ import static org.talend.components.marketo.service.UIActionService.LEAD_KEY_NAM
 @GridLayout({ //
         @GridLayout.Row({ "dataSet" }), //
         @GridLayout.Row({ "action" }), //
-        @GridLayout.Row({ "syncMethod" }), //
         @GridLayout.Row({ "lookupField" }), //
 }) //
 @Documentation("Marketo Sink Configuration")
@@ -38,21 +37,17 @@ public class MarketoOutputConfiguration implements Serializable {
 
     public static final String NAME = "MarketoOutputConfiguration";
 
-    public enum OutputAction {
-        sync,
-        delete
-    }
-
     public enum ListAction {
         addTo,
         removeFrom
     }
 
-    public enum SyncMethod {
+    public enum OutputAction {
         createOnly,
         updateOnly,
         createOrUpdate,
-        createDuplicate
+        createDuplicate,
+        delete
     }
 
     public enum DeleteBy {
@@ -69,23 +64,15 @@ public class MarketoOutputConfiguration implements Serializable {
 
     @Option
     @Documentation("Action")
-    private OutputAction action = OutputAction.sync;
+    private OutputAction action = OutputAction.createOrUpdate;
 
     /*
      * Lead Entity
      */
     @Option
-    @ActiveIf(target = "action", value = "sync")
+    @ActiveIf(negate = true, target = "action", value = "delete")
     @Suggestable(value = LEAD_KEY_NAME_LIST, parameters = { "../dataSet/dataStore" })
     @Documentation("Lookup Field")
     private String lookupField;
-
-    /*
-     * All entities
-     */
-    @Option
-    @ActiveIf(target = "action", value = { "sync" })
-    @Documentation("Synchronization method")
-    private SyncMethod syncMethod = SyncMethod.createOrUpdate;
 
 }

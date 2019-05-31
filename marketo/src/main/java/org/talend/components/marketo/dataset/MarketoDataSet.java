@@ -107,7 +107,6 @@ public class MarketoDataSet implements Serializable {
 
     public enum LeadAction {
         getLeadActivity,
-        getLeadChanges,
         getLeadsByList
     }
 
