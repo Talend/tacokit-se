@@ -38,8 +38,6 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_FILTER_TYPE
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_FILTER_VALUES;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_NEXT_PAGE_TOKEN;
 import static org.talend.components.marketo.MarketoApiConstants.DATETIME_FORMAT;
-import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED;
-import static org.talend.components.marketo.MarketoApiConstants.REQUEST_PARAM_QUERY_METHOD_GET;
 
 @Slf4j
 public class LeadSource extends MarketoSource {
@@ -77,13 +75,6 @@ public class LeadSource extends MarketoSource {
         return handleResponse(listClient.getLeadsByListId(accessToken, nextPageToken, listId, fields));
     }
 
-    private JsonObject getLead() {
-        Integer leadId = configuration.getLeadId();
-        String fields = configuration.getDataSet().getFields() == null ? null
-                : configuration.getDataSet().getFields().stream().collect(joining(","));
-        return handleResponse(leadClient.getLeadById(accessToken, leadId, fields));
-    }
-
     private Boolean isLeadUrlSizeGreaterThan8k(String filterType, String filterValues, String fields) {
         int pathSize = 20;
         int endpointSize = configuration.getDataSet().getDataStore().getEndpoint().length();
@@ -110,20 +101,6 @@ public class LeadSource extends MarketoSource {
         sb.append(ATTR_FIELDS + "=" + fields.trim());
 
         return sb.toString();
-    }
-
-    private JsonObject getMultipleLeads() {
-        String filterType = configuration.getLeadKeyName();
-        String filterValues = configuration.getLeadKeyValues();
-        String fields = configuration.getDataSet().getFields() == null ? null
-                : configuration.getDataSet().getFields().stream().collect(joining(","));
-        if (isLeadUrlSizeGreaterThan8k(filterType, filterValues, fields)) {
-            return handleResponse(leadClient.getLeadByFilterType(HEADER_CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED,
-                    REQUEST_PARAM_QUERY_METHOD_GET, accessToken, nextPageToken, buildLeadForm(filterType, filterValues, fields)));
-        } else {
-            return handleResponse(
-                    leadClient.getLeadByFilterTypeByQueryString(accessToken, filterType, filterValues, fields, nextPageToken));
-        }
     }
 
     private String computeDateTimeFromConfiguration() {
@@ -159,25 +136,8 @@ public class LeadSource extends MarketoSource {
         if (!configuration.getDataSet().getActivityTypeIds().isEmpty()) {
             activityTypeIds = configuration.getDataSet().getActivityTypeIds().stream().collect(joining(","));
         }
-        String assetIds = configuration.getAssetIds();
         String listId = configuration.getDataSet().getListId();
-        String leadIds = configuration.getLeadIds();
-        return handleResponse(
-                leadClient.getLeadActivities(accessToken, nextPageToken, activityTypeIds, assetIds, listId, leadIds));
-    }
-
-    /**
-     * Returns a list of Data Value Changes and New Lead activities after a given datetime.
-     */
-    private JsonObject getLeadChanges() {
-        if (nextPageToken == null) {
-            nextPageToken = getPagingToken(computeDateTimeFromConfiguration());
-        }
-        String listId = configuration.getDataSet().getListId();
-        String leadIds = configuration.getLeadIds();
-        String fields = configuration.getDataSet().getFields() == null ? null
-                : configuration.getDataSet().getFields().stream().collect(joining(","));
-        return handleResponse(leadClient.getLeadChanges(accessToken, nextPageToken, listId, leadIds, fields));
+        return handleResponse(leadClient.getLeadActivities(accessToken, nextPageToken, activityTypeIds, "", listId, ""));
     }
 
     public JsonObject getActivities() {
