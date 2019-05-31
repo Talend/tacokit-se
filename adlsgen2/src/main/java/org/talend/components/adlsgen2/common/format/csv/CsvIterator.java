@@ -17,21 +17,19 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
+import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 
-import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.configuration.Configuration;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class CsvIterator implements Iterator<Record> {
-
-    private CSVFormat csv;
 
     private final Reader reader;
 
@@ -41,17 +39,17 @@ public class CsvIterator implements Iterator<Record> {
 
     private Iterator<CSVRecord> records;
 
-    private CsvIterator(Reader inReader, CSVFormat format) {
-        csv = format;
-        log.warn("[CsvIterator] csv{}", format);
+    private CsvIterator(CsvConverter converter, Reader inReader) {
         reader = inReader;
         converter = CsvConverter.of().withFormat(csv);
         log.warn("[CsvIterator] {}", converter);
         try {
-            parser = csv.parse(reader);
-            log.warn("[CsvIterator] parser: {} ", parser);
+            parser = this.converter.getCsvFormat().parse(reader);
+            // in the case of no schema is defined in the config and there's a header set in config
+            // to keep ordering we're obliged to do this
+            // will try to find a better workaround later...
+            converter.setRuntimeHeaders(parser.getHeaderMap());
             records = parser.iterator();
-            log.warn("[CsvIterator] records: {} ", records);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
@@ -64,9 +62,7 @@ public class CsvIterator implements Iterator<Record> {
 
     @Override
     public Record next() {
-
         if (hasNext()) {
-            log.warn("[next] conv {}", converter);
             return converter.toRecord(records.next());
         } else {
             try {
@@ -81,37 +77,39 @@ public class CsvIterator implements Iterator<Record> {
 
     public static class Builder {
 
-        private CSVFormat csvFormat;
+        private CsvConverter converter;
 
-        private Builder() {
-            csvFormat = CSVFormat.DEFAULT;
+        private CsvConfiguration configuration;
+
+        private RecordBuilderFactory factory;
+
+        private Builder(final RecordBuilderFactory factory) {
+            this.factory = factory;
         }
 
-        public static Builder of() {
-            return new Builder();
+        public static Builder of(final RecordBuilderFactory factory) {
+            return new Builder(factory);
         }
 
         public Builder withConfiguration(@Configuration("csvConfiguration") final CsvConfiguration configuration) {
-            csvFormat = csvFormat //
-                    .withDelimiter(configuration.getFieldDelimiter().getDelimiterChar()) //
-                    .withRecordSeparator(configuration.getRecordDelimiter().getSeparatorChar()) //
-                    .withHeader(configuration.getCsvSchema().split(configuration.getFieldDelimiter().getDelimiter())) //
-            // TODO manage other parameters.
-            ;
-            if (configuration.isHeader()) {
-                csvFormat = csvFormat.withFirstRecordAsHeader();
-            }
+            log.debug("[Builder::withConfiguration] conf: {}", configuration);
+            this.configuration = configuration;
+            converter = CsvConverter.of(factory, configuration);
 
             return this;
         }
 
         public CsvIterator parse(InputStream in) {
-            // TODO manage fileEncoding
-            return new CsvIterator(new InputStreamReader(in, StandardCharsets.UTF_8), csvFormat);
+            try {
+                return new CsvIterator(converter, new InputStreamReader(in, configuration.effectiveEncoding()));
+            } catch (UnsupportedEncodingException e) {
+                log.error("[parse] {}", e.getMessage());
+                throw new IllegalStateException(e);
+            }
         }
 
         public CsvIterator parse(String content) {
-            return new CsvIterator(new StringReader(content), csvFormat);
+            return new CsvIterator(converter, new StringReader(content));
         }
     }
 }

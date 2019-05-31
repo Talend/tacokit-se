@@ -20,11 +20,8 @@ import lombok.Getter;
 public enum CsvRecordSeparator {
     LF("\n"),
     CR("\r"),
-    CRLF("\r\n");
+    CRLF("\r\n"),
+    OTHER("");
 
     private final String separator;
-
-    public char getSeparatorChar() {
-        return separator.charAt(0);
-    }
 }

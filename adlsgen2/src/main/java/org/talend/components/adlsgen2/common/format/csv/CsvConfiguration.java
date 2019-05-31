@@ -16,7 +16,7 @@ import java.io.Serializable;
 
 import org.talend.components.adlsgen2.common.format.FileEncoding;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.ui.DefaultValue;
+import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
@@ -24,23 +24,51 @@ import lombok.Data;
 
 @Data
 @GridLayout({ //
-        @GridLayout.Row({ "recordDelimiter", "fieldDelimiter" }), //
+        @GridLayout.Row({ "fieldDelimiter", "customFieldDelimiter" }), //
+        @GridLayout.Row({ "recordSeparator", "customRecordSeparator" }), //
+        @GridLayout.Row({ "escapeCharacter", "textEnclosureCharacter" }), //
         @GridLayout.Row("header"), //
         @GridLayout.Row("csvSchema"), //
-        @GridLayout.Row("fileEncoding"), //
+        @GridLayout.Row({ "fileEncoding", "customEncoding" }), //
+
 })
 @Documentation("CSV Configuration")
 public class CsvConfiguration implements Serializable {
 
     @Option
-    @DefaultValue("SEMICOLON")
-    @Documentation("CSV Field Delimiter")
-    private CsvFieldDelimiter fieldDelimiter;
+    @Documentation("Symbol(s) used to separate records")
+    private CsvRecordSeparator recordSeparator = CsvRecordSeparator.CRLF;
 
     @Option
-    @DefaultValue("LF")
-    @Documentation("Record Delimiter")
-    private CsvRecordSeparator recordDelimiter;
+    @ActiveIf(target = "recordSeparator", value = "OTHER")
+    @Documentation("Your custom record delimiter")
+    private String customRecordSeparator;
+
+    @Option
+    @Documentation("Symbol(s) used to separate fields")
+    private CsvFieldDelimiter fieldDelimiter = CsvFieldDelimiter.SEMICOLON;
+
+    @Option
+    @ActiveIf(target = "fieldDelimiter", value = "OTHER")
+    @Documentation("Your custom field delimiter")
+    private String customFieldDelimiter;
+
+    @Option
+    @Documentation("Text enclosure character")
+    private String textEnclosureCharacter;
+
+    @Option
+    @Documentation("Escape character")
+    private String escapeCharacter;
+
+    @Option
+    @Documentation("File Encoding")
+    private FileEncoding fileEncoding = FileEncoding.UTF8;
+
+    @Option
+    @ActiveIf(target = "encoding", value = "OTHER")
+    @Documentation("Your custom file encoding format")
+    private String customEncoding;
 
     @Option
     @Documentation("Schema")
@@ -50,8 +78,18 @@ public class CsvConfiguration implements Serializable {
     @Documentation("Has header line")
     private boolean header;
 
-    @Option
-    @Documentation("File Encoding")
-    private FileEncoding fileEncoding = FileEncoding.UTF8;
+    public char effectiveFieldDelimiter() {
+        return CsvFieldDelimiter.OTHER.equals(getFieldDelimiter()) ? getCustomFieldDelimiter().charAt(0)
+                : getFieldDelimiter().getDelimiter();
+    }
+
+    public String effectiveEncoding() {
+        return FileEncoding.OTHER.equals(getFileEncoding()) ? getCustomEncoding() : getFileEncoding().getEncoding();
+    }
+
+    public String effectiveRecordSeparator() {
+        return CsvRecordSeparator.OTHER.equals(getRecordSeparator()) ? getCustomRecordSeparator()
+                : getRecordSeparator().getSeparator();
+    }
 
 }

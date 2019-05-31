@@ -12,20 +12,19 @@
  */
 package org.talend.components.adlsgen2.common.format.csv;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-@AllArgsConstructor
 public enum CsvFieldDelimiter {
-    SEMICOLON(";"),
-    COMMA(","),
-    TABULATION("\t"),
-    SPACE(" ");
+    SEMICOLON(';'),
+    COMMA(','),
+    TABULATION('\t'),
+    SPACE(' '),
+    OTHER((char) 0);
 
-    private final String delimiter;
+    private char delimiter;
 
-    public char getDelimiterChar() {
-        return delimiter.charAt(0);
+    CsvFieldDelimiter(char delimiter) {
+        this.delimiter = delimiter;
     }
 }

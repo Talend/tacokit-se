@@ -18,9 +18,9 @@ import java.io.StringWriter;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.lang.StringUtils;
 import org.talend.components.adlsgen2.common.converter.RecordConverter;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Record.Builder;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.Configuration;
@@ -40,72 +40,77 @@ public class CsvConverter implements RecordConverter<CSVRecord> {
     @Service
     public static RecordBuilderFactory recordBuilderFactory;
 
-    private CsvConverter() {
-        writer = new StringWriter();
-        csvFormat = CSVFormat.DEFAULT;
-        try {
-            printer = new CSVPrinter(writer, csvFormat);
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
+    private Schema schema;
+
+    @Setter
+    private Map<String, Integer> runtimeHeaders;
+
+    private CsvConverter(final RecordBuilderFactory factory,
+            final @Configuration("csvConfiguration") CsvConfiguration configuration) {
+        recordBuilderFactory = factory;
+        csvFormat = formatWithConfiguration(configuration);
+        schema = schemaWithConfiguration(configuration);
+        log.debug("[CsvConverter] format: {}, schema: {}", csvFormat, schema);
+    }
+
+    public static CsvConverter of(final RecordBuilderFactory factory,
+            final @Configuration("csvConfiguration") CsvConfiguration configuration) {
+        return new CsvConverter(factory, configuration);
+    }
+
+    private Schema schemaWithConfiguration(CsvConfiguration configuration) {
+        if (StringUtils.isEmpty(configuration.getCsvSchema())) {
+            // will infer schema on runtime
+            return null;
         }
-    }
-
-    public static CsvConverter of() {
-        return new CsvConverter();
-    }
-
-    @Override
-    public Schema inferSchema(CSVRecord record) {
-        throw new UnsupportedOperationException("#inferSchema()");
-    }
-
-    @Override
-    public Record toRecord(CSVRecord value) {
-        Builder record = recordBuilderFactory.newRecordBuilder();
-        for (String s : csvFormat.getHeader()) {
-            record.withString(s, value.get(s));
+        Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD);
+        Set<String> existNames = new HashSet<>();
+        int index = 0;
+        for (String s : configuration.getCsvSchema().split(String.valueOf(configuration.effectiveFieldDelimiter()))) {
+            Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
+            String finalName = RecordConverter.getCorrectSchemaFieldName(s, index++, existNames);
+            existNames.add(finalName);
+            builder.withEntry(entryBuilder.withName(finalName).withType(Schema.Type.STRING).build());
         }
-        log.debug("record: {}", record.build());
-        return record.build();
+
+        return builder.build();
     }
 
-    @Override
-    public CSVRecord fromRecord(Record record) {
-        throw new UnsupportedOperationException("#fromRecord()");
-    }
+    private CSVFormat formatWithConfiguration(@Configuration("csvConfiguration") final CsvConfiguration configuration) {
+        log.debug("[CsvConverter::formatWithConfiguration] {}", configuration);
+        char delimiter = configuration.effectiveFieldDelimiter();
+        String separator = configuration.effectiveRecordSeparator();
+        String escape = configuration.getEscapeCharacter();
+        String enclosure = configuration.getTextEnclosureCharacter();
+        String confSchema = configuration.getCsvSchema();
+        CSVFormat format = CSVFormat.DEFAULT;
+        // delimiter
+        format = format.withDelimiter(delimiter);
+        // record separator
+        if (StringUtils.isNotEmpty(separator)) {
+            format = format.withRecordSeparator(separator);
+        }
+        // escape character
+        if (StringUtils.isNotEmpty(escape) && escape.length() == 1) {
+            format = format.withEscape(escape.charAt(0));
+        }
+        // text enclosure
+        if (StringUtils.isNotEmpty(enclosure) && enclosure.length() == 1) {
+            format = format.withQuote(enclosure.charAt(0));
+        } else {
+            // CSVFormat.DEFAULT has quotes defined
+            format = format.withQuote(null);
+        }
+        // first line is header
+        if (configuration.isHeader()) {
+            format = format.withFirstRecordAsHeader();
+        }
+        // header columns
+        if (configuration.isHeader() && StringUtils.isNotEmpty(confSchema)) {
+            format = format.withHeader(confSchema.split(String.valueOf(delimiter)));
+        }
 
-    public CsvConverter withConfiguration(@Configuration("csvConfiguration") final CsvConfiguration configuration) {
-        csvFormat = csvFormat //
-                .withDelimiter(configuration.getFieldDelimiter().getDelimiterChar()) //
-                .withRecordSeparator(configuration.getRecordDelimiter().getSeparatorChar()) //
-                .withHeader(configuration.getCsvSchema().split(configuration.getFieldDelimiter().getDelimiter())) //
-        // etc.
-        ;
-        return this;
-    }
-
-    public CsvConverter withFormat(final CSVFormat format) {
-        csvFormat = format;
-
-        return this;
-    }
-
-    public CsvConverter withDelimiter(final char delimiter) {
-        csvFormat = csvFormat.withDelimiter(delimiter);
-
-        return this;
-    }
-
-    public CsvConverter withDSeparator(final char separator) {
-        csvFormat = csvFormat.withRecordSeparator(separator);
-
-        return this;
-    }
-
-    public CsvConverter withHeader(final String[] headers) {
-        csvFormat = csvFormat.withHeader(headers);
-
-        return this;
+        return format;
     }
 
 }

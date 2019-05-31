@@ -26,9 +26,6 @@ public class AdlsGen2APIConfigurer implements Configurer {
     public void configure(final Connection connection, final ConfigurerConfiguration configuration) {
         final AdlsGen2Connection conn = configuration.get("connection", AdlsGen2Connection.class);
         final String auth = configuration.get("auth", String.class);
-        log.debug("[configure] connection {}", conn);
-        log.warn("[configure] [{}] {}", connection.getMethod(), connection.getUrl());
-        log.debug("[configure] auth       {}", auth);
         connection //
                 .withHeader(HeaderConstants.ACCEPT, HeaderConstants.ACCEPT_DEFAULT) //
                 .withHeader(HeaderConstants.CONTENT_TYPE, HeaderConstants.DFS_CONTENT_TYPE) //

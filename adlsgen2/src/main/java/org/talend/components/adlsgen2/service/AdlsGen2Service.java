@@ -160,7 +160,7 @@ public class AdlsGen2Service implements Serializable {
     public Iterator<Record> convertToRecordList(@Configuration("dataSet") final AdlsGen2DataSet dataSet, InputStream content) {
         switch (dataSet.getFormat()) {
         case CSV:
-            return CsvIterator.Builder.of().withConfiguration(dataSet.getCsvConfiguration()).parse(content);
+            return CsvIterator.Builder.of(recordBuilder).withConfiguration(dataSet.getCsvConfiguration()).parse(content);
         case AVRO:
             return AvroIterator.Builder.of().withConfiguration(dataSet.getAvroConfiguration()).parse(content);
         case JSON:
@@ -236,7 +236,7 @@ public class AdlsGen2Service implements Serializable {
                 dataSet.getBlobPath(), //
                 sasMap //
         ));
-        log.warn("[pathGetProperties] [{}] {}.\n{}", result.status(), result.headers());
+        log.info("[pathGetProperties] [{}] {}.\n{}", result.status(), result.headers());
         if (result.status() == 200) {
             for (String header : result.headers().keySet()) {
                 if (header.startsWith(Constants.PREFIX_FOR_STORAGE_HEADER)) {
@@ -302,7 +302,7 @@ public class AdlsGen2Service implements Serializable {
                 60, //
                 sasMap //
         ));
-        log.warn("[pathRead] [{}] {}.", result.status(), result.headers());
+        log.info("[pathRead] [{}] {}.", result.status(), result.headers());
         return convertToRecordList(configuration.getDataSet(), result.body());
     }
 
@@ -317,7 +317,7 @@ public class AdlsGen2Service implements Serializable {
                 Constants.ATTR_FILE, //
                 sasMap, //
                 ""));
-        log.warn("[pathCreate] [{}] {}.\n{}", result.status(), result.headers(), result.body());
+        log.info("[pathCreate] [{}] {}.\n{}", result.status(), result.headers(), result.body());
         return result;
     }
 
@@ -335,7 +335,7 @@ public class AdlsGen2Service implements Serializable {
                 sasMap, //
                 content //
         ));
-        log.warn("[pathUpdate] [{}] {}", result.status(), result.headers());
+        log.info("[pathUpdate] [{}] {}", result.status(), result.headers());
 
         return result;
     }
@@ -362,7 +362,7 @@ public class AdlsGen2Service implements Serializable {
                 sasMap, //
                 "" //
         ));
-        log.warn("[flushBlob] [{}] {}", result.status(), result.headers());
+        log.info("[flushBlob] [{}] {}", result.status(), result.headers());
 
         return result;
     }

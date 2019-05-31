@@ -150,7 +150,7 @@ public class AdlsGen2TestBase implements Serializable {
         dataSet.setFormat(FileFormat.CSV);
         CsvConfiguration csvConfig = new CsvConfiguration();
         csvConfig.setFieldDelimiter(CsvFieldDelimiter.SEMICOLON);
-        csvConfig.setRecordDelimiter(CsvRecordSeparator.LF);
+        csvConfig.setRecordSeparator(CsvRecordSeparator.LF);
         csvConfig.setCsvSchema("id;firstname;lastname;address;enrolled;zip;state");
         dataSet.setCsvConfiguration(csvConfig);
 
@@ -184,7 +184,6 @@ public class AdlsGen2TestBase implements Serializable {
         components.injectServices(UnknownConverter.of());
         components.injectServices(CsvConverter.class);
         components.injectServices(ParquetConverter.of());
-        components.injectServices(CsvConverter.of());
         RecordBuilderFactory svcRcdBld = components.findService(RecordBuilderFactory.class);
         I18n i18 = components.findService(I18n.class);
         CsvConverter.recordBuilderFactory = svcRcdBld;

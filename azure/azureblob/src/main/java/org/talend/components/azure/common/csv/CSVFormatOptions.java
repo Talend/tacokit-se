@@ -23,7 +23,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
 
-@GridLayout(value = { @GridLayout.Row("recordDelimiter"), @GridLayout.Row("customRecordDelimiter"),
+@GridLayout(value = { @GridLayout.Row("recordSeparator"), @GridLayout.Row("customRecordSeparator"),
         @GridLayout.Row("fieldDelimiter"), @GridLayout.Row("customFieldDelimiter"), @GridLayout.Row("textEnclosureCharacter"),
         @GridLayout.Row("escapeCharacter"), @GridLayout.Row("encoding"), @GridLayout.Row("customEncoding"),
         @GridLayout.Row("useHeader"), @GridLayout.Row("header") })
@@ -35,7 +35,7 @@ public class CSVFormatOptions implements Serializable {
     private RecordDelimiter recordDelimiter = RecordDelimiter.CRLF;
 
     @Option
-    @ActiveIf(target = "recordDelimiter", value = "OTHER")
+    @ActiveIf(target = "recordSeparator", value = "OTHER")
     @Documentation("Your custom record delimiter")
     private String customRecordDelimiter;
 

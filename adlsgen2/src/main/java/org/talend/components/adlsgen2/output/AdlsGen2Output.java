@@ -64,8 +64,8 @@ public class AdlsGen2Output implements Serializable {
         this.configuration = configuration;
         this.service = service;
         this.i18n = i18n;
-        fieldDelimiter = configuration.getDataSet().getCsvConfiguration().getFieldDelimiter().getDelimiterChar();
-        recordDelimiter = configuration.getDataSet().getCsvConfiguration().getRecordDelimiter().getSeparatorChar();
+        fieldDelimiter = configuration.getDataSet().getCsvConfiguration().effectiveFieldDelimiter();
+        recordDelimiter = configuration.getDataSet().getCsvConfiguration().effectiveRecordSeparator().charAt(0);
     }
 
     @PostConstruct
