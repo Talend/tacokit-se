@@ -15,7 +15,6 @@ package org.talend.components.adlsgen2.common.format;
 import java.io.Serializable;
 
 import org.talend.components.adlsgen2.common.format.csv.CsvConfiguration;
-import org.talend.components.adlsgen2.common.format.unknown.UnknownConfiguration;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Required;
@@ -52,10 +51,5 @@ public class FileFormatConfiguration implements Serializable {
     @ActiveIf(target = "fileFormat", value = "PARQUET")
     @Documentation("Parquet Configuration")
     private CsvConfiguration parquetConfiguration;
-
-    @Option
-    @ActiveIf(target = "fileFormat", value = "UNKNOWN")
-    @Documentation("Unknown File Configuration (plain text)")
-    private UnknownConfiguration unknownConfiguration;
 
 }

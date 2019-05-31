@@ -35,7 +35,6 @@ import javax.json.JsonValue;
 import org.talend.components.adlsgen2.common.format.avro.AvroIterator;
 import org.talend.components.adlsgen2.common.format.csv.CsvIterator;
 import org.talend.components.adlsgen2.common.format.parquet.ParquetIterator;
-import org.talend.components.adlsgen2.common.format.unknown.UnknownIterator;
 import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
 import org.talend.components.adlsgen2.datastore.Constants;
@@ -117,17 +116,18 @@ public class AdlsGen2Service implements Serializable {
                 throw new IllegalStateException(e);
             }
             break;
-        case AccessToken:
-            String token = getAccessToken(connection);
-            auth = String.format(HeaderConstants.AUTH_BEARER, token);
-            break;
         case SAS:
             sas = connection.getSas().substring(1);
             auth = String.format(HeaderConstants.AUTH_SHARED_ACCESS_SIGNATURE, sas);
             sasMap = Splitter.on("&").withKeyValueSeparator("=").split(sas);
             break;
-        case ADAL:
-            throw new UnsupportedOperationException("Authentication method unsupported");
+        /* temporary removal */
+        // case AccessToken:
+        // String token = getAccessToken(connection);
+        // auth = String.format(HeaderConstants.AUTH_BEARER, token);
+        // break;
+        // case ADAL:
+        // throw new UnsupportedOperationException("Authentication method unsupported");
         }
     }
 
@@ -167,8 +167,6 @@ public class AdlsGen2Service implements Serializable {
             throw new IllegalArgumentException("Not implemented");
         case PARQUET:
             return ParquetIterator.Builder.of().withConfiguration(dataSet.getParquetConfiguration()).parse(content);
-        case UNKNOWN:
-            return UnknownIterator.Builder.of().withConfiguration(dataSet.getUnknownConfiguration()).parse(content);
         }
         throw new IllegalStateException("Could not determine operation to do.");
     }

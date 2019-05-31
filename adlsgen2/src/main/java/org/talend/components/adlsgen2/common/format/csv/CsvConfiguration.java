@@ -22,15 +22,13 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
 
-import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
-
 @Data
 @GridLayout({ //
         @GridLayout.Row({ "recordDelimiter", "fieldDelimiter" }), //
         @GridLayout.Row("header"), //
         @GridLayout.Row("csvSchema"), //
+        @GridLayout.Row("fileEncoding"), //
 })
-@GridLayout(names = ADVANCED, value = { @GridLayout.Row("encoding") })
 @Documentation("CSV Configuration")
 public class CsvConfiguration implements Serializable {
 
@@ -54,6 +52,6 @@ public class CsvConfiguration implements Serializable {
 
     @Option
     @Documentation("File Encoding")
-    private FileEncoding encoding;
+    private FileEncoding fileEncoding = FileEncoding.UTF8;
 
 }

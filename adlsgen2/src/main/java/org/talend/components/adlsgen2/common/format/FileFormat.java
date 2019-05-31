@@ -17,5 +17,4 @@ public enum FileFormat {
     AVRO,
     JSON,
     PARQUET,
-    UNKNOWN
 }

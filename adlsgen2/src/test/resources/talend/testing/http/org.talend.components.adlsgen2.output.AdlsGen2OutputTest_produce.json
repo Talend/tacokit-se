@@ -9,19 +9,18 @@
         "Content-Type":"application/json; charset=utf-8"
       },
       "method":"GET",
-      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-05-01T17:44:11Z&st=2019-03-25T10:44:11Z&spr=https&sig=sign-here&directory=/&resource=filesystem&recursive=false&maxResults=5000&upn=&timeout=60"
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-06-02T17:12:37Z&st=2019-04-02T09:12:37Z&spr=https&sig=sign-here&directory=/&resource=filesystem&recursive=false&maxResults=5000&upn=&timeout=60"
     },
     "response":{
       "headers":{
+        "Transfer-Encoding":"chunked",
         "x-ms-version":"2018-11-09",
         "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
-        "x-ms-error-code":"AuthenticationFailed",
-        "Content-Length":"268",
-        "x-ms-request-id":"536ad389-401f-002b-14b7-0bcf19000000",
+        "x-ms-request-id":"417aafe8-501f-0037-5429-169d79000000",
         "Content-Type":"application/json;charset=utf-8"
       },
-      "payload":"{\"error\":{\"code\":\"AuthenticationFailed\",\"message\":\"Server failed to authenticate the request. Make sure the value of Authorization header is formed correctly including the signature.\\nRequestId:536ad389-401f-002b-14b7-0bcf19000000\\nTime:2019-05-16T07:19:19.6139193Z\"}}",
-      "status":403
+      "payload":"{\"paths\":[{\"etag\":\"Wed, 15 May 2019 07:10:54 GMT\",\"group\":\"$superuser\",\"isDirectory\":\"true\",\"lastModified\":\"Wed, 15 May 2019 07:10:54 GMT\",\"name\":\"New Folder  secondary\",\"owner\":\"$superuser\",\"permissions\":\"rwxr-x---\"},{\"contentLength\":\"162\",\"etag\":\"Wed, 29 May 2019 13:25:52 GMT\",\"group\":\"$superuser\",\"lastModified\":\"Wed, 29 May 2019 13:25:52 GMT\",\"name\":\"customers_test_produce.csv\",\"owner\":\"$superuser\",\"permissions\":\"rw-r-----\"},{\"etag\":\"Wed, 15 May 2019 07:10:54 GMT\",\"group\":\"$superuser\",\"isDirectory\":\"true\",\"lastModified\":\"Wed, 15 May 2019 07:10:54 GMT\",\"name\":\"demo_gen2\",\"owner\":\"$superuser\",\"permissions\":\"rwxr-x---\"},{\"etag\":\"Wed, 15 May 2019 07:10:54 GMT\",\"group\":\"$superuser\",\"isDirectory\":\"true\",\"lastModified\":\"Wed, 15 May 2019 07:10:54 GMT\",\"name\":\"myNewFolder\",\"owner\":\"$superuser\",\"permissions\":\"rwxr-x---\"},{\"etag\":\"Wed, 15 May 2019 07:10:54 GMT\",\"group\":\"$superuser\",\"isDirectory\":\"true\",\"lastModified\":\"Wed, 15 May 2019 07:10:54 GMT\",\"name\":\"myNewFolder02\",\"owner\":\"$superuser\",\"permissions\":\"rwxr-x---\"},{\"etag\":\"Wed, 15 May 2019 07:10:54 GMT\",\"group\":\"$superuser\",\"isDirectory\":\"true\",\"lastModified\":\"Wed, 15 May 2019 07:10:54 GMT\",\"name\":\"myNewFolder2\",\"owner\":\"$superuser\",\"permissions\":\"rwxr-x---\"}]}\n",
+      "status":200
     }
   },
   {
@@ -34,19 +33,94 @@
         "Content-Type":"application/json; charset=utf-8"
       },
       "method":"PUT",
-      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/customers_test_produce.csv?resource=file&sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-05-01T17:44:11Z&st=2019-03-25T10:44:11Z&spr=https&sig=sign-here"
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/customers_test_produce.csv?resource=file&sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-06-02T17:12:37Z&st=2019-04-02T09:12:37Z&spr=https&sig=sign-here"
     },
     "response":{
       "headers":{
         "x-ms-version":"2018-11-09",
         "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
-        "x-ms-error-code":"AuthenticationFailed",
-        "Content-Length":"268",
-        "x-ms-request-id":"f3716beb-901f-0017-4eb7-0be6de000000",
-        "Content-Type":"application/json;charset=utf-8"
+        "ETag":"\"0x8D6E4403D649404\"",
+        "Last-Modified":"Wed, 29 May 2019 14:16:27 GMT",
+        "Content-Length":"0",
+        "x-ms-request-id":"2ced7a1d-201f-0070-6d29-16f622000000"
       },
-      "payload":"{\"error\":{\"code\":\"AuthenticationFailed\",\"message\":\"Server failed to authenticate the request. Make sure the value of Authorization header is formed correctly including the signature.\\nRequestId:f3716beb-901f-0017-4eb7-0be6de000000\\nTime:2019-05-16T07:19:19.8518967Z\"}}",
-      "status":403
+      "payload":"",
+      "status":201
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "x-ms-version":"2018-11-09",
+        "Accept":"application/json, */*",
+        "Connection":"keep-alive",
+        "Content-Length":"54",
+        "Content-Type":"application/json; charset=utf-8"
+      },
+      "method":"PATCH",
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/customers_test_produce.csv?action=append&position=0&sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-06-02T17:12:37Z&st=2019-04-02T09:12:37Z&spr=https&sig=sign-here"
+    },
+    "response":{
+      "headers":{
+        "x-ms-version":"2018-11-09",
+        "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
+        "Content-Length":"0",
+        "x-ms-request-server-encrypted":"true",
+        "x-ms-request-id":"16790b64-501f-0008-1229-1655da000000",
+        "Content-MD5":"qqHvDC0KUJ709u0pFcNxjQ=="
+      },
+      "payload":"",
+      "status":202
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "x-ms-version":"2018-11-09",
+        "Accept":"application/json, */*",
+        "Connection":"keep-alive",
+        "Content-Length":"54",
+        "Content-Type":"application/json; charset=utf-8"
+      },
+      "method":"PATCH",
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/customers_test_produce.csv?action=append&position=54&sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-06-02T17:12:37Z&st=2019-04-02T09:12:37Z&spr=https&sig=sign-here"
+    },
+    "response":{
+      "headers":{
+        "x-ms-version":"2018-11-09",
+        "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
+        "Content-Length":"0",
+        "x-ms-request-server-encrypted":"true",
+        "x-ms-request-id":"0a49e469-701f-007d-4329-163ef6000000",
+        "Content-MD5":"qqHvDC0KUJ709u0pFcNxjQ=="
+      },
+      "payload":"",
+      "status":202
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "x-ms-version":"2018-11-09",
+        "Accept":"application/json, */*",
+        "Connection":"keep-alive",
+        "Content-Length":"54",
+        "Content-Type":"application/json; charset=utf-8"
+      },
+      "method":"PATCH",
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/customers_test_produce.csv?action=append&position=108&sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-06-02T17:12:37Z&st=2019-04-02T09:12:37Z&spr=https&sig=sign-here"
+    },
+    "response":{
+      "headers":{
+        "x-ms-version":"2018-11-09",
+        "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
+        "Content-Length":"0",
+        "x-ms-request-server-encrypted":"true",
+        "x-ms-request-id":"fd0b8463-201f-004f-3529-163e81000000",
+        "Content-MD5":"qqHvDC0KUJ709u0pFcNxjQ=="
+      },
+      "payload":"",
+      "status":202
     }
   },
   {
@@ -59,19 +133,20 @@
         "Content-Type":"application/json; charset=utf-8"
       },
       "method":"PATCH",
-      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/customers_test_produce.csv?action=flush&position=0&sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-05-01T17:44:11Z&st=2019-03-25T10:44:11Z&spr=https&sig=sign-here"
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/customers_test_produce.csv?action=flush&position=162&sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-06-02T17:12:37Z&st=2019-04-02T09:12:37Z&spr=https&sig=sign-here"
     },
     "response":{
       "headers":{
         "x-ms-version":"2018-11-09",
         "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
-        "x-ms-error-code":"AuthenticationFailed",
-        "Content-Length":"268",
-        "x-ms-request-id":"dbd091f9-c01f-008c-5bb7-0b27db000000",
-        "Content-Type":"application/json;charset=utf-8"
+        "ETag":"\"0x8D6E4403DD85BBF\"",
+        "Last-Modified":"Wed, 29 May 2019 14:16:28 GMT",
+        "Content-Length":"0",
+        "x-ms-request-server-encrypted":"true",
+        "x-ms-request-id":"e9619130-901f-0091-7929-162a67000000"
       },
-      "payload":"{\"error\":{\"code\":\"AuthenticationFailed\",\"message\":\"Server failed to authenticate the request. Make sure the value of Authorization header is formed correctly including the signature.\\nRequestId:dbd091f9-c01f-008c-5bb7-0b27db000000\\nTime:2019-05-16T07:19:20.0740540Z\"}}",
-      "status":403
+      "payload":"",
+      "status":200
     }
   }
 ]

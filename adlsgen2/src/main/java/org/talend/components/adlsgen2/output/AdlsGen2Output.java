@@ -118,10 +118,6 @@ public class AdlsGen2Output implements Serializable {
         case CSV:
             content = toCsvFormat(record);
             break;
-        case UNKNOWN:
-            //
-            content = record.toString();
-            break;
         case AVRO:
         case JSON:
         case PARQUET:

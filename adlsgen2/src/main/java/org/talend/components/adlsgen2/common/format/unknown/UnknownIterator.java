@@ -76,7 +76,7 @@ public class UnknownIterator implements Iterator<Record> {
         }
 
         public UnknownIterator parse(InputStream in) {
-            // TODO manage encoding
+            // TODO manage fileEncoding
             return new UnknownIterator(new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8)));
         }
 

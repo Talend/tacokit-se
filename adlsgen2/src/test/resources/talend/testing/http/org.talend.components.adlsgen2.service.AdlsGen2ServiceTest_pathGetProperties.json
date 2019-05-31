@@ -1,2 +1,33 @@
 [
+  {
+    "request":{
+      "headers":{
+        "content-length":"0",
+        "x-ms-version":"2018-11-09",
+        "Accept":"application/json, */*",
+        "Connection":"keep-alive",
+        "Content-Type":"application/json; charset=utf-8"
+      },
+      "method":"HEAD",
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/myNewFolder/customer.csv?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-06-02T17:12:37Z&st=2019-04-02T09:12:37Z&spr=https&sig=sign-here"
+    },
+    "response":{
+      "headers":{
+        "x-ms-group":"$superuser",
+        "x-ms-version":"2018-11-09",
+        "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
+        "ETag":"\"0x8D6B77954F56721\"",
+        "x-ms-properties":"",
+        "x-ms-permissions":"rw-r-----",
+        "Last-Modified":"Tue, 02 Apr 2019 14:41:46 GMT",
+        "Content-Length":"420",
+        "x-ms-request-id":"51b64d71-f01f-0087-3e29-16dcb0000000",
+        "x-ms-resource-type":"file",
+        "x-ms-owner":"$superuser",
+        "Content-Type":"application/json; charset=utf-8"
+      },
+      "payload":"",
+      "status":200
+    }
+  }
 ]

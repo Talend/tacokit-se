@@ -26,6 +26,9 @@ import org.apache.commons.csv.CSVRecord;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.configuration.Configuration;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class CsvIterator implements Iterator<Record> {
 
     private CSVFormat csv;
@@ -40,11 +43,15 @@ public class CsvIterator implements Iterator<Record> {
 
     private CsvIterator(Reader inReader, CSVFormat format) {
         csv = format;
+        log.warn("[CsvIterator] csv{}", format);
         reader = inReader;
         converter = CsvConverter.of().withFormat(csv);
+        log.warn("[CsvIterator] {}", converter);
         try {
             parser = csv.parse(reader);
+            log.warn("[CsvIterator] parser: {} ", parser);
             records = parser.iterator();
+            log.warn("[CsvIterator] records: {} ", records);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
@@ -57,7 +64,9 @@ public class CsvIterator implements Iterator<Record> {
 
     @Override
     public Record next() {
+
         if (hasNext()) {
+            log.warn("[next] conv {}", converter);
             return converter.toRecord(records.next());
         } else {
             try {
@@ -97,7 +106,7 @@ public class CsvIterator implements Iterator<Record> {
         }
 
         public CsvIterator parse(InputStream in) {
-            // TODO manage encoding
+            // TODO manage fileEncoding
             return new CsvIterator(new InputStreamReader(in, StandardCharsets.UTF_8), csvFormat);
         }
 

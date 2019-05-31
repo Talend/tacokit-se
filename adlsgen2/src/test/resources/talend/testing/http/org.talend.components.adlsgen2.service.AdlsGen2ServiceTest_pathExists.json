@@ -9,19 +9,140 @@
         "Content-Type":"application/json; charset=utf-8"
       },
       "method":"GET",
-      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-05-01T17:44:11Z&st=2019-03-25T10:44:11Z&spr=https&sig=sign-here&directory=/myNewFolder&resource=filesystem&recursive=false&maxResults=5000&upn=&timeout=60"
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-06-02T17:12:37Z&st=2019-04-02T09:12:37Z&spr=https&sig=sign-here&directory=/myNewFolder&resource=filesystem&recursive=false&maxResults=5000&upn=&timeout=60"
+    },
+    "response":{
+      "headers":{
+        "Transfer-Encoding":"chunked",
+        "x-ms-version":"2018-11-09",
+        "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
+        "x-ms-request-id":"0b68e9aa-d01f-0090-1b29-1675bb000000",
+        "Content-Type":"application/json;charset=utf-8"
+      },
+      "payload":"{\"paths\":[{\"contentLength\":\"63\",\"etag\":\"Tue, 26 Mar 2019 09:13:19 GMT\",\"group\":\"$superuser\",\"lastModified\":\"Tue, 26 Mar 2019 09:13:19 GMT\",\"name\":\"/myNewFolder/blob.txt\",\"owner\":\"$superuser\",\"permissions\":\"rw-r-----\"},{\"contentLength\":\"420\",\"etag\":\"Tue, 02 Apr 2019 14:41:46 GMT\",\"group\":\"$superuser\",\"lastModified\":\"Tue, 02 Apr 2019 14:41:46 GMT\",\"name\":\"/myNewFolder/customer.csv\",\"owner\":\"$superuser\",\"permissions\":\"rw-r-----\"},{\"contentLength\":\"557459\",\"etag\":\"Mon, 25 Mar 2019 16:35:30 GMT\",\"group\":\"$superuser\",\"lastModified\":\"Mon, 25 Mar 2019 16:35:30 GMT\",\"name\":\"/myNewFolder/customer_20190325.csv\",\"owner\":\"$superuser\",\"permissions\":\"rw-r-----\"},{\"contentLength\":\"527459\",\"etag\":\"Tue, 02 Apr 2019 15:08:27 GMT\",\"group\":\"$superuser\",\"lastModified\":\"Tue, 02 Apr 2019 15:08:27 GMT\",\"name\":\"/myNewFolder/customer_OUT.csv\",\"owner\":\"$superuser\",\"permissions\":\"rw-r-----\"},{\"contentLength\":\"557524\",\"etag\":\"Tue, 26 Mar 2019 12:33:42 GMT\",\"group\":\"$superuser\",\"lastModified\":\"Tue, 26 Mar 2019 12:33:42 GMT\",\"name\":\"/myNewFolder/customer_hdr_20190326.csv\",\"owner\":\"$superuser\",\"permissions\":\"rw-r-----\"},{\"contentLength\":\"102801\",\"etag\":\"Wed, 13 Mar 2019 10:40:27 GMT\",\"group\":\"$superuser\",\"lastModified\":\"Wed, 13 Mar 2019 10:40:27 GMT\",\"name\":\"/myNewFolder/nostorelookup.java\",\"owner\":\"$superuser\",\"permissions\":\"rw-r-----\"},{\"etag\":\"Wed, 15 May 2019 07:10:54 GMT\",\"group\":\"$superuser\",\"isDirectory\":\"true\",\"lastModified\":\"Wed, 15 May 2019 07:10:54 GMT\",\"name\":\"/myNewFolder/subfolder02\",\"owner\":\"$superuser\",\"permissions\":\"rwxr-x---\"}]}\n",
+      "status":200
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "content-length":"0",
+        "x-ms-version":"2018-11-09",
+        "Accept":"application/json, */*",
+        "Connection":"keep-alive",
+        "Content-Type":"application/json; charset=utf-8"
+      },
+      "method":"GET",
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-06-02T17:12:37Z&st=2019-04-02T09:12:37Z&spr=https&sig=sign-here&directory=myNewFolder&resource=filesystem&recursive=false&maxResults=5000&upn=&timeout=60"
+    },
+    "response":{
+      "headers":{
+        "Transfer-Encoding":"chunked",
+        "x-ms-version":"2018-11-09",
+        "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
+        "x-ms-request-id":"2802700a-301f-0043-3329-16a989000000",
+        "Content-Type":"application/json;charset=utf-8"
+      },
+      "payload":"{\"paths\":[{\"contentLength\":\"63\",\"etag\":\"Tue, 26 Mar 2019 09:13:19 GMT\",\"group\":\"$superuser\",\"lastModified\":\"Tue, 26 Mar 2019 09:13:19 GMT\",\"name\":\"myNewFolder/blob.txt\",\"owner\":\"$superuser\",\"permissions\":\"rw-r-----\"},{\"contentLength\":\"420\",\"etag\":\"Tue, 02 Apr 2019 14:41:46 GMT\",\"group\":\"$superuser\",\"lastModified\":\"Tue, 02 Apr 2019 14:41:46 GMT\",\"name\":\"myNewFolder/customer.csv\",\"owner\":\"$superuser\",\"permissions\":\"rw-r-----\"},{\"contentLength\":\"557459\",\"etag\":\"Mon, 25 Mar 2019 16:35:30 GMT\",\"group\":\"$superuser\",\"lastModified\":\"Mon, 25 Mar 2019 16:35:30 GMT\",\"name\":\"myNewFolder/customer_20190325.csv\",\"owner\":\"$superuser\",\"permissions\":\"rw-r-----\"},{\"contentLength\":\"527459\",\"etag\":\"Tue, 02 Apr 2019 15:08:27 GMT\",\"group\":\"$superuser\",\"lastModified\":\"Tue, 02 Apr 2019 15:08:27 GMT\",\"name\":\"myNewFolder/customer_OUT.csv\",\"owner\":\"$superuser\",\"permissions\":\"rw-r-----\"},{\"contentLength\":\"557524\",\"etag\":\"Tue, 26 Mar 2019 12:33:42 GMT\",\"group\":\"$superuser\",\"lastModified\":\"Tue, 26 Mar 2019 12:33:42 GMT\",\"name\":\"myNewFolder/customer_hdr_20190326.csv\",\"owner\":\"$superuser\",\"permissions\":\"rw-r-----\"},{\"contentLength\":\"102801\",\"etag\":\"Wed, 13 Mar 2019 10:40:27 GMT\",\"group\":\"$superuser\",\"lastModified\":\"Wed, 13 Mar 2019 10:40:27 GMT\",\"name\":\"myNewFolder/nostorelookup.java\",\"owner\":\"$superuser\",\"permissions\":\"rw-r-----\"},{\"etag\":\"Wed, 15 May 2019 07:10:54 GMT\",\"group\":\"$superuser\",\"isDirectory\":\"true\",\"lastModified\":\"Wed, 15 May 2019 07:10:54 GMT\",\"name\":\"myNewFolder/subfolder02\",\"owner\":\"$superuser\",\"permissions\":\"rwxr-x---\"}]}\n",
+      "status":200
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "content-length":"0",
+        "x-ms-version":"2018-11-09",
+        "Accept":"application/json, */*",
+        "Connection":"keep-alive",
+        "Content-Type":"application/json; charset=utf-8"
+      },
+      "method":"GET",
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-06-02T17:12:37Z&st=2019-04-02T09:12:37Z&spr=https&sig=sign-here&directory=myNewFolder/subfolder02&resource=filesystem&recursive=false&maxResults=5000&upn=&timeout=60"
+    },
+    "response":{
+      "headers":{
+        "Transfer-Encoding":"chunked",
+        "x-ms-version":"2018-11-09",
+        "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
+        "x-ms-request-id":"68b49e4b-001f-003a-1429-1655ad000000",
+        "Content-Type":"application/json;charset=utf-8"
+      },
+      "payload":"{\"paths\":[{\"contentLength\":\"63\",\"etag\":\"Tue, 26 Mar 2019 09:17:46 GMT\",\"group\":\"$superuser\",\"lastModified\":\"Tue, 26 Mar 2019 09:17:46 GMT\",\"name\":\"myNewFolder/subfolder02/blob.txt\",\"owner\":\"$superuser\",\"permissions\":\"rw-r-----\"},{\"etag\":\"Wed, 15 May 2019 07:10:54 GMT\",\"group\":\"$superuser\",\"isDirectory\":\"true\",\"lastModified\":\"Wed, 15 May 2019 07:10:54 GMT\",\"name\":\"myNewFolder/subfolder02/subfolder03\",\"owner\":\"$superuser\",\"permissions\":\"rwxr-x---\"}]}\n",
+      "status":200
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "content-length":"0",
+        "x-ms-version":"2018-11-09",
+        "Accept":"application/json, */*",
+        "Connection":"keep-alive",
+        "Content-Type":"application/json; charset=utf-8"
+      },
+      "method":"GET",
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-06-02T17:12:37Z&st=2019-04-02T09:12:37Z&spr=https&sig=sign-here&directory=myNewFolder/subfolder02/subfolder03&resource=filesystem&recursive=false&maxResults=5000&upn=&timeout=60"
+    },
+    "response":{
+      "headers":{
+        "Transfer-Encoding":"chunked",
+        "x-ms-version":"2018-11-09",
+        "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
+        "x-ms-request-id":"03ac8c67-b01f-0062-2329-168df2000000",
+        "Content-Type":"application/json;charset=utf-8"
+      },
+      "payload":"{\"paths\":[{\"contentLength\":\"63\",\"etag\":\"Tue, 26 Mar 2019 09:18:20 GMT\",\"group\":\"$superuser\",\"lastModified\":\"Tue, 26 Mar 2019 09:18:20 GMT\",\"name\":\"myNewFolder/subfolder02/subfolder03/blob.txt\",\"owner\":\"$superuser\",\"permissions\":\"rw-r-----\"}]}\n",
+      "status":200
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "content-length":"0",
+        "x-ms-version":"2018-11-09",
+        "Accept":"application/json, */*",
+        "Connection":"keep-alive",
+        "Content-Type":"application/json; charset=utf-8"
+      },
+      "method":"GET",
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-06-02T17:12:37Z&st=2019-04-02T09:12:37Z&spr=https&sig=sign-here&directory=myNewFolder/subfolder03&resource=filesystem&recursive=false&maxResults=5000&upn=&timeout=60"
     },
     "response":{
       "headers":{
         "x-ms-version":"2018-11-09",
         "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
-        "x-ms-error-code":"AuthenticationFailed",
-        "Content-Length":"268",
-        "x-ms-request-id":"d3bd0913-601f-0003-50b7-0baeb1000000",
+        "x-ms-error-code":"PathNotFound",
+        "Content-Length":"163",
+        "x-ms-request-id":"ada8d9fb-001f-0083-7329-1651b7000000",
         "Content-Type":"application/json;charset=utf-8"
       },
-      "payload":"{\"error\":{\"code\":\"AuthenticationFailed\",\"message\":\"Server failed to authenticate the request. Make sure the value of Authorization header is formed correctly including the signature.\\nRequestId:d3bd0913-601f-0003-50b7-0baeb1000000\\nTime:2019-05-16T07:19:28.7844433Z\"}}",
-      "status":403
+      "payload":"{\"error\":{\"code\":\"PathNotFound\",\"message\":\"The specified path does not exist.\\nRequestId:ada8d9fb-001f-0083-7329-1651b7000000\\nTime:2019-05-29T14:16:37.8505064Z\"}}",
+      "status":404
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "content-length":"0",
+        "x-ms-version":"2018-11-09",
+        "Accept":"application/json, */*",
+        "Connection":"keep-alive",
+        "Content-Type":"application/json; charset=utf-8"
+      },
+      "method":"GET",
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-06-02T17:12:37Z&st=2019-04-02T09:12:37Z&spr=https&sig=sign-here&directory=/newFolder01ZZZ&resource=filesystem&recursive=false&maxResults=5000&upn=&timeout=60"
+    },
+    "response":{
+      "headers":{
+        "x-ms-version":"2018-11-09",
+        "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
+        "x-ms-error-code":"PathNotFound",
+        "Content-Length":"163",
+        "x-ms-request-id":"458ed9cb-001f-0058-5629-16978a000000",
+        "Content-Type":"application/json;charset=utf-8"
+      },
+      "payload":"{\"error\":{\"code\":\"PathNotFound\",\"message\":\"The specified path does not exist.\\nRequestId:458ed9cb-001f-0058-5629-16978a000000\\nTime:2019-05-29T14:16:38.0033172Z\"}}",
+      "status":404
     }
   }
 ]

@@ -30,8 +30,8 @@ import static org.talend.components.adlsgen2.service.UIActionService.ACTION_HEAL
 @DataStore("AdlsGen2Connection")
 @Checkable(ACTION_HEALTHCHECK)
 @GridLayout({ //
-        @GridLayout.Row("accountName"), //
         @GridLayout.Row("authMethod"), //
+        @GridLayout.Row("accountName"), //
         @GridLayout.Row("sharedKey"), //
         @GridLayout.Row("tenantId"), //
         @GridLayout.Row({ "clientId", "clientSecret" }), //
@@ -98,9 +98,7 @@ public class AdlsGen2Connection implements Serializable {
 
     public enum AuthMethod {
         SharedKey,
-        AccessToken,
         SAS,
-        ADAL,
     }
 
 }
