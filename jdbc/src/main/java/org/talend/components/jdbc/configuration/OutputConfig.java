@@ -38,7 +38,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 @Data
 @GridLayout(value = { @GridLayout.Row("dataset"), @GridLayout.Row({ "actionOnData" }), @GridLayout.Row("createTableIfNotExists"),
-        @GridLayout.Row("varcharLength"), @GridLayout.Row("keys"), @GridLayout.Row("sortKeys"),
+        @GridLayout.Row("varcharLength"), @GridLayout.Row("keys"), @GridLayout.Row("sortStrategy"), @GridLayout.Row("sortKeys"),
         @GridLayout.Row("distributionStrategy"), @GridLayout.Row("distributionKeys"), @GridLayout.Row("ignoreUpdate") })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("dataset"),
         @GridLayout.Row("rewriteBatchedStatements") })
@@ -71,10 +71,17 @@ public class OutputConfig implements Serializable {
 
     @Option
     @ActiveIfs(operator = OR, value = { @ActiveIf(target = "../createTableIfNotExists", value = { "true" }),
-            @ActiveIf(target = "../actionOnData", value = { "INSERT", "BULK_LOAD" }, negate = true) })
+            @ActiveIf(target = "../actionOnData", value = { "INSERT", "BULK_LOAD" }, negate = true),
+            @ActiveIf(target = "../dataset.connection.dbType", value = { "SQLDWH" }, negate = true) })
     @Suggestable(value = ACTION_SUGGESTION_TABLE_COLUMNS_NAMES, parameters = { "dataset" })
     @Documentation("List of columns to be used as keys for this operation")
     private List<String> keys = new ArrayList<>();
+
+    @Option
+    @ActiveIfs(operator = AND, value = { @ActiveIf(target = "../dataset.connection.dbType", value = { "Redshift" }),
+            @ActiveIf(target = "../createTableIfNotExists", value = { "true" }) })
+    @Documentation("Define the sort strategy of Redshift table")
+    private RedshiftSortStrategy sortStrategy = RedshiftSortStrategy.COMPOUND;
 
     @Option
     @ActiveIfs(operator = AND, value = { @ActiveIf(target = "../dataset.connection.dbType", value = { "Redshift" }),

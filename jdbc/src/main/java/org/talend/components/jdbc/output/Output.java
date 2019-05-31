@@ -14,7 +14,6 @@ package org.talend.components.jdbc.output;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.jdbc.configuration.DistributionStrategy;
 import org.talend.components.jdbc.configuration.OutputConfig;
 import org.talend.components.jdbc.output.platforms.Platform;
 import org.talend.components.jdbc.output.statement.QueryManager;
@@ -27,12 +26,14 @@ import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.record.Record;
 
 import javax.annotation.PreDestroy;
+import java.io.IOException;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.talend.components.jdbc.ErrorFactory.toIllegalStateException;
 import static org.talend.components.jdbc.service.JdbcService.checkTableExistence;
 
 @Slf4j
@@ -97,8 +98,9 @@ public abstract class Output implements Serializable {
         if (!tableExistsCheck && !tableCreated && configuration.isCreateTableIfNotExists()) {
             try (final Connection connection = datasource.getConnection()) {
                 getPlatform().createTableIfNotExist(connection, configuration.getDataset().getTableName(),
-                        configuration.getKeys(), configuration.getSortKeys(), configuration.getDistributionStrategy(),
-                        configuration.getDistributionKeys(), configuration.getVarcharLength(), records);
+                        configuration.getKeys(), configuration.getSortStrategy(), configuration.getSortKeys(),
+                        configuration.getDistributionStrategy(), configuration.getDistributionKeys(),
+                        configuration.getVarcharLength(), records);
                 tableCreated = true;
             }
         }
@@ -107,9 +109,9 @@ public abstract class Output implements Serializable {
         try {
             final List<Reject> discards = getQueryManager().execute(records, datasource);
             discards.stream().map(Object::toString).forEach(log::error);
-        } catch (final Exception e) {
+        } catch (final SQLException | IOException e) {
             records.stream().map(r -> new Reject(e.getMessage(), r)).map(Reject::toString).forEach(log::error);
-            throw new IllegalStateException(e);
+            throw toIllegalStateException(e);
         }
     }
 

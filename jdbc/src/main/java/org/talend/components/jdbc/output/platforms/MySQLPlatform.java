@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * syntax detail can be found at <a href="https://dev.mysql.com/doc/refman/8.0/en/create-table.html syntax
- * detail">https://dev.mysql.com/doc/refman/8.0/en/create-table.html</a>
+ * syntax detail can be found at <a href=
+ * "https://dev.mysql.com/doc/refman/8.0/en/create-table.html">https://dev.mysql.com/doc/refman/8.0/en/create-table.html</a>
  */
 @Slf4j
 public class MySQLPlatform extends Platform {

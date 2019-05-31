@@ -13,6 +13,7 @@
 package org.talend.components.jdbc.input;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.ErrorFactory;
 import org.talend.components.jdbc.configuration.InputConfig;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
@@ -34,6 +35,7 @@ import java.util.Date;
 import java.util.stream.IntStream;
 
 import static java.sql.ResultSetMetaData.columnNoNulls;
+import static org.talend.components.jdbc.ErrorFactory.toIllegalStateException;
 import static org.talend.sdk.component.api.record.Schema.Type.BOOLEAN;
 import static org.talend.sdk.component.api.record.Schema.Type.BYTES;
 import static org.talend.sdk.component.api.record.Schema.Type.DATETIME;
@@ -89,7 +91,7 @@ public abstract class AbstractInputEmitter implements Serializable {
             statement.setFetchSize(inputConfig.getDataSet().getFetchSize());
             resultSet = statement.executeQuery(inputConfig.getDataSet().getQuery());
         } catch (final SQLException e) {
-            throw new IllegalStateException(e);
+            throw toIllegalStateException(e);
         }
     }
 
@@ -111,7 +113,7 @@ public abstract class AbstractInputEmitter implements Serializable {
             IntStream.rangeClosed(1, metaData.getColumnCount()).forEach(index -> addColumn(recordBuilder, metaData, index));
             return recordBuilder.build();
         } catch (final SQLException e) {
-            throw new IllegalStateException(e);
+            throw toIllegalStateException(e);
         }
     }
 
@@ -163,7 +165,7 @@ public abstract class AbstractInputEmitter implements Serializable {
                 break;
             }
         } catch (final SQLException e) {
-            throw new IllegalStateException(e);
+            throw toIllegalStateException(e);
         }
     }
 
@@ -231,7 +233,7 @@ public abstract class AbstractInputEmitter implements Serializable {
                 break;
             }
         } catch (final SQLException e) {
-            throw new IllegalStateException(e);
+            throw toIllegalStateException(e);
         }
     }
 

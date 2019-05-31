@@ -75,7 +75,8 @@ public class SnowflakeCopy {
     }
 
     /**
-     * @return a tmp table name from the original table name
+     * @param tableName the original table name
+     * @return a tmp table name from the original table name in format tmp_tableName_yyyyMMddHHmmss
      */
 
     public static String tmpTableName(final String tableName) {
