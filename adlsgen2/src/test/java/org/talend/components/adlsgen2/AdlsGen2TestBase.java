@@ -21,12 +21,10 @@ import java.util.Properties;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.talend.components.adlsgen2.common.format.FileFormat;
-import org.talend.components.adlsgen2.common.format.avro.AvroConverter;
 import org.talend.components.adlsgen2.common.format.csv.CsvConfiguration;
 import org.talend.components.adlsgen2.common.format.csv.CsvConverter;
 import org.talend.components.adlsgen2.common.format.csv.CsvFieldDelimiter;
 import org.talend.components.adlsgen2.common.format.csv.CsvRecordSeparator;
-import org.talend.components.adlsgen2.common.format.json.JsonConverter;
 import org.talend.components.adlsgen2.common.format.parquet.ParquetConverter;
 import org.talend.components.adlsgen2.common.format.unknown.UnknownConverter;
 import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
@@ -60,6 +58,18 @@ public class AdlsGen2TestBase implements Serializable {
 
     @org.junit.ClassRule
     public static final JUnit5HttpApi API = new JUnit5HttpApi().activeSsl();
+
+    @HttpApiInject()
+    private HttpApiHandler<?> handler;
+
+    @Injected
+    protected BaseComponentsHandler components;
+
+    @Service
+    protected RecordBuilderFactory recordBuilderFactory;
+
+    @Service
+    protected AdlsGen2Service service;
 
     public static String accountName;
 
@@ -95,18 +105,9 @@ public class AdlsGen2TestBase implements Serializable {
         clientSecret = System.getProperty("adlsgen2.clientSecret", "secret");
         tenantId = System.getProperty("adlsgen2.tenantId", "talendId");
         sas = System.getProperty("adlsgen2.sas", "ZZZ_SAS");
-
+        //
         System.setProperty("talend.junit.http.capture", "true");
     }
-
-    @Injected
-    protected BaseComponentsHandler components;
-
-    @Service
-    protected RecordBuilderFactory recordBuilderFactory;
-
-    @Service
-    protected AdlsGen2Service service;
 
     protected SharedKeyUtils utils;
 
@@ -118,14 +119,13 @@ public class AdlsGen2TestBase implements Serializable {
 
     protected OutputConfiguration outputConfiguration;
 
-    @HttpApiInject()
-    private HttpApiHandler<?> handler;
-
     protected Record versatileRecord;
 
     protected Record complexRecord;
 
     protected String tmpDir;
+
+    protected ZonedDateTime now;
 
     @BeforeEach
     protected void setUp() throws Exception {
@@ -175,23 +175,19 @@ public class AdlsGen2TestBase implements Serializable {
                 .withElementSchema(versatileRecord.getSchema()).build();
         Entry ea = recordBuilderFactory.newEntryBuilder().withName("array").withType(Type.ARRAY)
                 .withElementSchema(recordBuilderFactory.newSchemaBuilder(Type.ARRAY).withType(Type.STRING).build()).build();
+        //
+        now = ZonedDateTime.now();
         complexRecord = recordBuilderFactory.newRecordBuilder() //
                 .withString("name", "ComplexR") //
                 .withRecord(er, versatileRecord) //
-                .withDateTime("now", ZonedDateTime.now()) //
+                .withDateTime("now", now) //
                 .withArray(ea, Arrays.asList("ary1", "ary2", "ary3")).build();
         // inject needed services
         components.injectServices(UnknownConverter.of());
         components.injectServices(CsvConverter.class);
-        components.injectServices(ParquetConverter.of());
-        RecordBuilderFactory svcRcdBld = components.findService(RecordBuilderFactory.class);
+        components.injectServices(ParquetConverter.of(recordBuilderFactory));
         I18n i18 = components.findService(I18n.class);
-        CsvConverter.recordBuilderFactory = svcRcdBld;
-        AvroConverter.recordBuilderFactory = svcRcdBld;
-        AvroConverter.i18n = i18;
-        JsonConverter.recordBuilderFactory = svcRcdBld;
-        ParquetConverter.recordBuilderFactory = svcRcdBld;
-        UnknownConverter.recordBuilderFactory = svcRcdBld;
+        recordBuilderFactory = components.findService(RecordBuilderFactory.class);
     }
 
     protected Record createData() {

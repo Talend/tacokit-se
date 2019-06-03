@@ -12,6 +12,9 @@
  */
 package org.talend.components.adlsgen2.common.format.avro;
 
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.stream.Stream;
@@ -30,20 +33,22 @@ import org.talend.sdk.component.junit5.WithComponents;
 
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @WithComponents("org.talend.components.adlsgen2")
 class AvroConverterTest extends AdlsGen2TestBase {
 
-    private AvroConverter converter = AvroConverter.of();
+    private AvroConverter converter;
 
     private GenericRecord avro;
 
     @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
-
+        converter = AvroConverter.of(recordBuilderFactory);
         avro = new GenericData.Record( //
                 SchemaBuilder.builder().record("sample").fields() //
                         .name("string").type().stringType().noDefault() //
@@ -61,7 +66,7 @@ class AvroConverterTest extends AdlsGen2TestBase {
 
     @Test
     void of() {
-        assertNotNull(AvroConverter.of());
+        assertNotNull(AvroConverter.of(recordBuilderFactory));
     }
 
     @Test
@@ -86,7 +91,7 @@ class AvroConverterTest extends AdlsGen2TestBase {
     }
 
     @Test
-    void fromRecord() {
+    void fromSimpleRecord() {
         GenericRecord record = converter.fromRecord(versatileRecord);
         assertNotNull(record);
         assertEquals("Bonjour", record.get("string1"));
@@ -97,11 +102,67 @@ class AvroConverterTest extends AdlsGen2TestBase {
         assertEquals(new Date(2019, 04, 22).getTime(), record.get("datetime"));
         assertEquals(20.5f, record.get("float"));
         assertEquals(20.5, record.get("double"));
-        record = converter.fromRecord(complexRecord);
+    }
+
+    @Test
+    void fromComplexRecord() {
+        GenericRecord record = converter.fromRecord(complexRecord);
         assertNotNull(record);
         assertEquals("ComplexR", record.get("name"));
         assertNotNull(record.get("record"));
         assertEquals(versatileRecord, record.get("record"));
+        assertEquals(now.withZoneSameInstant(ZoneOffset.UTC),
+                ZonedDateTime.ofInstant(Instant.ofEpochMilli((long) record.get("now")), ZoneOffset.UTC));
         assertEquals(Arrays.asList("ary1", "ary2", "ary3"), record.get("array"));
+    }
+
+    @Test
+    void fromAndToComplexRecord() {
+        GenericRecord from = converter.fromRecord(complexRecord);
+        assertNotNull(from);
+        Record to = converter.toRecord(from);
+        assertNotNull(to);
+        assertEquals("ComplexR", to.getString("name"));
+        assertNotNull(to.getRecord("record"));
+        assertEquals(versatileRecord, to.getRecord("record"));
+        assertEquals(now.withZoneSameInstant(ZoneOffset.UTC), to.getDateTime("now").withZoneSameInstant(ZoneOffset.UTC));
+        assertEquals(Arrays.asList("ary1", "ary2", "ary3"), to.getArray(String.class, "array"));
+    }
+
+    @Test
+    void withNullFieldsInIcomingRecord() {
+        avro = new GenericData.Record( //
+                SchemaBuilder.builder().record("sample").fields() //
+                        .name("string").type().stringType().noDefault() //
+                        .name("int").type().intType().noDefault() //
+                        .name("long").type().longType().noDefault() //
+                        .name("double").type().doubleType().noDefault() //
+                        .name("boolean").type().booleanType().noDefault() //
+                        .endRecord());
+        avro.put("string", null);
+        avro.put("int", null);
+        avro.put("long", null);
+        avro.put("double", null);
+        avro.put("boolean", null);
+        Record record = converter.toRecord(avro);
+        assertNotNull(record);
+        assertEquals(5, record.getSchema().getEntries().size());
+        assertNull(record.getString("string"));
+        assertEquals(0, record.getInt("int"));
+        assertEquals(0, record.getLong("long"));
+        assertEquals(0, record.getDouble("double"));
+        assertFalse(record.getBoolean("boolean"));
+    }
+
+    @Test
+    void withTimeStampsInAndOut() {
+        avro = new GenericData.Record( //
+                SchemaBuilder.builder().record("sample").fields() //
+                        .name("string").type().stringType().noDefault() //
+                        .name("int").type().intType().noDefault() //
+                        .name("long").type().longType().noDefault() //
+                        .name("officialts").type().longType().noDefault() //
+                        .endRecord());
+
     }
 }

@@ -27,11 +27,14 @@ import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.util.HadoopInputFile;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.configuration.Configuration;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ParquetIterator implements Iterator<Record> {
+
+    private RecordBuilderFactory recordBuilderFactory;
 
     private final ParquetConverter converter;
 
@@ -40,7 +43,7 @@ public class ParquetIterator implements Iterator<Record> {
     private GenericRecord current;
 
     private ParquetIterator(InputStream inputStream) {
-        converter = ParquetConverter.of();
+        converter = ParquetConverter.of(recordBuilderFactory);
         try {
             File tmp = File.createTempFile("talend-adls-gen2-tmp", ".parquet");
             tmp.deleteOnExit();

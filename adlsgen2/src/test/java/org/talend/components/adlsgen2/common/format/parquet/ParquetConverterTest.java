@@ -39,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @WithComponents("org.talend.components.adlsgen2")
 class ParquetConverterTest extends AdlsGen2TestBase {
 
-    private ParquetConverter converter = ParquetConverter.of();
+    private ParquetConverter converter = ParquetConverter.of(recordBuilderFactory);
 
     @Test
     void readParquetSample() throws Exception {

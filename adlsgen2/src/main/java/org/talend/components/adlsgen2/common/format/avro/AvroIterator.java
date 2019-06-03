@@ -22,18 +22,21 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumReader;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.configuration.Configuration;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class AvroIterator implements Iterator<Record> {
 
+    private RecordBuilderFactory recordBuilderFactory;
+
     private final AvroConverter converter;
 
     private DataFileStream<GenericRecord> reader;
 
     private AvroIterator(InputStream inputStream) {
-        converter = AvroConverter.of();
+        converter = AvroConverter.of(recordBuilderFactory);
         try {
             DatumReader<GenericRecord> datumReader = new GenericDatumReader<GenericRecord>();
             reader = new DataFileStream<GenericRecord>(inputStream, datumReader);
