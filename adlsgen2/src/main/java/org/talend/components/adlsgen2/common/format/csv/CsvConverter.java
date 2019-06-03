@@ -17,15 +17,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.inject.Inject;
-
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang.StringUtils;
 import org.talend.components.adlsgen2.common.converter.RecordConverter;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
@@ -39,9 +36,7 @@ public class CsvConverter implements RecordConverter<CSVRecord> {
     @Getter
     private CSVFormat csvFormat;
 
-    @Service
-    @Inject
-    public static RecordBuilderFactory recordBuilderFactory;
+    private RecordBuilderFactory recordBuilderFactory;
 
     private Schema schema;
 
@@ -120,7 +115,7 @@ public class CsvConverter implements RecordConverter<CSVRecord> {
     public Schema inferSchema(CSVRecord record) {
         Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD);
         Set<String> existNames = new HashSet<>();
-        String fieldName, finalName;
+        String finalName;
         int index = 0;
         // record.toMap() return an unsorted map, so will loose fields ordering.
         // see CsvIterator constructor.
@@ -152,8 +147,8 @@ public class CsvConverter implements RecordConverter<CSVRecord> {
         for (int i = 0; i < schema.getEntries().size(); i++) {
             recordBuilder.withString(schema.getEntries().get(i), value.get(i));
         }
-        Record record = recordBuilder.build();
-        return record;
+
+        return recordBuilder.build();
     }
 
     @Override
