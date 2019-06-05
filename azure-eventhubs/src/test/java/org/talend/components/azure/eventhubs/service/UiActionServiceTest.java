@@ -26,6 +26,7 @@ import org.talend.components.azure.eventhubs.dataset.AzureEventHubsDataSet;
 import org.talend.components.azure.eventhubs.datastore.AzureEventHubsDataStore;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.asyncvalidation.ValidationResult;
+import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.junit5.WithComponents;
 
@@ -36,7 +37,7 @@ class UiActionServiceTest extends AzureEventHubsTestBase {
     private static final String INVALID_ENDPOINT = "sb://not-exit-ns.servicebus.windows.net";
 
     // Bad config
-    private static final String BAD_EVENTHUB_NAME = "not-exist-event-hub";
+    private static final String BAD_SHARED_EVENTHUB_NAME = "not-exist-event-hub";
 
     private static final String BAD_SASKEY_NAME = "not-exist-sas-key-name";
 
@@ -72,9 +73,9 @@ class UiActionServiceTest extends AzureEventHubsTestBase {
     @DisplayName("Test eventhub name OK [Valid]")
     public void checkExistEventHub() {
         final AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
-        dataSet.setDatastore(getDataStore());
-        dataSet.setEventHubName(EVENTHUB_NAME);
-        final ValidationResult status = service.checkEventHub(dataSet.getDatastore(), dataSet.getEventHubName(), i18n);
+        dataSet.setConnection(getDataStore());
+        dataSet.setEventHubName(SHARED_EVENTHUB_NAME);
+        final ValidationResult status = service.checkEventHub(dataSet.getConnection(), dataSet.getEventHubName(), i18n);
         assertEquals(ValidationResult.Status.OK, status.getStatus());
     }
 
@@ -82,9 +83,9 @@ class UiActionServiceTest extends AzureEventHubsTestBase {
     @DisplayName("Test eventhub name Failed [Invalid]")
     public void checkNotExistEventHub() {
         final AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
-        dataSet.setDatastore(getDataStore());
-        dataSet.setEventHubName(BAD_EVENTHUB_NAME);
-        final ValidationResult status = service.checkEventHub(dataSet.getDatastore(), dataSet.getEventHubName(), i18n);
+        dataSet.setConnection(getDataStore());
+        dataSet.setEventHubName(BAD_SHARED_EVENTHUB_NAME);
+        final ValidationResult status = service.checkEventHub(dataSet.getConnection(), dataSet.getEventHubName(), i18n);
         assertNotNull(status);
         assertEquals(ValidationResult.Status.KO, status.getStatus());
         assertFalse(status.getComment().isEmpty());
@@ -97,7 +98,7 @@ class UiActionServiceTest extends AzureEventHubsTestBase {
         dataStore.setEndpoint(ENDPOINT);
         dataStore.setSasKeyName(BAD_SASKEY_NAME);
         dataStore.setSasKey(SASKEY);
-        final ValidationResult status = service.checkEventHub(dataStore, EVENTHUB_NAME, i18n);
+        final ValidationResult status = service.checkEventHub(dataStore, SHARED_EVENTHUB_NAME, i18n);
         assertNotNull(status);
         assertEquals(ValidationResult.Status.KO, status.getStatus());
         assertFalse(status.getComment().isEmpty());
@@ -110,10 +111,26 @@ class UiActionServiceTest extends AzureEventHubsTestBase {
         dataStore.setEndpoint(ENDPOINT);
         dataStore.setSasKeyName(SASKEY_NAME);
         dataStore.setSasKey(BAD_SASKEY);
-        final ValidationResult status = service.checkEventHub(dataStore, EVENTHUB_NAME, i18n);
+        final ValidationResult status = service.checkEventHub(dataStore, SHARED_EVENTHUB_NAME, i18n);
         assertNotNull(status);
         assertEquals(ValidationResult.Status.KO, status.getStatus());
         assertFalse(status.getComment().isEmpty());
+    }
+
+    @Test
+    @DisplayName("Test check list of partion ids [Valid]")
+    public void checkListPartionIds() {
+        final AzureEventHubsDataStore dataStore = new AzureEventHubsDataStore();
+        dataStore.setEndpoint(ENDPOINT);
+        dataStore.setSasKeyName(SASKEY_NAME);
+        dataStore.setSasKey(SASKEY);
+
+        AzureEventHubsDataSet dataSet = new AzureEventHubsDataSet();
+        dataSet.setConnection(dataStore);
+        dataSet.setEventHubName(SHARED_EVENTHUB_NAME);
+        final SuggestionValues idValues = service.listPartitionIds(dataSet);
+        assertNotNull(idValues);
+        assertEquals(4, idValues.getItems().size());
     }
 
 }

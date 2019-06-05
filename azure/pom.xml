@@ -15,6 +15,7 @@
 
     <modules>
         <module>azurecommon</module>
+        <module>azureblob</module>
     </modules>
 
     <properties>

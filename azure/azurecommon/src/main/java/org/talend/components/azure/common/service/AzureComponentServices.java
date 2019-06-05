@@ -15,15 +15,14 @@ package org.talend.components.azure.common.service;
 
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.azure.common.Protocol;
-import org.talend.components.azure.common.connection.AzureStorageConnectable;
-import org.talend.components.azure.common.connection.AzureStorageConnectionSignature;
 import org.talend.components.azure.common.connection.AzureStorageConnectionAccount;
-import org.talend.sdk.component.api.configuration.Option;
+import org.talend.components.azure.common.connection.AzureStorageConnectionSignature;
 import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 
 import com.microsoft.azure.storage.CloudStorageAccount;
@@ -55,6 +54,8 @@ public class AzureComponentServices {
 
     private static OperationContext talendOperationContext;
 
+    public static final String SAS_PATTERN = "(http.?)?://(.*)\\.(blob|file|queue|table)\\.core\\.windows\\.net\\/(.*)";
+
     @Service
     private MessageService i18nService;
 
@@ -66,10 +67,15 @@ public class AzureComponentServices {
     }
 
     public CloudStorageAccount createStorageAccount(AzureStorageConnectionSignature azureConnection) throws URISyntaxException {
-        StorageCredentials credentials = new StorageCredentialsSharedAccessSignature(
-                azureConnection.getAzureSharedAccessSignature());
 
-        return new CloudStorageAccount(credentials);
+        Matcher matcher = Pattern.compile(SAS_PATTERN).matcher(azureConnection.getAzureSharedAccessSignature());
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException(i18nService.wrongSASFormat());
+        }
+
+        StorageCredentials credentials = new StorageCredentialsSharedAccessSignature(matcher.group(4));
+
+        return new CloudStorageAccount(credentials, "https".equals(matcher.group(1)), null, matcher.group(2));
     }
 
     public CloudBlobClient createCloudBlobClient(CloudStorageAccount connection, RetryPolicy retryPolicy) {
@@ -106,19 +112,20 @@ public class AzureComponentServices {
         return String.format(USER_AGENT_FORMAT, applicationVersion, componentVersion);
     }
 
-    public HealthCheckStatus testConnection(AzureStorageConnectable azureConnection) {
+    public HealthCheckStatus testConnection(CloudStorageAccount cloudStorageAccount) {
+        if (cloudStorageAccount == null) {
+            return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18nService.connectionIsNull());
+        }
+
         final int maxContainers = 1;
         try {
-            CloudStorageAccount cloudStorageAccount = azureConnection instanceof AzureStorageConnectionSignature
-                    ? createStorageAccount((AzureStorageConnectionSignature) azureConnection)
-                    : createStorageAccount((AzureStorageConnectionAccount) azureConnection);
             CloudBlobClient blobClient = createCloudBlobClient(cloudStorageAccount, DEFAULT_RETRY_POLICY);
             // will throw an exception if not authorized or account not exist
             blobClient.listContainersSegmented(null, null, maxContainers, null, null, getTalendOperationContext());
         } catch (Exception e) {
             String errorMessage = (StringUtils.isNotEmpty(e.getMessage()) || (e.getCause() == null)) ? e.getMessage()
                     : e.getCause().toString();
-            return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18nService.connectionError() + ": " + errorMessage);
+            return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18nService.connectionError(errorMessage));
         }
         return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18nService.connected());
     }

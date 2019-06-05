@@ -16,7 +16,6 @@ package org.talend.components.azure.common.connection;
 import java.io.Serializable;
 
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
@@ -24,7 +23,7 @@ import lombok.Data;
 
 @GridLayout({ @GridLayout.Row("azureSharedAccessSignature") })
 @Data
-public class AzureStorageConnectionSignature implements AzureStorageConnectable, Serializable {
+public class AzureStorageConnectionSignature implements Serializable {
 
     @Option
     @Documentation("Enter your account SAS URL between double quotation marks.\n"

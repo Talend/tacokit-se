@@ -18,12 +18,9 @@ import java.io.Serializable;
 
 import org.talend.components.azure.eventhubs.datastore.AzureEventHubsDataStore;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.action.Validable;
-import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataSet;
-import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
@@ -31,25 +28,18 @@ import lombok.Data;
 
 @Data
 @DataSet("AzureEventHubsDataSet")
-@GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "eventHubName" }), @GridLayout.Row({ "partitionId" }) })
+@GridLayout({ @GridLayout.Row({ "connection" }), @GridLayout.Row({ "eventHubName" }) })
 @Documentation("The dataset consume message in eventhubs")
 public class AzureEventHubsDataSet implements Serializable {
 
     @Option
     @Documentation("Connection information to eventhubs")
-    private AzureEventHubsDataStore datastore;
+    private AzureEventHubsDataStore connection;
 
     @Option
     @Required
-    @Validable(value = "checkEventHub", parameters = { "datastore", "." })
+    @Validable(value = "checkEventHub", parameters = { "connection", "." })
     @Documentation("The name of the event hub connect to")
     private String eventHubName;
-
-    @Option
-    @Required
-    @DefaultValue("0")
-    @Suggestable(value = "listPartitionIds", parameters = { "datastore", "eventHubName" })
-    @Documentation("The partition Id that the receiver belongs to. All data received will be from this partition only")
-    String partitionId;
 
 }

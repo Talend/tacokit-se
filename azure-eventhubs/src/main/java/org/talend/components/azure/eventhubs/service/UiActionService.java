@@ -63,17 +63,17 @@ public class UiActionService {
     }
 
     @AsyncValidation("checkEventHub")
-    public ValidationResult checkEventHub(@Option("datastore") final AzureEventHubsDataStore datastore,
-            @Option("eventHubName") final String eventHubName, final Messages i18n) {
+    public ValidationResult checkEventHub(@Option final AzureEventHubsDataStore connection, @Option final String eventHubName,
+            final Messages i18n) {
         EventHubClient ehClient = null;
         ValidationResult result = new ValidationResult();
         final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
         try {
             final ConnectionStringBuilder connStr = new ConnectionStringBuilder()//
-                    .setEndpoint(new URI(datastore.getEndpoint()))//
+                    .setEndpoint(new URI(connection.getEndpoint()))//
                     .setEventHubName(eventHubName)//
-                    .setSasKeyName(datastore.getSasKeyName())//
-                    .setSasKey(datastore.getSasKey());//
+                    .setSasKeyName(connection.getSasKeyName())//
+                    .setSasKey(connection.getSasKey());//
             ehClient = EventHubClient.createSync(connStr.toString(), executorService);
             ehClient.getRuntimeInformation().get();
         } catch (Throwable exception) {
@@ -106,16 +106,15 @@ public class UiActionService {
     }
 
     @Suggestions("listPartitionIds")
-    public SuggestionValues listPartitionIds(@Option("datastore") final AzureEventHubsDataStore datastore,
-            @Option("eventHubName") final String eventHubname) {
+    public SuggestionValues listPartitionIds(@Option final AzureEventHubsDataSet dataset) {
         EventHubClient ehClient = null;
         final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
         try {
             final ConnectionStringBuilder connStr = new ConnectionStringBuilder()//
-                    .setEndpoint(new URI(datastore.getEndpoint()))//
-                    .setEventHubName(eventHubname)//
-                    .setSasKeyName(datastore.getSasKeyName())//
-                    .setSasKey(datastore.getSasKey());//
+                    .setEndpoint(new URI(dataset.getConnection().getEndpoint()))//
+                    .setEventHubName(dataset.getEventHubName())//
+                    .setSasKeyName(dataset.getConnection().getSasKeyName())//
+                    .setSasKey(dataset.getConnection().getSasKey());//
             ehClient = EventHubClient.createSync(connStr.toString(), executorService);
             EventHubRuntimeInformation ehInfo = ehClient.getRuntimeInformation().get();
             List<SuggestionValues.Item> items = new ArrayList<>();
@@ -136,16 +135,6 @@ public class UiActionService {
             }
             executorService.shutdown();
         }
-    }
-
-    @DynamicValues("PROPOSABLE_OFFSET")
-    public Values proposableOffset() {
-        final Values values = new Values();
-        final List<Values.Item> items = new ArrayList<>();
-        items.add(new Values.Item("-1", "-1"));
-        items.add(new Values.Item("@latest", "@latest"));
-        values.setItems(items);
-        return values;
     }
 
     // This INCOMING_PATHS_DYNAMIC service is a flag for inject incoming paths dynamic, won't be called

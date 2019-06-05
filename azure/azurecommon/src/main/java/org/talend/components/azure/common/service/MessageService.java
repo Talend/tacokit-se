@@ -20,5 +20,9 @@ public interface MessageService {
 
     String connected();
 
-    String connectionError();
+    String connectionError(String errorMessage);
+
+    String connectionIsNull();
+
+    String wrongSASFormat();
 }

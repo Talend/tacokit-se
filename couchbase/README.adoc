@@ -1,0 +1,50 @@
+= Talend Couchbase Connectors
+
+This project contains input and output connectors for reading and writing data for Couchbase database.
+
+== How to build the project
+
+The project locally use maven as build tool.
+
+```
+mvn clean install
+```
+
+== How to run integration tests
+
+This project has a maven profile that let you run the project integration tests.
+
+The integration tests require *docker* to be present on your machine
+as we relay on https://www.testcontainers.org/usage/database_containers.html and on Couchbase module https://www.testcontainers.org/modules/databases/couchbase/ to provide environments
+to integration tests.
+
+*IMPORTANT:* Please ensure you have docker installed on your machine and the user that run the tests has the enough
+privilege to pull and start docker containers.
+
+Running integration tests:
+```
+mvn clean install -PITs
+```
+
+== Connector configuration Web UI
+You can explore the components configuration in your web browser by starting the web tools
+that start a component server and deploy the component to it using Talend maven component plugin.
+
+```
+mvn clean install -DskipTests talend-component:web
+```
+
+This start a web server accessible from http://localhost:8080
+
+== Deploy the project components to the studio
+You can deploy this project to *Talend Open Studio* _(version >= 7.1.1)_
+
+* Download and install Talend Open Studio from https://sourceforge.net/projects/talend-studio/files/Talend%20Open%20Studio/[https://sourceforge.net/projects/talend-studio]
+* Build and deploy the project connectors
+```
+mvn clean install -DskipTests \
+     talend-component:deploy-in-studio \
+     -Dtalend.component.studioHome="<path to Talend Open Studio home>"
+```
+
+You will need to install _(in maven format)_ the required drivers manually to `<path to Talend Open Studio home>/configuration/.m2`

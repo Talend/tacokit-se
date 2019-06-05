@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -48,8 +47,11 @@ import com.microsoft.azure.eventhubs.EventData;
 import com.microsoft.azure.eventhubs.EventDataBatch;
 import com.microsoft.azure.eventhubs.EventHubClient;
 import com.microsoft.azure.eventhubs.EventHubException;
+import com.microsoft.azure.eventhubs.PartitionSender;
 
 import lombok.extern.slf4j.Slf4j;
+
+import static org.talend.components.azure.eventhubs.common.AzureEventHubsConstant.DEFAULT_CHARSET;
 
 @Slf4j
 @Version
@@ -70,7 +72,9 @@ public class AzureEventHubsOutput implements Serializable {
 
     private ScheduledExecutorService executorService;
 
-    private EventHubClient sender;
+    private EventHubClient eventHubClient;
+
+    private PartitionSender partitionSender;
 
     private Jsonb jsonb;
 
@@ -100,12 +104,15 @@ public class AzureEventHubsOutput implements Serializable {
         this.init = true;
         executorService = Executors.newScheduledThreadPool(1);
         final ConnectionStringBuilder connStr = new ConnectionStringBuilder()//
-                .setEndpoint(new URI(configuration.getDataset().getDatastore().getEndpoint()));
-        connStr.setSasKeyName(configuration.getDataset().getDatastore().getSasKeyName());
-        connStr.setSasKey(configuration.getDataset().getDatastore().getSasKey());
+                .setEndpoint(new URI(configuration.getDataset().getConnection().getEndpoint()));
+        connStr.setSasKeyName(configuration.getDataset().getConnection().getSasKeyName());
+        connStr.setSasKey(configuration.getDataset().getConnection().getSasKey());
         connStr.setEventHubName(configuration.getDataset().getEventHubName());
-        // log.info("init client...");
-        sender = EventHubClient.createSync(connStr.toString(), executorService);
+
+        eventHubClient = EventHubClient.createSync(connStr.toString(), executorService);
+        if (AzureEventHubsOutputConfiguration.PartitionType.SPECIFY_PARTITION_ID.equals(configuration.getPartitionType())) {
+            partitionSender = eventHubClient.createPartitionSenderSync(configuration.getPartitionId());
+        }
         jsonb = JsonbBuilder.create();
 
     }
@@ -118,12 +125,16 @@ public class AzureEventHubsOutput implements Serializable {
             if (AzureEventHubsOutputConfiguration.PartitionType.COLUMN.equals(configuration.getPartitionType())) {
                 options.partitionKey = configuration.getKeyColumn();
             }
-            final EventDataBatch events = sender.createBatch(options);
+            final EventDataBatch events = eventHubClient.createBatch(options);
             for (Record record : records) {
                 byte[] payloadBytes = recordToCsvByteArray(record);
                 events.tryAdd(EventData.create(payloadBytes));
             }
-            sender.sendSync(events);
+            if (AzureEventHubsOutputConfiguration.PartitionType.SPECIFY_PARTITION_ID.equals(configuration.getPartitionType())) {
+                partitionSender.sendSync(events);
+            } else {
+                eventHubClient.sendSync(events);
+            }
         } catch (final Exception e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
@@ -132,7 +143,10 @@ public class AzureEventHubsOutput implements Serializable {
     @PreDestroy
     public void preDestroy() {
         try {
-            sender.closeSync();
+            if (partitionSender != null) {
+                partitionSender.closeSync();
+            }
+            eventHubClient.closeSync();
             executorService.shutdown();
         } catch (Exception e) {
             throw new IllegalStateException(e.getMessage(), e);
@@ -153,7 +167,7 @@ public class AzureEventHubsOutput implements Serializable {
             sb.append(getStringValue(record, field));
 
         }
-        byte[] bytes = sb.toString().getBytes(Charset.forName("UTF-8"));
+        byte[] bytes = sb.toString().getBytes(DEFAULT_CHARSET);
         sb.setLength(0);
         return bytes;
     }
@@ -194,7 +208,7 @@ public class AzureEventHubsOutput implements Serializable {
             break;
         case BYTES:
             if (record.getOptionalBytes(field.getName()).isPresent()) {
-                value = new String(record.getBytes(field.getName()), "UTF-8");
+                value = new String(record.getBytes(field.getName()), DEFAULT_CHARSET);
             }
             break;
         default:

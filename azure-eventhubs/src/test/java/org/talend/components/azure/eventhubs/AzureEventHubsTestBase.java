@@ -15,7 +15,7 @@
 package org.talend.components.azure.eventhubs;
 
 import java.io.Serializable;
-import java.util.Locale;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.talend.components.azure.eventhubs.datastore.AzureEventHubsDataStore;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
@@ -36,7 +36,9 @@ public class AzureEventHubsTestBase implements Serializable {
 
     public static String SASKEY;
 
-    protected static final String EVENTHUB_NAME = "test-event-hub";
+    protected static final String SHARED_EVENTHUB_NAME = "eh-test";
+
+    protected static final String CONSUME_GROUP = "consumer-group-1";
 
     static {
         final MavenDecrypter decrypter = new MavenDecrypter();
@@ -54,6 +56,10 @@ public class AzureEventHubsTestBase implements Serializable {
         dataStore.setSasKeyName(SASKEY_NAME);
         dataStore.setSasKey(SASKEY);
         return dataStore;
+    }
+
+    protected String getUniqueID() {
+        return Integer.toString(ThreadLocalRandom.current().nextInt(1, 100000));
     }
 
 }

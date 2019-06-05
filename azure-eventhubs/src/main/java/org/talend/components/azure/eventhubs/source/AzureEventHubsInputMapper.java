@@ -19,6 +19,7 @@ import static java.util.Collections.singletonList;
 import java.io.Serializable;
 import java.util.List;
 
+import org.talend.components.azure.eventhubs.service.Messages;
 import org.talend.components.azure.eventhubs.service.UiActionService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -43,11 +44,14 @@ public class AzureEventHubsInputMapper implements Serializable {
 
     private final RecordBuilderFactory recordBuilderFactory;
 
+    private Messages messages;
+
     public AzureEventHubsInputMapper(@Option("configuration") final AzureEventHubsInputConfiguration configuration,
-            final UiActionService service, final RecordBuilderFactory recordBuilderFactory) {
+            final UiActionService service, final RecordBuilderFactory recordBuilderFactory, final Messages messages) {
         this.configuration = configuration;
         this.service = service;
         this.recordBuilderFactory = recordBuilderFactory;
+        this.messages = messages;
     }
 
     @Assessor
@@ -62,6 +66,6 @@ public class AzureEventHubsInputMapper implements Serializable {
 
     @Emitter
     public AzureEventHubsSource createWorker() {
-        return new AzureEventHubsSource(configuration, service, recordBuilderFactory);
+        return new AzureEventHubsSource(configuration, service, recordBuilderFactory, messages);
     }
 }

@@ -11,10 +11,21 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.talend.components.azure.common.connection;
+package org.talend.components.azure.common.csv;
 
-/**
- * Interface-marker which shows instance POJO could be used to establish azure storage connection
- */
-public interface AzureStorageConnectable {
+import lombok.Getter;
+
+public enum FieldDelimiter {
+    SEMICOLON(';'),
+    COMMA(','),
+    TAB('\t'),
+    SPACE(' '),
+    OTHER((char) 0);
+
+    @Getter
+    private char delimiterValue;
+
+    FieldDelimiter(char delimiter) {
+        this.delimiterValue = delimiter;
+    }
 }

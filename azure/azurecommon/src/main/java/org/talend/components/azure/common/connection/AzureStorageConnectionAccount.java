@@ -25,7 +25,7 @@ import lombok.Data;
 
 @GridLayout({ @GridLayout.Row("accountName"), @GridLayout.Row("accountKey"), @GridLayout.Row("protocol") })
 @Data
-public class AzureStorageConnectionAccount implements AzureStorageConnectable, Serializable {
+public class AzureStorageConnectionAccount implements Serializable {
 
     @Option
     @Documentation("Name of the storage account you need to access. "
