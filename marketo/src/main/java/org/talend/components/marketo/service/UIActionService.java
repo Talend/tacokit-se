@@ -17,6 +17,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.json.JsonArray;
@@ -70,6 +71,10 @@ public class UIActionService extends MarketoService {
     public static final String VALIDATION_INTEGER_PROPERTY = "VALIDATION_INTEGER_PROPERTY";
 
     public static final String VALIDATION_LIST_PROPERTY = "VALIDATION_LIST_PROPERTY";
+
+    public static final String VALIDATION_DATETIME_PATTERN = "VALIDATION_DATETIME_PATTERN";
+
+    public static final String DATETIME_PATTERN = "\\d{4}-[01]\\d-[0-3]\\d [0-2]\\d:[0-5]\\d:[0-5]\\d";
 
     public static final String DATE_MODE_RELATIVE = "relative";
 
@@ -296,6 +301,19 @@ public class UIActionService extends MarketoService {
     public ValidationResult validateList(final List<String> list) {
         if (list == null || list.isEmpty()) {
             return new ValidationResult(ValidationResult.Status.KO, i18n.invalidFields());
+        }
+        return new ValidationResult(ValidationResult.Status.OK, null);
+    }
+
+    @AsyncValidation(VALIDATION_DATETIME_PATTERN)
+    public ValidationResult validateDateTimePattern(final String date) {
+        log.error("[validateDateTimePattern] {}", date);
+        if (date == null || date.isEmpty()) {
+            return new ValidationResult(ValidationResult.Status.KO, i18n.invalidBlankProperty());
+        }
+        Pattern pattern = Pattern.compile(DATETIME_PATTERN);
+        if (!pattern.matcher(date).matches()) {
+            return new ValidationResult(ValidationResult.Status.KO, i18n.invalidDateTime());
         }
         return new ValidationResult(ValidationResult.Status.OK, null);
     }

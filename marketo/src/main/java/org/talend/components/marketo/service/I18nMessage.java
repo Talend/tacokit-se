@@ -44,4 +44,6 @@ public interface I18nMessage {
     String periodAgo1y();
 
     String periodAgo2y();
+
+    String invalidDateTime();
 }

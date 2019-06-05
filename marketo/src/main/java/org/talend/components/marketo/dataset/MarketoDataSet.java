@@ -37,6 +37,7 @@ import static org.talend.components.marketo.service.UIActionService.ACTIVITIES_L
 import static org.talend.components.marketo.service.UIActionService.DATE_RANGES;
 import static org.talend.components.marketo.service.UIActionService.FIELD_NAMES;
 import static org.talend.components.marketo.service.UIActionService.LIST_NAMES;
+import static org.talend.components.marketo.service.UIActionService.VALIDATION_DATETIME_PATTERN;
 import static org.talend.components.marketo.service.UIActionService.VALIDATION_LIST_PROPERTY;
 import static org.talend.components.marketo.service.UIActionService.VALIDATION_STRING_PROPERTY;
 import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.AND;
@@ -79,23 +80,23 @@ public class MarketoDataSet implements Serializable {
             @ActiveIf(target = "dateTimeMode", value = { "relative" }) })
     @Suggestable(value = DATE_RANGES, parameters = { "../dateTimeMode" })
     @Validable(VALIDATION_STRING_PROPERTY)
-    @Documentation("Since Date Time")
+    @Documentation("Since Relative Date Time")
     private String sinceDateTimeRelative = String.valueOf(Period.ofWeeks(2).getDays());
 
     @Option
     @ActiveIfs(operator = AND, value = { //
             @ActiveIf(target = "leadAction", value = { "getLeadChanges", "getLeadActivity" }), //
             @ActiveIf(target = "dateTimeMode", value = { "absolute" }) })
-    @Validable(VALIDATION_STRING_PROPERTY)
-    @Documentation("Since Date Time")
+    @Validable(VALIDATION_DATETIME_PATTERN)
+    @Documentation("Since Absolute Date Time")
     private String sinceDateTimeAbsolute = ZonedDateTime.now().minusMonths(2)
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd" + " HH:mm:ss"));
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
     @Option
     @ActiveIf(target = "leadAction", value = "getLeadActivity")
     @Suggestable(value = ACTIVITIES_LIST, parameters = { "../dataStore" })
     @Validable(VALIDATION_LIST_PROPERTY)
-    @Documentation("Activity Type Ids (10 max supported")
+    @Documentation("Activity Type Ids (10 max supported)")
     private List<String> activityTypeIds = Collections.emptyList();
 
     @Option
