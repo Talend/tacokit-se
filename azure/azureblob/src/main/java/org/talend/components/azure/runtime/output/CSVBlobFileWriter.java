@@ -63,7 +63,7 @@ public class CSVBlobFileWriter extends BlobFileWriter {
         CloudAppendBlob currentItem = getContainer().getAppendBlobReference(itemName);
 
         while (currentItem.exists(null, null, AzureComponentServices.getTalendOperationContext())) {
-            itemName = directoryName + config.getBlobNameTemplate() + UUID.randomUUID() + ".avro";
+            itemName = directoryName + config.getBlobNameTemplate() + UUID.randomUUID() + ".csv";
             currentItem = getContainer().getAppendBlobReference(itemName);
         }
 

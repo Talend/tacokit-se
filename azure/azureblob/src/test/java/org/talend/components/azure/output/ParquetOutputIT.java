@@ -13,16 +13,22 @@
 
 package org.talend.components.azure.output;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.azure.BaseIT;
 import org.talend.components.azure.BlobTestUtils;
 import org.talend.components.azure.common.FileFormat;
+import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.dataset.AzureBlobDataset;
 import org.talend.components.azure.datastore.AzureCloudConnection;
 import org.talend.components.azure.source.BlobInputProperties;
@@ -31,6 +37,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
+import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
@@ -52,9 +59,11 @@ class ParquetOutputIT extends BaseIT {
     final ZonedDateTime testDateValue = ZonedDateTime.now();
 
     final byte[] bytes = new byte[] { 1, 2, 3 };
+    private CloudBlobContainer container;
 
     @BeforeEach
-    public void initDataset() {
+    public void initDataset() throws URISyntaxException, StorageException {
+        container = storageAccount.createCloudBlobClient().getContainerReference(containerName);
         AzureCloudConnection dataStore = BlobTestUtils.createCloudConnection();
 
         AzureBlobDataset dataset = new AzureBlobDataset();
@@ -62,16 +71,15 @@ class ParquetOutputIT extends BaseIT {
         dataset.setFileFormat(FileFormat.PARQUET);
 
         dataset.setContainerName(containerName);
+        dataset.setDirectory("testDir");
         blobOutputProperties = new BlobOutputConfiguration();
+        blobOutputProperties.setBlobNameTemplate("testFile");
         blobOutputProperties.setDataset(dataset);
     }
 
     @Test
-    public void testOutput() throws Exception {
+    public void testOutput() {
         final int recordSize = 6;
-
-        blobOutputProperties.getDataset().setDirectory("testDir");
-        blobOutputProperties.setBlobNameTemplate("testFile");
 
         Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder()
                 .withBoolean("booleanValue", testBooleanValue).withLong("longValue", testLongValue)
@@ -89,7 +97,6 @@ class ParquetOutputIT extends BaseIT {
         Job.components().component("inputFlow", "test://emitter").component("outputComponent", "Azure://Output?" + outputConfig)
                 .connections().from("inputFlow").to("outputComponent").build().run();
 
-        CloudBlobContainer container = storageAccount.createCloudBlobClient().getContainerReference(containerName);
 
         Assert.assertTrue("No files were created in test container",
                 container.listBlobs(blobOutputProperties.getDataset().getDirectory(), false).iterator().hasNext());
@@ -113,10 +120,8 @@ class ParquetOutputIT extends BaseIT {
     }
 
     @Test
-    public void testBatchSizeIsGreaterThanRowSize() throws Exception {
+    public void testBatchSizeIsGreaterThanRowSize() {
         final int recordSize = 5;
-        blobOutputProperties.getDataset().setDirectory("avroDir");
-        blobOutputProperties.setBlobNameTemplate("testFile");
 
         Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder()
                 .withString("stringValue", testStringValue).withBoolean("booleanValue", testBooleanValue)
@@ -134,9 +139,67 @@ class ParquetOutputIT extends BaseIT {
         Job.components().component("inputFlow", "test://emitter").component("outputComponent", "Azure://Output?" + outputConfig)
                 .connections().from("inputFlow").to("outputComponent").build().run();
 
-        CloudBlobContainer container = storageAccount.createCloudBlobClient().getContainerReference(containerName);
-
         Assert.assertTrue("No files were created in test container",
                 container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext());
+    }
+
+    @Test
+    void testDefaultOutputIsFailingWhenDirectoryExist() throws StorageException, IOException, URISyntaxException {
+        Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder()
+                .withString("stringValue", testStringValue).build();
+
+        componentsHandler.setInputData(Collections.singleton(testRecord));
+
+        BlobTestUtils.uploadTestFile(storageAccount, blobOutputProperties.getDataset(), "parquet/testParquet1Record.parquet", "testParquet1Record.parquet");
+
+        String outputConfig = configurationByExample().forInstance(blobOutputProperties).configured().toQueryString();
+
+        Assertions.assertThrows(BlobRuntimeException.class, () -> Job.components().component("inputFlow", "test://emitter").component("outputComponent", "Azure://Output?" + outputConfig)
+                .connections().from("inputFlow").to("outputComponent").build().run());
+
+    }
+
+    @Test
+    void testOverwriteOutput() throws StorageException, IOException, URISyntaxException {
+        int expectedFileNumber = 1;
+        blobOutputProperties.setActionOnOutput(ActionOnOutput.OVERWRITE);
+
+        Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder()
+                .withString("stringValue", testStringValue).build();
+
+        componentsHandler.setInputData(Collections.singleton(testRecord));
+
+        BlobTestUtils.uploadTestFile(storageAccount, blobOutputProperties.getDataset(), "parquet/testParquet1Record.parquet", "testParquet1Record.parquet");
+
+        String outputConfig = configurationByExample().forInstance(blobOutputProperties).configured().toQueryString();
+        Job.components().component("inputFlow", "test://emitter").component("outputComponent", "Azure://Output?" + outputConfig)
+                .connections().from("inputFlow").to("outputComponent").build().run();
+
+        AtomicInteger fileNumber = new AtomicInteger();
+        container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().forEachRemaining((blobItem) -> fileNumber.getAndIncrement());
+
+        Assert.assertEquals(expectedFileNumber, fileNumber.get());
+    }
+
+    @Test
+    void testAppendOutput() throws Exception {
+        int expectedFileNumber = 2;
+        blobOutputProperties.setActionOnOutput(ActionOnOutput.APPEND);
+
+        Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder()
+                .withString("stringValue", testStringValue).build();
+
+        componentsHandler.setInputData(Collections.singleton(testRecord));
+
+        BlobTestUtils.uploadTestFile(storageAccount, blobOutputProperties.getDataset(), "parquet/testParquet1Record.parquet", "testParquet1Record.parquet");
+
+        String outputConfig = configurationByExample().forInstance(blobOutputProperties).configured().toQueryString();
+        Job.components().component("inputFlow", "test://emitter").component("outputComponent", "Azure://Output?" + outputConfig)
+                .connections().from("inputFlow").to("outputComponent").build().run();
+
+        AtomicInteger fileNumber = new AtomicInteger();
+        container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().forEachRemaining((blobItem) -> fileNumber.getAndIncrement());
+
+        Assert.assertEquals(expectedFileNumber, fileNumber.get());
     }
 }

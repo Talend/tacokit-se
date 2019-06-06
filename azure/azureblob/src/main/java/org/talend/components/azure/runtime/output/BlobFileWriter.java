@@ -15,10 +15,13 @@ package org.talend.components.azure.runtime.output;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.common.service.AzureComponentServices;
+import org.talend.components.azure.output.ActionOnOutput;
 import org.talend.components.azure.output.BlobOutputConfiguration;
 import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.sdk.component.api.record.Record;
@@ -29,6 +32,9 @@ import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlob;
 import com.microsoft.azure.storage.blob.CloudBlobClient;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
+import com.microsoft.azure.storage.blob.CloudBlobDirectory;
+import com.microsoft.azure.storage.blob.DeleteSnapshotsOption;
+import com.microsoft.azure.storage.blob.ListBlobItem;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -47,6 +53,7 @@ public abstract class BlobFileWriter {
         CloudBlobClient blobClient = connectionServices.getConnectionService().createCloudBlobClient(connection,
                 AzureComponentServices.DEFAULT_RETRY_POLICY);
         container = blobClient.getContainerReference(config.getDataset().getContainerName());
+        prepareDirectory(config);
     }
 
     public void newBatch() {
@@ -98,11 +105,38 @@ public abstract class BlobFileWriter {
      * @throws Exception
      */
     public void complete() throws Exception {
-        if (!getBatch().isEmpty()) {
+        if (getBatch() != null && !getBatch().isEmpty()) {
             log.info("Executing last batch with " + getBatch().size() + " records");
             flush();
         }
 
+    }
+
+    private void prepareDirectory(BlobOutputConfiguration config) {
+        String directoryName = config.getDataset().getDirectory();
+        if (!directoryName.endsWith("/")) {
+            directoryName += "/";
+        }
+        try {
+            CloudBlobDirectory directory = container.getDirectoryReference(directoryName);
+            Iterator<ListBlobItem> directoryItemsIterator = directory.listBlobs().iterator();
+            boolean isDirectoryNotEmpty = directoryItemsIterator.hasNext();
+            if (isDirectoryNotEmpty) {
+                switch (config.getActionOnOutput()) {
+                case DEFAULT:
+                    throw new BlobRuntimeException("Directory is not empty");
+                case OVERWRITE:
+                    while (directoryItemsIterator.hasNext()) {
+                        CloudBlob item = (CloudBlob) directoryItemsIterator.next();
+                        item.delete(DeleteSnapshotsOption.INCLUDE_SNAPSHOTS, null, null,
+                                AzureComponentServices.getTalendOperationContext());
+                    }
+
+                }
+            }
+        } catch (URISyntaxException | StorageException e) {
+            throw new BlobRuntimeException("Can't resolve directory " + directoryName, e);
+        }
     }
 
 }

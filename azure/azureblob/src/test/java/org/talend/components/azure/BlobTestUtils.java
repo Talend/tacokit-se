@@ -81,11 +81,16 @@ public class BlobTestUtils {
     }
 
     public static void uploadTestFile(CloudStorageAccount storageAccount, BlobInputProperties blobInputProperties,
-            String resourceName, String targetName) throws URISyntaxException, StorageException, IOException {
+            String resourceName, String targetName) throws URISyntaxException, StorageException, IOException  {
+        uploadTestFile(storageAccount, blobInputProperties.getDataset(), resourceName, targetName);
+    }
+
+    public static void uploadTestFile(CloudStorageAccount storageAccount, AzureBlobDataset dataset,
+                                      String resourceName, String targetName) throws URISyntaxException, StorageException, IOException {
         CloudBlobContainer container = storageAccount.createCloudBlobClient()
-                .getContainerReference(blobInputProperties.getDataset().getContainerName());
+                .getContainerReference(dataset.getContainerName());
         CloudBlockBlob blockBlob = container
-                .getBlockBlobReference(blobInputProperties.getDataset().getDirectory() + "/" + targetName);
+                .getBlockBlobReference(dataset.getDirectory() + "/" + targetName);
 
         File resourceFile = new File(BlobTestUtils.class.getClassLoader().getResource(resourceName).toURI());
         try (FileInputStream fileInputStream = new FileInputStream(resourceFile)) {

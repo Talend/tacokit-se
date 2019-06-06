@@ -22,7 +22,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
 
-@GridLayout({ @GridLayout.Row({ "dataset" }) })
+@GridLayout({ @GridLayout.Row("dataset"), @GridLayout.Row("actionOnOutput") })
 
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("blobNameTemplate") })
 @Documentation("Options for the output component")
@@ -32,6 +32,13 @@ public class BlobOutputConfiguration implements Serializable {
     @Option
     @Documentation("Azure Blob connection")
     private AzureBlobDataset dataset;
+
+    @Option
+    @Documentation("Output behavior for case when directory already exist.\n"
+            + "Default - throw an exception and stop component\n"
+            + "Append - new files will created in same directory (or appended for csv file). Should be used with same file format only to avoid data structure break\n"
+            + "Overwrite - delete all files from directory and insert new files.")
+    private ActionOnOutput actionOnOutput = ActionOnOutput.DEFAULT;
 
     @Option
     @Documentation("Generated blob item name prefix.\nBatch file would have name prefix + UUID + extension.\n"

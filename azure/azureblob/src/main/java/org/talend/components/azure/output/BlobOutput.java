@@ -87,7 +87,9 @@ public class BlobOutput implements Serializable {
     @PreDestroy
     public void release() {
         try {
-            fileWriter.complete();
+            if (fileWriter != null) {
+                fileWriter.complete();
+            }
         } catch (Exception e) {
             throw new BlobRuntimeException(messageService.errorSubmitRows(), e);
         }

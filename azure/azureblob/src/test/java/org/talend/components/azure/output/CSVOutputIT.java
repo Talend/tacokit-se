@@ -18,9 +18,12 @@ import java.net.URISyntaxException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.azure.BaseIT;
@@ -28,6 +31,7 @@ import org.talend.components.azure.BlobTestUtils;
 import org.talend.components.azure.common.FileFormat;
 import org.talend.components.azure.common.csv.CSVFormatOptions;
 import org.talend.components.azure.common.csv.RecordDelimiter;
+import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.dataset.AzureBlobDataset;
 import org.talend.components.azure.runtime.converters.CSVConverter;
 import org.talend.sdk.component.api.record.Record;
@@ -37,6 +41,7 @@ import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
 import com.microsoft.azure.storage.StorageException;
+import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.azure")
@@ -46,12 +51,17 @@ class CSVOutputIT extends BaseIT {
 
     @Service
     private RecordBuilderFactory recordBuilderFactory;
+    private String testStringValue = "test";
+    private CloudBlobContainer container;
 
     @BeforeEach
-    void initDataset() {
+    void initDataset() throws Exception {
+        container = storageAccount.createCloudBlobClient().getContainerReference(containerName);
+
         AzureBlobDataset dataset = new AzureBlobDataset();
         dataset.setConnection(dataStore);
         dataset.setFileFormat(FileFormat.CSV);
+        dataset.setDirectory("testDir");
 
         CSVFormatOptions formatOptions = new CSVFormatOptions();
         formatOptions.setRecordDelimiter(RecordDelimiter.LF);
@@ -59,6 +69,7 @@ class CSVOutputIT extends BaseIT {
         dataset.setContainerName(containerName);
         blobOutputProperties = new BlobOutputConfiguration();
         blobOutputProperties.setDataset(dataset);
+        blobOutputProperties.setBlobNameTemplate("testFile");
     }
 
     @Test
@@ -71,8 +82,6 @@ class CSVOutputIT extends BaseIT {
         final ZonedDateTime testDateValue = ZonedDateTime.now();
         final byte[] bytes = new byte[] { 1, 2, 3 };
 
-        blobOutputProperties.getDataset().setDirectory("testDir");
-        blobOutputProperties.setBlobNameTemplate("testFile");
         blobOutputProperties.getDataset().getCsvOptions().setTextEnclosureCharacter("\"");
 
         Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder()
@@ -102,5 +111,67 @@ class CSVOutputIT extends BaseIT {
         Assert.assertEquals(String.valueOf(testRecord.getDouble("doubleValue")), retrievedRecords.get(0).getString("field3"));
         Assert.assertEquals(String.valueOf(testRecord.getDateTime("dateValue")), retrievedRecords.get(0).getString("field4"));
         Assert.assertEquals(Arrays.toString(testRecord.getBytes("byteArray")), retrievedRecords.get(0).getString("field5"));
+    }
+
+    @Test
+    void testDefaultOutputIsFailingWhenDirectoryExist() throws StorageException, IOException, URISyntaxException {
+        Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder()
+                .withString("stringValue", testStringValue).build();
+
+        componentsHandler.setInputData(Collections.singleton(testRecord));
+
+        BlobTestUtils.uploadTestFile(storageAccount, blobOutputProperties.getDataset(), "avro/testAvro1Record.avro", "testAvro1Record.avro");
+
+        String outputConfig = configurationByExample().forInstance(blobOutputProperties).configured().toQueryString();
+
+        Assertions.assertThrows(BlobRuntimeException.class, () -> Job.components().component("inputFlow", "test://emitter").component("outputComponent", "Azure://Output?" + outputConfig)
+                .connections().from("inputFlow").to("outputComponent").build().run());
+
+    }
+
+    @Test
+    void testOverwriteOutput() throws StorageException, IOException, URISyntaxException {
+        int expectedFileNumber = 1;
+        blobOutputProperties.setActionOnOutput(ActionOnOutput.OVERWRITE);
+
+        Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder()
+                .withString("stringValue", testStringValue).build();
+
+        componentsHandler.setInputData(Collections.singleton(testRecord));
+
+        BlobTestUtils.uploadTestFile(storageAccount, blobOutputProperties.getDataset(), "avro/testAvro1Record.avro", "testAvro1Record.avro"); //put avro file, should be deleted
+
+        String outputConfig = configurationByExample().forInstance(blobOutputProperties).configured().toQueryString();
+        Job.components().component("inputFlow", "test://emitter").component("outputComponent", "Azure://Output?" + outputConfig)
+                .connections().from("inputFlow").to("outputComponent").build().run();
+
+        AtomicInteger fileNumber = new AtomicInteger();
+        container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().forEachRemaining((blobItem) -> fileNumber.getAndIncrement());
+
+        Assert.assertEquals(expectedFileNumber, fileNumber.get());
+    }
+
+    @Test
+    void testAppendOutput() {
+        int expectedFileNumber = 2;
+
+        Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder()
+                .withString("stringValue", testStringValue).build();
+
+        componentsHandler.setInputData(Collections.singleton(testRecord));
+
+        String outputConfig = configurationByExample().forInstance(blobOutputProperties).configured().toQueryString();
+        Job.components().component("inputFlow", "test://emitter").component("outputComponent", "Azure://Output?" + outputConfig)
+                .connections().from("inputFlow").to("outputComponent").build().run();
+
+        blobOutputProperties.setActionOnOutput(ActionOnOutput.APPEND);
+        componentsHandler.setInputData(Collections.singleton(testRecord));
+        outputConfig = configurationByExample().forInstance(blobOutputProperties).configured().toQueryString();
+        Job.components().component("inputFlow", "test://emitter").component("outputComponent", "Azure://Output?" + outputConfig)
+                .connections().from("inputFlow").to("outputComponent").build().run();
+        AtomicInteger fileNumber = new AtomicInteger();
+        container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().forEachRemaining((blobItem) -> fileNumber.getAndIncrement());
+
+        Assert.assertEquals(expectedFileNumber, fileNumber.get());
     }
 }
