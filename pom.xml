@@ -38,6 +38,7 @@
         <module>couchbase</module>
         <module>azure</module>
         <module>azure-eventhubs</module>
+        <module>jms</module>
     </modules>
 
     <scm>
