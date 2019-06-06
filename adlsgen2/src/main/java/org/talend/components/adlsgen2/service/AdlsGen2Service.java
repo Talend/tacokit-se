@@ -79,9 +79,6 @@ public class AdlsGen2Service implements Serializable {
     @Service
     private AdlsGen2APIClient client;
 
-    @Service
-    private AccessTokenProvider accessTokenProvider;
-
     private transient String auth;
 
     private transient String sas;
@@ -121,28 +118,26 @@ public class AdlsGen2Service implements Serializable {
             auth = String.format(HeaderConstants.AUTH_SHARED_ACCESS_SIGNATURE, sas);
             sasMap = Splitter.on("&").withKeyValueSeparator("=").split(sas);
             break;
-        /* temporary removal */
-        // case AccessToken:
-        // String token = getAccessToken(connection);
-        // auth = String.format(HeaderConstants.AUTH_BEARER, token);
-        // break;
-        // case ADAL:
-        // throw new UnsupportedOperationException("Authentication method unsupported");
         }
     }
 
     @SuppressWarnings("unchecked")
-    private RuntimeException handleError(int status, Map<String, List<String>> headers) {
-        StringBuilder sb = new StringBuilder("[" + status + "] ");
+    private RuntimeException handleError(final int status, final Map<String, List<String>> headers) {
+        StringBuilder sb = new StringBuilder();
         List<String> errors = headers.get(HeaderConstants.HEADER_X_MS_ERROR_CODE);
-        if (errors != null && errors.isEmpty()) {
+        if (errors != null && !errors.isEmpty()) {
             for (String error : errors) {
                 sb.append(error);
-                if (ApiErrors.valueOf(error) != null) {
+                sb.append(" [" + status + "]");
+                try {
                     sb.append(": " + ApiErrors.valueOf(error));
+                } catch (IllegalArgumentException e) {
+                    // could not find an api detailed message
                 }
-                sb.append("\n");
+                sb.append(".\n");
             }
+        } else {
+            sb.append("No error code provided. HTTP status:" + status + ".");
         }
         log.error("[handleResponse] {}", sb.toString());
         return new RuntimeException(sb.toString());
@@ -169,14 +164,6 @@ public class AdlsGen2Service implements Serializable {
             return ParquetIterator.Builder.of().withConfiguration(dataSet.getParquetConfiguration()).parse(content);
         }
         throw new IllegalStateException("Could not determine operation to do.");
-    }
-
-    @SuppressWarnings("unchecked")
-    public String getAccessToken(@Configuration("connection") final AdlsGen2Connection connection) {
-        accessTokenProvider.base(connection.oauthUrl());
-        String payload = String.format(Constants.TOKEN_FORM, connection.getClientId(), connection.getClientSecret());
-        Response<JsonObject> token = handleResponse(accessTokenProvider.getAccessToken(connection.getTenantId(), payload));
-        return token.body().getString(Constants.ATTR_ACCESS_TOKEN);
     }
 
     @SuppressWarnings("unchecked")
@@ -367,10 +354,6 @@ public class AdlsGen2Service implements Serializable {
         return result;
     }
 
-    /*
-     * {"contentLength":"21","etag":"Mon, 25 Mar 2019 15:35:47 GMT","group":"$superuser","lastModified":"Mon, 25 Mar 2019
-     * 15:35:47 GMT","name":"myNewFolder/customer.csv","owner":"$superuser","permissions":"rw-r-----"}
-     */
     @Data
     @ToString
     public class BlobInformations {
