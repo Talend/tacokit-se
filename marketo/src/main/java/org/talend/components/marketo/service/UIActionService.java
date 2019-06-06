@@ -25,6 +25,7 @@ import javax.json.JsonObject;
 import javax.json.JsonValue;
 
 import org.talend.components.marketo.MarketoApiConstants;
+import org.talend.components.marketo.MarketoRuntimeException;
 import org.talend.components.marketo.datastore.MarketoDataStore;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Schema;
@@ -212,7 +213,7 @@ public class UIActionService extends MarketoService {
             }
             return new SuggestionValues(true, listNames);
         } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
+            throw new MarketoRuntimeException(e.getMessage());
         }
     }
 
@@ -226,7 +227,7 @@ public class UIActionService extends MarketoService {
             }
             return new SuggestionValues(false, fieldNames);
         } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
+            throw new MarketoRuntimeException(e.getMessage());
         }
     }
 
@@ -243,7 +244,7 @@ public class UIActionService extends MarketoService {
             }
             return new SuggestionValues(true, coNames);
         } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
+            throw new MarketoRuntimeException(e.getMessage());
         }
     }
 

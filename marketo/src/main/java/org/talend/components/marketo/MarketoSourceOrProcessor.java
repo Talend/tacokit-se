@@ -96,10 +96,10 @@ public class MarketoSourceOrProcessor implements Serializable {
             if (response.body().getBoolean(ATTR_SUCCESS)) {
                 return response.body();
             } else {
-                throw new RuntimeException(getErrors(response.body().getJsonArray(ATTR_ERRORS)));
+                throw new MarketoRuntimeException(getErrors(response.body().getJsonArray(ATTR_ERRORS)));
             }
         }
-        throw new RuntimeException(response.error(String.class));
+        throw new MarketoRuntimeException(response.error(String.class));
     }
 
 }

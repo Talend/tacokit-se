@@ -28,6 +28,7 @@ import javax.json.JsonValue;
 import javax.json.JsonValue.ValueType;
 import javax.json.JsonWriterFactory;
 
+import org.talend.components.marketo.MarketoRuntimeException;
 import org.talend.components.marketo.dataset.MarketoDataSet;
 import org.talend.components.marketo.dataset.MarketoInputConfiguration;
 import org.talend.components.marketo.datastore.MarketoDataStore;
@@ -141,7 +142,7 @@ public class MarketoService {
         } else {
             String error = i18n.accessTokenRetrievalError(result.status(), result.headers().toString());
             log.error("[retrieveAccessToken] {}", error);
-            throw new RuntimeException(error);
+            throw new MarketoRuntimeException(error);
         }
     }
 
