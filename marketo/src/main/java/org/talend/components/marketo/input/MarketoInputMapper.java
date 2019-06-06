@@ -34,6 +34,8 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.extern.slf4j.Slf4j;
 
+import static org.talend.components.marketo.MarketoApiConstants.REST_API_LIMIT;
+
 @Slf4j
 @Version
 @Icon(value = IconType.MARKETO)
@@ -63,7 +65,7 @@ public class MarketoInputMapper implements Serializable {
 
     @Assessor
     public long estimateSize() {
-        return 300L;
+        return REST_API_LIMIT;
     }
 
     @Split

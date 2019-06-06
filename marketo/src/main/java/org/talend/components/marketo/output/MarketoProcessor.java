@@ -18,6 +18,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.json.JsonObject;
 
+import org.talend.components.marketo.MarketoRuntimeException;
 import org.talend.components.marketo.MarketoSourceOrProcessor;
 import org.talend.components.marketo.dataset.MarketoOutputConfiguration;
 import org.talend.components.marketo.service.MarketoService;
@@ -37,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_REASONS;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_RESULT;
+import static org.talend.components.marketo.MarketoApiConstants.REST_API_LIMIT;
 
 @Slf4j
 @Version
@@ -84,8 +86,10 @@ public class MarketoProcessor extends MarketoSourceOrProcessor {
         if (records.isEmpty()) {
             return;
         }
-        if (records.size() > 300) {
-            log.error("[flush] Max batch size is set above API max batch size (300): {}.", records.size());
+        if (records.size() > REST_API_LIMIT) {
+            String msg = String.format("[flush] Max batch size is set above API limit (%d): %d.", REST_API_LIMIT, records.size());
+            log.error(msg);
+            throw new MarketoRuntimeException(msg);
         }
         JsonObject payload = strategy.getPayload(records);
         log.debug("[map] payload : {}.", payload);

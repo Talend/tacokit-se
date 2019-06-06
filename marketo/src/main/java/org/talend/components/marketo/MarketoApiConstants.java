@@ -133,4 +133,6 @@ public class MarketoApiConstants {
     public static final String ATTR_SEARCHABLE_FIELDS = "searchableFields";
 
     public static final String DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+
+    public static final int REST_API_LIMIT = 300;
 }
