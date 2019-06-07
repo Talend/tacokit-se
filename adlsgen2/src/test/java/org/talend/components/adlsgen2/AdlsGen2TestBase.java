@@ -14,10 +14,13 @@ package org.talend.components.adlsgen2;
 
 import java.io.FileInputStream;
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Properties;
+
+import javax.json.JsonBuilderFactory;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.talend.components.adlsgen2.common.format.FileFormat;
@@ -25,8 +28,6 @@ import org.talend.components.adlsgen2.common.format.csv.CsvConfiguration;
 import org.talend.components.adlsgen2.common.format.csv.CsvConverter;
 import org.talend.components.adlsgen2.common.format.csv.CsvFieldDelimiter;
 import org.talend.components.adlsgen2.common.format.csv.CsvRecordSeparator;
-import org.talend.components.adlsgen2.common.format.parquet.ParquetConverter;
-import org.talend.components.adlsgen2.common.format.unknown.UnknownConverter;
 import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
@@ -67,6 +68,9 @@ public class AdlsGen2TestBase implements Serializable {
 
     @Service
     protected RecordBuilderFactory recordBuilderFactory;
+
+    @Service
+    protected JsonBuilderFactory jsonBuilderFactory;
 
     @Service
     protected AdlsGen2Service service;
@@ -167,7 +171,7 @@ public class AdlsGen2TestBase implements Serializable {
                 .withInt("int", 71) //
                 .withBoolean("boolean", true) //
                 .withLong("long", 1971L) //
-                .withDateTime("datetime", new Date(2019, 04, 22)) //
+                .withDateTime("datetime", LocalDateTime.of(2019, 04, 22, 0, 0).atZone(ZoneOffset.UTC)) //
                 .withFloat("float", 20.5f) //
                 .withDouble("double", 20.5) //
                 .build();
@@ -183,9 +187,7 @@ public class AdlsGen2TestBase implements Serializable {
                 .withDateTime("now", now) //
                 .withArray(ea, Arrays.asList("ary1", "ary2", "ary3")).build();
         // inject needed services
-        components.injectServices(UnknownConverter.of());
         components.injectServices(CsvConverter.class);
-        components.injectServices(ParquetConverter.of(recordBuilderFactory));
         I18n i18 = components.findService(I18n.class);
         recordBuilderFactory = components.findService(RecordBuilderFactory.class);
     }

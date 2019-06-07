@@ -9,8 +9,9 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
+ *
  */
-package org.talend.components.adlsgen2.common.format.unknown;
+package org.talend.components.adlsgen2.common.format.json;
 
 import java.io.Serializable;
 
@@ -19,6 +20,6 @@ import org.talend.sdk.component.api.meta.Documentation;
 import lombok.Data;
 
 @Data
-@Documentation("Unknown File Format Configuration")
-public class UnknownConfiguration implements Serializable {
+@Documentation("JSON Configuration")
+public class JsonConfiguration implements Serializable {
 }

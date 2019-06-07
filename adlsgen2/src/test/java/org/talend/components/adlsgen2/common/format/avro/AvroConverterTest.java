@@ -13,10 +13,10 @@
 package org.talend.components.adlsgen2.common.format.avro;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.stream.Stream;
 
 import org.apache.avro.SchemaBuilder;
@@ -30,6 +30,7 @@ import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.junit5.WithComponents;
+import org.talend.sdk.component.runtime.record.SchemaImpl;
 
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,10 +46,12 @@ class AvroConverterTest extends AdlsGen2TestBase {
 
     private GenericRecord avro;
 
+    private AvroConfiguration avroConfiguration;
+
     @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
-        converter = AvroConverter.of(recordBuilderFactory);
+        converter = AvroConverter.of(recordBuilderFactory, avroConfiguration);
         avro = new GenericData.Record( //
                 SchemaBuilder.builder().record("sample").fields() //
                         .name("string").type().stringType().noDefault() //
@@ -66,7 +69,7 @@ class AvroConverterTest extends AdlsGen2TestBase {
 
     @Test
     void of() {
-        assertNotNull(AvroConverter.of(recordBuilderFactory));
+        assertNotNull(AvroConverter.of(recordBuilderFactory, avroConfiguration));
     }
 
     @Test
@@ -99,7 +102,8 @@ class AvroConverterTest extends AdlsGen2TestBase {
         assertEquals(71, record.get("int"));
         assertEquals(true, record.get("boolean"));
         assertEquals(1971L, record.get("long"));
-        assertEquals(new Date(2019, 04, 22).getTime(), record.get("datetime"));
+        assertEquals(LocalDateTime.of(2019, 04, 22, 0, 0).atZone(ZoneOffset.UTC).toInstant().toEpochMilli(),
+                record.get("datetime"));
         assertEquals(20.5f, record.get("float"));
         assertEquals(20.5, record.get("double"));
     }
@@ -108,25 +112,40 @@ class AvroConverterTest extends AdlsGen2TestBase {
     void fromComplexRecord() {
         GenericRecord record = converter.fromRecord(complexRecord);
         assertNotNull(record);
+        System.err.println(record);
         assertEquals("ComplexR", record.get("name"));
         assertNotNull(record.get("record"));
-        assertEquals(versatileRecord, record.get("record"));
+        GenericRecord subrecord = (GenericRecord) record.get("record");
+        assertEquals("Bonjour", subrecord.get("string1"));
+        assertEquals("Olà", subrecord.get("string2"));
+        assertEquals(71, subrecord.get("int"));
+        assertEquals(true, subrecord.get("boolean"));
+        assertEquals(1971L, subrecord.get("long"));
+        assertEquals(LocalDateTime.of(2019, 04, 22, 0, 0).atZone(ZoneOffset.UTC).toInstant().toEpochMilli(),
+                subrecord.get("datetime"));
+        assertEquals(20.5f, subrecord.get("float"));
+        assertEquals(20.5, subrecord.get("double"));
+
         assertEquals(now.withZoneSameInstant(ZoneOffset.UTC),
                 ZonedDateTime.ofInstant(Instant.ofEpochMilli((long) record.get("now")), ZoneOffset.UTC));
         assertEquals(Arrays.asList("ary1", "ary2", "ary3"), record.get("array"));
     }
 
     @Test
-    void fromAndToComplexRecord() {
-        GenericRecord from = converter.fromRecord(complexRecord);
+    void fromAndToRecord() {
+        GenericRecord from = converter.fromRecord(versatileRecord);
         assertNotNull(from);
         Record to = converter.toRecord(from);
         assertNotNull(to);
-        assertEquals("ComplexR", to.getString("name"));
-        assertNotNull(to.getRecord("record"));
-        assertEquals(versatileRecord, to.getRecord("record"));
-        assertEquals(now.withZoneSameInstant(ZoneOffset.UTC), to.getDateTime("now").withZoneSameInstant(ZoneOffset.UTC));
-        assertEquals(Arrays.asList("ary1", "ary2", "ary3"), to.getArray(String.class, "array"));
+        assertEquals("Bonjour", to.getString("string1"));
+        assertEquals("Olà", to.getString("string2"));
+        assertEquals(71, to.getInt("int"));
+        assertEquals(true, to.getBoolean("boolean"));
+        assertEquals(1971L, to.getLong("long"));
+        assertEquals(LocalDateTime.of(2019, 04, 22, 0, 0).atZone(ZoneOffset.UTC).toInstant(),
+                to.getDateTime("datetime").toInstant());
+        assertEquals(20.5f, to.getFloat("float"));
+        assertEquals(20.5, to.getDouble("double"));
     }
 
     @Test
@@ -164,5 +183,24 @@ class AvroConverterTest extends AdlsGen2TestBase {
                         .name("officialts").type().longType().noDefault() //
                         .endRecord());
 
+    }
+
+    // @Test
+    void withAllowNullColumnSchema() {
+        Schema schema = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD)
+                .withEntry(new SchemaImpl.EntryImpl("nullStringColumn", Schema.Type.STRING, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullStringColumn2", Schema.Type.STRING, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullIntColumn", Schema.Type.INT, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullLongColumn", Schema.Type.LONG, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullFloatColumn", Schema.Type.FLOAT, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullDoubleColumn", Schema.Type.DOUBLE, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullBooleanColumn", Schema.Type.BOOLEAN, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullByteArrayColumn", Schema.Type.BYTES, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullDateColumn", Schema.Type.DATETIME, true, null, null, null)).build();
+        Record testRecord = recordBuilderFactory.newRecordBuilder(schema).withString("nullStringColumn", "myString").build();
+        System.out.println("schema: " + testRecord.getSchema());
+        System.out.println("record: " + testRecord);
+        assertNotNull(testRecord.getString("nullStringColumn"));
+        assertNull(testRecord.getInt("nullIntColumn"));
     }
 }

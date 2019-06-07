@@ -14,7 +14,8 @@ package org.talend.components.adlsgen2.common.format.parquet;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 import org.apache.avro.generic.GenericRecord;
@@ -26,8 +27,10 @@ import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.util.HadoopInputFile;
 import org.apache.parquet.hadoop.util.HadoopOutputFile;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.adlsgen2.AdlsGen2TestBase;
+import org.talend.components.adlsgen2.common.format.avro.AvroConfiguration;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit5.WithComponents;
 
@@ -39,7 +42,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @WithComponents("org.talend.components.adlsgen2")
 class ParquetConverterTest extends AdlsGen2TestBase {
 
-    private ParquetConverter converter = ParquetConverter.of(recordBuilderFactory);
+    private AvroConfiguration parquetConfiguration;
+
+    private ParquetConverter converter;
+
+    @BeforeEach
+    protected void setUp() throws Exception {
+        super.setUp();
+        converter = ParquetConverter.of(recordBuilderFactory, parquetConfiguration);
+    }
 
     @Test
     void readParquetSample() throws Exception {
@@ -83,7 +94,8 @@ class ParquetConverterTest extends AdlsGen2TestBase {
         assertEquals(71, reconverted.getInt("int"));
         assertTrue(reconverted.getBoolean("boolean"));
         assertEquals(1971L, reconverted.getLong("long"));
-        assertEquals(new Date(2019, 04, 22).getTime(), reconverted.getLong("datetime"));
+        assertEquals(LocalDateTime.of(2019, 04, 22, 0, 0).atZone(ZoneOffset.UTC).toInstant().toEpochMilli(),
+                reconverted.getLong("datetime"));
         assertEquals(20.5f, reconverted.getFloat("float"));
         assertEquals(20.5, reconverted.getDouble("double"));
         //

@@ -14,7 +14,9 @@ package org.talend.components.adlsgen2.common.format.parquet;
 
 import org.apache.avro.generic.GenericRecord;
 import org.talend.components.adlsgen2.common.converter.RecordConverter;
+import org.talend.components.adlsgen2.common.format.avro.AvroConfiguration;
 import org.talend.components.adlsgen2.common.format.avro.AvroConverter;
+import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import lombok.extern.slf4j.Slf4j;
@@ -24,12 +26,14 @@ public final class ParquetConverter extends AvroConverter implements RecordConve
 
     private RecordBuilderFactory recordBuilderFactory;
 
-    public static ParquetConverter of(RecordBuilderFactory factory) {
-        return new ParquetConverter(factory);
+    public static ParquetConverter of(RecordBuilderFactory factory,
+            final @Configuration("parquetConfiguration") AvroConfiguration configuration) {
+        return new ParquetConverter(factory, configuration);
     }
 
-    private ParquetConverter(RecordBuilderFactory factory) {
-        super(factory);
+    private ParquetConverter(RecordBuilderFactory factory,
+            final @Configuration("parquetConfiguration") AvroConfiguration configuration) {
+        super(factory, configuration);
     }
 
 }

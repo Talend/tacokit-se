@@ -16,6 +16,12 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.talend.components.adlsgen2.AdlsGen2TestBase;
+import org.talend.components.adlsgen2.common.format.FileFormat;
+import org.talend.components.adlsgen2.common.format.csv.CsvConfiguration;
+import org.talend.components.adlsgen2.common.format.csv.CsvFieldDelimiter;
+import org.talend.components.adlsgen2.common.format.csv.CsvRecordSeparator;
+import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
+import org.talend.components.adlsgen2.output.OutputConfiguration.ActionOnOutput;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
@@ -36,6 +42,7 @@ class AdlsGen2OutputTest extends AdlsGen2TestBase {
 
     @Test
     public void produce() {
+        outputConfiguration.setActionOnOutput(ActionOnOutput.OVERWRITE);
         outputConfiguration.setOverwrite(true);
         outputConfiguration.getDataSet().setBlobPath("customers_test_produce.csv");
         components.setInputData(asList(createData(), createData(), createData()));
@@ -43,6 +50,42 @@ class AdlsGen2OutputTest extends AdlsGen2TestBase {
         Job.components() //
                 .component("emitter", "test://emitter") //
                 .component("out", "AdlsGen2://AdlsGen2Output?" + config) //
+                .connections() //
+                .from("emitter") //
+                .to("out") //
+                .build() //
+                .run();
+        final List<Record> records = components.getCollectedData(Record.class);
+    }
+
+    @Test
+    public void fromCsvToJson() {
+
+        CsvConfiguration csvConfig = new CsvConfiguration();
+        csvConfig.setFieldDelimiter(CsvFieldDelimiter.SEMICOLON);
+        csvConfig.setRecordSeparator(CsvRecordSeparator.LF);
+        csvConfig.setCsvSchema("");
+        csvConfig.setHeader(true);
+        dataSet.setCsvConfiguration(csvConfig);
+        dataSet.setBlobPath("demo_gen2/in/customers.csv");
+        inputConfiguration.setDataSet(dataSet);
+        final String inConfig = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
+        //
+        AdlsGen2DataSet outDs = new AdlsGen2DataSet();
+        outDs.setConnection(connection);
+        outDs.setFilesystem(storageFs);
+        outDs.setFormat(FileFormat.JSON);
+        outDs.setBlobPath("demo_gen2/out/customers.json");
+        outputConfiguration.setActionOnOutput(ActionOnOutput.OVERWRITE);
+        outputConfiguration.setOverwrite(true);
+        outputConfiguration.setDataSet(outDs);
+        components.setInputData(asList(createData(), createData(), createData()));
+        //
+
+        final String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
+        Job.components() //
+                .component("emitter", "AdlsGen2://AdlsGen2Input?" + inConfig) //
+                .component("out", "AdlsGen2://AdlsGen2Output?" + outConfig) //
                 .connections() //
                 .from("emitter") //
                 .to("out") //

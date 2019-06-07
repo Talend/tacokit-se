@@ -24,4 +24,6 @@ public interface I18n {
     String healthCheckFailed(final String cause);
 
     String undefinedType(String typeName);
+
+    String cannotOverwriteBlob(String blobName);
 }

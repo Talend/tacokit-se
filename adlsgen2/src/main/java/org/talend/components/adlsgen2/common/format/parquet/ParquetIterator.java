@@ -42,8 +42,8 @@ public class ParquetIterator implements Iterator<Record> {
 
     private GenericRecord current;
 
-    private ParquetIterator(InputStream inputStream) {
-        converter = ParquetConverter.of(recordBuilderFactory);
+    private ParquetIterator(ParquetConverter converter, InputStream inputStream) {
+        this.converter = converter;
         try {
             File tmp = File.createTempFile("talend-adls-gen2-tmp", ".parquet");
             tmp.deleteOnExit();
@@ -88,20 +88,30 @@ public class ParquetIterator implements Iterator<Record> {
      */
     public static class Builder {
 
-        private Builder() {
+        private ParquetConverter converter;
+
+        private ParquetConfiguration configuration;
+
+        private RecordBuilderFactory factory;
+
+        private Builder(RecordBuilderFactory factory) {
+            this.factory = factory;
         }
 
-        public static ParquetIterator.Builder of() {
-            return new ParquetIterator.Builder();
+        public static ParquetIterator.Builder of(RecordBuilderFactory factory) {
+            return new ParquetIterator.Builder(factory);
         }
 
         public ParquetIterator.Builder withConfiguration(
                 @Configuration("parquetConfiguration") final ParquetConfiguration configuration) {
+            this.configuration = configuration;
+            converter = ParquetConverter.of(factory, configuration);
+
             return this;
         }
 
         public ParquetIterator parse(InputStream in) {
-            return new ParquetIterator(in);
+            return new ParquetIterator(converter, in);
         }
 
         public ParquetIterator parse(String content) {

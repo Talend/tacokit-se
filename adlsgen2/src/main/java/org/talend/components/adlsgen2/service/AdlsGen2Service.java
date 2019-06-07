@@ -34,6 +34,7 @@ import javax.json.JsonValue;
 
 import org.talend.components.adlsgen2.common.format.avro.AvroIterator;
 import org.talend.components.adlsgen2.common.format.csv.CsvIterator;
+import org.talend.components.adlsgen2.common.format.json.JsonIterator;
 import org.talend.components.adlsgen2.common.format.parquet.ParquetIterator;
 import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
@@ -86,7 +87,6 @@ public class AdlsGen2Service implements Serializable {
     private transient Map<String, String> sasMap;
 
     public AdlsGen2APIClient getClient(@Configuration("connection") final AdlsGen2Connection connection) {
-        log.warn("[getClient] setting base url {}", connection.apiUrl());
         client.base(connection.apiUrl());
         return client;
     }
@@ -144,7 +144,6 @@ public class AdlsGen2Service implements Serializable {
     }
 
     public Response handleResponse(Response response) {
-        log.info("[handleResponse] response:[{}] {}.", response.status(), response.headers());
         if (successfulOperations.contains(response.status())) {
             return response;
         } else {
@@ -157,11 +156,12 @@ public class AdlsGen2Service implements Serializable {
         case CSV:
             return CsvIterator.Builder.of(recordBuilder).withConfiguration(dataSet.getCsvConfiguration()).parse(content);
         case AVRO:
-            return AvroIterator.Builder.of().withConfiguration(dataSet.getAvroConfiguration()).parse(content);
+            return AvroIterator.Builder.of(recordBuilder).withConfiguration(dataSet.getAvroConfiguration()).parse(content);
         case JSON:
-            throw new IllegalArgumentException("Not implemented");
+            return JsonIterator.Builder.of(recordBuilder, jsonFactory).withConfiguration(dataSet.getJsonConfiguration())
+                    .parse(content);
         case PARQUET:
-            return ParquetIterator.Builder.of().withConfiguration(dataSet.getParquetConfiguration()).parse(content);
+            return ParquetIterator.Builder.of(recordBuilder).withConfiguration(dataSet.getParquetConfiguration()).parse(content);
         }
         throw new IllegalStateException("Could not determine operation to do.");
     }
@@ -174,7 +174,6 @@ public class AdlsGen2Service implements Serializable {
         for (JsonValue v : result.body().getJsonArray(Constants.ATTR_FILESYSTEMS)) {
             fs.add(v.asJsonObject().getString(Constants.ATTR_NAME));
         }
-        log.info("fs: {}", fs);
         return fs;
     }
 
@@ -223,7 +222,6 @@ public class AdlsGen2Service implements Serializable {
                 dataSet.getBlobPath(), //
                 sasMap //
         ));
-        log.info("[pathGetProperties] [{}] {}.\n{}", result.status(), result.headers());
         if (result.status() == 200) {
             for (String header : result.headers().keySet()) {
                 if (header.startsWith(Constants.PREFIX_FOR_STORAGE_HEADER)) {
@@ -251,13 +249,11 @@ public class AdlsGen2Service implements Serializable {
                 "", //
                 60 //
         );
-        log.warn("[pathExists] [{}] {}.\n{}", result.status(), result.headers(), result.body());
         if (result.status() != Constants.HTTP_RESPONSE_CODE_200_OK) {
             return infos;
         }
         String fileName = extractFileName(dataSet.getBlobPath());
         for (JsonValue f : result.body().getJsonArray(Constants.ATTR_PATHS)) {
-            log.info("[pathExists] => {}.", f.asJsonObject().getString(Constants.ATTR_NAME));
             if (f.asJsonObject().getString(Constants.ATTR_NAME).equals(dataSet.getBlobPath())) {
                 infos.setExists(true);
                 infos.setName(f.asJsonObject().getString(Constants.ATTR_NAME));
@@ -289,7 +285,6 @@ public class AdlsGen2Service implements Serializable {
                 60, //
                 sasMap //
         ));
-        log.info("[pathRead] [{}] {}.", result.status(), result.headers());
         return convertToRecordList(configuration.getDataSet(), result.body());
     }
 
@@ -304,7 +299,6 @@ public class AdlsGen2Service implements Serializable {
                 Constants.ATTR_FILE, //
                 sasMap, //
                 ""));
-        log.info("[pathCreate] [{}] {}.\n{}", result.status(), result.headers(), result.body());
         return result;
     }
 
@@ -322,8 +316,6 @@ public class AdlsGen2Service implements Serializable {
                 sasMap, //
                 content //
         ));
-        log.info("[pathUpdate] [{}] {}", result.status(), result.headers());
-
         return result;
     }
 
@@ -349,8 +341,6 @@ public class AdlsGen2Service implements Serializable {
                 sasMap, //
                 "" //
         ));
-        log.info("[flushBlob] [{}] {}", result.status(), result.headers());
-
         return result;
     }
 

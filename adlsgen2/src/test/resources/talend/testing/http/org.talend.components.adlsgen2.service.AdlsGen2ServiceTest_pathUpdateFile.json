@@ -9,19 +9,19 @@
         "Content-Type":"application/json; charset=utf-8"
       },
       "method":"PATCH",
-      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/myNewFolder/customer.csv?action=append&position=0&sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-06-02T17:12:37Z&st=2019-04-02T09:12:37Z&spr=https&sig=sign-here"
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/myNewFolder/customer.csv?action=append&position=0&sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-12-31T20:47:23Z&st=2019-06-06T11:47:23Z&spr=https&sig=sign-here"
     },
     "response":{
       "headers":{
         "x-ms-version":"2018-11-09",
         "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
-        "x-ms-error-code":"AuthenticationFailed",
-        "Content-Length":"268",
-        "x-ms-request-id":"4155f6cf-a01f-001c-1600-1a1db5000000",
-        "Content-Type":"application/json;charset=utf-8"
+        "Content-Length":"0",
+        "x-ms-request-server-encrypted":"true",
+        "x-ms-request-id":"67bcf428-201f-0060-4746-1d334a000000",
+        "Content-MD5":"ug+ahW1Pm5eKpHRR7TkZlQ=="
       },
-      "payload":"{\"error\":{\"code\":\"AuthenticationFailed\",\"message\":\"Server failed to authenticate the request. Make sure the value of Authorization header is formed correctly including the signature.\\nRequestId:4155f6cf-a01f-001c-1600-1a1db5000000\\nTime:2019-06-03T11:32:59.2708164Z\"}}",
-      "status":403
+      "payload":"",
+      "status":202
     }
   }
 ]

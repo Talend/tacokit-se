@@ -17,8 +17,8 @@ import java.io.Serializable;
 import org.talend.components.adlsgen2.common.format.FileFormat;
 import org.talend.components.adlsgen2.common.format.avro.AvroConfiguration;
 import org.talend.components.adlsgen2.common.format.csv.CsvConfiguration;
+import org.talend.components.adlsgen2.common.format.json.JsonConfiguration;
 import org.talend.components.adlsgen2.common.format.parquet.ParquetConfiguration;
-import org.talend.components.adlsgen2.common.format.unknown.UnknownConfiguration;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
@@ -43,7 +43,7 @@ import static org.talend.components.adlsgen2.service.UIActionService.ACTION_FILE
         @GridLayout.Row("csvConfiguration"), //
         @GridLayout.Row("avroConfiguration"), //
         @GridLayout.Row("parquetConfiguration"), //
-        @GridLayout.Row("unknownConfiguration"), //
+        @GridLayout.Row("jsonConfiguration"), //
 })
 @Documentation("ADLS DataSet")
 public class AdlsGen2DataSet implements Serializable {
@@ -83,6 +83,7 @@ public class AdlsGen2DataSet implements Serializable {
     private ParquetConfiguration parquetConfiguration;
 
     @Option
-    @ActiveIf(target = "format", value = "UNKNOWN")
-    private UnknownConfiguration unknownConfiguration;
+    @ActiveIf(target = "format", value = "JSON")
+    private JsonConfiguration jsonConfiguration;
+
 }

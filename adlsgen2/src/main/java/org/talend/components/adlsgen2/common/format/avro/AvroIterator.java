@@ -35,8 +35,8 @@ public class AvroIterator implements Iterator<Record> {
 
     private DataFileStream<GenericRecord> reader;
 
-    private AvroIterator(InputStream inputStream) {
-        converter = AvroConverter.of(recordBuilderFactory);
+    private AvroIterator(AvroConverter converter, InputStream inputStream) {
+        this.converter = converter;
         try {
             DatumReader<GenericRecord> datumReader = new GenericDatumReader<GenericRecord>();
             reader = new DataFileStream<GenericRecord>(inputStream, datumReader);
@@ -71,19 +71,29 @@ public class AvroIterator implements Iterator<Record> {
      */
     public static class Builder {
 
-        private Builder() {
+        private AvroConverter converter;
+
+        private AvroConfiguration configuration;
+
+        private RecordBuilderFactory factory;
+
+        private Builder(final RecordBuilderFactory factory) {
+            this.factory = factory;
         }
 
-        public static AvroIterator.Builder of() {
-            return new AvroIterator.Builder();
+        public static AvroIterator.Builder of(RecordBuilderFactory factory) {
+            return new AvroIterator.Builder(factory);
         }
 
         public AvroIterator.Builder withConfiguration(@Configuration("avroConfiguration") final AvroConfiguration configuration) {
+            this.configuration = configuration;
+            converter = AvroConverter.of(factory, configuration);
+
             return this;
         }
 
         public AvroIterator parse(InputStream in) {
-            return new AvroIterator(in);
+            return new AvroIterator(converter, in);
         }
 
         public AvroIterator parse(String content) {

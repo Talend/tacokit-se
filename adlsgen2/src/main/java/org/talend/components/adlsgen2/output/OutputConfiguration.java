@@ -14,8 +14,9 @@ package org.talend.components.adlsgen2.output;
 
 import java.io.Serializable;
 
+import org.talend.components.adlsgen2.common.format.FileFormat;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.ui.DefaultValue;
+import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
@@ -24,7 +25,7 @@ import lombok.Data;
 @Data
 @GridLayout(value = { //
         @GridLayout.Row({ "dataSet" }), //
-        @GridLayout.Row({ "overwrite" }), //
+        @GridLayout.Row({ "actionOnOutput", "overwrite" }), //
 })
 @Documentation("ADLS output configuration")
 public class OutputConfiguration implements Serializable {
@@ -34,7 +35,35 @@ public class OutputConfiguration implements Serializable {
     private org.talend.components.adlsgen2.dataset.AdlsGen2DataSet dataSet;
 
     @Option
-    @DefaultValue("false")
-    @Documentation("Overwrite Blob")
-    private boolean overwrite;
+    @ActiveIf(target = "./dataSet/format", value = "CSV")
+    @Documentation("Action on output")
+    private ActionOnOutput actionOnOutput = ActionOnOutput.DEFAULT;
+
+    @Option
+    @ActiveIf(negate = true, target = "./dataSet/format", value = "CSV")
+    @Documentation("Overwrite")
+    private boolean overwrite = Boolean.FALSE;
+
+    public enum ActionOnOutput {
+        DEFAULT,
+        APPEND,
+        OVERWRITE
+    }
+
+    public boolean isFailOnExistingBlob() {
+        if (dataSet.getFormat().equals(FileFormat.CSV)) {
+            return ActionOnOutput.DEFAULT.equals(actionOnOutput);
+        } else {
+            return !overwrite;
+        }
+    }
+
+    public boolean isBlobOverwrite() {
+        if (dataSet.getFormat().equals(FileFormat.CSV)) {
+            return ActionOnOutput.OVERWRITE.equals(actionOnOutput);
+        } else {
+            return overwrite;
+        }
+    }
+
 }

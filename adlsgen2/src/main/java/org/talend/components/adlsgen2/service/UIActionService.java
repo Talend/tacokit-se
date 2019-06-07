@@ -46,7 +46,6 @@ public class UIActionService implements Serializable {
 
     @HealthCheck(ACTION_HEALTHCHECK)
     public HealthCheckStatus validateConnection(@Option final AdlsGen2Connection connection) {
-        log.info("[validateConnection] {}.", connection);
         try {
             service.filesystemList(connection);
         } catch (Exception e) {
@@ -57,7 +56,6 @@ public class UIActionService implements Serializable {
 
     @Suggestions(ACTION_FILESYSTEMS)
     public SuggestionValues filesystemList(@Option final AdlsGen2Connection connection) {
-        log.warn("[filesystemList] connection: {}", connection);
         List<Item> items = new ArrayList<>();
         for (String s : service.filesystemList(connection)) {
             items.add(new SuggestionValues.Item(s, s));

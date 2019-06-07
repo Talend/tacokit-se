@@ -220,12 +220,9 @@ public final class SharedKeyUtils {
             request.headers().set(Constants.HeaderConstants.DATE, Constants.RFC1123GMTDateFormatter.format(OffsetDateTime.now()));
         }
         final String stringToSign = buildStringToSign();
-        log.warn("[buildAuthenticationSignature] stringToSign: {}", stringToSign);
         try {
             final String computedBase64Signature = computeHmac256(stringToSign);
             String signature = "SharedKey " + this.accountName + ":" + computedBase64Signature;
-
-            log.warn("[buildAuthenticationSignature] {}", signature);
             return signature;
         } catch (Exception e) {
             log.error("[computeHmac256] {}", e);

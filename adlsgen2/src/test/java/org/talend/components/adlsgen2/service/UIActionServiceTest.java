@@ -37,9 +37,8 @@ class UIActionServiceTest extends AdlsGen2TestBase {
     void filesystemList() {
         SuggestionValues fs = ui.filesystemList(connection);
         assertNotNull(fs);
-        log.error("[filesystemList] {}", fs);
         for (Item i : fs.getItems()) {
-            log.error("[filesystemList] {}", i);
+            assertNotNull(i);
         }
     }
 }

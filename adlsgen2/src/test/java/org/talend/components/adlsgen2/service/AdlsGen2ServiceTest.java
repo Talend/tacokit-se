@@ -15,7 +15,6 @@ package org.talend.components.adlsgen2.service;
 import java.util.Iterator;
 import java.util.List;
 
-import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 import org.talend.components.adlsgen2.AdlsGen2TestBase;
 import org.talend.components.adlsgen2.common.format.FileFormat;
@@ -25,15 +24,12 @@ import org.talend.sdk.component.junit.http.internal.impl.AzureStorageCredentials
 import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.junit5.WithComponents;
 
-import lombok.extern.slf4j.Slf4j;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-@Slf4j
 @HttpApi(useSsl = true, responseLocator = AzureStorageCredentialsRemovalResponseLocator.class)
 @WithComponents("org.talend.components.adlsgen2")
 class AdlsGen2ServiceTest extends AdlsGen2TestBase {
@@ -44,9 +40,6 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
     @Service
     AdlsGen2APIClient serviceTestClient;
 
-    @Service
-    AccessTokenProvider accessTokenProvider;
-
     @Test
     void getClient() {
         serviceTestClient = service.getClient(connection);
@@ -54,15 +47,7 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
     }
 
     @Test
-    void accessToken() {
-        String result = service.getAccessToken(connection);
-        assertNotNull(result);
-        assertTrue(result.length() > 100);
-    }
-
-    @Test
     void filesystemList() {
-        log.warn("[filesystemList] {}", connection);
         List<String> result = service.filesystemList(connection);
         assertNotNull(result);
         assertTrue(result.size() >= 0);
@@ -73,8 +58,7 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
         String path = "";
         inputConfiguration.getDataSet().setBlobPath(path);
         Object result = service.pathList(inputConfiguration);
-
-        log.warn("[pathList] {}", result);
+        assertNotNull(result);
     }
 
     @Test()
@@ -132,19 +116,6 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
     }
 
     @Test
-    @Ignore
-    void pathReadUnknownFile() {
-        String path = "myNewFolder/nostorelookup.java";
-        inputConfiguration.getDataSet().setBlobPath(path);
-        // inputConfiguration.getDataSet().setFormat(FileFormat.UNKNOWN);
-        Iterator<Record> result = service.pathRead(inputConfiguration);
-        while (result.hasNext()) {
-            Record r = result.next();
-            assertNotNull(r);
-        }
-    }
-
-    @Test
     void pathReadParquetFile() {
         String path = "demo_gen2/in/parquet_file.parquet";
         inputConfiguration.getDataSet().setBlobPath(path);
@@ -153,7 +124,6 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
         while (result.hasNext()) {
             Record r = result.next();
             assertNotNull(r);
-            log.info("{} {}", r, r.getArray(String.class, "topics"));
         }
     }
 
@@ -172,7 +142,6 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
         while (result.hasNext()) {
             Record r = result.next();
             assertNotNull(r);
-            log.info("{}", r.getOptionalLong("cc"));
         }
     }
 
@@ -198,7 +167,7 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
         outputConfiguration.setOverwrite(true);
         String content = "ABC;DEF;123;true;GBG\n";
         Object result = service.pathUpdate(outputConfiguration, content, 0);
-        log.warn("[pathList] {}", result);
+        assertNotNull(result);
     }
 
     @Test
@@ -206,6 +175,6 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
         String path = "myNewFolder/customer.csv";
         outputConfiguration.getDataSet().setBlobPath(path);
         Object result = service.pathGetProperties(outputConfiguration.getDataSet());
-        log.warn("[pathGetProperties] {}", result);
+        assertNotNull(result);
     }
 }
