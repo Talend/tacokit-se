@@ -1,0 +1,28 @@
+[
+  {
+    "request":{
+      "headers":{
+        "content-length":"0",
+        "x-ms-version":"2018-11-09",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "x-ms-date":"Sun, 09 Jun 2019 19:15:06 GMT",
+        "Connection":"keep-alive",
+        "Content-Type":"application/json; charset=utf-8"
+      },
+      "method":"GET",
+      "uri":"https://undxgen2.dfs.core.windows.net/?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-12-31T20:47:23Z&st=2019-06-06T11:47:23Z&spr=https&sig=sign-here&resource=account"
+    },
+    "response":{
+      "headers":{
+        "Transfer-Encoding":"chunked",
+        "x-ms-version":"2018-11-09",
+        "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
+        "x-ms-request-id":"85619447-a01f-0051-08f7-1ed259000000",
+        "x-ms-continuation":"",
+        "Content-Type":"application/json;charset=utf-8"
+      },
+      "payload":"{\"filesystems\":[{\"etag\":\"0x8D6A7934A105538\",\"lastModified\":\"Wed, 13 Mar 2019 09:07:16 GMT\",\"name\":\"adls-gen2\"},{\"etag\":\"0x8D6ABB21A491827\",\"lastModified\":\"Mon, 18 Mar 2019 14:57:55 GMT\",\"name\":\"ufs\"}]}\n",
+      "status":200
+    }
+  }
+]
