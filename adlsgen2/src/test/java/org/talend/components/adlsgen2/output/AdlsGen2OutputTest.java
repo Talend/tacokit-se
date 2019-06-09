@@ -14,13 +14,15 @@ package org.talend.components.adlsgen2.output;
 
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.talend.components.adlsgen2.AdlsGen2TestBase;
 import org.talend.components.adlsgen2.common.format.FileFormat;
 import org.talend.components.adlsgen2.common.format.csv.CsvConfiguration;
 import org.talend.components.adlsgen2.common.format.csv.CsvFieldDelimiter;
 import org.talend.components.adlsgen2.common.format.csv.CsvRecordSeparator;
 import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
+import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
 import org.talend.components.adlsgen2.output.OutputConfiguration.ActionOnOutput;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
@@ -40,8 +42,10 @@ class AdlsGen2OutputTest extends AdlsGen2TestBase {
     @Service
     private LocalConfiguration configuration;
 
-    @Test
-    public void produce() {
+    @ParameterizedTest
+    @ValueSource(strings = { "SharedKey", "SAS" })
+    public void produceCsv(String authmethod) {
+        connection.setAuthMethod(AuthMethod.valueOf(authmethod));
         outputConfiguration.setActionOnOutput(ActionOnOutput.OVERWRITE);
         outputConfiguration.setOverwrite(true);
         outputConfiguration.getDataSet().setBlobPath("customers_test_produce.csv");
@@ -49,7 +53,7 @@ class AdlsGen2OutputTest extends AdlsGen2TestBase {
         final String config = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
         Job.components() //
                 .component("emitter", "test://emitter") //
-                .component("out", "AdlsGen2://AdlsGen2Output?" + config) //
+                .component("out", "AdlsGen2://Output?" + config) //
                 .connections() //
                 .from("emitter") //
                 .to("out") //
@@ -58,9 +62,10 @@ class AdlsGen2OutputTest extends AdlsGen2TestBase {
         final List<Record> records = components.getCollectedData(Record.class);
     }
 
-    @Test
-    public void fromCsvToJson() {
-
+    @ParameterizedTest
+    @ValueSource(strings = { "SharedKey", "SAS" })
+    public void fromCsvToJson(String authmethod) {
+        connection.setAuthMethod(AuthMethod.valueOf(authmethod));
         CsvConfiguration csvConfig = new CsvConfiguration();
         csvConfig.setFieldDelimiter(CsvFieldDelimiter.SEMICOLON);
         csvConfig.setRecordSeparator(CsvRecordSeparator.LF);
@@ -84,10 +89,46 @@ class AdlsGen2OutputTest extends AdlsGen2TestBase {
 
         final String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
         Job.components() //
-                .component("emitter", "AdlsGen2://AdlsGen2Input?" + inConfig) //
-                .component("out", "AdlsGen2://AdlsGen2Output?" + outConfig) //
+                .component("emitter", "AdlsGen2://Input?" + inConfig) //
+                .component("out", "AdlsGen2://Output?" + outConfig) //
                 .connections() //
                 .from("emitter") //
+                .to("out") //
+                .build() //
+                .run();
+        final List<Record> records = components.getCollectedData(Record.class);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "SharedKey", "SAS" })
+    public void fromCsvToAvro(String authmethod) {
+        connection.setAuthMethod(AuthMethod.valueOf(authmethod));
+        CsvConfiguration csvConfig = new CsvConfiguration();
+        csvConfig.setFieldDelimiter(CsvFieldDelimiter.SEMICOLON);
+        csvConfig.setRecordSeparator(CsvRecordSeparator.LF);
+        csvConfig.setCsvSchema("");
+        csvConfig.setHeader(true);
+        dataSet.setCsvConfiguration(csvConfig);
+        dataSet.setBlobPath("demo_gen2/in/customers.csv");
+        inputConfiguration.setDataSet(dataSet);
+        final String inConfig = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
+        //
+        AdlsGen2DataSet outDs = new AdlsGen2DataSet();
+        outDs.setConnection(connection);
+        outDs.setFilesystem(storageFs);
+        outDs.setFormat(FileFormat.AVRO);
+        outDs.setBlobPath("demo_gen2/out/customers.avro");
+        outputConfiguration.setActionOnOutput(ActionOnOutput.OVERWRITE);
+        outputConfiguration.setOverwrite(true);
+        outputConfiguration.setDataSet(outDs);
+        components.setInputData(asList(createData(), createData(), createData()));
+        //
+        final String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
+        Job.components() //
+                .component("in", "AdlsGen2://Input?" + inConfig) //
+                .component("out", "AdlsGen2://Output?" + outConfig) //
+                .connections() //
+                .from("in") //
                 .to("out") //
                 .build() //
                 .run();

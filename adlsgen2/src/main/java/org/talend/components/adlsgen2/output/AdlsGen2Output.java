@@ -12,9 +12,7 @@
  */
 package org.talend.components.adlsgen2.output;
 
-import java.io.IOException;
 import java.io.Serializable;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,9 +20,9 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.json.JsonBuilderFactory;
 
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
 import org.talend.components.adlsgen2.common.format.json.JsonConverter;
+import org.talend.components.adlsgen2.output.formatter.ContentFormatter;
+import org.talend.components.adlsgen2.output.formatter.ContentFormatterFactory;
 import org.talend.components.adlsgen2.service.AdlsGen2Service;
 import org.talend.components.adlsgen2.service.AdlsGen2Service.BlobInformations;
 import org.talend.components.adlsgen2.service.I18n;
@@ -33,10 +31,11 @@ import org.talend.sdk.component.api.component.Icon.IconType;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
+import org.talend.sdk.component.api.processor.AfterGroup;
+import org.talend.sdk.component.api.processor.BeforeGroup;
 import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
@@ -45,9 +44,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Version(1)
 @Icon(value = IconType.FILE_CSV_O)
-@Processor(name = "AdlsGen2Output", family = "AdlsGen2")
+@Processor(name = "Output")
 @Documentation("Azure Data Lake Storage Gen2 Output")
 public class AdlsGen2Output implements Serializable {
+
+    @Service
+    RecordBuilderFactory recordBuilderFactory;
+
+    @Service
+    JsonBuilderFactory jsonBuilderFactory;
 
     @Service
     private final AdlsGen2Service service;
@@ -65,16 +70,10 @@ public class AdlsGen2Output implements Serializable {
 
     private JsonConverter jsonConverter;
 
-    @Service
-    RecordBuilderFactory recordBuilderFactory;
-
-    @Service
-    JsonBuilderFactory jsonBuilderFactory;
+    private ContentFormatter formatter;
 
     public AdlsGen2Output(@Option("configuration") final OutputConfiguration configuration, final AdlsGen2Service service,
-            final I18n i18n, final RecordBuilderFactory recordBuilderFactory, final JsonBuilderFactory jsonBuilderFactory
-
-    ) {
+            final I18n i18n, final RecordBuilderFactory recordBuilderFactory, final JsonBuilderFactory jsonBuilderFactory) {
         this.configuration = configuration;
         this.service = service;
         this.i18n = i18n;
@@ -89,6 +88,9 @@ public class AdlsGen2Output implements Serializable {
 
     @PostConstruct
     public void init() {
+        // formatter
+        formatter = ContentFormatterFactory.getWriter(configuration, service, i18n, recordBuilderFactory, jsonBuilderFactory);
+
         BlobInformations blob = service.getBlobInformations(configuration.getDataSet());
         if (configuration.isFailOnExistingBlob() && blob.isExists()) {
             String msg = i18n.cannotOverwriteBlob(blob.name);
@@ -104,58 +106,30 @@ public class AdlsGen2Output implements Serializable {
         }
     }
 
+    @BeforeGroup
+    public void beforeGroup() {
+    }
+
     @ElementListener
     public void onElement(final Record record) {
         records.add(record);
     }
 
+    @AfterGroup
+    public void afterGroup() {
+    }
+
     @PreDestroy
     public void release() {
-        StringBuilder content = new StringBuilder();
-        for (Record record : records) {
-            switch (configuration.getDataSet().getFormat()) {
-            case CSV:
-                content.append(toCsvFormat(record));
-                break;
-            case JSON:
-                content.append(jsonConverter.fromRecord(record).toString());
-                break;
-            case AVRO:
-            case PARQUET:
-                throw new IllegalStateException("format not implemented");
-            }
-        }
+        byte[] content = formatter.prepareContent(records);
+        service.pathUpdate(configuration, content, position);
         records.clear();
-        service.pathUpdate(configuration, content.toString(), position);
-        position += content.length(); // cumulate length of written records
-
+        position += content.length; // cumulate length of written records
+        // TODO if job has failed in either init or release (pathUpdate), flush may be tried. Not good...
         if (flushNeeded) {
             service.flushBlob(configuration, position);
         }
         // TODO release lease
-    }
-
-    private String[] getStringArrayFromRecord(Record record) {
-        List<String> values = new ArrayList<>();
-        for (Schema.Entry field : record.getSchema().getEntries()) {
-            values.add(record.getString(field.getName()));
-        }
-        return values.toArray(new String[0]);
-    }
-
-    private String toCsvFormat(final Record record) {
-        StringWriter writer = new StringWriter();
-        char fieldDelimiter = configuration.getDataSet().getCsvConfiguration().effectiveFieldDelimiter();
-        char recordDelimiter = configuration.getDataSet().getCsvConfiguration().effectiveRecordSeparator().charAt(0);
-        CSVFormat csv = CSVFormat.DEFAULT.withRecordSeparator(recordDelimiter).withDelimiter(fieldDelimiter);
-        try {
-            CSVPrinter printer = new CSVPrinter(writer, csv);
-
-            printer.printRecord(getStringArrayFromRecord(record));
-            return writer.toString();
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
     }
 
 }

@@ -12,8 +12,10 @@
  */
 package org.talend.components.adlsgen2.service;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.talend.components.adlsgen2.AdlsGen2TestBase;
+import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.completion.SuggestionValues.Item;
@@ -33,8 +35,10 @@ class UIActionServiceTest extends AdlsGen2TestBase {
     @Service
     UIActionService ui;
 
-    @Test
-    void filesystemList() {
+    @ParameterizedTest
+    @ValueSource(strings = { "SharedKey", "SAS" })
+    void filesystemList(String authmethod) {
+        connection.setAuthMethod(AuthMethod.valueOf(authmethod));
         SuggestionValues fs = ui.filesystemList(connection);
         assertNotNull(fs);
         for (Item i : fs.getItems()) {

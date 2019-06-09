@@ -16,13 +16,18 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.talend.components.adlsgen2.AdlsGen2TestBase;
 import org.talend.components.adlsgen2.common.format.FileFormat;
+import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.http.internal.impl.AzureStorageCredentialsRemovalResponseLocator;
 import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.junit5.WithComponents;
+
+import lombok.extern.slf4j.Slf4j;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -30,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+@Slf4j
 @HttpApi(useSsl = true, responseLocator = AzureStorageCredentialsRemovalResponseLocator.class)
 @WithComponents("org.talend.components.adlsgen2")
 class AdlsGen2ServiceTest extends AdlsGen2TestBase {
@@ -46,23 +52,28 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
         assertNotNull(serviceTestClient);
     }
 
-    @Test
-    void filesystemList() {
+    @ParameterizedTest
+    @ValueSource(strings = { "SharedKey", "SAS" })
+    void filesystemList(String authmethod) {
+        connection.setAuthMethod(AuthMethod.valueOf(authmethod));
         List<String> result = service.filesystemList(connection);
         assertNotNull(result);
         assertTrue(result.size() >= 0);
     }
 
-    @Test
-    void pathList() {
-        String path = "";
-        inputConfiguration.getDataSet().setBlobPath(path);
+    @ParameterizedTest
+    @ValueSource(strings = { "SharedKey", "SAS" })
+    void pathList(String authmethod) {
+        connection.setAuthMethod(AuthMethod.valueOf(authmethod));
+        inputConfiguration.getDataSet().setBlobPath("");
         Object result = service.pathList(inputConfiguration);
         assertNotNull(result);
     }
 
-    @Test()
-    void pathListInexistent() {
+    @ParameterizedTest
+    @ValueSource(strings = { "SharedKey", "SAS" })
+    void pathListInexistent(String authmethod) {
+        connection.setAuthMethod(AuthMethod.valueOf(authmethod));
         String path = "myNewFolderZZZ";
         inputConfiguration.getDataSet().setBlobPath(path);
         Object result = null;
@@ -73,8 +84,10 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
         }
     }
 
-    @Test
-    void extractFolderPath() {
+    @ParameterizedTest
+    @ValueSource(strings = { "SharedKey", "SAS" })
+    void extractFolderPath(String authmethod) {
+        connection.setAuthMethod(AuthMethod.valueOf(authmethod));
         String blobPath = "folder01/folder02/newFolder01/blob.txt";
         assertEquals("folder01/folder02/newFolder01", service.extractFolderPath(blobPath));
         blobPath = "/folder01/folder02/newFolder01/blob.txt";
@@ -91,13 +104,15 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
         assertEquals("/", service.extractFolderPath(blobPath));
     }
 
-    @Test
-    void pathExists() {
+    @ParameterizedTest
+    @ValueSource(strings = { "SharedKey", "SAS" })
+    void pathExists(String authmethod) {
+        connection.setAuthMethod(AuthMethod.valueOf(authmethod));
         // paths should exists
         String blobPath = "/myNewFolder/blob.txt";
         inputConfiguration.getDataSet().setBlobPath(blobPath);
         assertTrue(service.pathExists(inputConfiguration.getDataSet()));
-        blobPath = "myNewFolder/blob.txt";
+        blobPath = "/myNewFolder/blob.txt";
         inputConfiguration.getDataSet().setBlobPath(blobPath);
         assertTrue(service.pathExists(inputConfiguration.getDataSet()));
         blobPath = "myNewFolder/subfolder02/blob.txt";
@@ -110,13 +125,15 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
         blobPath = "myNewFolder/subfolder03/blob.txt";
         inputConfiguration.getDataSet().setBlobPath(blobPath);
         assertFalse(service.pathExists(inputConfiguration.getDataSet()));
-        blobPath = "/newFolder01ZZZ/blob.txt";
+        blobPath = "newFolder01ZZZ/blob.txt";
         inputConfiguration.getDataSet().setBlobPath(blobPath);
         assertFalse(service.pathExists(inputConfiguration.getDataSet()));
     }
 
-    @Test
-    void pathReadParquetFile() {
+    @ParameterizedTest
+    @ValueSource(strings = { "SharedKey", "SAS" })
+    void pathReadParquetFile(String authmethod) {
+        connection.setAuthMethod(AuthMethod.valueOf(authmethod));
         String path = "demo_gen2/in/parquet_file.parquet";
         inputConfiguration.getDataSet().setBlobPath(path);
         inputConfiguration.getDataSet().setFormat(FileFormat.PARQUET);
@@ -127,8 +144,10 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
         }
     }
 
-    @Test
-    void pathReadAvroFile() {
+    @ParameterizedTest
+    @ValueSource(strings = { "SharedKey", "SAS" })
+    void pathReadAvroFile(String authmethod) {
+        connection.setAuthMethod(AuthMethod.valueOf(authmethod));
         // String path = "demo_gen2/in/users.avro";
         String path = "demo_gen2/in/userdata1.avro";
         inputConfiguration.getDataSet().setBlobPath(path);
@@ -145,8 +164,11 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
         }
     }
 
-    @Test
-    void pathReadMediumFile() {
+    @ParameterizedTest
+    @ValueSource(strings = { "SharedKey", "SAS" })
+    void pathReadMediumFile(String authmethod) {
+        connection.setAuthMethod(AuthMethod.valueOf(authmethod));
+        inputConfiguration.getDataSet().setConnection(connection);
         // String path = "myNewFolder/customer.csv";
         String path = "myNewFolder/customer_20190325.csv";
         inputConfiguration.getDataSet().setBlobPath(path);
@@ -160,18 +182,22 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
         assertEquals(10000, count);
     }
 
-    @Test
-    void pathUpdateFile() {
+    @ParameterizedTest
+    @ValueSource(strings = { "SharedKey", "SAS" })
+    void pathUpdateFile(String authmethod) {
+        connection.setAuthMethod(AuthMethod.valueOf(authmethod));
         String path = "myNewFolder/customer.csv";
         outputConfiguration.getDataSet().setBlobPath(path);
         outputConfiguration.setOverwrite(true);
         String content = "ABC;DEF;123;true;GBG\n";
-        Object result = service.pathUpdate(outputConfiguration, content, 0);
+        Object result = service.pathUpdate(outputConfiguration, content.getBytes(), 0);
         assertNotNull(result);
     }
 
-    @Test
-    void pathGetProperties() {
+    @ParameterizedTest
+    @ValueSource(strings = { "SharedKey", "SAS" })
+    void pathGetProperties(String authmethod) {
+        connection.setAuthMethod(AuthMethod.valueOf(authmethod));
         String path = "myNewFolder/customer.csv";
         outputConfiguration.getDataSet().setBlobPath(path);
         Object result = service.pathGetProperties(outputConfiguration.getDataSet());

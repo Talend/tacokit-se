@@ -17,8 +17,7 @@ import java.util.Map;
 
 import javax.json.JsonObject;
 
-import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
-import org.talend.sdk.component.api.service.http.ConfigurerOption;
+import org.talend.sdk.component.api.service.http.Headers;
 import org.talend.sdk.component.api.service.http.HttpClient;
 import org.talend.sdk.component.api.service.http.Path;
 import org.talend.sdk.component.api.service.http.Query;
@@ -30,16 +29,16 @@ import org.talend.sdk.component.api.service.http.UseConfigurer;
 public interface AdlsGen2APIClient extends HttpClient {
 
     // GET http://{accountName}.{dnsSuffix}/?resource=account
+
     /**
      * @return Filesystem[]
      */
-    @UseConfigurer(AdlsGen2APIConfigurer.class)
     @Request(path = "/")
     Response<JsonObject> filesystemList( //
-            @ConfigurerOption("connection") AdlsGen2Connection connection, //
-            @ConfigurerOption("auth") String auth, //
+            @Headers() Map<String, String> headers, //
             @QueryParams(encode = false) Map<String, String> sas, //
-            @Query("resource") String resource);
+            @Query("resource") String resource //
+    );
 
     // GET http://{accountName}.{dnsSuffix}/?resource=account&prefix={prefix}&continuation={continuation}&maxResults
     // ={maxResults}&timeout={timeout}
@@ -64,6 +63,7 @@ public interface AdlsGen2APIClient extends HttpClient {
     @UseConfigurer(AdlsGen2APIConfigurer.class)
     @Request(path = "/?resource=account")
     Response<JsonObject> filesystemList( //
+            @Headers() Map<String, String> headers, //
             @Query("prefix") Boolean prefix, //
             @Query("continuation") String continuation, //
             @Query("maxResults") Integer maxResults, //
@@ -105,60 +105,46 @@ public interface AdlsGen2APIClient extends HttpClient {
      * owner string
      * permissions string
      */
-    @UseConfigurer(AdlsGen2APIConfigurer.class)
     @Request(path = "/{filesystem}")
     Response<JsonObject> pathList( //
-            @ConfigurerOption("connection") AdlsGen2Connection connection, //
-            @ConfigurerOption("auth") String auth, //
+            @Headers() Map<String, String> headers, //
             @Path("filesystem") String filesystem, //
             @QueryParams(encode = false) Map<String, String> sas, //
             @Query("directory") String directory, //
             @Query("resource") String resource, //
             @Query("recursive") Boolean recursive, //
             @Query("continuation") String continuation, //
-            @Query("maxResults") Integer maxResults, //
-            @Query("upn") String upn, //
-            @Query("timeout") Integer timeout //
+            @Query("maxResults") Integer maxResults //
     );
 
     // GET http://{accountName}.{dnsSuffix}/{filesystem}/{path}?timeout={timeout}
+
     /**
-     * @param connection
-     * @param auth
      * @param filesystem The filesystem identifier.
      * @param path The file or directory path.
-     * @param timeout An optional operation timeout value in seconds. The period begins when the request is received by the
-     * service. If the timeout value elapses before the operation completes, the operation fails.
      * @param sas
      * @return
      */
-    @UseConfigurer(AdlsGen2APIConfigurer.class)
     @Request(path = "/{filesystem}/{path}")
     Response<InputStream> pathRead( //
-            @ConfigurerOption("connection") AdlsGen2Connection connection, //
-            @ConfigurerOption("auth") String auth, //
+            @Headers() Map<String, String> headers, //
             @Path("filesystem") String filesystem, //
             @Path("path") String path, //
-            @Query("timeout") Integer timeout, //
             @QueryParams(encode = false) Map<String, String> sas //
     );
 
-    @UseConfigurer(AdlsGen2APIConfigurer.class)
     @Request(path = "/{filesystem}/{path}", method = "HEAD")
     Response<JsonObject> pathGetProperties( //
-            @ConfigurerOption("connection") AdlsGen2Connection connection, //
-            @ConfigurerOption("auth") String auth, //
+            @Headers() Map<String, String> headers, //
             @Path("filesystem") String filesystem, //
             @Path("path") String path, //
             @QueryParams(encode = false) Map<String, String> sas //
     );
 
     // PUT http://{accountName}.{dnsSuffix}/{filesystem}/{path}
-    @UseConfigurer(AdlsGen2APIConfigurer.class)
     @Request(path = "/{filesystem}/{path}", method = "PUT")
     Response<JsonObject> pathCreate( //
-            @ConfigurerOption("connection") AdlsGen2Connection connection, //
-            @ConfigurerOption("auth") String auth, //
+            @Headers() Map<String, String> headers, //
             @Path("filesystem") String filesystem, //
             @Path("path") String path, //
             @Query("resource") String resource, //
@@ -168,29 +154,26 @@ public interface AdlsGen2APIClient extends HttpClient {
     );
 
     // PATCH http://{accountName}.{dnsSuffix}/{filesystem}/{path}?action={action}
+
     /**
-     * @param connection
-     * @param auth
      * @param filesystem The filesystem identifier.
      * @param path The file or directory path.
      * @param action The action must be "append" to upload data to be appended to a file, "flush" to flush previously uploaded
      * data to a file, "setProperties" to set the properties of a file or directory, or "setAccessControl" to set the owner,
      * group, permissions, or access control list for a file or directory.
      * @param sas Shared Acccess Signature
-     * @param content File content
+     * @param payload File content
      * @return
      */
-    @UseConfigurer(AdlsGen2APIConfigurer.class)
     @Request(path = "/{filesystem}/{path}", method = "PATCH")
     Response<JsonObject> pathUpdate( //
-            @ConfigurerOption("connection") AdlsGen2Connection connection, //
-            @ConfigurerOption("auth") String auth, //
+            @Headers() Map<String, String> headers, //
             @Path("filesystem") String filesystem, //
             @Path("path") String path, //
             @Query("action") String action, //
             @Query("position") long position, //
             @QueryParams(encode = false) Map<String, String> sas, //
-            String content //
+            byte[] payload //
     );
 
 }

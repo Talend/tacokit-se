@@ -1,0 +1,28 @@
+[
+  {
+    "request":{
+      "headers":{
+        "content-length":"0",
+        "x-ms-version":"2018-11-09",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "x-ms-date":"Sun, 09 Jun 2019 17:59:30 GMT",
+        "Connection":"keep-alive",
+        "Content-Type":"application/json; charset=utf-8"
+      },
+      "method":"GET",
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2?directory=myNewFolderZZZ&resource=filesystem&recursive=true&maxResults=5000"
+    },
+    "response":{
+      "headers":{
+        "x-ms-version":"2018-11-09",
+        "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
+        "x-ms-error-code":"PathNotFound",
+        "Content-Length":"163",
+        "x-ms-request-id":"ba3fa449-401f-0066-72ed-1e00f5000000",
+        "Content-Type":"application/json;charset=utf-8"
+      },
+      "payload":"{\"error\":{\"code\":\"PathNotFound\",\"message\":\"The specified path does not exist.\\nRequestId:ba3fa449-401f-0066-72ed-1e00f5000000\\nTime:2019-06-09T17:59:30.8445247Z\"}}",
+      "status":404
+    }
+  }
+]

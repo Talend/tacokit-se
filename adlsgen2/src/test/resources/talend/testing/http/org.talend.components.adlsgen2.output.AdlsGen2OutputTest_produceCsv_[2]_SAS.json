@@ -1,0 +1,106 @@
+[
+  {
+    "request":{
+      "headers":{
+        "content-length":"0",
+        "x-ms-version":"2018-11-09",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "x-ms-date":"Sun, 09 Jun 2019 17:59:20 GMT",
+        "Connection":"keep-alive",
+        "Content-Type":"application/json; charset=utf-8"
+      },
+      "method":"GET",
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-12-31T20:47:23Z&st=2019-06-06T11:47:23Z&spr=https&sig=sign-here&directory=/&resource=filesystem&recursive=false&maxResults=5000"
+    },
+    "response":{
+      "headers":{
+        "Transfer-Encoding":"chunked",
+        "x-ms-version":"2018-11-09",
+        "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
+        "x-ms-request-id":"37b049df-201f-005f-6bed-1efbe9000000",
+        "Content-Type":"application/json;charset=utf-8"
+      },
+      "payload":"{\"paths\":[{\"etag\":\"Wed, 15 May 2019 07:10:54 GMT\",\"group\":\"$superuser\",\"isDirectory\":\"true\",\"lastModified\":\"Wed, 15 May 2019 07:10:54 GMT\",\"name\":\"New Folder  secondary\",\"owner\":\"$superuser\",\"permissions\":\"rwxr-x---\"},{\"contentLength\":\"162\",\"etag\":\"Sun, 09 Jun 2019 17:59:19 GMT\",\"group\":\"$superuser\",\"lastModified\":\"Sun, 09 Jun 2019 17:59:19 GMT\",\"name\":\"customers_test_produce.csv\",\"owner\":\"$superuser\",\"permissions\":\"rw-r-----\"},{\"etag\":\"Wed, 15 May 2019 07:10:54 GMT\",\"group\":\"$superuser\",\"isDirectory\":\"true\",\"lastModified\":\"Wed, 15 May 2019 07:10:54 GMT\",\"name\":\"demo_gen2\",\"owner\":\"$superuser\",\"permissions\":\"rwxr-x---\"},{\"etag\":\"Wed, 15 May 2019 07:10:54 GMT\",\"group\":\"$superuser\",\"isDirectory\":\"true\",\"lastModified\":\"Wed, 15 May 2019 07:10:54 GMT\",\"name\":\"myNewFolder\",\"owner\":\"$superuser\",\"permissions\":\"rwxr-x---\"},{\"etag\":\"Wed, 15 May 2019 07:10:54 GMT\",\"group\":\"$superuser\",\"isDirectory\":\"true\",\"lastModified\":\"Wed, 15 May 2019 07:10:54 GMT\",\"name\":\"myNewFolder02\",\"owner\":\"$superuser\",\"permissions\":\"rwxr-x---\"},{\"etag\":\"Wed, 15 May 2019 07:10:54 GMT\",\"group\":\"$superuser\",\"isDirectory\":\"true\",\"lastModified\":\"Wed, 15 May 2019 07:10:54 GMT\",\"name\":\"myNewFolder2\",\"owner\":\"$superuser\",\"permissions\":\"rwxr-x---\"}]}\n",
+      "status":200
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "x-ms-version":"2018-11-09",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "x-ms-date":"Sun, 09 Jun 2019 17:59:20 GMT",
+        "Connection":"keep-alive",
+        "Content-Length":"0",
+        "Content-Type":"application/json; charset=utf-8"
+      },
+      "method":"PUT",
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/customers_test_produce.csv?resource=file&sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-12-31T20:47:23Z&st=2019-06-06T11:47:23Z&spr=https&sig=sign-here"
+    },
+    "response":{
+      "headers":{
+        "x-ms-version":"2018-11-09",
+        "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
+        "ETag":"\"0x8D6ED04328F30D2\"",
+        "Last-Modified":"Sun, 09 Jun 2019 17:59:20 GMT",
+        "Content-Length":"0",
+        "x-ms-request-id":"96bfbff9-a01f-0033-47ed-1e107e000000"
+      },
+      "payload":"",
+      "status":201
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "x-ms-version":"2018-11-09",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "x-ms-date":"Sun, 09 Jun 2019 17:59:20 GMT",
+        "Connection":"keep-alive",
+        "Content-Length":"162",
+        "Content-Type":"application/json; charset=utf-8"
+      },
+      "method":"PATCH",
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/customers_test_produce.csv?action=append&position=0&sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-12-31T20:47:23Z&st=2019-06-06T11:47:23Z&spr=https&sig=sign-here"
+    },
+    "response":{
+      "headers":{
+        "x-ms-version":"2018-11-09",
+        "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
+        "Content-Length":"0",
+        "x-ms-request-server-encrypted":"true",
+        "x-ms-request-id":"da39acc9-501f-006a-5eed-1e97fd000000",
+        "Content-MD5":"D24RExad8r7FP77qTtQhBQ=="
+      },
+      "payload":"",
+      "status":202
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "x-ms-version":"2018-11-09",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "x-ms-date":"Sun, 09 Jun 2019 17:59:20 GMT",
+        "Connection":"keep-alive",
+        "Content-Length":"0",
+        "Content-Type":"application/json; charset=utf-8"
+      },
+      "method":"PATCH",
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/customers_test_produce.csv?action=flush&position=162&sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-12-31T20:47:23Z&st=2019-06-06T11:47:23Z&spr=https&sig=sign-here"
+    },
+    "response":{
+      "headers":{
+        "x-ms-version":"2018-11-09",
+        "Server":"Windows-Azure-HDFS/1.0 Microsoft-HTTPAPI/2.0",
+        "ETag":"\"0x8D6ED0432C2D021\"",
+        "Last-Modified":"Sun, 09 Jun 2019 17:59:20 GMT",
+        "Content-Length":"0",
+        "x-ms-request-server-encrypted":"true",
+        "x-ms-request-id":"ba3fa42e-401f-0066-57ed-1e00f5000000"
+      },
+      "payload":"",
+      "status":200
+    }
+  }
+]

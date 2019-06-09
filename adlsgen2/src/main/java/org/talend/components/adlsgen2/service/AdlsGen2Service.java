@@ -32,6 +32,7 @@ import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
 
+import org.apache.commons.lang.StringUtils;
 import org.talend.components.adlsgen2.common.format.avro.AvroIterator;
 import org.talend.components.adlsgen2.common.format.csv.CsvIterator;
 import org.talend.components.adlsgen2.common.format.json.JsonIterator;
@@ -40,6 +41,7 @@ import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
 import org.talend.components.adlsgen2.datastore.Constants;
 import org.talend.components.adlsgen2.datastore.Constants.HeaderConstants;
+import org.talend.components.adlsgen2.datastore.Constants.MethodConstants;
 import org.talend.components.adlsgen2.datastore.SharedKeyUtils;
 import org.talend.components.adlsgen2.input.InputConfiguration;
 import org.talend.components.adlsgen2.output.OutputConfiguration;
@@ -50,9 +52,6 @@ import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import com.google.common.base.Splitter;
-import com.microsoft.rest.v2.http.HttpHeaders;
-import com.microsoft.rest.v2.http.HttpMethod;
-import com.microsoft.rest.v2.http.HttpRequest;
 
 import lombok.Data;
 import lombok.ToString;
@@ -80,43 +79,39 @@ public class AdlsGen2Service implements Serializable {
     @Service
     private AdlsGen2APIClient client;
 
-    private transient String auth;
+    private Map<String, String> SAS;
 
-    private transient String sas;
-
-    private transient Map<String, String> sasMap;
+    private Map<String, String> headers;
 
     public AdlsGen2APIClient getClient(@Configuration("connection") final AdlsGen2Connection connection) {
         client.base(connection.apiUrl());
         return client;
     }
 
-    public void preprareRequest(@Configuration("connection") final AdlsGen2Connection connection) {
+    public void preprareRequest(final AdlsGen2Connection connection, String url, String method, String payloadLength) {
+        log.debug("[preprareRequest] prepare request url:{} [{}].", url, method);
         client.base(connection.apiUrl());
-        auth = "";
+        headers = new HashMap<>();
+        SAS = new HashMap<>();
+        headers.put(Constants.HeaderConstants.DATE, Constants.RFC1123GMTDateFormatter.format(OffsetDateTime.now()));
+        headers.put(HeaderConstants.CONTENT_TYPE, HeaderConstants.DFS_CONTENT_TYPE);
+        headers.put(HeaderConstants.VERSION, HeaderConstants.TARGET_STORAGE_VERSION);
+        if (StringUtils.isNotEmpty(payloadLength)) {
+            headers.put(HeaderConstants.CONTENT_LENGTH, String.valueOf(payloadLength));
+        }
         switch (connection.getAuthMethod()) {
         case SharedKey:
             try {
-                String now = Constants.RFC1123GMTDateFormatter.format(OffsetDateTime.now());
-                String version = HeaderConstants.TARGET_STORAGE_VERSION;
-                String contentType = HeaderConstants.DFS_CONTENT_TYPE;
-                URL url = new URL(connection.apiUrl());
-                Map<String, String> heads = new HashMap<>();
-                heads.put(Constants.HeaderConstants.DATE, now);
-                heads.put(HeaderConstants.CONTENT_TYPE, contentType);
-                heads.put(HeaderConstants.VERSION, version);
-                HttpHeaders headers = new HttpHeaders(heads);
-                HttpRequest request = new HttpRequest(null, HttpMethod.GET, url, headers, null, null);
-                auth = new SharedKeyUtils(connection.getAccountName(), connection.getSharedKey())
-                        .buildAuthenticationSignature(request);
+                URL dest = new URL(url);
+                String auth = new SharedKeyUtils(connection.getAccountName(), connection.getSharedKey())
+                        .buildAuthenticationSignature(dest, method, headers);
+                headers.put(HeaderConstants.AUTHORIZATION, auth);
             } catch (Exception e) {
                 throw new IllegalStateException(e);
             }
             break;
         case SAS:
-            sas = connection.getSas().substring(1);
-            auth = String.format(HeaderConstants.AUTH_SHARED_ACCESS_SIGNATURE, sas);
-            sasMap = Splitter.on("&").withKeyValueSeparator("=").split(sas);
+            SAS = Splitter.on("&").withKeyValueSeparator("=").split(connection.getSas().substring(1));
             break;
         }
     }
@@ -139,7 +134,7 @@ public class AdlsGen2Service implements Serializable {
         } else {
             sb.append("No error code provided. HTTP status:" + status + ".");
         }
-        log.error("[handleResponse] {}", sb.toString());
+        log.error("[handleResponse] {}", sb);
         return new RuntimeException(sb.toString());
     }
 
@@ -168,8 +163,9 @@ public class AdlsGen2Service implements Serializable {
 
     @SuppressWarnings("unchecked")
     public List<String> filesystemList(@Configuration("connection") final AdlsGen2Connection connection) {
-        preprareRequest(connection);
-        Response<JsonObject> result = handleResponse(client.filesystemList(connection, auth, sasMap, Constants.ATTR_ACCOUNT));
+        String url = String.format("%s/?resource=account", connection.apiUrl());
+        preprareRequest(connection, url, MethodConstants.GET, "");
+        Response<JsonObject> result = handleResponse(client.filesystemList(headers, SAS, Constants.ATTR_ACCOUNT));
         List<String> fs = new ArrayList<>();
         for (JsonValue v : result.body().getJsonArray(Constants.ATTR_FILESYSTEMS)) {
             fs.add(v.asJsonObject().getString(Constants.ATTR_NAME));
@@ -179,19 +175,22 @@ public class AdlsGen2Service implements Serializable {
 
     @SuppressWarnings("unchecked")
     public JsonArray pathList(@Configuration("configuration") final InputConfiguration configuration) {
-        preprareRequest(configuration.getDataSet().getConnection());
-        Response<JsonObject> result = handleResponse(client.pathList( //
-                configuration.getDataSet().getConnection(), //
-                auth, //
+        String rcfmt = "%s/%s?directory=%s&resource=filesystem&recursive=true&maxResults=5000";
+        String url = String.format(rcfmt, //
+                configuration.getDataSet().getConnection().apiUrl(), //
                 configuration.getDataSet().getFilesystem(), //
-                sasMap, //
+                configuration.getDataSet().getBlobPath() //
+        );
+        preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.GET, "");
+        Response<JsonObject> result = handleResponse(client.pathList( //
+                headers, //
+                configuration.getDataSet().getFilesystem(), //
+                SAS, //
                 configuration.getDataSet().getBlobPath(), //
                 Constants.ATTR_FILESYSTEM, //
                 true, //
                 null, //
-                5000, //
-                "", //
-                60 //
+                5000 //
         ));
         return result.body().getJsonArray(Constants.ATTR_PATHS);
     }
@@ -213,14 +212,19 @@ public class AdlsGen2Service implements Serializable {
 
     @SuppressWarnings("unchecked")
     public Map<String, String> pathGetProperties(@Configuration("dataSet") final AdlsGen2DataSet dataSet) {
-        preprareRequest(dataSet.getConnection());
+        String rcfmt = "%s/%s/%s";
+        String url = String.format(rcfmt, //
+                dataSet.getConnection().apiUrl(), //
+                dataSet.getFilesystem(), //
+                dataSet.getBlobPath() //
+        );
+        preprareRequest(dataSet.getConnection(), url, MethodConstants.HEAD, "");
         Map<String, String> properties = new HashMap<>();
         Response<JsonObject> result = handleResponse(client.pathGetProperties( //
-                dataSet.getConnection(), //
-                auth, //
+                headers, //
                 dataSet.getFilesystem(), //
                 dataSet.getBlobPath(), //
-                sasMap //
+                SAS //
         ));
         if (result.status() == 200) {
             for (String header : result.headers().keySet()) {
@@ -233,21 +237,23 @@ public class AdlsGen2Service implements Serializable {
     }
 
     public BlobInformations getBlobInformations(@Configuration("dataSet") final AdlsGen2DataSet dataSet) {
-        preprareRequest(dataSet.getConnection());
+        String rcfmt = "%s/%s?directory=%s&resource=filesystem&recursive=false&maxResults=5000";
+        String url = String.format(rcfmt, //
+                dataSet.getConnection().apiUrl(), //
+                dataSet.getFilesystem(), //
+                extractFolderPath(dataSet.getBlobPath()) //
+        );
+        preprareRequest(dataSet.getConnection(), url, MethodConstants.GET, "");
         BlobInformations infos = new BlobInformations();
         Response<JsonObject> result = client.pathList( //
-                dataSet.getConnection(), //
-                auth, //
+                headers, //
                 dataSet.getFilesystem(), //
-                sasMap, //
+                SAS, //
                 extractFolderPath(dataSet.getBlobPath()), //
-                // dataSet.getBlobPath(), //
                 Constants.ATTR_FILESYSTEM, //
                 false, //
                 null, //
-                5000, //
-                "", //
-                60 //
+                5000 //
         );
         if (result.status() != Constants.HTTP_RESPONSE_CODE_200_OK) {
             return infos;
@@ -262,8 +268,12 @@ public class AdlsGen2Service implements Serializable {
                 infos.setEtag(f.asJsonObject().getString("etag"));
                 infos.setContentLength(Integer.parseInt(f.asJsonObject().getString("contentLength")));
                 infos.setLastModified(f.asJsonObject().getString("lastModified"));
-                infos.setOwner(f.asJsonObject().getString("owner"));
-                infos.setPermissions(f.asJsonObject().getString("permissions"));
+                if (f.asJsonObject().entrySet().contains("owner")) {
+                    infos.setOwner(f.asJsonObject().getString("owner"));
+                }
+                if (f.asJsonObject().entrySet().contains("permissions")) {
+                    infos.setPermissions(f.asJsonObject().getString("permissions"));
+                }
             }
         }
 
@@ -276,44 +286,59 @@ public class AdlsGen2Service implements Serializable {
 
     @SuppressWarnings("unchecked")
     public Iterator<Record> pathRead(@Configuration("configuration") final InputConfiguration configuration) {
-        preprareRequest(configuration.getDataSet().getConnection());
+        String rcfmt = "%s/%s/%s";
+        String url = String.format(rcfmt, //
+                configuration.getDataSet().getConnection().apiUrl(), //
+                configuration.getDataSet().getFilesystem(), //
+                configuration.getDataSet().getBlobPath() //
+        );
+        preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.GET, "");
         Response<InputStream> result = handleResponse(client.pathRead( //
-                configuration.getDataSet().getConnection(), //
-                auth, //
+                headers, //
                 configuration.getDataSet().getFilesystem(), //
                 configuration.getDataSet().getBlobPath(), //
-                60, //
-                sasMap //
+                SAS //
         ));
         return convertToRecordList(configuration.getDataSet(), result.body());
     }
 
     @SuppressWarnings("unchecked")
     public Response<JsonObject> pathCreate(@Configuration("configuration") final OutputConfiguration configuration) {
-        preprareRequest(configuration.getDataSet().getConnection());
+        String rcfmt = "%s/%s/%s?resource=file";
+        String url = String.format(rcfmt, //
+                configuration.getDataSet().getConnection().apiUrl(), //
+                configuration.getDataSet().getFilesystem(), //
+                configuration.getDataSet().getBlobPath() //
+        );
+        preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.PUT, "");
         Response<JsonObject> result = handleResponse(client.pathCreate( //
-                configuration.getDataSet().getConnection(), //
-                auth, //
+                headers, //
                 configuration.getDataSet().getFilesystem(), //
                 configuration.getDataSet().getBlobPath(), //
                 Constants.ATTR_FILE, //
-                sasMap, //
+                SAS, //
                 ""));
         return result;
     }
 
     @SuppressWarnings("unchecked")
     public Response<JsonObject> pathUpdate(@Configuration("configuration") final OutputConfiguration configuration,
-            String content, long position) {
-        preprareRequest(configuration.getDataSet().getConnection());
+            byte[] content, long position) {
+        String rcfmt = "%s/%s/%s?action=append&position=%s";
+        String url = String.format(rcfmt, //
+                configuration.getDataSet().getConnection().apiUrl(), //
+                configuration.getDataSet().getFilesystem(), //
+                configuration.getDataSet().getBlobPath(), //
+                position //
+        );
+        preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.PATCH, String.valueOf(content.length));
         Response<JsonObject> result = handleResponse(client.pathUpdate( //
-                configuration.getDataSet().getConnection(), //
-                auth, //
+                headers, //
                 configuration.getDataSet().getFilesystem(), //
                 configuration.getDataSet().getBlobPath(), //
                 Constants.ATTR_ACTION_APPEND, //
                 position, //
-                sasMap, //
+                SAS, //
                 content //
         ));
         return result;
@@ -330,16 +355,22 @@ public class AdlsGen2Service implements Serializable {
      */
     @SuppressWarnings("unchecked")
     public Response<JsonObject> flushBlob(@Configuration("configuration") OutputConfiguration configuration, long position) {
-        Response<JsonObject> result;
-        result = handleResponse(client.pathUpdate( //
-                configuration.getDataSet().getConnection(), //
-                auth, //
+        String rcfmt = "%s/%s/%s?action=flush&position=%s";
+        String url = String.format(rcfmt, //
+                configuration.getDataSet().getConnection().apiUrl(), //
+                configuration.getDataSet().getFilesystem(), //
+                configuration.getDataSet().getBlobPath(), //
+                position //
+        );
+        preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.PATCH, "");
+        Response<JsonObject> result = handleResponse(client.pathUpdate( //
+                headers, //
                 configuration.getDataSet().getFilesystem(), //
                 configuration.getDataSet().getBlobPath(), //
                 Constants.ATTR_ACTION_FLUSH, //
                 position, //
-                sasMap, //
-                "" //
+                SAS, //
+                new byte[0] //
         ));
         return result;
     }

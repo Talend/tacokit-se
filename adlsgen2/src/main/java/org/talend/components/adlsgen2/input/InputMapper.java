@@ -9,53 +9,55 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
+ *
  */
 package org.talend.components.adlsgen2.input;
 
 import java.io.Serializable;
-import java.util.Iterator;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import java.util.List;
 
 import org.talend.components.adlsgen2.service.AdlsGen2Service;
+import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.input.Producer;
+import org.talend.sdk.component.api.input.Assessor;
+import org.talend.sdk.component.api.input.Emitter;
+import org.talend.sdk.component.api.input.PartitionMapper;
+import org.talend.sdk.component.api.input.PartitionSize;
+import org.talend.sdk.component.api.input.Split;
 import org.talend.sdk.component.api.meta.Documentation;
-import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 
-import lombok.extern.slf4j.Slf4j;
+import static java.util.Collections.singletonList;
 
-@Slf4j
 @Version(1)
-@Documentation("Azure Data Lake Storage Gen2 Input")
-public class AdlsGen2Input implements Serializable {
+@Icon(value = Icon.IconType.FILE_DATABASE_O)
+@PartitionMapper(name = "Input")
+@Documentation("Mapper for Azure Data Lake Storage Gen2")
+public class InputMapper implements Serializable {
 
     @Service
     private final AdlsGen2Service service;
 
-    private InputConfiguration configuration;
+    private final InputConfiguration configuration;
 
-    private Iterator<Record> records;
-
-    public AdlsGen2Input(@Option("configuration") final InputConfiguration configuration, final AdlsGen2Service service) {
+    public InputMapper(@Option("configuration") final InputConfiguration configuration, final AdlsGen2Service service) {
         this.configuration = configuration;
         this.service = service;
     }
 
-    @PostConstruct
-    public void init() {
-        records = service.pathRead(configuration);
+    @Assessor
+    public long estimateSize() {
+        return 1L;
     }
 
-    @Producer
-    public Record next() {
-        return records.next();
+    @Split
+    public List<InputMapper> split(@PartitionSize final long bundles) {
+        return singletonList(this);
     }
 
-    @PreDestroy
-    public void release() {
+    @Emitter
+    public AdlsGen2Input createWorker() {
+        return new AdlsGen2Input(configuration, service);
     }
 }

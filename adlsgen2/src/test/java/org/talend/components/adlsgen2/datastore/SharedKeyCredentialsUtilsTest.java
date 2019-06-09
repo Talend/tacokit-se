@@ -13,18 +13,14 @@
 package org.talend.components.adlsgen2.datastore;
 
 import java.net.URL;
-import java.security.InvalidKeyException;
 import java.util.HashMap;
+import java.util.Map;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.adlsgen2.AdlsGen2TestBase;
+import org.talend.components.adlsgen2.datastore.Constants.MethodConstants;
 import org.talend.sdk.component.junit5.WithComponents;
-
-import com.microsoft.rest.v2.http.HttpHeaders;
-import com.microsoft.rest.v2.http.HttpMethod;
-import com.microsoft.rest.v2.http.HttpRequest;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,18 +34,17 @@ class SharedKeyCredentialsUtilsTest extends AdlsGen2TestBase {
 
     private SharedKeyUtils utils;
 
+    private URL url;
+
+    private Map<String, String> headers;
+
     @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
-        try {
-            utils = new SharedKeyUtils(accountName, accountKey);
-        } catch (InvalidKeyException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    @AfterEach
-    void tearDown() {
+        utils = new SharedKeyUtils(accountName, accountKey);
+        url = new URL(
+                "https://undxgen2.dfs.core.windows.net/adls-gen2?directory=myNewFolder&recursive=false&resource=filesystem&timeout=60");
+        headers = new HashMap<>();
     }
 
     @Test
@@ -59,11 +54,7 @@ class SharedKeyCredentialsUtilsTest extends AdlsGen2TestBase {
 
     @Test
     void buildAuthenticationSignature() throws Exception {
-        URL url = new URL(
-                "https://undxgen2.dfs.core.windows.net/adls-gen2?directory=myNewFolder&recursive=false&resource=filesystem&timeout=60");
-        HttpHeaders headers = new HttpHeaders(new HashMap<>());
-        HttpRequest request = new HttpRequest(null, HttpMethod.GET, url, headers, null, null);
-        String signature = utils.buildAuthenticationSignature(request);
+        String signature = utils.buildAuthenticationSignature(url, MethodConstants.GET, headers);
         assertNotNull(signature);
         assertTrue(signature.startsWith("SharedKey undxgen2:"));
     }

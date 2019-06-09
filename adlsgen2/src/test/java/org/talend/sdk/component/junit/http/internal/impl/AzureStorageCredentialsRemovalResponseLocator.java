@@ -94,10 +94,6 @@ public class AzureStorageCredentialsRemovalResponseLocator extends DefaultRespon
             model.getRequest().setUri(model.getRequest().getUri().replaceAll(AZURE_FIND_TENANT, AZURE_TENANT_REPLACEMENT));
             log.debug("[addModel] removing tenantID [{}]: {}", model.getRequest().getMethod(), model.getRequest().getUri());
         }
-        if (model.getResponse().getPayload().matches(AZURE_FIND_TOKEN)) {
-            model.getResponse().setPayload(AZURE_TOKEN_REPLACEMENT);
-            log.debug("[addModel] removing access_token: {}", model.getResponse().getPayload());
-        }
         // remove some sensitive headers
         if (model.getRequest().getHeaders().get(HeaderConstants.AUTHORIZATION) != null) {
             model.getRequest().getHeaders().put(HeaderConstants.AUTHORIZATION, "SharedAccessKey user:kiki");

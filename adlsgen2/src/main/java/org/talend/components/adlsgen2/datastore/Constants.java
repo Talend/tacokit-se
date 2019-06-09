@@ -142,6 +142,17 @@ public class Constants {
         // Private to prevent construction.
     }
 
+    public static final class MethodConstants {
+
+        public static final String GET = "GET";
+
+        public static final String HEAD = "HEAD";
+
+        public static final String PUT = "PUT";
+
+        public static final String PATCH = "PATCH";
+    }
+
     /**
      * Defines constants for use with HTTP headers.
      */
