@@ -37,7 +37,7 @@
         <module>salesforce</module>
         <module>azure</module>
         <module>azure-eventhubs</module>
-        <module>adlsgen2</module>
+        <module>azure-dls-gen2</module>
     </modules>
 
     <scm>
