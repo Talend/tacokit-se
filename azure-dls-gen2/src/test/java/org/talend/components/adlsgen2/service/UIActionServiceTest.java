@@ -19,12 +19,14 @@ import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.completion.SuggestionValues.Item;
+import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.junit.http.internal.impl.AzureStorageCredentialsRemovalResponseLocator;
 import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.junit5.WithComponents;
 
 import lombok.extern.slf4j.Slf4j;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Slf4j
@@ -37,7 +39,7 @@ class UIActionServiceTest extends AdlsGen2TestBase {
 
     @ParameterizedTest
     @ValueSource(strings = { "SharedKey", "SAS" })
-    void filesystemList(String authmethod) {
+    void filesystemListSuggestions(String authmethod) {
         connection.setAuthMethod(AuthMethod.valueOf(authmethod));
         SuggestionValues fs = ui.filesystemList(connection);
         assertNotNull(fs);
@@ -45,4 +47,12 @@ class UIActionServiceTest extends AdlsGen2TestBase {
             assertNotNull(i);
         }
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "SharedKey", "SAS" })
+    void testHealthCheck(String authmethod) {
+        connection.setAuthMethod(AuthMethod.valueOf(authmethod));
+        assertEquals(HealthCheckStatus.Status.OK, ui.validateConnection(connection).getStatus());
+    }
+
 }
