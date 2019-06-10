@@ -19,6 +19,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.json.JsonBuilderFactory;
+import javax.json.JsonObject;
 
 import org.talend.components.adlsgen2.output.formatter.ContentFormatter;
 import org.talend.components.adlsgen2.output.formatter.ContentFormatterFactory;
@@ -37,6 +38,7 @@ import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import lombok.extern.slf4j.Slf4j;
@@ -64,8 +66,6 @@ public class AdlsGen2Output implements Serializable {
 
     private transient long position = 0;
 
-    private transient boolean flushNeeded = Boolean.TRUE;
-
     private List<Record> records;
 
     private ContentFormatter formatter;
@@ -85,12 +85,12 @@ public class AdlsGen2Output implements Serializable {
     public void init() {
         // formatter
         formatter = ContentFormatterFactory.getWriter(configuration, service, i18n, recordBuilderFactory, jsonBuilderFactory);
-
+        //
         BlobInformations blob = service.getBlobInformations(configuration.getDataSet());
+        log.info("[init] writing blob {} (exists? {}).", blob.name, blob.isExists());
         if (configuration.isFailOnExistingBlob() && blob.isExists()) {
             String msg = i18n.cannotOverwriteBlob(blob.name);
             log.error(msg);
-            flushNeeded = false;
             throw new AdlsGen2RuntimeException(msg);
         }
         // TODO get lease
@@ -118,13 +118,10 @@ public class AdlsGen2Output implements Serializable {
     public void release() {
         log.info("[release] flushing {} records.", records.size());
         byte[] content = formatter.prepareContent(records);
-        service.pathUpdate(configuration, content, position);
+        Response<JsonObject> response = service.pathUpdate(configuration, content, position);
         records.clear();
         position += content.length; // cumulate length of written records
-        // TODO if job has failed in either init or release (pathUpdate), flush may be tried. Not good...
-        if (flushNeeded) {
-            service.flushBlob(configuration, position);
-        }
+        response = service.flushBlob(configuration, position);
         // TODO release lease
     }
 

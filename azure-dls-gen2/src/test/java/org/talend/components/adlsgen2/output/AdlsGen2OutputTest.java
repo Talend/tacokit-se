@@ -171,6 +171,9 @@ class AdlsGen2OutputTest extends AdlsGen2TestBase {
                 .build() //
                 .run();
         final List<Record> records = components.getCollectedData(Record.class);
+        for (Record r : records) {
+            log.warn("[fromAvroToCsv] {}", r);
+        }
     }
 
 }

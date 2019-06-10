@@ -313,14 +313,13 @@ public class AdlsGen2Service implements Serializable {
                 configuration.getDataSet().getBlobPath() //
         );
         preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.PUT, "");
-        Response<JsonObject> result = handleResponse(client.pathCreate( //
+        return handleResponse(client.pathCreate( //
                 headers, //
                 configuration.getDataSet().getFilesystem(), //
                 configuration.getDataSet().getBlobPath(), //
                 Constants.ATTR_FILE, //
                 SAS, //
                 ""));
-        return result;
     }
 
     @SuppressWarnings("unchecked")
@@ -334,7 +333,7 @@ public class AdlsGen2Service implements Serializable {
                 position //
         );
         preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.PATCH, String.valueOf(content.length));
-        Response<JsonObject> result = handleResponse(client.pathUpdate( //
+        return handleResponse(client.pathUpdate( //
                 headers, //
                 configuration.getDataSet().getFilesystem(), //
                 configuration.getDataSet().getBlobPath(), //
@@ -343,7 +342,6 @@ public class AdlsGen2Service implements Serializable {
                 SAS, //
                 content //
         ));
-        return result;
     }
 
     /**
@@ -365,7 +363,7 @@ public class AdlsGen2Service implements Serializable {
                 position //
         );
         preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.PATCH, "");
-        Response<JsonObject> result = handleResponse(client.pathUpdate( //
+        return handleResponse(client.pathUpdate( //
                 headers, //
                 configuration.getDataSet().getFilesystem(), //
                 configuration.getDataSet().getBlobPath(), //
@@ -374,7 +372,6 @@ public class AdlsGen2Service implements Serializable {
                 SAS, //
                 new byte[0] //
         ));
-        return result;
     }
 
     @Data
