@@ -14,6 +14,11 @@
     <name>Components :: AzureBlob</name>
 
     <properties>
+        <!--
+        Used to inject service from the azurecommon module into the azureblob services
+        -->
+        <talend.scan.scannedDependencies>org.talend.components:azurecommon</talend.scan.scannedDependencies>
+        
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!--
