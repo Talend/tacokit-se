@@ -13,8 +13,8 @@
   <name>Components :: Salesforce</name>
 
   <properties>
-    <force-wsc.version>44.0.0</force-wsc.version>
-    <force-partner-api.version>44.0.0</force-partner-api.version>
+    <force-wsc.version>46.0.0</force-wsc.version>
+    <force-partner-api.version>46.0.0</force-partner-api.version>
     <javacsv.version>2.0</javacsv.version>
     <commons-lang3.version>3.7</commons-lang3.version>
     <antlr4-runtime.version>4.6</antlr4-runtime.version>
