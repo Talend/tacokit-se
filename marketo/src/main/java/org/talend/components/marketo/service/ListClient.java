@@ -12,6 +12,15 @@
 // ============================================================================
 package org.talend.components.marketo.service;
 
+import javax.json.JsonObject;
+
+import org.talend.sdk.component.api.service.http.Header;
+import org.talend.sdk.component.api.service.http.HttpClient;
+import org.talend.sdk.component.api.service.http.Path;
+import org.talend.sdk.component.api.service.http.Query;
+import org.talend.sdk.component.api.service.http.Request;
+import org.talend.sdk.component.api.service.http.Response;
+
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ACCESS_TOKEN;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_FIELDS;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ID;
@@ -23,15 +32,6 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_WORKSPACE_N
 import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE;
 import static org.talend.components.marketo.MarketoApiConstants.METHOD_DELETE;
 import static org.talend.components.marketo.MarketoApiConstants.METHOD_POST;
-
-import javax.json.JsonObject;
-
-import org.talend.sdk.component.api.service.http.Header;
-import org.talend.sdk.component.api.service.http.HttpClient;
-import org.talend.sdk.component.api.service.http.Path;
-import org.talend.sdk.component.api.service.http.Query;
-import org.talend.sdk.component.api.service.http.Request;
-import org.talend.sdk.component.api.service.http.Response;
 
 public interface ListClient extends HttpClient {
 
@@ -118,7 +118,7 @@ public interface ListClient extends HttpClient {
     Response<JsonObject> addToList( //
             @Header(HEADER_CONTENT_TYPE) String contentType, //
             @Query(ATTR_ACCESS_TOKEN) String accessToken, //
-            @Path(ATTR_LIST_ID) Integer listId, //
+            @Path(ATTR_LIST_ID) String listId, //
             JsonObject payload //
     );
 

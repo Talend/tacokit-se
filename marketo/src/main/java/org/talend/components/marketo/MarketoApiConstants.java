@@ -135,4 +135,6 @@ public class MarketoApiConstants {
     public static final String DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     public static final int REST_API_LIMIT = 300;
+
+    public static final int HTTP_STATUS_OK = 200;
 }

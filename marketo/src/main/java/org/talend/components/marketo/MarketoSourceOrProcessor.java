@@ -92,7 +92,7 @@ public class MarketoSourceOrProcessor implements Serializable {
      */
     public JsonObject handleResponse(final Response<JsonObject> response) {
         log.debug("[handleResponse] [{}] body: {}.", response.status(), response.body());
-        if (response.status() == 200) {
+        if (response.status() == MarketoApiConstants.HTTP_STATUS_OK) {
             if (response.body().getBoolean(ATTR_SUCCESS)) {
                 return response.body();
             } else {
