@@ -12,6 +12,7 @@
  */
 package org.talend.components.adlsgen2.common.format.avro;
 
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -29,6 +30,7 @@ import org.apache.avro.SchemaBuilder;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.talend.components.adlsgen2.common.converter.RecordConverter;
+import org.talend.components.adlsgen2.common.format.FileFormatRuntimeException;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Entry;
@@ -41,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import static java.util.stream.Collectors.toList;
 
 @Slf4j
-public class AvroConverter implements RecordConverter<GenericRecord> {
+public class AvroConverter implements RecordConverter<GenericRecord>, Serializable {
 
     public static final String AVRO_LOGICAL_TYPE = "logicalType";
 
@@ -224,7 +226,7 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
         case BOOLEAN:
             return org.apache.avro.Schema.Type.BOOLEAN;
         }
-        throw new IllegalStateException(String.format(ERROR_UNDEFINED_TYPE, type.name()));
+        throw new FileFormatRuntimeException(String.format(ERROR_UNDEFINED_TYPE, type.name()));
     }
 
     /**
@@ -266,7 +268,7 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
                 builder.addProp(AVRO_PROP_JAVA_CLASS, Date.class.getCanonicalName()); // mainly for studio
                 break;
             default:
-                throw new IllegalStateException(String.format(ERROR_UNDEFINED_TYPE, e.getType().name()));
+                throw new FileFormatRuntimeException(String.format(ERROR_UNDEFINED_TYPE, e.getType().name()));
             }
             org.apache.avro.Schema unionWithNull;
             if (builder.getType() == org.apache.avro.Schema.Type.RECORD) {
@@ -368,7 +370,7 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
         case BOOLEAN:
             return Type.BOOLEAN;
         default:
-            throw new IllegalStateException(String.format(ERROR_UNDEFINED_TYPE, type.name()));
+            throw new FileFormatRuntimeException(String.format(ERROR_UNDEFINED_TYPE, type.name()));
         }
     }
 
@@ -399,7 +401,7 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
             recordBuilder.withArray(entry, (GenericData.Array<Long>) value);
             break;
         default:
-            throw new IllegalStateException(String.format(ERROR_UNDEFINED_TYPE, entry.getType().name()));
+            throw new FileFormatRuntimeException(String.format(ERROR_UNDEFINED_TYPE, entry.getType().name()));
         }
     }
 
@@ -445,7 +447,7 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
             }
             break;
         default:
-            throw new IllegalStateException(String.format(ERROR_UNDEFINED_TYPE, entry.getType().name()));
+            throw new FileFormatRuntimeException(String.format(ERROR_UNDEFINED_TYPE, entry.getType().name()));
         }
     }
 
@@ -454,7 +456,7 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
             List<org.apache.avro.Schema.Type> tt = field.schema().getTypes().stream().map(org.apache.avro.Schema::getType)
                     .filter(t -> !t.equals(org.apache.avro.Schema.Type.NULL)).collect(toList());
             if (tt.size() == 0 || tt.size() > 1) {
-                throw new IllegalStateException("[inferAvroField] Problem with UNION: Cannot determine Type.");
+                throw new FileFormatRuntimeException("[inferAvroField] Problem with UNION: Cannot determine Type.");
             }
             return tt.get(0);
         } else {

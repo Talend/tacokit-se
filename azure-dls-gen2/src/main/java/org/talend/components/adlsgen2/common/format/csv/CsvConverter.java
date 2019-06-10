@@ -12,6 +12,7 @@
  */
 package org.talend.components.adlsgen2.common.format.csv;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -31,7 +32,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class CsvConverter implements RecordConverter<CSVRecord> {
+public class CsvConverter implements RecordConverter<CSVRecord>, Serializable {
 
     @Getter
     private CSVFormat csvFormat;

@@ -52,7 +52,7 @@ public class AdlsGen2Input implements Serializable {
 
     @Producer
     public Record next() {
-        return records.next();
+        return records.hasNext() ? records.next() : null;
     }
 
     @PreDestroy

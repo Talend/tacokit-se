@@ -14,12 +14,14 @@ package org.talend.components.adlsgen2.common.format.avro;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.Iterator;
 
 import org.apache.avro.file.DataFileStream;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumReader;
+import org.talend.components.adlsgen2.common.format.FileFormatRuntimeException;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -27,7 +29,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class AvroIterator implements Iterator<Record> {
+public class AvroIterator implements Iterator<Record>, Serializable {
 
     private RecordBuilderFactory recordBuilderFactory;
 
@@ -42,7 +44,7 @@ public class AvroIterator implements Iterator<Record> {
             reader = new DataFileStream<GenericRecord>(inputStream, datumReader);
         } catch (IOException e) {
             log.error("[AvroIterator] {}", e);
-            throw new IllegalStateException(e);
+            throw new FileFormatRuntimeException(e.getMessage());
         }
     }
 
@@ -55,7 +57,7 @@ public class AvroIterator implements Iterator<Record> {
                 reader.close();
                 return false;
             } catch (IOException e) {
-                throw new IllegalStateException(e);
+                throw new FileFormatRuntimeException(e.getMessage());
             }
         }
     }

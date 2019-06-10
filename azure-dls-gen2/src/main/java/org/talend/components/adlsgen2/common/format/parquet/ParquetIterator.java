@@ -15,6 +15,7 @@ package org.talend.components.adlsgen2.common.format.parquet;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Iterator;
@@ -25,6 +26,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.parquet.avro.AvroParquetReader;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.util.HadoopInputFile;
+import org.talend.components.adlsgen2.common.format.FileFormatRuntimeException;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -32,7 +34,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ParquetIterator implements Iterator<Record> {
+public class ParquetIterator implements Iterator<Record>, Serializable {
 
     private RecordBuilderFactory recordBuilderFactory;
 
@@ -53,7 +55,7 @@ public class ParquetIterator implements Iterator<Record> {
             reader = AvroParquetReader.<GenericRecord> builder(hdpIn).build();
         } catch (IOException e) {
             log.error("[ParquetIterator] {}", e);
-            throw new IllegalStateException(e);
+            throw new FileFormatRuntimeException(e.getMessage());
         }
     }
 
@@ -68,7 +70,7 @@ public class ParquetIterator implements Iterator<Record> {
             return true;
         } catch (IOException e) {
             log.error("[hasNext] {}", e);
-            throw new IllegalStateException(e);
+            throw new FileFormatRuntimeException(e.getMessage());
         }
     }
 

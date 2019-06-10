@@ -14,6 +14,7 @@ package org.talend.components.adlsgen2.common.format.json;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -35,7 +36,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class JsonIterator implements Iterator<Record> {
+public class JsonIterator implements Iterator<Record>, Serializable {
 
     private RecordBuilderFactory recordBuilderFactory;
 

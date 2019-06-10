@@ -148,16 +148,18 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
     @ValueSource(strings = { "SharedKey", "SAS" })
     void pathReadAvroFile(String authmethod) {
         connection.setAuthMethod(AuthMethod.valueOf(authmethod));
-        // String path = "demo_gen2/in/users.avro";
         String path = "demo_gen2/in/userdata1.avro";
         inputConfiguration.getDataSet().setBlobPath(path);
         inputConfiguration.getDataSet().setFormat(FileFormat.AVRO);
         Iterator<Record> result = service.pathRead(inputConfiguration);
-        // {"name": "Alyssa", "favorite_color": null, "favorite_numbers": [3, 9, 15, 20]}
-        // {"type":"record","name":"User","namespace":"example.avro","fields":[{"name":"name","type":"string"},{"name":
-        // "favorite_color","type":["string","null"]},{"name":"favorite_numbers","type":{"type":"array","items":
-        // "int"}}]}
-
+        while (result.hasNext()) {
+            Record r = result.next();
+            assertNotNull(r);
+        }
+        // another one
+        path = "demo_gen2/in/customers.avro";
+        inputConfiguration.getDataSet().setBlobPath(path);
+        result = service.pathRead(inputConfiguration);
         while (result.hasNext()) {
             Record r = result.next();
             assertNotNull(r);

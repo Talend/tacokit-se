@@ -12,6 +12,8 @@
 // ============================================================================
 package org.talend.components.adlsgen2.common.format.json;
 
+import java.io.Serializable;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 
 import javax.json.JsonBuilderFactory;
@@ -35,7 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import static java.util.stream.Collectors.toList;
 
 @Slf4j
-public class JsonConverter implements RecordConverter<JsonObject> {
+public class JsonConverter implements RecordConverter<JsonObject>, Serializable {
 
     private final JsonConfiguration configuration;
 
@@ -185,8 +187,6 @@ public class JsonConverter implements RecordConverter<JsonObject> {
                 populateJsonObjectEntries(nestedSchemaBuilder, jv.asJsonObject());
                 break;
             case ARRAY:
-
-                break;
             case STRING:
             case BYTES:
             case INT:
@@ -256,7 +256,9 @@ public class JsonConverter implements RecordConverter<JsonObject> {
                             .map(v -> convertJsonObjectToRecord(entry.getElementSchema(), v.asJsonObject())).collect(toList()));
                     break;
                 case ARRAY:
-                    log.error("[convertJsonObjectToRecord] XXXXXX ARRAY: {}", json.get(0).asJsonArray().get(0).getValueType());
+                    log.error("[convertJsonObjectToRecord] Not supporting array of array: {}",
+                            json.get(0).asJsonArray().get(0).getValueType());
+                    break;
                 case STRING:
                     builder.withArray(entry, json.getJsonArray(entry.getName()).stream().map(JsonString.class::cast)
                             .map(JsonString::getString).collect(toList()));
@@ -282,10 +284,15 @@ public class JsonConverter implements RecordConverter<JsonObject> {
                 builder.withString(entry, Optional.ofNullable(json.get(entry.getName())).filter(v -> !JsonValue.NULL.equals(v))
                         .map(JsonString.class::cast).map(JsonString::getString).orElse(null));
                 break;
+            case INT:
+                Optional.ofNullable(json.get(entry.getName())).filter(v -> !JsonValue.NULL.equals(v)).map(JsonNumber.class::cast)
+                        .map(JsonNumber::intValue).ifPresent(value -> builder.withInt(entry, value));
+                break;
             case LONG:
                 Optional.ofNullable(json.get(entry.getName())).filter(v -> !JsonValue.NULL.equals(v)).map(JsonNumber.class::cast)
                         .map(JsonNumber::longValue).ifPresent(value -> builder.withLong(entry, value));
                 break;
+            case FLOAT:
             case DOUBLE:
                 Optional.ofNullable(json.get(entry.getName())).filter(v -> !JsonValue.NULL.equals(v)).map(JsonNumber.class::cast)
                         .map(JsonNumber::doubleValue).ifPresent(value -> builder.withDouble(entry, value));
@@ -294,13 +301,21 @@ public class JsonConverter implements RecordConverter<JsonObject> {
                 Optional.ofNullable(json.get(entry.getName())).filter(v -> !JsonValue.NULL.equals(v)).map(JsonValue.TRUE::equals)
                         .ifPresent(value -> builder.withBoolean(entry, value));
                 break;
-            case INT:
-            case FLOAT:
             case BYTES:
+                Optional.ofNullable(json.get(entry.getName())).filter(v -> !JsonValue.NULL.equals(v)).map(JsonNumber.class::cast)
+                        .map(JsonString.class::cast).ifPresent(value -> builder.withBytes(entry, value.toString().getBytes()));
+                break;
             case DATETIME:
+                try {
+                    Optional.ofNullable(json.get(entry.getName())).filter(v -> !JsonValue.NULL.equals(v))
+                            .map(JsonNumber.class::cast).map(JsonString.class::cast)
+                            .ifPresent(value -> builder.withDateTime(entry, ZonedDateTime.parse(value.toString())));
+                } catch (Exception e) {
+                    log.error("[convertJsonObjectToRecord] parse ZonedDateTime failed for {} : {}.", entry.getName(),
+                            json.get(entry.getName()));
+                }
                 break;
             }
-
         });
 
         return builder.build();

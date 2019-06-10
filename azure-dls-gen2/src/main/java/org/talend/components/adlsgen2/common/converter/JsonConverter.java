@@ -12,9 +12,11 @@
  */
 package org.talend.components.adlsgen2.common.converter;
 
+import java.io.Serializable;
+
 import javax.json.JsonObject;
 
-public interface JsonConverter<T> {
+public interface JsonConverter<T> extends Serializable {
 
     JsonObject toJson(T value);
 

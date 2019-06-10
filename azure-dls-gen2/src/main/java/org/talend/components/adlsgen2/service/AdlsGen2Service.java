@@ -108,7 +108,8 @@ public class AdlsGen2Service implements Serializable {
                         .buildAuthenticationSignature(dest, method, headers);
                 headers.put(HeaderConstants.AUTHORIZATION, auth);
             } catch (Exception e) {
-                throw new IllegalStateException(e);
+                log.error("[preprareRequest] {}", e);
+                throw new AdlsGen2RuntimeException(e.getMessage());
             }
             break;
         case SAS:
@@ -159,7 +160,7 @@ public class AdlsGen2Service implements Serializable {
         case PARQUET:
             return ParquetIterator.Builder.of(recordBuilder).withConfiguration(dataSet.getParquetConfiguration()).parse(content);
         }
-        throw new IllegalStateException("Could not determine operation to do.");
+        throw new AdlsGen2RuntimeException("Could not determine operation to do.");
     }
 
     @SuppressWarnings("unchecked")

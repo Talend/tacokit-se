@@ -23,6 +23,7 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
 import org.talend.components.adlsgen2.common.format.avro.AvroConverter;
 import org.talend.components.adlsgen2.output.OutputConfiguration;
+import org.talend.components.adlsgen2.runtime.AdlsGen2RuntimeException;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -57,7 +58,7 @@ public class AvroContentFormatter implements ContentFormatter {
             dataFileWriter.flush();
             return byteBuffer.toByteArray();
         } catch (IOException e) {
-            throw new IllegalStateException(e);
+            throw new AdlsGen2RuntimeException(e.getMessage());
         }
     }
 }

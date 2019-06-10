@@ -16,12 +16,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.Serializable;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.talend.components.adlsgen2.common.format.FileFormatRuntimeException;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -29,7 +31,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class CsvIterator implements Iterator<Record> {
+public class CsvIterator implements Iterator<Record>, Serializable {
 
     private final Reader reader;
 
@@ -50,7 +52,7 @@ public class CsvIterator implements Iterator<Record> {
             converter.setRuntimeHeaders(parser.getHeaderMap());
             records = parser.iterator();
         } catch (IOException e) {
-            throw new IllegalStateException(e);
+            throw new FileFormatRuntimeException(e.getMessage());
         }
     }
 
@@ -68,7 +70,7 @@ public class CsvIterator implements Iterator<Record> {
                 parser.close();
                 reader.close();
             } catch (IOException e) {
-                throw new IllegalStateException(e);
+                throw new FileFormatRuntimeException(e.getMessage());
             }
             return null;
         }
@@ -103,7 +105,7 @@ public class CsvIterator implements Iterator<Record> {
                 return new CsvIterator(converter, new InputStreamReader(in, configuration.effectiveEncoding()));
             } catch (UnsupportedEncodingException e) {
                 log.error("[parse] {}", e.getMessage());
-                throw new IllegalStateException(e);
+                throw new FileFormatRuntimeException(e.getMessage());
             }
         }
 

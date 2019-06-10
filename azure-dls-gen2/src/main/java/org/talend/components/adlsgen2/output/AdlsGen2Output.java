@@ -20,7 +20,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.json.JsonBuilderFactory;
 
-import org.talend.components.adlsgen2.common.format.json.JsonConverter;
 import org.talend.components.adlsgen2.output.formatter.ContentFormatter;
 import org.talend.components.adlsgen2.output.formatter.ContentFormatterFactory;
 import org.talend.components.adlsgen2.runtime.AdlsGen2RuntimeException;
@@ -69,8 +68,6 @@ public class AdlsGen2Output implements Serializable {
 
     private List<Record> records;
 
-    private JsonConverter jsonConverter;
-
     private ContentFormatter formatter;
 
     public AdlsGen2Output(@Option("configuration") final OutputConfiguration configuration, final AdlsGen2Service service,
@@ -82,9 +79,6 @@ public class AdlsGen2Output implements Serializable {
         this.jsonBuilderFactory = jsonBuilderFactory;
         //
         records = new ArrayList<>();
-        // init converter
-        jsonConverter = JsonConverter.of(recordBuilderFactory, jsonBuilderFactory,
-                configuration.getDataSet().getJsonConfiguration());
     }
 
     @PostConstruct
@@ -122,6 +116,7 @@ public class AdlsGen2Output implements Serializable {
 
     @PreDestroy
     public void release() {
+        log.info("[release] flushing {} records.", records.size());
         byte[] content = formatter.prepareContent(records);
         service.pathUpdate(configuration, content, position);
         records.clear();

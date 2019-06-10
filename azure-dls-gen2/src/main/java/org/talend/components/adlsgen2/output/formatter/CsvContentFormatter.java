@@ -22,6 +22,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.talend.components.adlsgen2.common.format.csv.CsvConverter;
 import org.talend.components.adlsgen2.output.OutputConfiguration;
+import org.talend.components.adlsgen2.runtime.AdlsGen2RuntimeException;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -70,7 +71,7 @@ public class CsvContentFormatter implements ContentFormatter {
             printer.printRecord(getStringArrayFromRecord(record));
             return writer.toString();
         } catch (IOException e) {
-            throw new IllegalStateException(e);
+            throw new AdlsGen2RuntimeException(e.getMessage());
         }
     }
 

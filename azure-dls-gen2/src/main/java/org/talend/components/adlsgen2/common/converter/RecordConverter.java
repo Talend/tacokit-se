@@ -12,12 +12,13 @@
  */
 package org.talend.components.adlsgen2.common.converter;
 
+import java.io.Serializable;
 import java.util.Set;
 
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
-public interface RecordConverter<T> {
+public interface RecordConverter<T> extends Serializable {
 
     Schema inferSchema(T record);
 
