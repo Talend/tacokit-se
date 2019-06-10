@@ -27,6 +27,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
+import org.talend.components.adlsgen2.runtime.AdlsGen2RuntimeException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -221,7 +222,7 @@ public final class SharedKeyUtils {
             byte[] utf8Bytes = stringToSign.getBytes(Constants.UTF8_CHARSET);
             return Base64.getEncoder().encodeToString(hmacSha256.doFinal(utf8Bytes));
         } catch (final UnsupportedEncodingException | NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new AdlsGen2RuntimeException(e.getMessage());
         }
     }
 

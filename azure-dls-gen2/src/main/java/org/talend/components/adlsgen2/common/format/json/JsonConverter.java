@@ -22,6 +22,7 @@ import javax.json.JsonString;
 import javax.json.JsonValue;
 
 import org.talend.components.adlsgen2.common.converter.RecordConverter;
+import org.talend.components.adlsgen2.common.format.FileFormatRuntimeException;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Entry;
@@ -237,7 +238,7 @@ public class JsonConverter implements RecordConverter<JsonObject> {
         case NULL:
             break;
         }
-        throw new RuntimeException("The data type " + value.getValueType() + " is not handled.");
+        throw new FileFormatRuntimeException("The data type " + value.getValueType() + " is not handled.");
     }
 
     private Record convertJsonObjectToRecord(Schema schema, JsonObject json) {
@@ -273,7 +274,7 @@ public class JsonConverter implements RecordConverter<JsonObject> {
                             json.getJsonArray(entry.getName()).stream().map(JsonValue.TRUE::equals).collect(toList()));
                     break;
                 default: {
-                    throw new RuntimeException("Test Record doesn't contain any other data types");
+                    throw new FileFormatRuntimeException("Test Record doesn't contain any other data types");
                 }
                 }
                 break;

@@ -45,6 +45,7 @@ import org.talend.components.adlsgen2.datastore.Constants.MethodConstants;
 import org.talend.components.adlsgen2.datastore.SharedKeyUtils;
 import org.talend.components.adlsgen2.input.InputConfiguration;
 import org.talend.components.adlsgen2.output.OutputConfiguration;
+import org.talend.components.adlsgen2.runtime.AdlsGen2RuntimeException;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.Configuration;
@@ -117,7 +118,7 @@ public class AdlsGen2Service implements Serializable {
     }
 
     @SuppressWarnings("unchecked")
-    private RuntimeException handleError(final int status, final Map<String, List<String>> headers) {
+    private AdlsGen2RuntimeException handleError(final int status, final Map<String, List<String>> headers) {
         StringBuilder sb = new StringBuilder();
         List<String> errors = headers.get(HeaderConstants.HEADER_X_MS_ERROR_CODE);
         if (errors != null && !errors.isEmpty()) {
@@ -135,7 +136,7 @@ public class AdlsGen2Service implements Serializable {
             sb.append("No error code provided. HTTP status:" + status + ".");
         }
         log.error("[handleResponse] {}", sb);
-        return new RuntimeException(sb.toString());
+        return new AdlsGen2RuntimeException(sb.toString());
     }
 
     public Response handleResponse(Response response) {

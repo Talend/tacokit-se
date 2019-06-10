@@ -23,6 +23,7 @@ import javax.json.JsonBuilderFactory;
 import org.talend.components.adlsgen2.common.format.json.JsonConverter;
 import org.talend.components.adlsgen2.output.formatter.ContentFormatter;
 import org.talend.components.adlsgen2.output.formatter.ContentFormatterFactory;
+import org.talend.components.adlsgen2.runtime.AdlsGen2RuntimeException;
 import org.talend.components.adlsgen2.service.AdlsGen2Service;
 import org.talend.components.adlsgen2.service.AdlsGen2Service.BlobInformations;
 import org.talend.components.adlsgen2.service.I18n;
@@ -96,7 +97,7 @@ public class AdlsGen2Output implements Serializable {
             String msg = i18n.cannotOverwriteBlob(blob.name);
             log.error(msg);
             flushNeeded = false;
-            throw new RuntimeException(msg);
+            throw new AdlsGen2RuntimeException(msg);
         }
         // TODO get lease
         position = blob.getContentLength();
