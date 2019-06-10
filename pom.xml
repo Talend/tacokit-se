@@ -35,6 +35,7 @@
     <modules>
         <module>jdbc</module>
         <module>salesforce</module>
+        <module>couchbase</module>
         <module>azure</module>
         <module>azure-eventhubs</module>
         <module>azure-dls-gen2</module>
@@ -68,7 +69,7 @@
         <slf4j.version>1.7.25</slf4j.version>
 
         <beam.version>2.12.0</beam.version>
-        <jackson.version>2.9.8</jackson.version>
+        <jackson.version>2.9.9</jackson.version>
         <jackson-codehaus.version>1.9.14-TALEND</jackson-codehaus.version>
 
         <tcomp0.version>0.23.2</tcomp0.version> <!-- until they are rewritten -->
