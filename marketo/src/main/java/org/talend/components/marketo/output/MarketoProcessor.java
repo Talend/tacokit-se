@@ -69,20 +69,18 @@ public class MarketoProcessor extends MarketoSourceOrProcessor {
 
     @BeforeGroup
     public void begin() {
-        log.debug("[begin] clearing records.");
         records.clear();
     }
 
     @ElementListener
     public void map(@Input final Record incomingData) {
         JsonObject data = marketoService.toJson(incomingData);
-        log.debug("[map] received: {}.", data);
         records.add(data);
     }
 
     @AfterGroup
     public void flush() {
-        log.warn("[flush] called. Processing {} records.", records.size());
+        log.info("[flush] called. Processing {} records.", records.size());
         if (records.isEmpty()) {
             return;
         }
@@ -92,9 +90,7 @@ public class MarketoProcessor extends MarketoSourceOrProcessor {
             throw new MarketoRuntimeException(msg);
         }
         JsonObject payload = strategy.getPayload(records);
-        log.debug("[map] payload : {}.", payload);
         JsonObject result = strategy.runAction(payload);
-        log.debug("[map] result  : {}.", result);
         result.getJsonArray(ATTR_RESULT).getValuesAs(JsonObject.class).stream().filter(strategy::isRejected).forEach(e -> {
             log.error(getErrors(e.getJsonArray(ATTR_REASONS)));
         });

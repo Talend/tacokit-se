@@ -13,10 +13,12 @@
 package org.talend.components.marketo.output;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
+import javax.json.JsonValue;
 
 import org.talend.components.marketo.MarketoApiConstants;
 import org.talend.components.marketo.dataset.MarketoOutputConfiguration;
@@ -33,6 +35,8 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_ERRORS;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ID;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_INPUT;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_LOOKUP_FIELD;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_REASONS;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_RESULT;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_SUCCESS;
 import static org.talend.components.marketo.MarketoApiConstants.HEADER_CONTENT_TYPE_APPLICATION_JSON;
 import static org.talend.components.marketo.dataset.MarketoOutputConfiguration.OutputAction.delete;
@@ -44,9 +48,7 @@ public class LeadStrategy extends OutputComponentStrategy implements ProcessorSt
 
     private final LeadClient leadClient;
 
-    private transient String listId;
-
-    private transient JsonObject listPayload;
+    private final transient String listId;
 
     public LeadStrategy(@Option("configuration") final MarketoOutputConfiguration dataSet, //
             final MarketoService service) {
@@ -55,6 +57,7 @@ public class LeadStrategy extends OutputComponentStrategy implements ProcessorSt
         listClient = service.getListClient();
         leadClient.base(configuration.getDataSet().getDataStore().getEndpoint());
         listClient.base(configuration.getDataSet().getDataStore().getEndpoint());
+        listId = configuration.getDataSet().getListId();
     }
 
     @Override
@@ -65,9 +68,6 @@ public class LeadStrategy extends OutputComponentStrategy implements ProcessorSt
                     .add(ATTR_INPUT, input) //
                     .build();
         } else {
-            // we need to keep leadIds somewhere to update static list after create/update operation
-            setLeadsInListPayload(incomingData);
-            //
             return jsonFactory.createObjectBuilder() //
                     .add(ATTR_ACTION, configuration.getAction().name()) //
                     .add(ATTR_LOOKUP_FIELD, configuration.getLookupField()) //
@@ -89,25 +89,33 @@ public class LeadStrategy extends OutputComponentStrategy implements ProcessorSt
         return handleResponse(leadClient.deleteLeads(HEADER_CONTENT_TYPE_APPLICATION_JSON, accessToken, payload));
     }
 
-    private void setLeadsInListPayload(List<JsonObject> leads) {
-        listId = configuration.getDataSet().getListId();
+    private void addLeadsInList(List<JsonObject> leads) {
         JsonArrayBuilder builder = jsonFactory.createArrayBuilder();
-        leads.stream().map(lead -> builder.add(jsonFactory.createObjectBuilder().add(ATTR_ID, lead.getInt(ATTR_ID))));
-        listPayload = jsonFactory.createObjectBuilder().add(ATTR_INPUT, builder.build()).build();
-        log.warn("[setLeadsInListPayload] leads in list {} : {}.", listId, listPayload);
+        for (JsonObject lead : leads) {
+            builder.add(jsonFactory.createObjectBuilder().add(ATTR_ID, lead.getInt(ATTR_ID)));
+        }
+        JsonObject listPayload = jsonFactory.createObjectBuilder().add(ATTR_INPUT, builder.build()).build();
+        handleListResponse(listClient.addToList(HEADER_CONTENT_TYPE_APPLICATION_JSON, accessToken, listId, listPayload));
     }
 
     private void handleListResponse(Response<JsonObject> response) {
-        log.warn("[handleListResponse] [{}] body: {}.", response.status(), response.body());
-        if (response.status() == MarketoApiConstants.HTTP_STATUS_OK && !response.body().getBoolean(ATTR_SUCCESS)) {
-            log.error(getErrors(response.body().getJsonArray(ATTR_ERRORS)));
+        if (response.status() == MarketoApiConstants.HTTP_STATUS_OK) {
+            if (!response.body().getBoolean(ATTR_SUCCESS)) {
+                log.error("[handleListResponse] Error during adding leads to list {}: {}", listId,
+                        getErrors(response.body().getJsonArray(ATTR_ERRORS)));
+            } else {
+                response.body().getJsonArray(ATTR_RESULT).getValuesAs(JsonObject.class).stream().filter(this::isRejected)
+                        .forEach(e -> log.error("[handleListResponse] Lead add to List {}: {}", listId,
+                                getErrors(e.getJsonArray(ATTR_REASONS))));
+            }
         }
     }
 
     private JsonObject syncLeads(JsonObject payload) {
         Response<JsonObject> response = leadClient.syncLeads(HEADER_CONTENT_TYPE_APPLICATION_JSON, accessToken, payload);
         if (response.status() == MarketoApiConstants.HTTP_STATUS_OK && response.body().getBoolean(ATTR_SUCCESS)) {
-            handleListResponse(listClient.addToList(HEADER_CONTENT_TYPE_APPLICATION_JSON, accessToken, listId, listPayload));
+            addLeadsInList(response.body().getJsonArray(ATTR_RESULT).stream().map(JsonValue::asJsonObject)
+                    .filter(lead -> !isRejected(lead)).collect(Collectors.toList()));
         }
         // return main action status
         return handleResponse(response);
