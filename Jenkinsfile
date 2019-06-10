@@ -181,7 +181,7 @@ spec:
                                     usernameVariable: 'NEXUS_USER',
                                     passwordVariable: 'NEXUS_PASSWORD'),
                             usernamePassword(
-                                    credentialsId: 'xtm-credentials',
+                                    credentialsId: 'xtm-token',
                                     usernameVariable: 'XTM_USER',
                                     passwordVariable: 'XTM_TOKEN')
                     ]) {
@@ -208,7 +208,7 @@ spec:
                                     usernameVariable: 'NEXUS_USER',
                                     passwordVariable: 'NEXUS_PASSWORD'),
                             usernamePassword(
-                                    credentialsId: 'xtm-credentials',
+                                    credentialsId: 'xtm-token',
                                     usernameVariable: 'XTM_USER',
                                     passwordVariable: 'XTM_TOKEN'),
                             usernamePassword(
