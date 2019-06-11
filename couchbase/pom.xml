@@ -15,8 +15,6 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <talend.documentation.htmlAndPdf>false</talend.documentation.htmlAndPdf>
-    <component-runtime.version>1.1.9</component-runtime.version>
-    <component-api.version>1.1.9</component-api.version>
     <testcontainers.version>1.10.3</testcontainers.version>
     <couchbase.client.version>2.7.4</couchbase.client.version>
   </properties>
