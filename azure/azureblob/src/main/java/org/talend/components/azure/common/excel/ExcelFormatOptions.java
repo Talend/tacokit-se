@@ -37,8 +37,8 @@ public class ExcelFormatOptions implements Serializable {
 
     @Option
     @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" })
-//    @Required
-//    FIXME: Required doesn't work simultaneously with @ActiveIf
+    // @Required
+    // FIXME: Required doesn't work simultaneously with @ActiveIf
     @Documentation("")
     private String sheetName;
 
