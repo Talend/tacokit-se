@@ -139,11 +139,8 @@ public class AdlsGen2TestBase implements Serializable {
 
         connection = new AdlsGen2Connection();
         connection.setAuthMethod(AuthMethod.SAS);
-        connection.setTenantId(tenantId);
         connection.setAccountName(accountName);
         connection.setSharedKey(accountKey);
-        connection.setClientId(clientId);
-        connection.setClientSecret(clientSecret);
         connection.setSas(sas);
 
         dataSet = new AdlsGen2DataSet();

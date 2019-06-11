@@ -33,8 +33,6 @@ import static org.talend.components.adlsgen2.service.UIActionService.ACTION_HEAL
         @GridLayout.Row("authMethod"), //
         @GridLayout.Row("accountName"), //
         @GridLayout.Row("sharedKey"), //
-        @GridLayout.Row("tenantId"), //
-        @GridLayout.Row({ "clientId", "clientSecret" }), //
         @GridLayout.Row("sas"), //
 })
 @Documentation("The datastore to connect Azure Data Lake Storage Gen2")
@@ -51,31 +49,11 @@ public class AdlsGen2Connection implements Serializable {
     private AuthMethod authMethod;
 
     @Option
-    // @Required
     @ActiveIf(target = "authMethod", value = "SharedKey")
     @Documentation("Storage Shared Key")
     private String sharedKey;
 
     @Option
-    // @Required
-    @ActiveIf(target = "authMethod", value = "AccessToken")
-    @Documentation("Tenant Id")
-    private String tenantId;
-
-    @Option
-    // @Required
-    @ActiveIf(target = "authMethod", value = "AccessToken")
-    @Documentation("Client Id")
-    private String clientId;
-
-    @Option
-    // @Required
-    @ActiveIf(target = "authMethod", value = "AccessToken")
-    @Documentation("Client Secret")
-    private String clientSecret;
-
-    @Option
-    // @Required
     @ActiveIf(target = "authMethod", value = "SAS")
     @Documentation("Shared Access Signature")
     private String sas;
@@ -90,10 +68,6 @@ public class AdlsGen2Connection implements Serializable {
             url = url + getSas();
         }
         return url;
-    }
-
-    public String oauthUrl() {
-        return String.format(Constants.TOKEN_URL, getTenantId());
     }
 
     public enum AuthMethod {
