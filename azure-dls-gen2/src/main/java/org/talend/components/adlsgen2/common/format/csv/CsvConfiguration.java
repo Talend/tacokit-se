@@ -29,7 +29,7 @@ import lombok.Data;
         @GridLayout.Row({ "escapeCharacter", "textEnclosureCharacter" }), //
         @GridLayout.Row("header"), //
         @GridLayout.Row("csvSchema"), //
-        @GridLayout.Row({ "fileEncoding", "customEncoding" }), //
+        @GridLayout.Row({ "fileEncoding", "customFileEncoding" }), //
 
 })
 @Documentation("CSV Configuration")
@@ -66,9 +66,9 @@ public class CsvConfiguration implements Serializable {
     private FileEncoding fileEncoding = FileEncoding.UTF8;
 
     @Option
-    @ActiveIf(target = "encoding", value = "OTHER")
+    @ActiveIf(target = "fileEncoding", value = "OTHER")
     @Documentation("Your custom file encoding format")
-    private String customEncoding;
+    private String customFileEncoding;
 
     @Option
     @Documentation("Schema")
@@ -83,8 +83,8 @@ public class CsvConfiguration implements Serializable {
                 : getFieldDelimiter().getDelimiter();
     }
 
-    public String effectiveEncoding() {
-        return FileEncoding.OTHER.equals(getFileEncoding()) ? getCustomEncoding() : getFileEncoding().getEncoding();
+    public String effectiveFileEncoding() {
+        return FileEncoding.OTHER.equals(getFileEncoding()) ? getCustomFileEncoding() : getFileEncoding().getEncoding();
     }
 
     public String effectiveRecordSeparator() {

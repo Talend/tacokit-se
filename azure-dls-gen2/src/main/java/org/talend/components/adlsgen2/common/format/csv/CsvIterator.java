@@ -102,7 +102,7 @@ public class CsvIterator implements Iterator<Record>, Serializable {
 
         public CsvIterator parse(InputStream in) {
             try {
-                return new CsvIterator(converter, new InputStreamReader(in, configuration.effectiveEncoding()));
+                return new CsvIterator(converter, new InputStreamReader(in, configuration.effectiveFileEncoding()));
             } catch (UnsupportedEncodingException e) {
                 log.error("[parse] {}", e.getMessage());
                 throw new FileFormatRuntimeException(e.getMessage());
