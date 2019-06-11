@@ -84,14 +84,20 @@ public class AdlsGen2Service implements Serializable {
 
     private Map<String, String> headers;
 
+    private Integer timeout;
+
     public AdlsGen2APIClient getClient(@Configuration("connection") final AdlsGen2Connection connection) {
-        client.base(connection.apiUrl());
+        setDefaultRequestParameters(connection);
         return client;
+    }
+
+    private void setDefaultRequestParameters(final AdlsGen2Connection connection) {
+        timeout = connection.getTimeout();
+        client.base(connection.apiUrl());
     }
 
     public void preprareRequest(final AdlsGen2Connection connection, String url, String method, String payloadLength) {
         log.debug("[preprareRequest] prepare request url:{} [{}].", url, method);
-        client.base(connection.apiUrl());
         headers = new HashMap<>();
         SAS = new HashMap<>();
         headers.put(Constants.HeaderConstants.DATE, Constants.RFC1123GMTDateFormatter.format(OffsetDateTime.now()));
@@ -165,9 +171,10 @@ public class AdlsGen2Service implements Serializable {
 
     @SuppressWarnings("unchecked")
     public List<String> filesystemList(@Configuration("connection") final AdlsGen2Connection connection) {
-        String url = String.format("%s/?resource=account", connection.apiUrl());
+        setDefaultRequestParameters(connection);
+        String url = String.format("%s/?resource=account&timeout=%d", connection.apiUrl(), timeout);
         preprareRequest(connection, url, MethodConstants.GET, "");
-        Response<JsonObject> result = handleResponse(client.filesystemList(headers, SAS, Constants.ATTR_ACCOUNT));
+        Response<JsonObject> result = handleResponse(client.filesystemList(headers, SAS, Constants.ATTR_ACCOUNT, timeout));
         List<String> fs = new ArrayList<>();
         for (JsonValue v : result.body().getJsonArray(Constants.ATTR_FILESYSTEMS)) {
             fs.add(v.asJsonObject().getString(Constants.ATTR_NAME));
@@ -177,11 +184,13 @@ public class AdlsGen2Service implements Serializable {
 
     @SuppressWarnings("unchecked")
     public JsonArray pathList(@Configuration("configuration") final InputConfiguration configuration) {
-        String rcfmt = "%s/%s?directory=%s&resource=filesystem&recursive=true&maxResults=5000";
+        setDefaultRequestParameters(configuration.getDataSet().getConnection());
+        String rcfmt = "%s/%s?directory=%s&resource=filesystem&recursive=true&maxResults=5000&timeout=%d";
         String url = String.format(rcfmt, //
                 configuration.getDataSet().getConnection().apiUrl(), //
                 configuration.getDataSet().getFilesystem(), //
-                configuration.getDataSet().getBlobPath() //
+                configuration.getDataSet().getBlobPath(), //
+                timeout //
         );
         preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.GET, "");
         Response<JsonObject> result = handleResponse(client.pathList( //
@@ -192,7 +201,8 @@ public class AdlsGen2Service implements Serializable {
                 Constants.ATTR_FILESYSTEM, //
                 true, //
                 null, //
-                5000 //
+                5000, //
+                timeout //
         ));
         return result.body().getJsonArray(Constants.ATTR_PATHS);
     }
@@ -214,11 +224,13 @@ public class AdlsGen2Service implements Serializable {
 
     @SuppressWarnings("unchecked")
     public Map<String, String> pathGetProperties(@Configuration("dataSet") final AdlsGen2DataSet dataSet) {
-        String rcfmt = "%s/%s/%s";
+        setDefaultRequestParameters(dataSet.getConnection());
+        String rcfmt = "%s/%s/%s?timeout=%d";
         String url = String.format(rcfmt, //
                 dataSet.getConnection().apiUrl(), //
                 dataSet.getFilesystem(), //
-                dataSet.getBlobPath() //
+                dataSet.getBlobPath(), //
+                timeout //
         );
         preprareRequest(dataSet.getConnection(), url, MethodConstants.HEAD, "");
         Map<String, String> properties = new HashMap<>();
@@ -226,6 +238,7 @@ public class AdlsGen2Service implements Serializable {
                 headers, //
                 dataSet.getFilesystem(), //
                 dataSet.getBlobPath(), //
+                timeout, //
                 SAS //
         ));
         if (result.status() == 200) {
@@ -239,11 +252,13 @@ public class AdlsGen2Service implements Serializable {
     }
 
     public BlobInformations getBlobInformations(@Configuration("dataSet") final AdlsGen2DataSet dataSet) {
-        String rcfmt = "%s/%s?directory=%s&resource=filesystem&recursive=false&maxResults=5000";
+        setDefaultRequestParameters(dataSet.getConnection());
+        String rcfmt = "%s/%s?directory=%s&resource=filesystem&recursive=false&maxResults=5000&timeout=%d";
         String url = String.format(rcfmt, //
                 dataSet.getConnection().apiUrl(), //
                 dataSet.getFilesystem(), //
-                extractFolderPath(dataSet.getBlobPath()) //
+                extractFolderPath(dataSet.getBlobPath()), //
+                timeout //
         );
         preprareRequest(dataSet.getConnection(), url, MethodConstants.GET, "");
         BlobInformations infos = new BlobInformations();
@@ -255,7 +270,8 @@ public class AdlsGen2Service implements Serializable {
                 Constants.ATTR_FILESYSTEM, //
                 false, //
                 null, //
-                5000 //
+                5000, //
+                timeout //
         );
         if (result.status() != Constants.HTTP_RESPONSE_CODE_200_OK) {
             return infos;
@@ -288,17 +304,20 @@ public class AdlsGen2Service implements Serializable {
 
     @SuppressWarnings("unchecked")
     public Iterator<Record> pathRead(@Configuration("configuration") final InputConfiguration configuration) {
-        String rcfmt = "%s/%s/%s";
+        setDefaultRequestParameters(configuration.getDataSet().getConnection());
+        String rcfmt = "%s/%s/%s?timeout=%d";
         String url = String.format(rcfmt, //
                 configuration.getDataSet().getConnection().apiUrl(), //
                 configuration.getDataSet().getFilesystem(), //
-                configuration.getDataSet().getBlobPath() //
+                configuration.getDataSet().getBlobPath(), //
+                timeout //
         );
         preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.GET, "");
         Response<InputStream> result = handleResponse(client.pathRead( //
                 headers, //
                 configuration.getDataSet().getFilesystem(), //
                 configuration.getDataSet().getBlobPath(), //
+                timeout, //
                 SAS //
         ));
         return convertToRecordList(configuration.getDataSet(), result.body());
@@ -306,11 +325,13 @@ public class AdlsGen2Service implements Serializable {
 
     @SuppressWarnings("unchecked")
     public Response<JsonObject> pathCreate(@Configuration("configuration") final OutputConfiguration configuration) {
-        String rcfmt = "%s/%s/%s?resource=file";
+        setDefaultRequestParameters(configuration.getDataSet().getConnection());
+        String rcfmt = "%s/%s/%s?resource=file&timeout=%d";
         String url = String.format(rcfmt, //
                 configuration.getDataSet().getConnection().apiUrl(), //
                 configuration.getDataSet().getFilesystem(), //
-                configuration.getDataSet().getBlobPath() //
+                configuration.getDataSet().getBlobPath(), //
+                timeout //
         );
         preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.PUT, "");
         return handleResponse(client.pathCreate( //
@@ -318,6 +339,7 @@ public class AdlsGen2Service implements Serializable {
                 configuration.getDataSet().getFilesystem(), //
                 configuration.getDataSet().getBlobPath(), //
                 Constants.ATTR_FILE, //
+                timeout, //
                 SAS, //
                 ""));
     }
@@ -325,12 +347,14 @@ public class AdlsGen2Service implements Serializable {
     @SuppressWarnings("unchecked")
     public Response<JsonObject> pathUpdate(@Configuration("configuration") final OutputConfiguration configuration,
             byte[] content, long position) {
-        String rcfmt = "%s/%s/%s?action=append&position=%s";
+        setDefaultRequestParameters(configuration.getDataSet().getConnection());
+        String rcfmt = "%s/%s/%s?action=append&position=%s&timeout=%d";
         String url = String.format(rcfmt, //
                 configuration.getDataSet().getConnection().apiUrl(), //
                 configuration.getDataSet().getFilesystem(), //
                 configuration.getDataSet().getBlobPath(), //
-                position //
+                position, //
+                timeout //
         );
         preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.PATCH, String.valueOf(content.length));
         return handleResponse(client.pathUpdate( //
@@ -339,6 +363,7 @@ public class AdlsGen2Service implements Serializable {
                 configuration.getDataSet().getBlobPath(), //
                 Constants.ATTR_ACTION_APPEND, //
                 position, //
+                timeout, //
                 SAS, //
                 content //
         ));
@@ -355,12 +380,14 @@ public class AdlsGen2Service implements Serializable {
      */
     @SuppressWarnings("unchecked")
     public Response<JsonObject> flushBlob(@Configuration("configuration") OutputConfiguration configuration, long position) {
-        String rcfmt = "%s/%s/%s?action=flush&position=%s";
+        setDefaultRequestParameters(configuration.getDataSet().getConnection());
+        String rcfmt = "%s/%s/%s?action=flush&position=%s&timeout=%d";
         String url = String.format(rcfmt, //
                 configuration.getDataSet().getConnection().apiUrl(), //
                 configuration.getDataSet().getFilesystem(), //
                 configuration.getDataSet().getBlobPath(), //
-                position //
+                position, //
+                timeout //
         );
         preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.PATCH, "");
         return handleResponse(client.pathUpdate( //
@@ -369,6 +396,7 @@ public class AdlsGen2Service implements Serializable {
                 configuration.getDataSet().getBlobPath(), //
                 Constants.ATTR_ACTION_FLUSH, //
                 position, //
+                timeout, //
                 SAS, //
                 new byte[0] //
         ));

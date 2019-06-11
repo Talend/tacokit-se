@@ -37,7 +37,8 @@ public interface AdlsGen2APIClient extends HttpClient {
     Response<JsonObject> filesystemList( //
             @Headers() Map<String, String> headers, //
             @QueryParams(encode = false) Map<String, String> sas, //
-            @Query("resource") String resource //
+            @Query("resource") String resource, //
+            @Query("timeout") Integer timeout //
     );
 
     // GET http://{accountName}.{dnsSuffix}/?resource=account&prefix={prefix}&continuation={continuation}&maxResults
@@ -114,7 +115,8 @@ public interface AdlsGen2APIClient extends HttpClient {
             @Query("resource") String resource, //
             @Query("recursive") Boolean recursive, //
             @Query("continuation") String continuation, //
-            @Query("maxResults") Integer maxResults //
+            @Query("maxResults") Integer maxResults, //
+            @Query("timeout") Integer timeout //
     );
 
     // GET http://{accountName}.{dnsSuffix}/{filesystem}/{path}?timeout={timeout}
@@ -130,6 +132,7 @@ public interface AdlsGen2APIClient extends HttpClient {
             @Headers() Map<String, String> headers, //
             @Path("filesystem") String filesystem, //
             @Path("path") String path, //
+            @Query("timeout") Integer timeout, //
             @QueryParams(encode = false) Map<String, String> sas //
     );
 
@@ -138,6 +141,7 @@ public interface AdlsGen2APIClient extends HttpClient {
             @Headers() Map<String, String> headers, //
             @Path("filesystem") String filesystem, //
             @Path("path") String path, //
+            @Query("timeout") Integer timeout, //
             @QueryParams(encode = false) Map<String, String> sas //
     );
 
@@ -148,6 +152,7 @@ public interface AdlsGen2APIClient extends HttpClient {
             @Path("filesystem") String filesystem, //
             @Path("path") String path, //
             @Query("resource") String resource, //
+            @Query("timeout") Integer timeout, //
             @QueryParams(encode = false) Map<String, String> sas, //
             String emptyPayload // As Content-Length is needed and it is a restricted header
     // that we cannot force, we set an empty body so content-length will be set.
@@ -172,6 +177,7 @@ public interface AdlsGen2APIClient extends HttpClient {
             @Path("path") String path, //
             @Query("action") String action, //
             @Query("position") long position, //
+            @Query("timeout") Integer timeout, //
             @QueryParams(encode = false) Map<String, String> sas, //
             byte[] payload //
     );
