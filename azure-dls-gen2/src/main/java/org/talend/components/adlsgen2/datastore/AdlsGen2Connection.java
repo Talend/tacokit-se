@@ -21,6 +21,7 @@ import org.talend.sdk.component.api.configuration.constraint.Min;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataStore;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
@@ -52,6 +53,7 @@ public class AdlsGen2Connection implements Serializable {
     private AuthMethod authMethod;
 
     @Option
+    @Credential
     @ActiveIf(target = "authMethod", value = "SharedKey")
     @Documentation("Storage Shared Key")
     private String sharedKey;
