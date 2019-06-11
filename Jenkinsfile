@@ -159,7 +159,7 @@ spec:
         }
         stage('Push to Xtm') {
             when {
-                anyOf{
+                anyOf {
                     expression { params.PUSH_TO_XTM == true }
 //                    allOf{
 //                        triggeredBy 'TimerTrigger'
@@ -180,10 +180,9 @@ spec:
                                     credentialsId: 'nexus-artifact-zl-credentials',
                                     usernameVariable: 'NEXUS_USER',
                                     passwordVariable: 'NEXUS_PASSWORD'),
-                            usernamePassword(
+                            string(
                                     credentialsId: 'xtm-token',
-                                    usernameVariable: 'XTM_USER',
-                                    passwordVariable: 'XTM_TOKEN')
+                                    variable: 'XTM_TOKEN')
                     ]) {
                         script {
                             sh "mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-export"
@@ -207,10 +206,9 @@ spec:
                                     credentialsId: 'nexus-artifact-zl-credentials',
                                     usernameVariable: 'NEXUS_USER',
                                     passwordVariable: 'NEXUS_PASSWORD'),
-                            usernamePassword(
+                            string(
                                     credentialsId: 'xtm-token',
-                                    usernameVariable: 'XTM_USER',
-                                    passwordVariable: 'XTM_TOKEN'),
+                                    variable: 'XTM_TOKEN'),
                             usernamePassword(
                                     credentialsId: 'github-i18n-product',
                                     usernameVariable: 'GITHUB_LOGIN',
