@@ -23,7 +23,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 public class ContentFormatterFactory {
 
-    public static ContentFormatter getWriter(@Option("configuration") final OutputConfiguration configuration,
+    public static ContentFormatter getFormatter(@Option("configuration") final OutputConfiguration configuration,
             final AdlsGen2Service service, final I18n i18n, final RecordBuilderFactory recordBuilderFactory,
             final JsonBuilderFactory jsonBuilderFactory) {
 

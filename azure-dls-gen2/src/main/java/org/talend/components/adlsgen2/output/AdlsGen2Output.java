@@ -84,7 +84,7 @@ public class AdlsGen2Output implements Serializable {
     @PostConstruct
     public void init() {
         // formatter
-        formatter = ContentFormatterFactory.getWriter(configuration, service, i18n, recordBuilderFactory, jsonBuilderFactory);
+        formatter = ContentFormatterFactory.getFormatter(configuration, service, i18n, recordBuilderFactory, jsonBuilderFactory);
         //
         BlobInformations blob = service.getBlobInformations(configuration.getDataSet());
         log.info("[init] writing blob {} (exists? {}).", blob.name, blob.isExists());
