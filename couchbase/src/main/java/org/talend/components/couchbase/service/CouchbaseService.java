@@ -110,6 +110,7 @@ public class CouchbaseService {
             } else {
                 message = i18n.connectionKODetailed(exception.getMessage());
             }
+            LOG.error(message, exception);
             return new HealthCheckStatus(HealthCheckStatus.Status.KO, message);
         } finally {
             closeConnection();
