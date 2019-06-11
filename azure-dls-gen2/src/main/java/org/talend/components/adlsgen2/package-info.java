@@ -11,10 +11,9 @@
  * specific language governing permissions and limitations under the License.
  */
 @Components(family = "Azure-DLS-Gen2", categories = "Cloud")
-@Icon(IconType.FILE_HDFS_O)
+@Icon(value = Icon.IconType.CUSTOM, custom = "azure-datalake")
 
 package org.talend.components.adlsgen2;
 
 import org.talend.sdk.component.api.component.Components;
 import org.talend.sdk.component.api.component.Icon;
-import org.talend.sdk.component.api.component.Icon.IconType;

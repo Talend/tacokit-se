@@ -47,7 +47,7 @@ public class CsvConverterTest extends AdlsGen2TestBase {
         csvConfiguration.setFieldDelimiter(CsvFieldDelimiter.OTHER);
         csvConfiguration.setCustomFieldDelimiter("|");
         CsvIterator it = Builder.of(recordBuilderFactory).withConfiguration(csvConfiguration).parse(sample);
-        int counted=0;
+        int counted = 0;
         while (it.hasNext()) {
             Record record = it.next();
             assertNotNull(record);
