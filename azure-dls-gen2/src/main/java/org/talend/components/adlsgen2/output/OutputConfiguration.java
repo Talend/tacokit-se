@@ -15,6 +15,7 @@ package org.talend.components.adlsgen2.output;
 import java.io.Serializable;
 
 import org.talend.components.adlsgen2.common.format.FileFormat;
+import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -32,15 +33,15 @@ public class OutputConfiguration implements Serializable {
 
     @Option
     @Documentation("Dataset")
-    private org.talend.components.adlsgen2.dataset.AdlsGen2DataSet dataSet;
+    private AdlsGen2DataSet dataSet;
 
     @Option
-    @ActiveIf(target = "./dataSet/format", value = "CSV")
+    @ActiveIf(target = "../dataSet/format", value = "CSV")
     @Documentation("Action on output")
     private ActionOnOutput actionOnOutput = ActionOnOutput.DEFAULT;
 
     @Option
-    @ActiveIf(negate = true, target = "./dataSet/format", value = "CSV")
+    @ActiveIf(negate = true, target = "../dataSet/format", value = "CSV")
     @Documentation("Overwrite")
     private boolean overwrite = Boolean.FALSE;
 
