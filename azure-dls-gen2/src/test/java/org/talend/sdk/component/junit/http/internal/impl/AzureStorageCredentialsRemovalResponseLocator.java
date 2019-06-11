@@ -51,7 +51,6 @@ public class AzureStorageCredentialsRemovalResponseLocator extends DefaultRespon
     protected boolean matches(Request request, RequestModel model, boolean exact, Predicate<String> headerFilter) {
         final String method = ofNullable(model.getMethod()).orElse("GET");
         final String requestUri = request.uri();
-        log.error("[AzureStorageCredentialsRemovalResponseLocator] [{}] Checking URI: {}.", requestUri);
         boolean uriMatches;
         if (requestUri.matches(AZURE_FIND_SAS)) {
             uriMatches = true;

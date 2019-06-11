@@ -87,8 +87,10 @@ public class AdlsGen2Output implements Serializable {
         formatter = ContentFormatterFactory.getFormatter(configuration, service, i18n, recordBuilderFactory, jsonBuilderFactory);
         //
         BlobInformations blob = service.getBlobInformations(configuration.getDataSet());
-        log.info("[init] writing blob {} (exists? {}).", blob.name, blob.isExists());
+        log.info("[init] writing blob {} (exists? {}, overwrite? {}, failOnExisting? {}).", blob.name, blob.isExists(),
+                configuration.isBlobOverwrite(), configuration.isFailOnExistingBlob());
         if (configuration.isFailOnExistingBlob() && blob.isExists()) {
+            log.warn("[init] will stop process. Config: {}", configuration);
             String msg = i18n.cannotOverwriteBlob(blob.name);
             log.error(msg);
             throw new AdlsGen2RuntimeException(msg);

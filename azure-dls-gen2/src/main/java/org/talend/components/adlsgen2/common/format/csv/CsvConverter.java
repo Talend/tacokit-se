@@ -125,13 +125,13 @@ public class CsvConverter implements RecordConverter<CSVRecord>, Serializable {
                 Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
                 finalName = RecordConverter.getCorrectSchemaFieldName(f.getKey(), index++, existNames);
                 existNames.add(finalName);
-                builder.withEntry(entryBuilder.withName(finalName).withType(Schema.Type.STRING).build());
+                builder.withEntry(entryBuilder.withName(finalName).withType(Schema.Type.STRING).withNullable(true).build());
             }
         } else {
             for (int i = 0; i < record.size(); i++) {
                 Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
                 finalName = "field" + i;
-                builder.withEntry(entryBuilder.withName(finalName).withType(Schema.Type.STRING).build());
+                builder.withEntry(entryBuilder.withName(finalName).withType(Schema.Type.STRING).withNullable(true).build());
             }
         }
         Schema inferedSchema = builder.build();
@@ -140,13 +140,19 @@ public class CsvConverter implements RecordConverter<CSVRecord>, Serializable {
     }
 
     @Override
-    public Record toRecord(CSVRecord value) {
+    public Record toRecord(CSVRecord csvRecord) {
         if (schema == null) {
-            schema = inferSchema(value);
+            schema = inferSchema(csvRecord);
         }
         Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder(schema);
         for (int i = 0; i < schema.getEntries().size(); i++) {
-            recordBuilder.withString(schema.getEntries().get(i), value.get(i));
+            String value;
+            try {
+                value = csvRecord.get(i);
+            } catch (ArrayIndexOutOfBoundsException e) {
+                value = null;
+            }
+            recordBuilder.withString(schema.getEntries().get(i), value);
         }
 
         return recordBuilder.build();
