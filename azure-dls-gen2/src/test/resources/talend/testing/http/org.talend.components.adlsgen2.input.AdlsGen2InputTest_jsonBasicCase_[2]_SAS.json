@@ -5,12 +5,12 @@
         "content-length":"0",
         "x-ms-version":"2018-11-09",
         "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
-        "x-ms-date":"Sun, 09 Jun 2019 19:14:36 GMT",
+        "x-ms-date":"Tue, 11 Jun 2019 13:08:53 GMT",
         "Connection":"keep-alive",
         "Content-Type":"application/json; charset=utf-8"
       },
       "method":"GET",
-      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/demo_gen2/in/sample.json?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-12-31T20:47:23Z&st=2019-06-06T11:47:23Z&spr=https&sig=sign-here"
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/demo_gen2/in/sample.json?timeout=600&sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-12-31T20:47:23Z&st=2019-06-06T11:47:23Z&spr=https&sig=sign-here"
     },
     "response":{
       "headers":{
@@ -21,7 +21,7 @@
         "x-ms-properties":"",
         "Last-Modified":"Fri, 07 Jun 2019 09:07:50 GMT",
         "Content-Length":"339",
-        "x-ms-request-id":"5323116e-a01f-001c-46f7-1e1db5000000",
+        "x-ms-request-id":"8aa5c919-701f-0020-2156-203472000000",
         "x-ms-resource-type":"file",
         "Content-Type":"application/octet-stream"
       },

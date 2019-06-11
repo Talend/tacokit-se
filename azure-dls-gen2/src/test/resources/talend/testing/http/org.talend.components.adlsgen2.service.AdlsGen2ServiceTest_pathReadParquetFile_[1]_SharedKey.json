@@ -5,12 +5,12 @@
         "content-length":"0",
         "x-ms-version":"2018-11-09",
         "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
-        "x-ms-date":"Sun, 09 Jun 2019 19:14:56 GMT",
+        "x-ms-date":"Tue, 11 Jun 2019 13:09:52 GMT",
         "Connection":"keep-alive",
         "Content-Type":"application/json; charset=utf-8"
       },
       "method":"GET",
-      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/demo_gen2/in/parquet_file.parquet"
+      "uri":"https://undxgen2.dfs.core.windows.net/adls-gen2/demo_gen2/in/parquet_file.parquet?timeout=600"
     },
     "response":{
       "headers":{
@@ -21,7 +21,7 @@
         "x-ms-properties":"",
         "Last-Modified":"Mon, 08 Apr 2019 11:12:49 GMT",
         "Content-Length":"1220",
-        "x-ms-request-id":"2ed28932-d01f-0016-1af7-1eb902000000",
+        "x-ms-request-id":"a97e8abc-e01f-0022-6056-208aca000000",
         "x-ms-resource-type":"file",
         "Content-Type":"application/octet-stream"
       },
