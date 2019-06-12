@@ -61,13 +61,13 @@ public class AdlsGen2Output implements Serializable {
     @Service
     private final I18n i18n;
 
-    private final ContentFormatter formatter;
-
     private OutputConfiguration configuration;
 
-    private long position = 0;
+    private ContentFormatter formatter;
 
     private List<Record> records;
+
+    private long position = 0;
 
     public AdlsGen2Output(@Option("configuration") final OutputConfiguration configuration, final AdlsGen2Service service,
             final I18n i18n, final RecordBuilderFactory recordBuilderFactory, final JsonBuilderFactory jsonBuilderFactory) {
@@ -76,13 +76,14 @@ public class AdlsGen2Output implements Serializable {
         this.i18n = i18n;
         this.recordBuilderFactory = recordBuilderFactory;
         this.jsonBuilderFactory = jsonBuilderFactory;
-        formatter = ContentFormatterFactory.getFormatter(configuration, service, i18n, recordBuilderFactory, jsonBuilderFactory);
         //
         records = new ArrayList<>();
     }
 
     @PostConstruct
     public void init() {
+        // formatter
+        formatter = ContentFormatterFactory.getFormatter(configuration, service, i18n, recordBuilderFactory, jsonBuilderFactory);
         //
         log.warn("[init(@PostConstruct)] searching for blob {} .", configuration.getDataSet().getBlobPath());
         BlobInformations blob = service.getBlobInformations(configuration.getDataSet());
