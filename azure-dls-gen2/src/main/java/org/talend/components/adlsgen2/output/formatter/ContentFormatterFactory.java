@@ -13,6 +13,8 @@
  */
 package org.talend.components.adlsgen2.output.formatter;
 
+import java.io.Serializable;
+
 import javax.json.JsonBuilderFactory;
 
 import org.talend.components.adlsgen2.output.OutputConfiguration;
@@ -21,7 +23,7 @@ import org.talend.components.adlsgen2.service.I18n;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-public class ContentFormatterFactory {
+public class ContentFormatterFactory implements Serializable {
 
     public static ContentFormatter getFormatter(@Option("configuration") final OutputConfiguration configuration,
             final AdlsGen2Service service, final I18n i18n, final RecordBuilderFactory recordBuilderFactory,

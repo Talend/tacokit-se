@@ -28,7 +28,6 @@ import org.talend.components.adlsgen2.service.AdlsGen2Service;
 import org.talend.components.adlsgen2.service.AdlsGen2Service.BlobInformations;
 import org.talend.components.adlsgen2.service.I18n;
 import org.talend.sdk.component.api.component.Icon;
-import org.talend.sdk.component.api.component.Icon.IconType;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -45,7 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Version(1)
-@Icon(value = IconType.FILE_CSV_O)
+@Icon(value = Icon.IconType.CUSTOM, custom = "azure-datalake")
 @Processor(name = "Output")
 @Documentation("Azure Data Lake Storage Gen2 Output")
 public class AdlsGen2Output implements Serializable {
@@ -62,13 +61,13 @@ public class AdlsGen2Output implements Serializable {
     @Service
     private final I18n i18n;
 
+    private final ContentFormatter formatter;
+
     private OutputConfiguration configuration;
 
-    private transient long position = 0;
+    private long position = 0;
 
     private List<Record> records;
-
-    private ContentFormatter formatter;
 
     public AdlsGen2Output(@Option("configuration") final OutputConfiguration configuration, final AdlsGen2Service service,
             final I18n i18n, final RecordBuilderFactory recordBuilderFactory, final JsonBuilderFactory jsonBuilderFactory) {
@@ -77,20 +76,20 @@ public class AdlsGen2Output implements Serializable {
         this.i18n = i18n;
         this.recordBuilderFactory = recordBuilderFactory;
         this.jsonBuilderFactory = jsonBuilderFactory;
+        formatter = ContentFormatterFactory.getFormatter(configuration, service, i18n, recordBuilderFactory, jsonBuilderFactory);
         //
         records = new ArrayList<>();
     }
 
     @PostConstruct
     public void init() {
-        // formatter
-        formatter = ContentFormatterFactory.getFormatter(configuration, service, i18n, recordBuilderFactory, jsonBuilderFactory);
         //
+        log.warn("[init(@PostConstruct)] searching for blob {} .", configuration.getDataSet().getBlobPath());
         BlobInformations blob = service.getBlobInformations(configuration.getDataSet());
         log.info("[init] writing blob {} (exists? {}, overwrite? {}, failOnExisting? {}).", blob.name, blob.isExists(),
                 configuration.isBlobOverwrite(), configuration.isFailOnExistingBlob());
         if (configuration.isFailOnExistingBlob() && blob.isExists()) {
-            log.warn("[init] will stop process. Config: {}", configuration);
+            log.warn("[init(@PostConstruct)] will stop process. Config: {}", configuration);
             String msg = i18n.cannotOverwriteBlob(blob.name);
             log.error(msg);
             throw new AdlsGen2RuntimeException(msg);
@@ -105,20 +104,23 @@ public class AdlsGen2Output implements Serializable {
 
     @BeforeGroup
     public void beforeGroup() {
+        log.warn("[@beforeGroup] record count:{}", records.size());
     }
 
     @ElementListener
     public void onElement(final Record record) {
+        log.warn("[@onElement] [{}] record: {}", records.size(), record);
         records.add(record);
     }
 
     @AfterGroup
     public void afterGroup() {
+        log.warn("[@afterGroup] record count:{}", records.size());
     }
 
     @PreDestroy
     public void release() {
-        log.info("[release] flushing {} records.", records.size());
+        log.info("[release@PreDestroy] flushing {} records.", records.size());
         byte[] content = formatter.prepareContent(records);
         Response<JsonObject> response = service.pathUpdate(configuration, content, position);
         records.clear();

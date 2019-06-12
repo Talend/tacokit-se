@@ -13,11 +13,12 @@
  */
 package org.talend.components.adlsgen2.output.formatter;
 
+import java.io.Serializable;
 import java.util.List;
 
 import org.talend.sdk.component.api.record.Record;
 
-public interface ContentFormatter {
+public interface ContentFormatter extends Serializable {
 
     byte[] prepareContent(List<Record> records);
 

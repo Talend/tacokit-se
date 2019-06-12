@@ -86,7 +86,6 @@ public final class SharedKeyUtils {
     public SharedKeyUtils(String accountName, String accountKey) {
         this.accountName = accountName;
         this.accountKey = Base64.getDecoder().decode(accountKey);
-
     }
 
     /**
