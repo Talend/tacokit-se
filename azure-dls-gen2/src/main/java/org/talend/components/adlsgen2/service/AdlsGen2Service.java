@@ -100,6 +100,7 @@ public class AdlsGen2Service implements Serializable {
         log.debug("[preprareRequest] prepare request url:{} [{}].", url, method);
         headers = new HashMap<>();
         SAS = new HashMap<>();
+        headers.put(HeaderConstants.USER_AGENT, HeaderConstants.USER_AGENT_AZURE_DLS_GEN2);
         headers.put(Constants.HeaderConstants.DATE, Constants.RFC1123GMTDateFormatter.format(OffsetDateTime.now()));
         headers.put(HeaderConstants.CONTENT_TYPE, HeaderConstants.DFS_CONTENT_TYPE);
         headers.put(HeaderConstants.VERSION, HeaderConstants.TARGET_STORAGE_VERSION);
@@ -192,6 +193,7 @@ public class AdlsGen2Service implements Serializable {
                 configuration.getDataSet().getBlobPath(), //
                 timeout //
         );
+        log.warn("[pathList] {}", url);
         preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.GET, "");
         Response<JsonObject> result = handleResponse(client.pathList( //
                 headers, //
@@ -232,6 +234,7 @@ public class AdlsGen2Service implements Serializable {
                 dataSet.getBlobPath(), //
                 timeout //
         );
+        log.warn("[pathGetProperties] {}", url);
         preprareRequest(dataSet.getConnection(), url, MethodConstants.HEAD, "");
         Map<String, String> properties = new HashMap<>();
         Response<JsonObject> result = handleResponse(client.pathGetProperties( //
@@ -260,6 +263,7 @@ public class AdlsGen2Service implements Serializable {
                 extractFolderPath(dataSet.getBlobPath()), //
                 timeout //
         );
+        log.warn("[getBlobInformations#pathList] {}", url);
         preprareRequest(dataSet.getConnection(), url, MethodConstants.GET, "");
         BlobInformations infos = new BlobInformations();
         Response<JsonObject> result = client.pathList( //
@@ -273,7 +277,9 @@ public class AdlsGen2Service implements Serializable {
                 5000, //
                 timeout //
         );
+        log.warn("[getBlobInformations] pathList [{}] {} : {}", result.status(), result.headers(), result.body());
         if (result.status() != Constants.HTTP_RESPONSE_CODE_200_OK) {
+            log.warn("[getBlobInformations] blob info: {}", infos);
             return infos;
         }
         String fileName = extractFileName(dataSet.getBlobPath());
@@ -294,7 +300,7 @@ public class AdlsGen2Service implements Serializable {
                 }
             }
         }
-
+        log.warn("[getBlobInformations] blob meta: {}", infos);
         return infos;
     }
 
@@ -312,6 +318,7 @@ public class AdlsGen2Service implements Serializable {
                 configuration.getDataSet().getBlobPath(), //
                 timeout //
         );
+        log.warn("[pathRead] {}", url);
         preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.GET, "");
         Response<InputStream> result = handleResponse(client.pathRead( //
                 headers, //
@@ -333,6 +340,7 @@ public class AdlsGen2Service implements Serializable {
                 configuration.getDataSet().getBlobPath(), //
                 timeout //
         );
+        log.warn("[pathCreate] {}", url);
         preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.PUT, "");
         return handleResponse(client.pathCreate( //
                 headers, //
@@ -356,6 +364,7 @@ public class AdlsGen2Service implements Serializable {
                 position, //
                 timeout //
         );
+        log.warn("[pathUpdate] {}", url);
         preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.PATCH, String.valueOf(content.length));
         return handleResponse(client.pathUpdate( //
                 headers, //
@@ -389,6 +398,7 @@ public class AdlsGen2Service implements Serializable {
                 position, //
                 timeout //
         );
+        log.warn("[flushBlob#pathUpdate] {}", url);
         preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.PATCH, "");
         return handleResponse(client.pathUpdate( //
                 headers, //

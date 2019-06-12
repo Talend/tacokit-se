@@ -283,6 +283,17 @@ public class Constants {
 
         public static final String ACCEPT_DEFAULT = "application/json, */*";
 
+        public static final String UA_AZURE_DLS_GEN2_PREFIX = "APN/1.0 Talend/";
+
+        public static final String UA_AZURE_DLS_GEN2_DATE = "2019";
+
+        public static final String UA_AZURE_DLS_GEN2_TACOKIT = " TaCoKit/";
+
+        public static final String UA_AZURE_DLS_GEN2_TACOKIT_RELEASE = "1.1.9";
+
+        public static final String USER_AGENT_AZURE_DLS_GEN2 = UA_AZURE_DLS_GEN2_PREFIX + UA_AZURE_DLS_GEN2_DATE
+                + UA_AZURE_DLS_GEN2_TACOKIT + UA_AZURE_DLS_GEN2_TACOKIT_RELEASE;
+
         private HeaderConstants() {
             // Private to prevent construction.
         }
