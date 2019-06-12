@@ -287,7 +287,7 @@ public class Constants {
 
         public static final String UA_AZURE_DLS_GEN2_DATE = "2019";
 
-        public static final String UA_AZURE_DLS_GEN2_TACOKIT = " TaCoKit/";
+        public static final String UA_AZURE_DLS_GEN2_TACOKIT = " tck/";
 
         public static final String UA_AZURE_DLS_GEN2_TACOKIT_RELEASE = "1.1.9";
 
