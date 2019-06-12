@@ -21,6 +21,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.talend.components.adlsgen2.AdlsGen2TestBase;
 import org.talend.components.adlsgen2.common.format.FileFormat;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
+import org.talend.components.adlsgen2.datastore.Constants.HeaderConstants;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.http.internal.impl.AzureStorageCredentialsRemovalResponseLocator;
@@ -204,5 +205,10 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
         outputConfiguration.getDataSet().setBlobPath(path);
         Object result = service.pathGetProperties(outputConfiguration.getDataSet());
         assertNotNull(result);
+    }
+
+    @Test
+    void testUserAgentValue() {
+        assertEquals("APN/1.0 Talend/2019 TaCoKit/1.1.9", HeaderConstants.USER_AGENT_AZURE_DLS_GEN2);
     }
 }
