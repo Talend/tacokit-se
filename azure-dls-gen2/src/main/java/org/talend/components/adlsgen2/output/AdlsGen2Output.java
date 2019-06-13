@@ -121,10 +121,10 @@ public class AdlsGen2Output implements Serializable {
     public void release() {
         log.info("[release@PreDestroy] flushing {} records.", records.size());
         byte[] content = formatter.prepareContent(records);
-        Response<JsonObject> response = service.pathUpdate(configuration, content, position);
+        service.pathUpdate(configuration, content, position);
         records.clear();
         position += content.length; // cumulate length of written records
-        response = service.flushBlob(configuration, position);
+        service.flushBlob(configuration, position);
         // TODO release lease
     }
 
