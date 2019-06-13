@@ -62,9 +62,8 @@ public class CsvConverterTest extends AdlsGen2TestBase {
     @Test
     public void csvWithTextEnclosureAndEscapeCase() throws Exception {
         InputStream sample = getClass().getResource("/common/format/csv/wicked-separated.csv").openStream();
-        String result = "\"1\";\"1000.2\";\"ant\"\"ique\"\n" +
-                "\"2\";\"2000.3\";\"stroll\"\n" +
-                "\"3\";\"3000.3\";\"ant\\ique\"\n";
+        String result = "\"1\";\"1000.2\";\"ant\"\"ique\"\n" + "\"2\";\"2000.3\";\"stroll\"\n"
+                + "\"3\";\"3000.3\";\"ant\\ique\"\n";
         csvConfiguration = new CsvConfiguration();
         csvConfiguration.setRecordSeparator(CsvRecordSeparator.LF);
         csvConfiguration.setEscapeCharacter("\\");

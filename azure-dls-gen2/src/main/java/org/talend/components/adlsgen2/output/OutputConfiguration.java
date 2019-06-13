@@ -36,7 +36,6 @@ public class OutputConfiguration implements Serializable {
     private AdlsGen2DataSet dataSet;
 
     @Option
-    @ActiveIf(target = "../dataSet/format", value = "CSV")
     @Documentation("Overwrite")
     private boolean overwrite = Boolean.FALSE;
 
