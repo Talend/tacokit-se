@@ -19,7 +19,6 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.json.JsonBuilderFactory;
-import javax.json.JsonObject;
 
 import org.talend.components.adlsgen2.output.formatter.ContentFormatter;
 import org.talend.components.adlsgen2.output.formatter.ContentFormatterFactory;
@@ -37,7 +36,6 @@ import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import lombok.extern.slf4j.Slf4j;
@@ -88,7 +86,7 @@ public class AdlsGen2Output implements Serializable {
         log.warn("[init(@PostConstruct)] searching for blob {} .", configuration.getDataSet().getBlobPath());
         BlobInformations blob = service.getBlobInformations(configuration.getDataSet());
         log.info("[init] writing blob {} (exists? {}, overwrite? {}, failOnExisting? {}).", blob.name, blob.isExists(),
-                configuration.isBlobOverwrite(), configuration.isFailOnExistingBlob());
+                configuration.isOverwrite(), configuration.isFailOnExistingBlob());
         if (configuration.isFailOnExistingBlob() && blob.isExists()) {
             log.warn("[init(@PostConstruct)] will stop process. Config: {}", configuration);
             String msg = i18n.cannotOverwriteBlob(blob.name);
@@ -97,7 +95,7 @@ public class AdlsGen2Output implements Serializable {
         }
         // TODO get lease
         position = blob.getContentLength();
-        if (configuration.isBlobOverwrite() || !blob.isExists()) {
+        if (configuration.isOverwrite() || !blob.isExists()) {
             service.pathCreate(configuration);
             position = 0;
         }

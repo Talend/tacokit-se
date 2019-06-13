@@ -23,7 +23,6 @@ import org.talend.components.adlsgen2.common.format.csv.CsvFieldDelimiter;
 import org.talend.components.adlsgen2.common.format.csv.CsvRecordSeparator;
 import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
-import org.talend.components.adlsgen2.output.OutputConfiguration.ActionOnOutput;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
@@ -49,7 +48,6 @@ class AdlsGen2OutputTest extends AdlsGen2TestBase {
     @ValueSource(strings = { "SharedKey", "SAS" })
     public void produceCsv(String authmethod) {
         connection.setAuthMethod(AuthMethod.valueOf(authmethod));
-        outputConfiguration.setActionOnOutput(ActionOnOutput.OVERWRITE);
         outputConfiguration.setOverwrite(true);
         outputConfiguration.getDataSet().setBlobPath("customers_test_produce.csv");
         components.setInputData(asList(createData(), createData(), createData()));
@@ -84,7 +82,6 @@ class AdlsGen2OutputTest extends AdlsGen2TestBase {
         outDs.setFilesystem(storageFs);
         outDs.setFormat(FileFormat.JSON);
         outDs.setBlobPath("demo_gen2/out/customers.json");
-        outputConfiguration.setActionOnOutput(ActionOnOutput.OVERWRITE);
         outputConfiguration.setOverwrite(true);
         outputConfiguration.setDataSet(outDs);
         components.setInputData(asList(createData(), createData(), createData()));
@@ -121,7 +118,6 @@ class AdlsGen2OutputTest extends AdlsGen2TestBase {
         outDs.setFilesystem(storageFs);
         outDs.setFormat(FileFormat.AVRO);
         outDs.setBlobPath("demo_gen2/out/customers-from-csv.avro");
-        outputConfiguration.setActionOnOutput(ActionOnOutput.OVERWRITE);
         outputConfiguration.setOverwrite(true);
         outputConfiguration.setDataSet(outDs);
         //
@@ -157,7 +153,6 @@ class AdlsGen2OutputTest extends AdlsGen2TestBase {
         csvConfig.setHeader(true);
         outDs.setCsvConfiguration(csvConfig);
         outDs.setBlobPath("demo_gen2/out/customers-from-avro.csv");
-        outputConfiguration.setActionOnOutput(ActionOnOutput.OVERWRITE);
         outputConfiguration.setOverwrite(true);
         outputConfiguration.setDataSet(outDs);
         final String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
