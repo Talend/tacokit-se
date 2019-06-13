@@ -26,8 +26,6 @@ import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
-import org.talend.sdk.component.junit.http.internal.impl.AzureStorageCredentialsRemovalResponseLocator;
-import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
@@ -38,9 +36,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @Slf4j
-@HttpApi(useSsl = true, responseLocator = AzureStorageCredentialsRemovalResponseLocator.class)
 @WithComponents("org.talend.components.adlsgen2")
-class AdlsGen2OutputTest extends AdlsGen2TestBase {
+class AdlsGen2OutputTestIT extends AdlsGen2TestBase {
 
     @Service
     private LocalConfiguration configuration;
@@ -98,6 +95,7 @@ class AdlsGen2OutputTest extends AdlsGen2TestBase {
                 .build() //
                 .run();
         final List<Record> records = components.getCollectedData(Record.class);
+        assertNotNull(records);
     }
 
     @ParameterizedTest

@@ -24,8 +24,6 @@ import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
 import org.talend.components.adlsgen2.datastore.Constants.HeaderConstants;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.junit.http.internal.impl.AzureStorageCredentialsRemovalResponseLocator;
-import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.junit5.WithComponents;
 
 import lombok.extern.slf4j.Slf4j;
@@ -37,9 +35,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @Slf4j
-@HttpApi(useSsl = true, responseLocator = AzureStorageCredentialsRemovalResponseLocator.class)
 @WithComponents("org.talend.components.adlsgen2")
-class AdlsGen2ServiceTest extends AdlsGen2TestBase {
+class AdlsGen2ServiceTestIT extends AdlsGen2TestBase {
 
     @Service
     AdlsGen2Service service;
@@ -110,16 +107,7 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
     void pathExists(String authmethod) {
         connection.setAuthMethod(AuthMethod.valueOf(authmethod));
         // paths should exists
-        String blobPath = "/myNewFolder/blob.txt";
-        inputConfiguration.getDataSet().setBlobPath(blobPath);
-        assertTrue(service.pathExists(inputConfiguration.getDataSet()));
-        blobPath = "/myNewFolder/blob.txt";
-        inputConfiguration.getDataSet().setBlobPath(blobPath);
-        assertTrue(service.pathExists(inputConfiguration.getDataSet()));
-        blobPath = "myNewFolder/subfolder02/blob.txt";
-        inputConfiguration.getDataSet().setBlobPath(blobPath);
-        assertTrue(service.pathExists(inputConfiguration.getDataSet()));
-        blobPath = "myNewFolder/subfolder02/subfolder03/blob.txt";
+        String blobPath = "demo_gen2/in/parquet_file.parquet";
         inputConfiguration.getDataSet().setBlobPath(blobPath);
         assertTrue(service.pathExists(inputConfiguration.getDataSet()));
         // paths do not exist
@@ -165,46 +153,6 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
             Record r = result.next();
             assertNotNull(r);
         }
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = { "SharedKey", "SAS" })
-    void pathReadMediumFile(String authmethod) {
-        connection.setAuthMethod(AuthMethod.valueOf(authmethod));
-        inputConfiguration.getDataSet().setConnection(connection);
-        // String path = "myNewFolder/customer.csv";
-        String path = "myNewFolder/customer_20190325.csv";
-        inputConfiguration.getDataSet().setBlobPath(path);
-        Iterator<Record> result = service.pathRead(inputConfiguration);
-        int count = 0;
-        while (result.hasNext()) {
-            Record r = result.next();
-            assertNotNull(r);
-            count++;
-        }
-        assertEquals(10000, count);
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = { "SharedKey", "SAS" })
-    void pathUpdateFile(String authmethod) {
-        connection.setAuthMethod(AuthMethod.valueOf(authmethod));
-        String path = "myNewFolder/customer.csv";
-        outputConfiguration.getDataSet().setBlobPath(path);
-        outputConfiguration.setOverwrite(true);
-        String content = "ABC;DEF;123;true;GBG\n";
-        Object result = service.pathUpdate(outputConfiguration, content.getBytes(), 0);
-        assertNotNull(result);
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = { "SharedKey", "SAS" })
-    void pathGetProperties(String authmethod) {
-        connection.setAuthMethod(AuthMethod.valueOf(authmethod));
-        String path = "myNewFolder/customer.csv";
-        outputConfiguration.getDataSet().setBlobPath(path);
-        Object result = service.pathGetProperties(outputConfiguration.getDataSet());
-        assertNotNull(result);
     }
 
     @Test

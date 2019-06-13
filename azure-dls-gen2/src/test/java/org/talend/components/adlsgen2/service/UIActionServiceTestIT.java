@@ -20,8 +20,6 @@ import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.completion.SuggestionValues.Item;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
-import org.talend.sdk.component.junit.http.internal.impl.AzureStorageCredentialsRemovalResponseLocator;
-import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.junit5.WithComponents;
 
 import lombok.extern.slf4j.Slf4j;
@@ -30,9 +28,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Slf4j
-@HttpApi(useSsl = true, responseLocator = AzureStorageCredentialsRemovalResponseLocator.class)
 @WithComponents("org.talend.components.adlsgen2")
-class UIActionServiceTest extends AdlsGen2TestBase {
+class UIActionServiceTestIT extends AdlsGen2TestBase {
 
     @Service
     UIActionService ui;

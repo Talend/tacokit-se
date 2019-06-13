@@ -12,13 +12,11 @@
  */
 package org.talend.components.adlsgen2;
 
-import java.io.FileInputStream;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
-import java.util.Properties;
 
 import javax.json.JsonBuilderFactory;
 
@@ -42,26 +40,16 @@ import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
-import org.talend.sdk.component.junit.http.api.HttpApiHandler;
-import org.talend.sdk.component.junit.http.internal.impl.AzureStorageCredentialsRemovalResponseLocator;
-import org.talend.sdk.component.junit.http.internal.junit5.JUnit5HttpApi;
-import org.talend.sdk.component.junit.http.junit5.HttpApi;
-import org.talend.sdk.component.junit.http.junit5.HttpApiInject;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
+import org.talend.sdk.component.maven.MavenDecrypter;
+import org.talend.sdk.component.maven.Server;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@HttpApi(useSsl = true, responseLocator = AzureStorageCredentialsRemovalResponseLocator.class)
 @WithComponents("org.talend.components.adlsgen2")
 public class AdlsGen2TestBase implements Serializable {
-
-    @org.junit.ClassRule
-    public static final JUnit5HttpApi API = new JUnit5HttpApi().activeSsl();
-
-    @HttpApiInject()
-    private HttpApiHandler<?> handler;
 
     @Injected
     protected BaseComponentsHandler components;
@@ -75,43 +63,13 @@ public class AdlsGen2TestBase implements Serializable {
     @Service
     protected AdlsGen2Service service;
 
-    public static String accountName;
+    protected static String accountName;
 
-    public static String storageFs;
+    protected static String storageFs;
 
-    public static String accountKey;
+    protected static String accountKey;
 
-    public static String clientId;
-
-    public static String clientSecret;
-
-    public static String tenantId;
-
-    public static String sas;
-
-    static {
-        Properties prop = new Properties();
-        java.io.InputStream input = null;
-        try {
-            input = new FileInputStream(System.getenv("HOME") + "/azure.properties");
-            prop.load(input);
-            // System.setProperties(prop);
-            for (String name : prop.stringPropertyNames()) {
-                System.setProperty(name, prop.getProperty(name));
-            }
-        } catch (java.io.IOException ex) {
-            System.err.println("Did not find azure properties, you can still pass them with -D");
-        }
-        accountName = System.getProperty("adlsgen2.accountName", "undxgen2");
-        storageFs = System.getProperty("adlsgen2.storageFs", "adls-gen2");
-        accountKey = System.getProperty("adlsgen2.accountKey", "ZZZ_KEY");
-        clientId = System.getProperty("adlsgen2.clientId", "undx");
-        clientSecret = System.getProperty("adlsgen2.clientSecret", "secret");
-        tenantId = System.getProperty("adlsgen2.tenantId", "talendId");
-        sas = System.getProperty("adlsgen2.sas", "ZZZ_SAS");
-        //
-        System.setProperty("talend.junit.http.capture", "true");
-    }
+    protected static String sas;
 
     protected SharedKeyUtils utils;
 
@@ -137,6 +95,15 @@ public class AdlsGen2TestBase implements Serializable {
 
         service = new AdlsGen2Service();
 
+        final MavenDecrypter decrypter = new MavenDecrypter();
+        Server mvnStorage = decrypter.find("azure-dls-gen2.storage");
+        Server mvnAccountSAS = decrypter.find("azure-dls-gen2.sas");
+        Server mvnAccountSharedKey = decrypter.find("azure-dls-gen2.sharedkey");
+        accountName = mvnAccountSAS.getUsername();
+        storageFs = mvnStorage.getUsername();
+        accountKey = mvnAccountSharedKey.getPassword();
+        sas = mvnAccountSAS.getPassword();
+
         connection = new AdlsGen2Connection();
         connection.setAuthMethod(AuthMethod.SAS);
         connection.setAccountName(accountName);
@@ -148,7 +115,6 @@ public class AdlsGen2TestBase implements Serializable {
         dataSet.setConnection(connection);
         dataSet.setFilesystem(storageFs);
         dataSet.setBlobPath("myNewFolder/customer_20190325.csv");
-
         dataSet.setFormat(FileFormat.CSV);
         CsvConfiguration csvConfig = new CsvConfiguration();
         csvConfig.setFieldDelimiter(CsvFieldDelimiter.SEMICOLON);
