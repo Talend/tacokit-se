@@ -209,6 +209,6 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
 
     @Test
     void testUserAgentValue() {
-        assertEquals("APN/1.0 Talend/2019 TaCoKit/1.1.9", HeaderConstants.USER_AGENT_AZURE_DLS_GEN2);
+        assertEquals("APN/1.0 Talend/2019 tck/1.1.9", HeaderConstants.USER_AGENT_AZURE_DLS_GEN2);
     }
 }

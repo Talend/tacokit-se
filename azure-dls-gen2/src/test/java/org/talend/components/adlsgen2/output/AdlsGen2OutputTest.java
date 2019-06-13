@@ -55,7 +55,7 @@ class AdlsGen2OutputTest extends AdlsGen2TestBase {
         final String config = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
         Job.components() //
                 .component("emitter", "test://emitter") //
-                .component("out", "Azure-DLS-Gen2://Output?" + config) //
+                .component("out", "Azure://AdlsGen2Output?" + config) //
                 .connections() //
                 .from("emitter") //
                 .to("out") //
@@ -90,8 +90,8 @@ class AdlsGen2OutputTest extends AdlsGen2TestBase {
 
         final String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
         Job.components() //
-                .component("emitter", "Azure-DLS-Gen2://Input?" + inConfig) //
-                .component("out", "Azure-DLS-Gen2://Output?" + outConfig) //
+                .component("emitter", "Azure://AdlsGen2Input?" + inConfig) //
+                .component("out", "Azure://AdlsGen2Output?" + outConfig) //
                 .connections() //
                 .from("emitter") //
                 .to("out") //
@@ -124,8 +124,8 @@ class AdlsGen2OutputTest extends AdlsGen2TestBase {
         //
         final String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
         Job.components() //
-                .component("in", "Azure-DLS-Gen2://Input?" + inConfig) //
-                .component("out", "Azure-DLS-Gen2://Output?" + outConfig) //
+                .component("in", "Azure://AdlsGen2Input?" + inConfig) //
+                .component("out", "Azure://AdlsGen2Output?" + outConfig) //
                 .connections() //
                 .from("in") //
                 .to("out") //
@@ -159,8 +159,8 @@ class AdlsGen2OutputTest extends AdlsGen2TestBase {
         final String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
         //
         Job.components() //
-                .component("in", "Azure-DLS-Gen2://Input?" + inConfig) //
-                .component("out", "Azure-DLS-Gen2://Output?" + outConfig) //
+                .component("in", "Azure://AdlsGen2Input?" + inConfig) //
+                .component("out", "Azure://AdlsGen2Output?" + outConfig) //
                 .connections() //
                 .from("in") //
                 .to("out") //
@@ -197,8 +197,8 @@ class AdlsGen2OutputTest extends AdlsGen2TestBase {
         final String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
         //
         Job.components() //
-                .component("in", "Azure-DLS-Gen2://Input?" + inConfig) //
-                .component("out", "Azure-DLS-Gen2://Output?" + outConfig) //
+                .component("in", "Azure://AdlsGen2Input?" + inConfig) //
+                .component("out", "Azure://AdlsGen2Output?" + outConfig) //
                 .connections() //
                 .from("in") //
                 .to("out") //

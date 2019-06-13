@@ -45,7 +45,7 @@ class AdlsGen2InputTest extends AdlsGen2TestBase {
     public void csvBasicCase(String authmethod) {
         connection.setAuthMethod(AuthMethod.valueOf(authmethod));
         final String config = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
-        Job.components().component("mycomponent", "Azure-DLS-Gen2://Input?" + config) //
+        Job.components().component("mycomponent", "Azure://AdlsGen2Input?" + config) //
                 .component("collector", "test://collector") //
                 .connections() //
                 .from("mycomponent") //
@@ -70,7 +70,7 @@ class AdlsGen2InputTest extends AdlsGen2TestBase {
         dataSet.setBlobPath("demo_gen2/in/customers.csv");
         inputConfiguration.setDataSet(dataSet);
         final String config = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
-        Job.components().component("mycomponent", "Azure-DLS-Gen2://Input?" + config) //
+        Job.components().component("mycomponent", "Azure://AdlsGen2Input?" + config) //
                 .component("collector", "test://collector") //
                 .connections() //
                 .from("mycomponent") //
@@ -99,7 +99,7 @@ class AdlsGen2InputTest extends AdlsGen2TestBase {
         dataSet.setBlobPath("demo_gen2/in/customers.csv");
         inputConfiguration.setDataSet(dataSet);
         final String config = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
-        Job.components().component("mycomponent", "Azure-DLS-Gen2://Input?" + config) //
+        Job.components().component("mycomponent", "Azure://AdlsGen2Input?" + config) //
                 .component("collector", "test://collector") //
                 .connections() //
                 .from("mycomponent") //
@@ -128,7 +128,7 @@ class AdlsGen2InputTest extends AdlsGen2TestBase {
         dataSet.setBlobPath("demo_gen2/in/customers.csv");
         inputConfiguration.setDataSet(dataSet);
         final String config = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
-        Job.components().component("mycomponent", "Azure-DLS-Gen2://Input?" + config) //
+        Job.components().component("mycomponent", "Azure://AdlsGen2Input?" + config) //
                 .component("collector", "test://collector") //
                 .connections() //
                 .from("mycomponent") //
@@ -155,7 +155,7 @@ class AdlsGen2InputTest extends AdlsGen2TestBase {
         dataSet.setBlobPath("demo_gen2/in/sample.json");
         inputConfiguration.setDataSet(dataSet);
         final String config = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
-        Job.components().component("mycomponent", "Azure-DLS-Gen2://Input?" + config) //
+        Job.components().component("mycomponent", "Azure://AdlsGen2Input?" + config) //
                 .component("collector", "test://collector") //
                 .connections() //
                 .from("mycomponent") //
@@ -194,7 +194,7 @@ class AdlsGen2InputTest extends AdlsGen2TestBase {
         dataSet.setBlobPath("demo_gen2/in/sample-array.json");
         inputConfiguration.setDataSet(dataSet);
         final String config = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
-        Job.components().component("mycomponent", "Azure-DLS-Gen2://Input?" + config) //
+        Job.components().component("mycomponent", "Azure://AdlsGen2Input?" + config) //
                 .component("collector", "test://collector") //
                 .connections() //
                 .from("mycomponent") //
