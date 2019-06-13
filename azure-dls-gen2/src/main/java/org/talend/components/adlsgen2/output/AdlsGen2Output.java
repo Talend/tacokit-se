@@ -42,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Version(1)
-@Icon(value = Icon.IconType.CUSTOM, custom = "azure-datalake")
+@Icon(value = Icon.IconType.FILE_DATABASE_O)
 @Processor(name = "AdlsGen2Output")
 @Documentation("Azure Data Lake Storage Gen2 Output")
 public class AdlsGen2Output implements Serializable {

@@ -31,7 +31,7 @@ import org.talend.sdk.component.api.service.Service;
 import static java.util.Collections.singletonList;
 
 @Version(1)
-@Icon(value = Icon.IconType.CUSTOM, custom = "azure-datalake")
+@Icon(value = Icon.IconType.FILE_DATABASE_O)
 @PartitionMapper(name = "AdlsGen2Input")
 @Documentation("Mapper for Azure Data Lake Storage Gen2")
 public class InputMapper implements Serializable {
