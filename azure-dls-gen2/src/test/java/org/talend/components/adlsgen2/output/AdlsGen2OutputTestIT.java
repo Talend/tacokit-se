@@ -12,8 +12,6 @@
  */
 package org.talend.components.adlsgen2.output;
 
-import java.util.List;
-
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.talend.components.adlsgen2.AdlsGen2TestBase;
@@ -23,19 +21,14 @@ import org.talend.components.adlsgen2.common.format.csv.CsvFieldDelimiter;
 import org.talend.components.adlsgen2.common.format.csv.CsvRecordSeparator;
 import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
-import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
-import lombok.extern.slf4j.Slf4j;
-
 import static java.util.Arrays.asList;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
-@Slf4j
 @WithComponents("org.talend.components.adlsgen2")
 class AdlsGen2OutputTestIT extends AdlsGen2TestBase {
 
@@ -58,7 +51,6 @@ class AdlsGen2OutputTestIT extends AdlsGen2TestBase {
                 .to("out") //
                 .build() //
                 .run();
-        final List<Record> records = components.getCollectedData(Record.class);
     }
 
     @ParameterizedTest
@@ -94,8 +86,6 @@ class AdlsGen2OutputTestIT extends AdlsGen2TestBase {
                 .to("out") //
                 .build() //
                 .run();
-        final List<Record> records = components.getCollectedData(Record.class);
-        assertNotNull(records);
     }
 
     @ParameterizedTest
@@ -129,7 +119,6 @@ class AdlsGen2OutputTestIT extends AdlsGen2TestBase {
                 .to("out") //
                 .build() //
                 .run();
-        final List<Record> records = components.getCollectedData(Record.class);
     }
 
     @ParameterizedTest
@@ -164,10 +153,6 @@ class AdlsGen2OutputTestIT extends AdlsGen2TestBase {
                 .to("out") //
                 .build() //
                 .run();
-        final List<Record> records = components.getCollectedData(Record.class);
-        for (Record r : records) {
-            assertNotNull(r);
-        }
     }
 
     @ParameterizedTest
@@ -202,10 +187,6 @@ class AdlsGen2OutputTestIT extends AdlsGen2TestBase {
                 .to("out") //
                 .build() //
                 .run();
-        final List<Record> records = components.getCollectedData(Record.class);
-        for (Record r : records) {
-            log.warn("[fromAvroToCsv] {}", r);
-        }
     }
 
 }

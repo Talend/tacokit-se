@@ -26,15 +26,12 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit5.WithComponents;
 
-import lombok.extern.slf4j.Slf4j;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-@Slf4j
 @WithComponents("org.talend.components.adlsgen2")
 class AdlsGen2ServiceTestIT extends AdlsGen2TestBase {
 

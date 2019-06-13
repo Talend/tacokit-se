@@ -34,6 +34,7 @@ import org.talend.components.adlsgen2.input.InputConfiguration;
 import org.talend.components.adlsgen2.output.OutputConfiguration;
 import org.talend.components.adlsgen2.service.AdlsGen2Service;
 import org.talend.components.adlsgen2.service.I18n;
+import org.talend.sdk.component.api.DecryptedServer;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.record.Schema.Type;
@@ -42,13 +43,11 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
-import org.talend.sdk.component.maven.MavenDecrypter;
+import org.talend.sdk.component.junit5.WithMavenServers;
 import org.talend.sdk.component.maven.Server;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @WithComponents("org.talend.components.adlsgen2")
+@WithMavenServers
 public class AdlsGen2TestBase implements Serializable {
 
     @Injected
@@ -63,7 +62,16 @@ public class AdlsGen2TestBase implements Serializable {
     @Service
     protected AdlsGen2Service service;
 
-    protected static String accountName = "undxgen2";
+    @DecryptedServer("azure-dls-gen2.storage")
+    private Server mvnStorage;
+
+    @DecryptedServer("azure-dls-gen2.sas")
+    private Server mvnAccountSAS;
+
+    @DecryptedServer("azure-dls-gen2.sharedkey")
+    private Server mvnAccountSharedKey;
+
+    protected static String accountName;
 
     protected static String storageFs;
 
@@ -95,19 +103,10 @@ public class AdlsGen2TestBase implements Serializable {
 
         service = new AdlsGen2Service();
 
-        final MavenDecrypter decrypter = new MavenDecrypter();
-
-        try {
-            Server mvnStorage = decrypter.find("azure-dls-gen2.storage");
-            Server mvnAccountSAS = decrypter.find("azure-dls-gen2.sas");
-            Server mvnAccountSharedKey = decrypter.find("azure-dls-gen2.sharedkey");
-            accountName = mvnAccountSAS.getUsername();
-            storageFs = mvnStorage.getUsername();
-            accountKey = mvnAccountSharedKey.getPassword();
-            sas = mvnAccountSAS.getPassword();
-        } catch (Exception e) {
-            log.debug("[setUp] no maven credentials");
-        }
+        accountName = mvnAccountSAS.getUsername();
+        storageFs = mvnStorage.getUsername();
+        accountKey = mvnAccountSharedKey.getPassword();
+        sas = mvnAccountSAS.getPassword();
 
         connection = new AdlsGen2Connection();
         connection.setAuthMethod(AuthMethod.SAS);

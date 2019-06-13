@@ -22,13 +22,10 @@ import org.talend.components.adlsgen2.AdlsGen2TestBase;
 import org.talend.components.adlsgen2.datastore.Constants.MethodConstants;
 import org.talend.sdk.component.junit5.WithComponents;
 
-import lombok.extern.slf4j.Slf4j;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Slf4j
 @WithComponents("org.talend.components.adlsgen2")
 class SharedKeyCredentialsUtilsTest extends AdlsGen2TestBase {
 
@@ -56,6 +53,6 @@ class SharedKeyCredentialsUtilsTest extends AdlsGen2TestBase {
     void buildAuthenticationSignature() throws Exception {
         String signature = utils.buildAuthenticationSignature(url, MethodConstants.GET, headers);
         assertNotNull(signature);
-        assertTrue(signature.startsWith("SharedKey undxgen2:"));
+        assertTrue(signature.startsWith("SharedKey username:"));
     }
 }

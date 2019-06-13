@@ -25,12 +25,9 @@ import org.talend.components.adlsgen2.output.formatter.CsvContentFormatter;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit5.WithComponents;
 
-import lombok.extern.slf4j.Slf4j;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@Slf4j
 @WithComponents("org.talend.components.adlsgen2")
 public class CsvConverterTest extends AdlsGen2TestBase {
 
