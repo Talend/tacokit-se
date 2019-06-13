@@ -20,6 +20,7 @@ import java.util.Set;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.lang.StringUtils;
 import org.talend.components.adlsgen2.common.converter.RecordConverter;
 import org.talend.sdk.component.api.record.Record;
@@ -96,6 +97,7 @@ public class CsvConverter implements RecordConverter<CSVRecord>, Serializable {
         // text enclosure
         if (StringUtils.isNotEmpty(enclosure) && enclosure.length() == 1) {
             format = format.withQuote(enclosure.charAt(0));
+            format = format.withQuoteMode(QuoteMode.ALL);
         } else {
             // CSVFormat.DEFAULT has quotes defined
             format = format.withQuote(null);

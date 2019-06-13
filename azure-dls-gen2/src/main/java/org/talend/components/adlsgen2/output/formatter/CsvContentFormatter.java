@@ -15,11 +15,13 @@ package org.talend.components.adlsgen2.output.formatter;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.lang.StringUtils;
+import org.talend.components.adlsgen2.common.format.csv.CsvConfiguration;
 import org.talend.components.adlsgen2.common.format.csv.CsvConverter;
 import org.talend.components.adlsgen2.output.OutputConfiguration;
 import org.talend.components.adlsgen2.runtime.AdlsGen2RuntimeException;
@@ -35,44 +37,73 @@ public class CsvContentFormatter implements ContentFormatter {
 
     private final OutputConfiguration configuration;
 
-    private RecordBuilderFactory recordBuilderFactory;
+    private final CsvConfiguration csvConfiguration;
 
-    CsvConverter converter;
+    private final CSVFormat format;
+
+    private final CsvConverter converter;
+
+    Schema schema;
 
     public CsvContentFormatter(@Option("configuration") final OutputConfiguration configuration,
             final RecordBuilderFactory recordBuilderFactory) {
-        this.recordBuilderFactory = recordBuilderFactory;
         this.configuration = configuration;
-        converter = CsvConverter.of(recordBuilderFactory, configuration.getDataSet().getCsvConfiguration());
+        csvConfiguration = this.configuration.getDataSet().getCsvConfiguration();
+        converter = CsvConverter.of(recordBuilderFactory, csvConfiguration);
+        format = converter.getCsvFormat();
     }
 
     @Override
     public byte[] prepareContent(List<Record> records) {
-        StringBuilder sb = new StringBuilder();
-        for (Record record : records) {
-            sb.append(toCsvFormat(record));
+        if (records.isEmpty()) {
+            return new byte[0];
         }
-        return sb.toString().getBytes();
-    }
-
-    private String[] getStringArrayFromRecord(Record record) {
-        List<String> values = new ArrayList<>();
-        for (Schema.Entry field : record.getSchema().getEntries()) {
-            values.add(record.getString(field.getName()));
-        }
-        return values.toArray(new String[0]);
-    }
-
-    private String toCsvFormat(final Record record) {
-        StringWriter writer = new StringWriter();
-        CSVFormat csv = converter.getCsvFormat();
+        // get schema from first record
+        schema = records.get(0).getSchema();
+        StringWriter stringWriter = new StringWriter();
         try {
-            CSVPrinter printer = new CSVPrinter(writer, csv);
-            printer.printRecord(getStringArrayFromRecord(record));
-            return writer.toString();
+            CSVPrinter printer = new CSVPrinter(stringWriter, format);
+            if (csvConfiguration.isHeader()) {
+                printer.print(getHeader());
+            }
+            for (Record record : records) {
+                printer.printRecord(convertRecordToArray(record));
+            }
+            printer.flush();
+            printer.close();
+            return stringWriter.toString().getBytes();
         } catch (IOException e) {
             throw new AdlsGen2RuntimeException(e.getMessage());
         }
+    }
+
+    private String getHeader() {
+        // first return user schema if exists
+        if (StringUtils.isNotEmpty(csvConfiguration.getCsvSchema())) {
+            log.warn("[getHeader] user schema");
+            return csvConfiguration.getCsvSchema() + format.getRecordSeparator();
+        }
+        // otherwise record schema
+        log.warn("[getHeader] record schema");
+        StringBuilder headers = new StringBuilder(schema.getEntries().get(0).getName());
+        for (int i = 1; i < schema.getEntries().size(); i++) {
+            headers.append(format.getDelimiter()).append(schema.getEntries().get(i).getName());
+        }
+        return headers.append(format.getRecordSeparator()).toString();
+    }
+
+    private Object[] convertRecordToArray(Record record) {
+        Object[] array = new Object[record.getSchema().getEntries().size()];
+        for (int i = 0; i < schema.getEntries().size(); i++) {
+            if (schema.getEntries().get(i).getType() == Schema.Type.DATETIME) {
+                array[i] = record.getDateTime(schema.getEntries().get(i).getName());
+            } else if (schema.getEntries().get(i).getType() == Schema.Type.BYTES) {
+                array[i] = Arrays.toString(record.getBytes(schema.getEntries().get(i).getName()));
+            } else {
+                array[i] = record.get(Object.class, schema.getEntries().get(i).getName());
+            }
+        }
+        return array;
     }
 
 }

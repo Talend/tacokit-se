@@ -34,6 +34,7 @@ import org.talend.sdk.component.runtime.manager.chain.Job;
 import lombok.extern.slf4j.Slf4j;
 
 import static java.util.Arrays.asList;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @Slf4j
@@ -152,7 +153,45 @@ class AdlsGen2OutputTest extends AdlsGen2TestBase {
         csvConfig.setCsvSchema("");
         csvConfig.setHeader(true);
         outDs.setCsvConfiguration(csvConfig);
-        outDs.setBlobPath("demo_gen2/out/customers-from-avro.csv");
+        outDs.setBlobPath("demo_gen2/out/customers-from-avro-wo-header.csv");
+        outputConfiguration.setOverwrite(true);
+        outputConfiguration.setDataSet(outDs);
+        final String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
+        //
+        Job.components() //
+                .component("in", "Azure-DLS-Gen2://Input?" + inConfig) //
+                .component("out", "Azure-DLS-Gen2://Output?" + outConfig) //
+                .connections() //
+                .from("in") //
+                .to("out") //
+                .build() //
+                .run();
+        final List<Record> records = components.getCollectedData(Record.class);
+        for (Record r : records) {
+           assertNotNull(r);
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "SharedKey", "SAS" })
+    public void fromAvroToCsvWithHeader(String authmethod) {
+        connection.setAuthMethod(AuthMethod.valueOf(authmethod));
+        dataSet.setFormat(FileFormat.AVRO);
+        dataSet.setBlobPath("demo_gen2/in/customers.avro");
+        inputConfiguration.setDataSet(dataSet);
+        final String inConfig = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
+        //
+        AdlsGen2DataSet outDs = new AdlsGen2DataSet();
+        outDs.setConnection(connection);
+        outDs.setFilesystem(storageFs);
+        outDs.setFormat(FileFormat.CSV);
+        CsvConfiguration csvConfig = new CsvConfiguration();
+        csvConfig.setFieldDelimiter(CsvFieldDelimiter.SEMICOLON);
+        csvConfig.setRecordSeparator(CsvRecordSeparator.LF);
+        csvConfig.setCsvSchema("Zid;ZFirstname;ZLastname;ZAddress;ZRegistrationDate;ZRevenue;ZStates");
+        csvConfig.setHeader(true);
+        outDs.setCsvConfiguration(csvConfig);
+        outDs.setBlobPath("demo_gen2/out/customers-from-avro-w-header.csv");
         outputConfiguration.setOverwrite(true);
         outputConfiguration.setDataSet(outDs);
         final String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();

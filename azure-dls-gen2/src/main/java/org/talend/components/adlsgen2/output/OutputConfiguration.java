@@ -25,7 +25,8 @@ import lombok.Data;
 @Data
 @GridLayout(value = { //
         @GridLayout.Row({ "dataSet" }), //
-        @GridLayout.Row({ "overwrite", "append" }), //
+        @GridLayout.Row({ "overwrite" }), //
+        @GridLayout.Row({ "append" }), //
 })
 @Documentation("ADLS output configuration")
 public class OutputConfiguration implements Serializable {
@@ -35,12 +36,12 @@ public class OutputConfiguration implements Serializable {
     private AdlsGen2DataSet dataSet;
 
     @Option
-    @ActiveIf(negate = true, target = "../dataSet/format", value = "CSV")
+    @ActiveIf(target = "../dataSet/format", value = "CSV")
     @Documentation("Overwrite")
     private boolean overwrite = Boolean.FALSE;
 
     @Option
-    @ActiveIf(negate = true, target = "../dataSet/format", value = "CSV")
+    @ActiveIf(target = "../dataSet/format", value = "CSV")
     @Documentation("Append")
     private boolean append = Boolean.FALSE;
 
