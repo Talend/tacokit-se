@@ -63,11 +63,11 @@ public class AdlsGen2TestBase implements Serializable {
     @Service
     protected AdlsGen2Service service;
 
-    protected static String accountName;
+    protected static String accountName = "undxgen2";
 
     protected static String storageFs;
 
-    protected static String accountKey;
+    protected static String accountKey = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX==";
 
     protected static String sas;
 
@@ -96,13 +96,18 @@ public class AdlsGen2TestBase implements Serializable {
         service = new AdlsGen2Service();
 
         final MavenDecrypter decrypter = new MavenDecrypter();
-        Server mvnStorage = decrypter.find("azure-dls-gen2.storage");
-        Server mvnAccountSAS = decrypter.find("azure-dls-gen2.sas");
-        Server mvnAccountSharedKey = decrypter.find("azure-dls-gen2.sharedkey");
-        accountName = mvnAccountSAS.getUsername();
-        storageFs = mvnStorage.getUsername();
-        accountKey = mvnAccountSharedKey.getPassword();
-        sas = mvnAccountSAS.getPassword();
+
+        try {
+            Server mvnStorage = decrypter.find("azure-dls-gen2.storage");
+            Server mvnAccountSAS = decrypter.find("azure-dls-gen2.sas");
+            Server mvnAccountSharedKey = decrypter.find("azure-dls-gen2.sharedkey");
+            accountName = mvnAccountSAS.getUsername();
+            storageFs = mvnStorage.getUsername();
+            accountKey = mvnAccountSharedKey.getPassword();
+            sas = mvnAccountSAS.getPassword();
+        } catch (Exception e) {
+            log.debug("[setUp] no maven credentials");
+        }
 
         connection = new AdlsGen2Connection();
         connection.setAuthMethod(AuthMethod.SAS);
