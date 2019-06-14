@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  *
  */
-package org.talend.components.adlsgen2.output.formatter;
+package org.talend.components.adlsgen2.runtime.formatter;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,7 +34,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ParquetContentFormatter implements ContentFormatter {
+public class ParquetContentFormatter extends AbstractContentFormatter {
 
     protected final ParquetConverter converter;
 
@@ -50,7 +50,7 @@ public class ParquetContentFormatter implements ContentFormatter {
     }
 
     @Override
-    public byte[] prepareContent(List<Record> records) {
+    public byte[] feedContent(List<Record> records) {
         Schema avroSchema = converter.inferAvroSchema(records.get(0).getSchema());
         File tempFilePath = null;
         try {
@@ -64,7 +64,7 @@ public class ParquetContentFormatter implements ContentFormatter {
             writer.close();
             return Files.readAllBytes(tempFilePath.toPath());
         } catch (IOException e) {
-            log.warn("[prepareContent] {}", e);
+            log.warn("[feedContent] {}", e);
             throw new AdlsGen2RuntimeException(e.getMessage());
         } finally {
             if (tempFilePath != null) {
@@ -72,4 +72,5 @@ public class ParquetContentFormatter implements ContentFormatter {
             }
         }
     }
+
 }

@@ -135,6 +135,8 @@ public class Constants {
 
     public static final String ATTR_FILE = "file";
 
+    public static final String ATTR_IS_DIRECTORY = "isDirectory";
+
     /**
      * Private Default Ctor
      */

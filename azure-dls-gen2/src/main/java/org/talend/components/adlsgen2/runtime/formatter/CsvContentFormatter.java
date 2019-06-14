@@ -11,10 +11,11 @@
  * specific language governing permissions and limitations under the License.
  *
  */
-package org.talend.components.adlsgen2.output.formatter;
+package org.talend.components.adlsgen2.runtime.formatter;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -33,7 +34,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class CsvContentFormatter implements ContentFormatter {
+public class CsvContentFormatter extends AbstractContentFormatter {
 
     private final OutputConfiguration configuration;
 
@@ -43,7 +44,7 @@ public class CsvContentFormatter implements ContentFormatter {
 
     private final CsvConverter converter;
 
-    Schema schema;
+    private Schema schema;
 
     public CsvContentFormatter(@Option("configuration") final OutputConfiguration configuration,
             final RecordBuilderFactory recordBuilderFactory) {
@@ -54,7 +55,7 @@ public class CsvContentFormatter implements ContentFormatter {
     }
 
     @Override
-    public byte[] prepareContent(List<Record> records) {
+    public byte[] feedContent(List<Record> records) {
         if (records.isEmpty()) {
             return new byte[0];
         }
@@ -64,7 +65,7 @@ public class CsvContentFormatter implements ContentFormatter {
         try {
             CSVPrinter printer = new CSVPrinter(stringWriter, format);
             if (csvConfiguration.isHeader()) {
-                printer.print(getHeader());
+                printer.printRecord(getHeader());
             }
             for (Record record : records) {
                 printer.printRecord(convertRecordToArray(record));
@@ -77,19 +78,23 @@ public class CsvContentFormatter implements ContentFormatter {
         }
     }
 
-    private String getHeader() {
+    private Object[] getHeader() {
+        // cannot be called in initializeContent because we may need a least one record...
         // first return user schema if exists
         if (StringUtils.isNotEmpty(csvConfiguration.getCsvSchema())) {
-            log.warn("[getHeader] user schema");
-            return csvConfiguration.getCsvSchema() + format.getRecordSeparator();
+            log.info("[getHeader] user schema");
+            List<String> result = csvConfiguration.getCsvSchemaHeaders();
+            if (result != null && !result.isEmpty()) {
+                return result.toArray();
+            }
         }
         // otherwise record schema
-        log.warn("[getHeader] record schema");
-        StringBuilder headers = new StringBuilder(schema.getEntries().get(0).getName());
-        for (int i = 1; i < schema.getEntries().size(); i++) {
-            headers.append(format.getDelimiter()).append(schema.getEntries().get(i).getName());
+        List<String> headers = new ArrayList<>();
+        log.info("[getHeader] record schema");
+        for (int i = 0; i < schema.getEntries().size(); i++) {
+            headers.add(schema.getEntries().get(i).getName());
         }
-        return headers.append(format.getRecordSeparator()).toString();
+        return headers.toArray();
     }
 
     private Object[] convertRecordToArray(Record record) {

@@ -16,8 +16,11 @@ import java.io.Serializable;
 import java.util.Iterator;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import javax.json.JsonBuilderFactory;
 
+import org.talend.components.adlsgen2.runtime.AdlsGen2RuntimeException;
+import org.talend.components.adlsgen2.runtime.input.BlobReader;
+import org.talend.components.adlsgen2.runtime.input.BlobReader.BlobFileReaderFactory;
 import org.talend.components.adlsgen2.service.AdlsGen2Service;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -25,6 +28,7 @@ import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,26 +40,38 @@ public class AdlsGen2Input implements Serializable {
     @Service
     private final AdlsGen2Service service;
 
+    @Service
+    private final RecordBuilderFactory recordBuilderFactory;
+
+    @Service
+    private final JsonBuilderFactory jsonFactory;
+
     private InputConfiguration configuration;
 
     private Iterator<Record> records;
 
-    public AdlsGen2Input(@Option("configuration") final InputConfiguration configuration, final AdlsGen2Service service) {
+    private BlobReader reader;
+
+    public AdlsGen2Input(@Option("configuration") final InputConfiguration configuration, final AdlsGen2Service service,
+            final RecordBuilderFactory recordBuilderFactory, JsonBuilderFactory jsonFactory) {
         this.configuration = configuration;
         this.service = service;
+        this.jsonFactory = jsonFactory;
+        this.recordBuilderFactory = recordBuilderFactory;
     }
 
     @PostConstruct
     public void init() {
-        records = service.pathRead(configuration);
+        try {
+            reader = BlobFileReaderFactory.getReader(configuration, recordBuilderFactory, jsonFactory, service);
+        } catch (Exception e) {
+            log.warn("[init] Error: {}", e);
+            throw new AdlsGen2RuntimeException(e.getMessage());
+        }
     }
 
     @Producer
     public Record next() {
-        return records.hasNext() ? records.next() : null;
-    }
-
-    @PreDestroy
-    public void release() {
+        return reader.readRecord();
     }
 }

@@ -16,7 +16,6 @@ import java.io.Serializable;
 
 import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
@@ -25,9 +24,8 @@ import lombok.Data;
 @Data
 @GridLayout(value = { //
         @GridLayout.Row({ "dataSet" }), //
-        @GridLayout.Row({ "overwrite" }), //
-        @GridLayout.Row({ "append" }), //
 })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("blobNameTemplate") })
 @Documentation("ADLS output configuration")
 public class OutputConfiguration implements Serializable {
 
@@ -36,16 +34,8 @@ public class OutputConfiguration implements Serializable {
     private AdlsGen2DataSet dataSet;
 
     @Option
-    @Documentation("Overwrite")
-    private boolean overwrite = Boolean.FALSE;
-
-    @Option
-    @ActiveIf(target = "../dataSet/format", value = "CSV")
-    @Documentation("Append")
-    private boolean append = Boolean.FALSE;
-
-    public boolean isFailOnExistingBlob() {
-        return !overwrite;
-    }
+    @Documentation("Generated blob item name prefix.\nBatch file would have name prefix + UUID + extension.\n"
+            + "I.e. myPrefix-5deaa8ff-7d22-4b86-a864-9a6fa414501a.avro")
+    private String blobNameTemplate = "data-";
 
 }

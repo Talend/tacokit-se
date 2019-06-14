@@ -39,7 +39,6 @@ class AdlsGen2OutputTestIT extends AdlsGen2TestBase {
     @ValueSource(strings = { "SharedKey", "SAS" })
     public void produceCsv(String authmethod) {
         connection.setAuthMethod(AuthMethod.valueOf(authmethod));
-        outputConfiguration.setOverwrite(true);
         outputConfiguration.getDataSet().setBlobPath("customers_test_produce.csv");
         components.setInputData(asList(createData(), createData(), createData()));
         final String config = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
@@ -72,12 +71,11 @@ class AdlsGen2OutputTestIT extends AdlsGen2TestBase {
         outDs.setFilesystem(storageFs);
         outDs.setFormat(FileFormat.JSON);
         outDs.setBlobPath("demo_gen2/out/customers.json");
-        outputConfiguration.setOverwrite(true);
         outputConfiguration.setDataSet(outDs);
         components.setInputData(asList(createData(), createData(), createData()));
         //
-
-        final String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
+        String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
+        outConfig += "&$configuration.$maxBatchSize=150";
         Job.components() //
                 .component("emitter", "Azure://AdlsGen2Input?" + inConfig) //
                 .component("out", "Azure://AdlsGen2Output?" + outConfig) //
@@ -107,10 +105,43 @@ class AdlsGen2OutputTestIT extends AdlsGen2TestBase {
         outDs.setFilesystem(storageFs);
         outDs.setFormat(FileFormat.AVRO);
         outDs.setBlobPath("demo_gen2/out/customers-from-csv.avro");
-        outputConfiguration.setOverwrite(true);
         outputConfiguration.setDataSet(outDs);
         //
-        final String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
+        String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
+        outConfig += "&$configuration.$maxBatchSize=150";
+        Job.components() //
+                .component("in", "Azure://AdlsGen2Input?" + inConfig) //
+                .component("out", "Azure://AdlsGen2Output?" + outConfig) //
+                .connections() //
+                .from("in") //
+                .to("out") //
+                .build() //
+                .run();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "SharedKey", "SAS" })
+    public void fromCsvToParquet(String authmethod) {
+        connection.setAuthMethod(AuthMethod.valueOf(authmethod));
+        CsvConfiguration csvConfig = new CsvConfiguration();
+        csvConfig.setFieldDelimiter(CsvFieldDelimiter.SEMICOLON);
+        csvConfig.setRecordSeparator(CsvRecordSeparator.LF);
+        csvConfig.setCsvSchema("");
+        csvConfig.setHeader(true);
+        dataSet.setCsvConfiguration(csvConfig);
+        dataSet.setBlobPath("demo_gen2/in/customers.csv");
+        inputConfiguration.setDataSet(dataSet);
+        final String inConfig = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
+        //
+        AdlsGen2DataSet outDs = new AdlsGen2DataSet();
+        outDs.setConnection(connection);
+        outDs.setFilesystem(storageFs);
+        outDs.setFormat(FileFormat.PARQUET);
+        outDs.setBlobPath("demo_gen2/out/customers-from-csv.parquet");
+        outputConfiguration.setDataSet(outDs);
+        //
+        String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
+        outConfig += "&$configuration.$maxBatchSize=150";
         Job.components() //
                 .component("in", "Azure://AdlsGen2Input?" + inConfig) //
                 .component("out", "Azure://AdlsGen2Output?" + outConfig) //
@@ -141,9 +172,9 @@ class AdlsGen2OutputTestIT extends AdlsGen2TestBase {
         csvConfig.setHeader(true);
         outDs.setCsvConfiguration(csvConfig);
         outDs.setBlobPath("demo_gen2/out/customers-from-avro-wo-header.csv");
-        outputConfiguration.setOverwrite(true);
         outputConfiguration.setDataSet(outDs);
-        final String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
+        String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
+        outConfig += "&$configuration.$maxBatchSize=5";
         //
         Job.components() //
                 .component("in", "Azure://AdlsGen2Input?" + inConfig) //
@@ -175,9 +206,9 @@ class AdlsGen2OutputTestIT extends AdlsGen2TestBase {
         csvConfig.setHeader(true);
         outDs.setCsvConfiguration(csvConfig);
         outDs.setBlobPath("demo_gen2/out/customers-from-avro-w-header.csv");
-        outputConfiguration.setOverwrite(true);
         outputConfiguration.setDataSet(outDs);
-        final String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
+        String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
+        outConfig += "&$configuration.$maxBatchSize=123";
         //
         Job.components() //
                 .component("in", "Azure://AdlsGen2Input?" + inConfig) //

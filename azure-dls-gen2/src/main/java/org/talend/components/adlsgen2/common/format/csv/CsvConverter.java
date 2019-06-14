@@ -40,6 +40,7 @@ public class CsvConverter implements RecordConverter<CSVRecord>, Serializable {
 
     private RecordBuilderFactory recordBuilderFactory;
 
+    @Getter
     private Schema schema;
 
     @Setter

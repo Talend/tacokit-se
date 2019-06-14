@@ -11,11 +11,10 @@
  * specific language governing permissions and limitations under the License.
  *
  */
-package org.talend.components.adlsgen2.output.formatter;
+package org.talend.components.adlsgen2.runtime.formatter;
 
 import java.util.List;
 
-import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonBuilderFactory;
 
@@ -28,7 +27,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class JsonContentFormatter implements ContentFormatter {
+public class JsonContentFormatter extends AbstractContentFormatter {
 
     private final RecordBuilderFactory recordBuilderFactory;
 
@@ -37,6 +36,8 @@ public class JsonContentFormatter implements ContentFormatter {
     private final JsonConverter converter;
 
     private final JsonBuilderFactory jsonBuilderFactory;
+
+    private boolean hasAlreadyItems;
 
     public JsonContentFormatter(@Option("configuration") final OutputConfiguration configuration,
             final RecordBuilderFactory recordBuilderFactory, final JsonBuilderFactory jsonBuilderFactory) {
@@ -47,12 +48,32 @@ public class JsonContentFormatter implements ContentFormatter {
     }
 
     @Override
-    public byte[] prepareContent(List<Record> records) {
-        JsonArrayBuilder content = jsonBuilderFactory.createArrayBuilder();
+    public byte[] feedContent(List<Record> records) {
+        JsonArrayBuilder b = jsonBuilderFactory.createArrayBuilder();
         for (Record record : records) {
-            content.add(converter.fromRecord(record));
+
+            b.add(converter.fromRecord(record));
         }
-        final JsonArray values = content.build();
-        return values.toString().getBytes();
+        return b.build().toString().getBytes();
+    }
+
+    @Override
+    public boolean hasHeader() {
+        return true;
+    }
+
+    @Override
+    public boolean hasFooter() {
+        return true;
+    }
+
+    @Override
+    public byte[] initializeContent() {
+        return "[".getBytes();
+    }
+
+    @Override
+    public byte[] finalizeContent() {
+        return "]".getBytes();
     }
 }

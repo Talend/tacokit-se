@@ -16,6 +16,8 @@ package org.talend.components.adlsgen2.input;
 import java.io.Serializable;
 import java.util.List;
 
+import javax.json.JsonBuilderFactory;
+
 import org.talend.components.adlsgen2.service.AdlsGen2Service;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -27,6 +29,7 @@ import org.talend.sdk.component.api.input.PartitionSize;
 import org.talend.sdk.component.api.input.Split;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import static java.util.Collections.singletonList;
 
@@ -39,11 +42,19 @@ public class InputMapper implements Serializable {
     @Service
     private final AdlsGen2Service service;
 
+    @Service
+    private final RecordBuilderFactory recordBuilderFactory;
+
     private final InputConfiguration configuration;
 
-    public InputMapper(@Option("configuration") final InputConfiguration configuration, final AdlsGen2Service service) {
+    private final JsonBuilderFactory jsonBuilderFactory;
+
+    public InputMapper(@Option("configuration") final InputConfiguration configuration, final AdlsGen2Service service,
+            final RecordBuilderFactory recordBuilderFactory, final JsonBuilderFactory jsonBuilderFactory) {
         this.configuration = configuration;
         this.service = service;
+        this.recordBuilderFactory = recordBuilderFactory;
+        this.jsonBuilderFactory = jsonBuilderFactory;
     }
 
     @Assessor
@@ -58,6 +69,6 @@ public class InputMapper implements Serializable {
 
     @Emitter
     public AdlsGen2Input createWorker() {
-        return new AdlsGen2Input(configuration, service);
+        return new AdlsGen2Input(configuration, service, recordBuilderFactory, jsonBuilderFactory);
     }
 }

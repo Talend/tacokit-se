@@ -11,15 +11,34 @@
  * specific language governing permissions and limitations under the License.
  *
  */
-package org.talend.components.adlsgen2.output.formatter;
+package org.talend.components.adlsgen2.service;
 
-import java.io.Serializable;
-import java.util.List;
+import lombok.Data;
+import lombok.ToString;
 
-import org.talend.sdk.component.api.record.Record;
+@Data
+@ToString
+public class BlobInformations {
 
-public interface ContentFormatter extends Serializable {
+    public String etag;
 
-    byte[] prepareContent(List<Record> records);
+    public String group;
 
+    public String lastModified;
+
+    public String name;
+
+    public String owner;
+
+    public String permissions;
+
+    private boolean exists = Boolean.FALSE;
+
+    private String blobPath;
+
+    private String fileName;
+
+    private String directory;
+
+    private Integer contentLength = 0;
 }

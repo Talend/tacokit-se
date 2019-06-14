@@ -29,6 +29,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @WithComponents("org.talend.components.adlsgen2")
 class SharedKeyCredentialsUtilsTest extends AdlsGen2TestBase {
 
+    public static final String USERNAME = "username";
+
     private SharedKeyUtils utils;
 
     private URL url;
@@ -38,7 +40,7 @@ class SharedKeyCredentialsUtilsTest extends AdlsGen2TestBase {
     @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
-        utils = new SharedKeyUtils(accountName, accountKey);
+        utils = new SharedKeyUtils(USERNAME, accountKey);
         url = new URL(
                 "https://undxgen2.dfs.core.windows.net/adls-gen2?directory=myNewFolder&recursive=false&resource=filesystem&timeout=60");
         headers = new HashMap<>();
@@ -46,7 +48,7 @@ class SharedKeyCredentialsUtilsTest extends AdlsGen2TestBase {
 
     @Test
     void getAccountName() {
-        assertEquals(accountName, utils.getAccountName());
+        assertEquals(USERNAME, utils.getAccountName());
     }
 
     @Test

@@ -13,7 +13,12 @@
 package org.talend.components.adlsgen2.common.format.csv;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.talend.components.adlsgen2.common.format.FileEncoding;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -21,7 +26,9 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Data
 @GridLayout({ //
         @GridLayout.Row({ "fieldDelimiter", "customFieldDelimiter" }), //
@@ -90,6 +97,19 @@ public class CsvConfiguration implements Serializable {
     public String effectiveRecordSeparator() {
         return CsvRecordSeparator.OTHER.equals(getRecordSeparator()) ? getCustomRecordSeparator()
                 : getRecordSeparator().getSeparator();
+    }
+
+    public List<String> getCsvSchemaHeaders() {
+        List<String> headers = new ArrayList<>();
+        if (StringUtils.isEmpty(csvSchema)) {
+            return headers;
+        }
+        try {
+            return Arrays.stream(csvSchema.split(String.valueOf(effectiveFieldDelimiter()))).collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("[getCsvSchemaHeaders] Cannot get Headers from {}: {}", csvSchema, e.getMessage());
+        }
+        return headers;
     }
 
 }

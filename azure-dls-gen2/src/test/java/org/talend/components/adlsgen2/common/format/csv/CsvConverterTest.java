@@ -21,7 +21,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.adlsgen2.AdlsGen2TestBase;
 import org.talend.components.adlsgen2.common.format.csv.CsvIterator.Builder;
-import org.talend.components.adlsgen2.output.formatter.CsvContentFormatter;
+import org.talend.components.adlsgen2.runtime.formatter.CsvContentFormatter;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit5.WithComponents;
 
@@ -77,7 +77,7 @@ public class CsvConverterTest extends AdlsGen2TestBase {
             counted++;
         }
         assertEquals(3, counted);
-        byte[] output = fmt.prepareContent(records);
+        byte[] output = fmt.feedContent(records);
         assertEquals(result, new String(output));
     }
 

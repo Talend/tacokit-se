@@ -54,8 +54,6 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import com.google.common.base.Splitter;
 
-import lombok.Data;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -186,14 +184,14 @@ public class AdlsGen2Service implements Serializable {
     @SuppressWarnings("unchecked")
     public JsonArray pathList(@Configuration("configuration") final InputConfiguration configuration) {
         setDefaultRequestParameters(configuration.getDataSet().getConnection());
-        String rcfmt = "%s/%s?directory=%s&resource=filesystem&recursive=true&maxResults=5000&timeout=%d";
+        String rcfmt = "%s/%s?directory=%s&resource=filesystem&recursive=false&maxResults=5000&timeout=%d";
         String url = String.format(rcfmt, //
                 configuration.getDataSet().getConnection().apiUrl(), //
                 configuration.getDataSet().getFilesystem(), //
                 configuration.getDataSet().getBlobPath(), //
                 timeout //
         );
-        log.warn("[pathList] {}", url);
+        log.info("[pathList] {}", url);
         preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.GET, "");
         Response<JsonObject> result = handleResponse(client.pathList( //
                 headers, //
@@ -201,7 +199,7 @@ public class AdlsGen2Service implements Serializable {
                 SAS, //
                 configuration.getDataSet().getBlobPath(), //
                 Constants.ATTR_FILESYSTEM, //
-                true, //
+                false, //
                 null, //
                 5000, //
                 timeout //
@@ -234,7 +232,7 @@ public class AdlsGen2Service implements Serializable {
                 dataSet.getBlobPath(), //
                 timeout //
         );
-        log.warn("[pathGetProperties] {}", url);
+        log.info("[pathGetProperties] {}", url);
         preprareRequest(dataSet.getConnection(), url, MethodConstants.HEAD, "");
         Map<String, String> properties = new HashMap<>();
         Response<JsonObject> result = handleResponse(client.pathGetProperties( //
@@ -254,6 +252,59 @@ public class AdlsGen2Service implements Serializable {
         return properties;
     }
 
+    public List<BlobInformations> getBlobs(@Configuration("dataSet") final AdlsGen2DataSet dataSet) {
+        setDefaultRequestParameters(dataSet.getConnection());
+        String rcfmt = "%s/%s?directory=%s&resource=filesystem&recursive=false&maxResults=5000&timeout=%d";
+        String url = String.format(rcfmt, //
+                dataSet.getConnection().apiUrl(), //
+                dataSet.getFilesystem(), //
+                dataSet.getBlobPath(), //
+                timeout //
+        );
+        log.info("[getBlobs] {}", url);
+        preprareRequest(dataSet.getConnection(), url, MethodConstants.GET, "");
+        Response<JsonObject> result = handleResponse(client.pathList( //
+                headers, //
+                dataSet.getFilesystem(), //
+                SAS, //
+                dataSet.getBlobPath(), //
+                Constants.ATTR_FILESYSTEM, //
+                false, //
+                null, //
+                5000, //
+                timeout //
+        ));
+        if (result.status() != Constants.HTTP_RESPONSE_CODE_200_OK) {
+            log.error("[getBlobs] Invalid request [{}] {}", result.status(), result.headers());
+            return new ArrayList<>();
+        }
+
+        List<BlobInformations> blobs = new ArrayList<>();
+        for (JsonValue f : result.body().getJsonArray(Constants.ATTR_PATHS)) {
+            if (f.asJsonObject().getOrDefault(Constants.ATTR_IS_DIRECTORY, JsonValue.NULL) == JsonValue.NULL) {
+                BlobInformations infos = new BlobInformations();
+                infos.setExists(true);
+                String name = f.asJsonObject().getString(Constants.ATTR_NAME);
+                infos.setName(name);
+                infos.setFileName(extractFileName(name));
+                infos.setBlobPath(name);
+                infos.setDirectory(extractFolderPath(name));
+                infos.setEtag(f.asJsonObject().getString("etag"));
+                infos.setContentLength(Integer.parseInt(f.asJsonObject().getString("contentLength")));
+                infos.setLastModified(f.asJsonObject().getString("lastModified"));
+                if (f.asJsonObject().entrySet().contains("owner")) {
+                    infos.setOwner(f.asJsonObject().getString("owner"));
+                }
+                if (f.asJsonObject().entrySet().contains("permissions")) {
+                    infos.setPermissions(f.asJsonObject().getString("permissions"));
+                }
+                blobs.add(infos);
+            }
+        }
+
+        return blobs;
+    }
+
     public BlobInformations getBlobInformations(@Configuration("dataSet") final AdlsGen2DataSet dataSet) {
         setDefaultRequestParameters(dataSet.getConnection());
         String rcfmt = "%s/%s?directory=%s&resource=filesystem&recursive=false&maxResults=5000&timeout=%d";
@@ -263,7 +314,7 @@ public class AdlsGen2Service implements Serializable {
                 extractFolderPath(dataSet.getBlobPath()), //
                 timeout //
         );
-        log.warn("[getBlobInformations#pathList] {}", url);
+        log.info("[getBlobInformations] {}", url);
         preprareRequest(dataSet.getConnection(), url, MethodConstants.GET, "");
         BlobInformations infos = new BlobInformations();
         Response<JsonObject> result = client.pathList( //
@@ -277,9 +328,8 @@ public class AdlsGen2Service implements Serializable {
                 5000, //
                 timeout //
         );
-        log.warn("[getBlobInformations] pathList [{}] {} : {}", result.status(), result.headers(), result.body());
         if (result.status() != Constants.HTTP_RESPONSE_CODE_200_OK) {
-            log.warn("[getBlobInformations] blob info: {}", infos);
+            log.info("[getBlobInformations] blob info: {}", infos);
             return infos;
         }
         String fileName = extractFileName(dataSet.getBlobPath());
@@ -288,7 +338,7 @@ public class AdlsGen2Service implements Serializable {
                 infos.setExists(true);
                 infos.setName(f.asJsonObject().getString(Constants.ATTR_NAME));
                 infos.setFileName(fileName);
-                infos.setPath(extractFolderPath(dataSet.getBlobPath()));
+                infos.setBlobPath(extractFolderPath(dataSet.getBlobPath()));
                 infos.setEtag(f.asJsonObject().getString("etag"));
                 infos.setContentLength(Integer.parseInt(f.asJsonObject().getString("contentLength")));
                 infos.setLastModified(f.asJsonObject().getString("lastModified"));
@@ -300,8 +350,43 @@ public class AdlsGen2Service implements Serializable {
                 }
             }
         }
-        log.warn("[getBlobInformations] blob meta: {}", infos);
+        log.info("[getBlobInformations] blob meta: {}", infos);
         return infos;
+    }
+
+    public boolean blobExists(@Configuration("dataSet") final AdlsGen2DataSet dataSet, String blobName) {
+        setDefaultRequestParameters(dataSet.getConnection());
+        String rcfmt = "%s/%s?directory=%s&resource=filesystem&recursive=false&maxResults=5000&timeout=%d";
+        String url = String.format(rcfmt, //
+                dataSet.getConnection().apiUrl(), //
+                dataSet.getFilesystem(), //
+                extractFolderPath(blobName), timeout //
+        );
+        log.info("[blobExists] {}", url);
+        preprareRequest(dataSet.getConnection(), url, MethodConstants.GET, "");
+        BlobInformations infos = new BlobInformations();
+        Response<JsonObject> result = client.pathList( //
+                headers, //
+                dataSet.getFilesystem(), //
+                SAS, //
+                extractFolderPath(blobName), Constants.ATTR_FILESYSTEM, //
+                false, //
+                null, //
+                5000, //
+                timeout //
+        );
+        if (result.status() != Constants.HTTP_RESPONSE_CODE_200_OK) {
+            log.info("[blobExists] blob info: {}", infos);
+            return false;
+        }
+        for (JsonValue f : result.body().getJsonArray(Constants.ATTR_PATHS)) {
+            if (f.asJsonObject().getString(Constants.ATTR_NAME).equals(blobName)) {
+                log.info("[blobExists] Blob found");
+                return true;
+            }
+        }
+        log.info("[blobExists] Blob NOT found");
+        return false;
     }
 
     public Boolean pathExists(@Configuration("dataSet") final AdlsGen2DataSet dataSet) {
@@ -318,7 +403,7 @@ public class AdlsGen2Service implements Serializable {
                 configuration.getDataSet().getBlobPath(), //
                 timeout //
         );
-        log.warn("[pathRead] {}", url);
+        log.info("[pathRead] {}", url);
         preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.GET, "");
         Response<InputStream> result = handleResponse(client.pathRead( //
                 headers, //
@@ -331,6 +416,29 @@ public class AdlsGen2Service implements Serializable {
     }
 
     @SuppressWarnings("unchecked")
+    public InputStream getBlobInputstream(@Configuration("configuration") final InputConfiguration configuration,
+            BlobInformations blob) {
+        setDefaultRequestParameters(configuration.getDataSet().getConnection());
+        String rcfmt = "%s/%s/%s?timeout=%d";
+        String url = String.format(rcfmt, //
+                configuration.getDataSet().getConnection().apiUrl(), //
+                configuration.getDataSet().getFilesystem(), //
+                blob.getBlobPath(), //
+                timeout //
+        );
+        log.info("[getBlobInputstream] {}", url);
+        preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.GET, "");
+        Response<InputStream> result = handleResponse(client.pathRead( //
+                headers, //
+                configuration.getDataSet().getFilesystem(), //
+                blob.getBlobPath(), //
+                timeout, //
+                SAS //
+        ));
+        return result.body();
+    }
+
+    @SuppressWarnings("unchecked")
     public Response<JsonObject> pathCreate(@Configuration("configuration") final OutputConfiguration configuration) {
         setDefaultRequestParameters(configuration.getDataSet().getConnection());
         String rcfmt = "%s/%s/%s?resource=file&timeout=%d";
@@ -340,7 +448,7 @@ public class AdlsGen2Service implements Serializable {
                 configuration.getDataSet().getBlobPath(), //
                 timeout //
         );
-        log.warn("[pathCreate] {}", url);
+        log.info("[pathCreate] {}", url);
         preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.PUT, "");
         return handleResponse(client.pathCreate( //
                 headers, //
@@ -364,7 +472,7 @@ public class AdlsGen2Service implements Serializable {
                 position, //
                 timeout //
         );
-        log.warn("[pathUpdate] {}", url);
+        log.info("[pathUpdate] {}", url);
         preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.PATCH, String.valueOf(content.length));
         return handleResponse(client.pathUpdate( //
                 headers, //
@@ -398,7 +506,7 @@ public class AdlsGen2Service implements Serializable {
                 position, //
                 timeout //
         );
-        log.warn("[flushBlob#pathUpdate] {}", url);
+        log.info("[flushBlob#pathUpdate] {}", url);
         preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.PATCH, "");
         return handleResponse(client.pathUpdate( //
                 headers, //
@@ -410,30 +518,5 @@ public class AdlsGen2Service implements Serializable {
                 SAS, //
                 new byte[0] //
         ));
-    }
-
-    @Data
-    @ToString
-    public class BlobInformations {
-
-        public String etag;
-
-        public String group;
-
-        public String lastModified;
-
-        public String name;
-
-        public String owner;
-
-        public String permissions;
-
-        private boolean exists = Boolean.FALSE;
-
-        private String path;
-
-        private String fileName;
-
-        private Integer contentLength = 0;
     }
 }
