@@ -1,0 +1,24 @@
+{
+  "string1": "Bonjour",
+  "string2": "Olà",
+  "long": 1971,
+  "double": 19.71,
+  "false": false,
+  "true": true,
+  "object": {
+    "prop1": "prop1",
+    "prop2": 2
+  },
+  "intary": [12, 212, 4343, 545],
+  "ary": [
+    {
+      "id": "string id1",
+      "cost": 1024
+    },
+    {
+      "id": "string id2",
+      "cost": 2048
+    }
+  ]
+
+}

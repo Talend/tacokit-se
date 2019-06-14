@@ -35,7 +35,7 @@ public class CSVFormatOptions implements Serializable {
     private RecordDelimiter recordDelimiter = RecordDelimiter.CRLF;
 
     @Option
-    @ActiveIf(target = "recordDelimiter", value = "OTHER")
+    @ActiveIf(target = "recordSeparator", value = "OTHER")
     @Documentation("Your custom record delimiter")
     private String customRecordDelimiter;
 
