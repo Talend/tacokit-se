@@ -30,4 +30,10 @@ public interface I18nMessage {
     String cannotOpenBucket();
 
     String connectedToCluster(String clusterName);
+
+    String invalidPassword();
+
+    String destinationUnreachable();
+
+    String connectionKODetailed(String details);
 }

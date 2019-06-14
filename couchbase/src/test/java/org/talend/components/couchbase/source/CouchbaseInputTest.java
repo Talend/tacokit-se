@@ -69,7 +69,7 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         bucket.insert(JsonDocument.create("RRRR1", jsonObjects.get(0)));
         bucket.insert(JsonDocument.create("RRRR2", jsonObjects.get(1)));
 
-        //Wait while data is writing (Jenkins fix)
+        // Wait while data is writing (Jenkins fix)
         try {
             Thread.sleep(3000);
         } catch (InterruptedException e) {
@@ -99,7 +99,7 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
 
         bucket.insert(JsonDocument.create("RRRR1", json));
 
-        //Wait while data is writing (Jenkins fix)
+        // Wait while data is writing (Jenkins fix)
         try {
             Thread.sleep(3000);
         } catch (InterruptedException e) {

@@ -21,6 +21,7 @@ import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.env.CouchbaseEnvironment;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
+import com.couchbase.client.java.error.InvalidPasswordException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.couchbase.dataset.CouchbaseDataSet;
@@ -39,6 +40,7 @@ import org.talend.sdk.component.api.service.schema.DiscoverSchema;
 
 import java.util.Date;
 import java.util.Set;
+import java.util.concurrent.TimeoutException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -99,7 +101,17 @@ public class CouchbaseService {
             openConnection(datastore);
             return new HealthCheckStatus(HealthCheckStatus.Status.OK, "Connection OK");
         } catch (Exception exception) {
-            return new HealthCheckStatus(HealthCheckStatus.Status.KO, exception.getMessage());
+            String message = "";
+            if (exception.getCause() instanceof InvalidPasswordException) {
+                message = i18n.invalidPassword();
+            } else if (exception.getCause() instanceof RuntimeException
+                    && exception.getCause().getCause() instanceof TimeoutException) {
+                message = i18n.destinationUnreachable();
+            } else {
+                message = i18n.connectionKODetailed(exception.getMessage());
+            }
+            LOG.error(message, exception);
+            return new HealthCheckStatus(HealthCheckStatus.Status.KO, message);
         } finally {
             closeConnection();
         }
