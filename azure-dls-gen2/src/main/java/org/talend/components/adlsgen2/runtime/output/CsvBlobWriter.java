@@ -16,25 +16,38 @@ package org.talend.components.adlsgen2.runtime.output;
 import javax.json.JsonBuilderFactory;
 
 import org.talend.components.adlsgen2.output.OutputConfiguration;
+import org.talend.components.adlsgen2.runtime.formatter.CsvContentFormatter;
 import org.talend.components.adlsgen2.service.AdlsGen2Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-public class BlobWriterFactory {
+import lombok.extern.slf4j.Slf4j;
 
-    public static BlobWriter getWriter(OutputConfiguration configuration, RecordBuilderFactory recordBuilderFactory,
+@Slf4j
+public class CsvBlobWriter extends BlobWriter {
+
+    private final String EXT_CSV = ".csv";
+
+    private final CsvContentFormatter formatter;
+
+    public CsvBlobWriter(OutputConfiguration configuration, RecordBuilderFactory recordBuilderFactory,
             JsonBuilderFactory jsonFactory, AdlsGen2Service service) throws Exception {
-        switch (configuration.getDataSet().getFormat()) {
-        case CSV:
-            return new CsvBlobWriter(configuration, recordBuilderFactory, jsonFactory, service);
-        case AVRO:
-            return new AvroBlobWriter(configuration, recordBuilderFactory, jsonFactory, service);
-        case JSON:
-            return new JsonBlobWriter(configuration, recordBuilderFactory, jsonFactory, service);
-        case PARQUET:
-            return new ParquetBlobWriter(configuration, recordBuilderFactory, jsonFactory, service);
-        default:
-            throw new IllegalArgumentException("Unsupported file format");
-        }
+        super(configuration, recordBuilderFactory, jsonFactory, service);
+        formatter = new CsvContentFormatter(configuration, recordBuilderFactory);
     }
 
+    @Override
+    public void generateFile() {
+        generateFileWithExtension(EXT_CSV);
+    }
+
+    @Override
+    public void flush() {
+        if (getBatch().isEmpty()) {
+            return;
+        }
+        byte[] contentBytes = formatter.feedContent(getBatch());
+        uploadContent(contentBytes);
+        getBatch().clear();
+        currentItem.setBlobPath("");
+    }
 }
