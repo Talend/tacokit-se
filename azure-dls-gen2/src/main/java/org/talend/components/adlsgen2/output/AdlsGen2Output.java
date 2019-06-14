@@ -13,19 +13,15 @@
 package org.talend.components.adlsgen2.output;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.json.JsonBuilderFactory;
 
-import org.talend.components.adlsgen2.runtime.formatter.ContentFormatter;
 import org.talend.components.adlsgen2.runtime.AdlsGen2RuntimeException;
 import org.talend.components.adlsgen2.runtime.output.BlobWriter;
 import org.talend.components.adlsgen2.runtime.output.BlobWriterFactory;
 import org.talend.components.adlsgen2.service.AdlsGen2Service;
-import org.talend.components.adlsgen2.service.I18n;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -57,30 +53,16 @@ public class AdlsGen2Output implements Serializable {
     @Service
     private final AdlsGen2Service service;
 
-    @Service
-    private final I18n i18n;
-
     private OutputConfiguration configuration;
-
-    private ContentFormatter formatter;
-
-    private List<Record> records;
-
-    private long position = 0;
-
-    private boolean flushNeeded;
 
     private BlobWriter blobWriter;
 
     public AdlsGen2Output(@Option("configuration") final OutputConfiguration configuration, final AdlsGen2Service service,
-            final I18n i18n, final RecordBuilderFactory recordBuilderFactory, final JsonBuilderFactory jsonBuilderFactory) {
+            final RecordBuilderFactory recordBuilderFactory, final JsonBuilderFactory jsonBuilderFactory) {
         this.configuration = configuration;
         this.service = service;
-        this.i18n = i18n;
         this.recordBuilderFactory = recordBuilderFactory;
         this.jsonBuilderFactory = jsonBuilderFactory;
-        //
-        records = new ArrayList<>();
     }
 
     @PostConstruct
@@ -125,74 +107,4 @@ public class AdlsGen2Output implements Serializable {
             throw new AdlsGen2RuntimeException(e.getMessage());
         }
     }
-    //
-    //
-    // @PostConstruct
-    // public void init() {
-    // // formatter
-    // formatter = ContentFormatterFactory.getFormatter(configuration, service, i18n, recordBuilderFactory, jsonBuilderFactory);
-    // //
-    // log.warn("[init(@PostConstruct)] searching for blob {} .", configuration.getDataSet().getBlobPath());
-    // BlobInformations blob = service.getBlobInformations(configuration.getDataSet());
-    // log.info("[init] writing blob {} (exists? {}, overwrite? {}, failOnExisting? {}).", blob.name, blob.isExists(),
-    // configuration.isOverwrite(), configuration.isFailOnExistingBlob());
-    // if (configuration.isFailOnExistingBlob() && blob.isExists()) {
-    // log.warn("[init(@PostConstruct)] will stop process. Config: {}", configuration);
-    // String msg = i18n.cannotOverwriteBlob(blob.name);
-    // log.error(msg);
-    // throw new AdlsGen2RuntimeException(msg);
-    // }
-    // position = blob.getContentLength();
-    // if (configuration.isOverwrite() || !blob.isExists()) {
-    // service.pathCreate(configuration);
-    // position = 0;
-    // }
-    // if (formatter.hasHeader()) {
-    // log.warn("[init] hasHeader");
-    // updateRemoteContent(formatter.initializeContent());
-    // }
-    // }
-    //
-    // @BeforeGroup
-    // public void beforeGroup() {
-    // }
-    //
-    // @ElementListener
-    // public void onElement(final Record record) {
-    // flushNeeded = true;
-    // records.add(record);
-    // }
-    //
-    // @AfterGroup
-    // public void afterGroup() {
-    // log.info("[afterGroup]");
-    // flushGroup();
-    // }
-    //
-    // private void updateRemoteContent(byte[] content) {
-    // service.pathUpdate(configuration, content, position);
-    // position += content.length; // cumulate length of written records for current offset
-    // }
-    //
-    // private void flushGroup() {
-    // log.warn("[flushGroup] record count:{}", records.size());
-    // updateRemoteContent(formatter.feedContent(records));
-    // records.clear();
-    // }
-    //
-    // @PreDestroy
-    // public void release() {
-    // log.info("[release@PreDestroy] flushing blob.");
-    // if (!records.isEmpty()) {
-    // flushGroup();
-    // }
-    // if (formatter.hasFooter() && flushNeeded) {
-    // log.warn("[release] hasfooter");
-    // updateRemoteContent(formatter.finalizeContent());
-    // }
-    // if (flushNeeded) {
-    // service.flushBlob(configuration, position);
-    // }
-    // }
-
 }
