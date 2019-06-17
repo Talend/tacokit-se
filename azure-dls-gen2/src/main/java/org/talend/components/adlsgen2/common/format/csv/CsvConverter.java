@@ -71,7 +71,7 @@ public class CsvConverter implements RecordConverter<CSVRecord>, Serializable {
             Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
             String finalName = RecordConverter.getCorrectSchemaFieldName(s, index++, existNames);
             existNames.add(finalName);
-            builder.withEntry(entryBuilder.withName(finalName).withType(Schema.Type.STRING).build());
+            builder.withEntry(entryBuilder.withName(finalName).withType(Schema.Type.STRING).withNullable(true).build());
         }
 
         return builder.build();
