@@ -95,64 +95,64 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
             String name = f.name();
             org.apache.avro.Schema.Type fieldType = getFieldType(f);
             switch (fieldType) {
-                case RECORD:
-                    GenericRecord subrecord = recordToAvro(fromRecord.getRecord(name),
-                            new GenericData.Record(avroSchema.getField(name).schema()));
-                    toRecord.put(name, subrecord);
-                    break;
-                case ARRAY:
-                    Entry e = getSchemaForEntry(name, fromRecord.getSchema());
-                    if (e != null) {
-                        toRecord.put(name, fromRecord.getArray(getJavaClassForType(e.getElementSchema().getType()), name));
-                    }
-                    break;
-                case STRING:
-                    toRecord.put(name, fromRecord.getOptionalString(name).orElse(null));
-                    break;
-                case BYTES:
-                    Optional<byte[]> optionalBytesValue = fromRecord.getOptionalBytes(name);
-                    if (optionalBytesValue.isPresent()) {
-                        ByteBuffer byteBuffer = ByteBuffer.wrap(fromRecord.getBytes(name));
-                        toRecord.put(name, byteBuffer);
-                    } else {
-                        toRecord.put(name, null);
-                    }
-                    break;
-                case INT:
-                    OptionalInt optionalIntValue = fromRecord.getOptionalInt(name);
-                    if (optionalIntValue.isPresent()) {
-                        toRecord.put(name, optionalIntValue.getAsInt());
-                    } else {
-                        toRecord.put(name, null);
-                    }
-                    break;
-                case LONG:
-                    OptionalLong optionalLongValue = fromRecord.getOptionalLong(name);
-                    if (optionalLongValue.isPresent()) {
-                        toRecord.put(name, optionalLongValue.getAsLong());
-                    } else {
-                        toRecord.put(name, null);
-                    }
-                    break;
-                case FLOAT:
-                    OptionalDouble optionalFloat = fromRecord.getOptionalFloat(name);
-                    if (optionalFloat.isPresent()) {
-                        toRecord.put(name, Double.valueOf(optionalFloat.getAsDouble()).floatValue());
-                    } else {
-                        toRecord.put(name, null);
-                    }
-                    break;
-                case DOUBLE:
-                    OptionalDouble optionalDouble = fromRecord.getOptionalFloat(name);
-                    if (optionalDouble.isPresent()) {
-                        toRecord.put(name, optionalDouble.getAsDouble());
-                    } else {
-                        toRecord.put(name, null);
-                    }
-                    break;
-                case BOOLEAN:
-                    toRecord.put(name, fromRecord.getOptionalBoolean(name).orElse(null));
-                    break;
+            case RECORD:
+                GenericRecord subrecord = recordToAvro(fromRecord.getRecord(name),
+                        new GenericData.Record(avroSchema.getField(name).schema()));
+                toRecord.put(name, subrecord);
+                break;
+            case ARRAY:
+                Entry e = getSchemaForEntry(name, fromRecord.getSchema());
+                if (e != null) {
+                    toRecord.put(name, fromRecord.getArray(getJavaClassForType(e.getElementSchema().getType()), name));
+                }
+                break;
+            case STRING:
+                toRecord.put(name, fromRecord.getOptionalString(name).orElse(null));
+                break;
+            case BYTES:
+                Optional<byte[]> optionalBytesValue = fromRecord.getOptionalBytes(name);
+                if (optionalBytesValue.isPresent()) {
+                    ByteBuffer byteBuffer = ByteBuffer.wrap(fromRecord.getBytes(name));
+                    toRecord.put(name, byteBuffer);
+                } else {
+                    toRecord.put(name, null);
+                }
+                break;
+            case INT:
+                OptionalInt optionalIntValue = fromRecord.getOptionalInt(name);
+                if (optionalIntValue.isPresent()) {
+                    toRecord.put(name, optionalIntValue.getAsInt());
+                } else {
+                    toRecord.put(name, null);
+                }
+                break;
+            case LONG:
+                OptionalLong optionalLongValue = fromRecord.getOptionalLong(name);
+                if (optionalLongValue.isPresent()) {
+                    toRecord.put(name, optionalLongValue.getAsLong());
+                } else {
+                    toRecord.put(name, null);
+                }
+                break;
+            case FLOAT:
+                OptionalDouble optionalFloat = fromRecord.getOptionalFloat(name);
+                if (optionalFloat.isPresent()) {
+                    toRecord.put(name, Double.valueOf(optionalFloat.getAsDouble()).floatValue());
+                } else {
+                    toRecord.put(name, null);
+                }
+                break;
+            case DOUBLE:
+                OptionalDouble optionalDouble = fromRecord.getOptionalFloat(name);
+                if (optionalDouble.isPresent()) {
+                    toRecord.put(name, optionalDouble.getAsDouble());
+                } else {
+                    toRecord.put(name, null);
+                }
+                break;
+            case BOOLEAN:
+                toRecord.put(name, fromRecord.getOptionalBoolean(name).orElse(null));
+                break;
             }
         }
         return toRecord;
@@ -160,22 +160,22 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
 
     protected Class<? extends Object> getJavaClassForType(Type type) {
         switch (type) {
-            case STRING:
-                return String.class;
-            case BYTES:
-                return Byte[].class;
-            case INT:
-                return Integer.class;
-            case LONG:
-                return Long.class;
-            case FLOAT:
-                return Float.class;
-            case DOUBLE:
-                return Double.class;
-            case BOOLEAN:
-                return Boolean.class;
-            case DATETIME:
-                return ZonedDateTime.class;
+        case STRING:
+            return String.class;
+        case BYTES:
+            return Byte[].class;
+        case INT:
+            return Integer.class;
+        case LONG:
+            return Long.class;
+        case FLOAT:
+            return Float.class;
+        case DOUBLE:
+            return Double.class;
+        case BOOLEAN:
+            return Boolean.class;
+        case DATETIME:
+            return ZonedDateTime.class;
         }
         return Object.class;
     }
@@ -191,25 +191,25 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
 
     protected org.apache.avro.Schema.Type translateToAvroType(Type type) {
         switch (type) {
-            case RECORD:
-                return org.apache.avro.Schema.Type.RECORD;
-            case ARRAY:
-                return org.apache.avro.Schema.Type.ARRAY;
-            case STRING:
-                return org.apache.avro.Schema.Type.STRING;
-            case BYTES:
-                return org.apache.avro.Schema.Type.BYTES;
-            case INT:
-                return org.apache.avro.Schema.Type.INT;
-            case LONG:
-            case DATETIME:
-                return org.apache.avro.Schema.Type.LONG;
-            case FLOAT:
-                return org.apache.avro.Schema.Type.FLOAT;
-            case DOUBLE:
-                return org.apache.avro.Schema.Type.DOUBLE;
-            case BOOLEAN:
-                return org.apache.avro.Schema.Type.BOOLEAN;
+        case RECORD:
+            return org.apache.avro.Schema.Type.RECORD;
+        case ARRAY:
+            return org.apache.avro.Schema.Type.ARRAY;
+        case STRING:
+            return org.apache.avro.Schema.Type.STRING;
+        case BYTES:
+            return org.apache.avro.Schema.Type.BYTES;
+        case INT:
+            return org.apache.avro.Schema.Type.INT;
+        case LONG:
+        case DATETIME:
+            return org.apache.avro.Schema.Type.LONG;
+        case FLOAT:
+            return org.apache.avro.Schema.Type.FLOAT;
+        case DOUBLE:
+            return org.apache.avro.Schema.Type.DOUBLE;
+        case BOOLEAN:
+            return org.apache.avro.Schema.Type.BOOLEAN;
         }
         throw new IllegalStateException(String.format(ERROR_UNDEFINED_TYPE, type.name()));
     }
@@ -229,29 +229,29 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
             Type type = e.getType();
             org.apache.avro.Schema builder;
             switch (type) {
-                case RECORD:
-                    org.apache.avro.Schema subrecord = inferAvroSchema(e.getElementSchema());
-                    builder = subrecord;
-                    break;
-                case ARRAY:
-                    builder = SchemaBuilder.array()
-                            .items(org.apache.avro.Schema.create(translateToAvroType(e.getElementSchema().getType())));
-                    break;
-                case STRING:
-                case BYTES:
-                case INT:
-                case LONG:
-                case FLOAT:
-                case DOUBLE:
-                case BOOLEAN:
-                    builder = org.apache.avro.Schema.create(translateToAvroType(type));
-                    break;
-                case DATETIME:
-                    builder = org.apache.avro.Schema.create(org.apache.avro.Schema.Type.LONG);
-                    LogicalTypes.timestampMillis().addToSchema(builder);
-                    break;
-                default:
-                    throw new IllegalStateException(String.format(ERROR_UNDEFINED_TYPE, e.getType().name()));
+            case RECORD:
+                org.apache.avro.Schema subrecord = inferAvroSchema(e.getElementSchema());
+                builder = subrecord;
+                break;
+            case ARRAY:
+                builder = SchemaBuilder.array()
+                        .items(org.apache.avro.Schema.create(translateToAvroType(e.getElementSchema().getType())));
+                break;
+            case STRING:
+            case BYTES:
+            case INT:
+            case LONG:
+            case FLOAT:
+            case DOUBLE:
+            case BOOLEAN:
+                builder = org.apache.avro.Schema.create(translateToAvroType(type));
+                break;
+            case DATETIME:
+                builder = org.apache.avro.Schema.create(org.apache.avro.Schema.Type.LONG);
+                LogicalTypes.timestampMillis().addToSchema(builder);
+                break;
+            default:
+                throw new IllegalStateException(String.format(ERROR_UNDEFINED_TYPE, e.getType().name()));
             }
             org.apache.avro.Schema unionWithNull;
             if (builder.getType() == org.apache.avro.Schema.Type.RECORD) {
@@ -271,7 +271,7 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
     }
 
     protected Record avroToRecord(GenericRecord genericRecord, List<org.apache.avro.Schema.Field> fields,
-                                  Record.Builder recordBuilder) {
+            Record.Builder recordBuilder) {
         if (recordBuilder == null) {
             recordBuilder = recordBuilderFactory.newRecordBuilder(recordSchema);
         }
@@ -298,30 +298,30 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
         // handle NULLable field
         builder.withNullable(true);
         switch (type) {
-            case RECORD:
-                builder.withType(Type.RECORD);
-                builder.withElementSchema(buildRecordFieldSchema(field));
+        case RECORD:
+            builder.withType(Type.RECORD);
+            builder.withElementSchema(buildRecordFieldSchema(field));
+            break;
+        case ENUM:
+        case ARRAY:
+            builder.withType(Type.ARRAY).withElementSchema(recordBuilderFactory.newSchemaBuilder(Type.ARRAY)
+                    .withType(translateToRecordType(field.schema().getElementType().getType())).build()).build();
+            break;
+        case INT:
+        case LONG:
+            if (AVRO_LOGICAL_TYPE_DATE.equals(logicalType) || AVRO_LOGICAL_TYPE_TIME_MILLIS.equals(logicalType)
+                    || AVRO_LOGICAL_TYPE_TIMESTAMP_MILLIS.equals(logicalType)) {
+                builder.withType(Schema.Type.DATETIME);
                 break;
-            case ENUM:
-            case ARRAY:
-                builder.withType(Type.ARRAY).withElementSchema(recordBuilderFactory.newSchemaBuilder(Type.ARRAY)
-                        .withType(translateToRecordType(field.schema().getElementType().getType())).build()).build();
-                break;
-            case INT:
-            case LONG:
-                if (AVRO_LOGICAL_TYPE_DATE.equals(logicalType) || AVRO_LOGICAL_TYPE_TIME_MILLIS.equals(logicalType)
-                        || AVRO_LOGICAL_TYPE_TIMESTAMP_MILLIS.equals(logicalType)) {
-                    builder.withType(Schema.Type.DATETIME);
-                    break;
-                }
-            case STRING:
-            case BYTES:
-            case FLOAT:
-            case DOUBLE:
-            case BOOLEAN:
-            case NULL:
-                builder.withType(translateToRecordType(type));
-                break;
+            }
+        case STRING:
+        case BYTES:
+        case FLOAT:
+        case DOUBLE:
+        case BOOLEAN:
+        case NULL:
+            builder.withType(translateToRecordType(type));
+            break;
         }
         return builder.build();
     }
@@ -337,57 +337,57 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
      */
     protected Type translateToRecordType(org.apache.avro.Schema.Type type) {
         switch (type) {
-            case RECORD:
-                return Type.RECORD;
-            case ARRAY:
-                return Type.ARRAY;
-            case STRING:
-                return Type.STRING;
-            case BYTES:
-                return Type.BYTES;
-            case INT:
-                return Type.INT;
-            case LONG:
-                return Type.LONG;
-            case FLOAT:
-                return Type.FLOAT;
-            case DOUBLE:
-                return Type.DOUBLE;
-            case BOOLEAN:
-                return Type.BOOLEAN;
-            default:
-                throw new IllegalStateException(String.format(ERROR_UNDEFINED_TYPE, type.name()));
+        case RECORD:
+            return Type.RECORD;
+        case ARRAY:
+            return Type.ARRAY;
+        case STRING:
+            return Type.STRING;
+        case BYTES:
+            return Type.BYTES;
+        case INT:
+            return Type.INT;
+        case LONG:
+            return Type.LONG;
+        case FLOAT:
+            return Type.FLOAT;
+        case DOUBLE:
+            return Type.DOUBLE;
+        case BOOLEAN:
+            return Type.BOOLEAN;
+        default:
+            throw new IllegalStateException(String.format(ERROR_UNDEFINED_TYPE, type.name()));
         }
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     protected void buildArrayField(org.apache.avro.Schema.Field field, Object value, Record.Builder recordBuilder, Entry entry) {
         switch (field.schema().getElementType().getType()) {
-            case RECORD:
-                recordBuilder.withArray(entry, ((GenericData.Array<GenericRecord>) value).stream()
-                        .map(record -> avroToRecord(record, field.schema().getFields())).collect(toList()));
-                break;
-            case STRING:
-                recordBuilder.withArray(entry, (List<String>) value);
-                break;
-            case BYTES:
-                recordBuilder.withArray(entry,
-                        ((GenericData.Array<ByteBuffer>) value).stream().map(ByteBuffer::array).collect(toList()));
-                break;
-            case INT:
-                recordBuilder.withArray(entry, (GenericData.Array<Long>) value);
-                break;
-            case FLOAT:
-                recordBuilder.withArray(entry, (GenericData.Array<Double>) value);
-                break;
-            case BOOLEAN:
-                recordBuilder.withArray(entry, (GenericData.Array<Boolean>) value);
-                break;
-            case LONG:
-                recordBuilder.withArray(entry, (GenericData.Array<Long>) value);
-                break;
-            default:
-                throw new IllegalStateException(String.format(ERROR_UNDEFINED_TYPE, entry.getType().name()));
+        case RECORD:
+            recordBuilder.withArray(entry, ((GenericData.Array<GenericRecord>) value).stream()
+                    .map(record -> avroToRecord(record, field.schema().getFields())).collect(toList()));
+            break;
+        case STRING:
+            recordBuilder.withArray(entry, (List<String>) value);
+            break;
+        case BYTES:
+            recordBuilder.withArray(entry,
+                    ((GenericData.Array<ByteBuffer>) value).stream().map(ByteBuffer::array).collect(toList()));
+            break;
+        case INT:
+            recordBuilder.withArray(entry, (GenericData.Array<Long>) value);
+            break;
+        case FLOAT:
+            recordBuilder.withArray(entry, (GenericData.Array<Double>) value);
+            break;
+        case BOOLEAN:
+            recordBuilder.withArray(entry, (GenericData.Array<Boolean>) value);
+            break;
+        case LONG:
+            recordBuilder.withArray(entry, (GenericData.Array<Long>) value);
+            break;
+        default:
+            throw new IllegalStateException(String.format(ERROR_UNDEFINED_TYPE, entry.getType().name()));
         }
     }
 
@@ -395,45 +395,45 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
         String logicalType = field.schema().getProp(AVRO_LOGICAL_TYPE);
         org.apache.avro.Schema.Type fieldType = getFieldType(field);
         switch (fieldType) {
-            case RECORD:
-                recordBuilder.withRecord(entry, avroToRecord((GenericRecord) value, ((GenericRecord) value).getSchema().getFields()));
-                break;
-            case ARRAY:
-                break;
-            case STRING:
-                recordBuilder.withString(entry, value != null ? value.toString() : null);
-                break;
-            case BYTES:
-                byte[] bytes = value != null ? ((java.nio.ByteBuffer) value).array() : null;
-                recordBuilder.withBytes(entry, bytes);
-                break;
-            case INT:
-                int ivalue = value != null ? (Integer) value : 0;
-                if (AVRO_LOGICAL_TYPE_DATE.equals(logicalType) || AVRO_LOGICAL_TYPE_TIME_MILLIS.equals(logicalType)) {
-                    recordBuilder.withDateTime(entry, ZonedDateTime.ofInstant(Instant.ofEpochMilli(ivalue), ZoneOffset.UTC));
-                } else {
-                    recordBuilder.withInt(entry, ivalue);
-                }
-                break;
-            case FLOAT:
-                recordBuilder.withFloat(entry, value != null ? (Float) value : 0);
-                break;
-            case DOUBLE:
-                recordBuilder.withDouble(entry, value != null ? (Double) value : 0);
-                break;
-            case BOOLEAN:
-                recordBuilder.withBoolean(entry, value != null ? (Boolean) value : Boolean.FALSE);
-                break;
-            case LONG:
-                long lvalue = value != null ? (Long) value : 0;
-                if (AVRO_LOGICAL_TYPE_TIMESTAMP_MILLIS.equals(logicalType)) {
-                    recordBuilder.withDateTime(entry, ZonedDateTime.ofInstant(Instant.ofEpochMilli(lvalue), ZoneOffset.UTC));
-                } else {
-                    recordBuilder.withLong(entry, lvalue);
-                }
-                break;
-            default:
-                throw new IllegalStateException(String.format(ERROR_UNDEFINED_TYPE, entry.getType().name()));
+        case RECORD:
+            recordBuilder.withRecord(entry, avroToRecord((GenericRecord) value, ((GenericRecord) value).getSchema().getFields()));
+            break;
+        case ARRAY:
+            break;
+        case STRING:
+            recordBuilder.withString(entry, value != null ? value.toString() : null);
+            break;
+        case BYTES:
+            byte[] bytes = value != null ? ((java.nio.ByteBuffer) value).array() : null;
+            recordBuilder.withBytes(entry, bytes);
+            break;
+        case INT:
+            int ivalue = value != null ? (Integer) value : 0;
+            if (AVRO_LOGICAL_TYPE_DATE.equals(logicalType) || AVRO_LOGICAL_TYPE_TIME_MILLIS.equals(logicalType)) {
+                recordBuilder.withDateTime(entry, ZonedDateTime.ofInstant(Instant.ofEpochMilli(ivalue), ZoneOffset.UTC));
+            } else {
+                recordBuilder.withInt(entry, ivalue);
+            }
+            break;
+        case FLOAT:
+            recordBuilder.withFloat(entry, value != null ? (Float) value : 0);
+            break;
+        case DOUBLE:
+            recordBuilder.withDouble(entry, value != null ? (Double) value : 0);
+            break;
+        case BOOLEAN:
+            recordBuilder.withBoolean(entry, value != null ? (Boolean) value : Boolean.FALSE);
+            break;
+        case LONG:
+            long lvalue = value != null ? (Long) value : 0;
+            if (AVRO_LOGICAL_TYPE_TIMESTAMP_MILLIS.equals(logicalType)) {
+                recordBuilder.withDateTime(entry, ZonedDateTime.ofInstant(Instant.ofEpochMilli(lvalue), ZoneOffset.UTC));
+            } else {
+                recordBuilder.withLong(entry, lvalue);
+            }
+            break;
+        default:
+            throw new IllegalStateException(String.format(ERROR_UNDEFINED_TYPE, entry.getType().name()));
         }
     }
 
