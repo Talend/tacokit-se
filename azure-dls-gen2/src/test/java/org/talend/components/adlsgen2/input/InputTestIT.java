@@ -104,6 +104,61 @@ public class InputTestIT extends AdlsGen2TestBase {
     }
 
     @Test
+    void readAvroBusiness() {
+        dataSet.setFormat(FileFormat.AVRO);
+        AvroConfiguration avroConfig = new AvroConfiguration();
+        dataSet.setAvroConfiguration(avroConfig);
+        dataSet.setBlobPath(basePath + "business-avro");
+        inputConfiguration.setDataSet(dataSet);
+        final String config = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
+        Job.components().component("in", "Azure://AdlsGen2Input?" + config) //
+                .component("collector", "test://collector") //
+                .connections() //
+                .from("in") //
+                .to("collector") //
+                .build() //
+                .run();
+        final List<Record> records = components.getCollectedData(Record.class);
+        assertNotNull(records);
+        assertEquals(1000, records.size());
+        Record first = records.get(0);
+        assertNotNull(first);
+        assertEquals(7, first.getSchema().getEntries().size());
+        assertEquals(0, first.getInt("business_id"));
+        assertEquals("Betty's Cafe", first.getString("name"));
+        assertEquals("Club", first.getString("category"));
+        assertEquals(4.0, first.getFloat("rating"));
+        assertEquals(2647, first.getInt("num_of_reviews"));
+        assertNotNull(first.getRecord("attributes"));
+        assertNotNull(first.getRecord("attributes").getRecord("good_for"));
+        assertEquals(false, first.getRecord("attributes").getRecord("good_for").getBoolean("dessert"));
+        assertEquals(true, first.getRecord("attributes").getRecord("good_for").getBoolean("kids"));
+        assertEquals(false, first.getRecord("attributes").getRecord("good_for").getBoolean("drinks"));
+        assertEquals(false, first.getRecord("attributes").getRecord("good_for").getBoolean("breakfast"));
+        assertEquals(false, first.getRecord("attributes").getRecord("good_for").getBoolean("lunch"));
+        assertEquals(true, first.getRecord("attributes").getRecord("good_for").getBoolean("dinner"));
+        assertNotNull(first.getRecord("attributes").getRecord("parking"));
+        assertEquals(false, first.getRecord("attributes").getRecord("parking").getBoolean("lot"));
+        assertEquals(false, first.getRecord("attributes").getRecord("parking").getBoolean("valet"));
+        assertEquals(false, first.getRecord("attributes").getRecord("parking").getBoolean("lot"));
+        assertEquals(true, first.getRecord("attributes").getBoolean("take_reservations"));
+        assertEquals("quiet", first.getRecord("attributes").getString("noise_level"));
+        assertNotNull(first.getRecord("location"));
+        assertEquals("STANDARD", first.getRecord("location").getString("zipType"));
+        assertEquals("72132", first.getRecord("location").getString("zip"));
+        assertEquals(false, first.getRecord("location").getBoolean("decomissionned"));
+        assertEquals("1400", first.getRecord("location").getString("taxReturnsFiled"));
+        assertEquals("NA-US-AR-REDFIELD", first.getRecord("location").getString("location"));
+        assertEquals("2653", first.getRecord("location").getString("estimatedPopulation"));
+        assertEquals("PRIMARY", first.getRecord("location").getString("locationType"));
+        assertEquals("56190766", first.getRecord("location").getString("totalWages"));
+        assertEquals("AR", first.getRecord("location").getString("state"));
+        assertEquals(-92.18f, first.getRecord("location").getFloat("longitude"));
+        assertEquals(34.44f, first.getRecord("location").getFloat("latitude"));
+        assertEquals("REDFIELD", first.getRecord("location").getString("city"));
+    }
+
+    @Test
     void readParquet() {
         dataSet.setFormat(FileFormat.PARQUET);
         ParquetConfiguration parquetConfig = new ParquetConfiguration();

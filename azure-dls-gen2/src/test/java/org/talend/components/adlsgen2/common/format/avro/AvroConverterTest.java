@@ -12,6 +12,7 @@
  */
 package org.talend.components.adlsgen2.common.format.avro;
 
+import java.io.InputStream;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -202,5 +203,86 @@ class AvroConverterTest extends AdlsGen2TestBase {
         System.out.println("record: " + testRecord);
         assertNotNull(testRecord.getString("nullStringColumn"));
         assertNull(testRecord.getInt("nullIntColumn"));
+    }
+
+    @Test
+    void withBusinessAvroFile() throws Exception {
+        InputStream business = getClass().getResource("/common/format/avro/business.avro").openStream();
+        AvroIterator iter = AvroIterator.Builder.of(recordBuilderFactory).withConfiguration(new AvroConfiguration())
+                .parse(business);
+        Record first, last = null;
+        first = iter.next();
+        while (iter.hasNext()) {
+            last = iter.next();
+        }
+        assertNotNull(first);
+        assertEquals(7, first.getSchema().getEntries().size());
+        assertEquals(0, first.getInt("business_id"));
+        assertEquals("Betty's Cafe", first.getString("name"));
+        assertEquals("Club", first.getString("category"));
+        assertEquals(4.0, first.getFloat("rating"));
+        assertEquals(2647, first.getInt("num_of_reviews"));
+        assertNotNull(first.getRecord("attributes"));
+        assertNotNull(first.getRecord("attributes").getRecord("good_for"));
+        assertEquals(false, first.getRecord("attributes").getRecord("good_for").getBoolean("dessert"));
+        assertEquals(true, first.getRecord("attributes").getRecord("good_for").getBoolean("kids"));
+        assertEquals(false, first.getRecord("attributes").getRecord("good_for").getBoolean("drinks"));
+        assertEquals(false, first.getRecord("attributes").getRecord("good_for").getBoolean("breakfast"));
+        assertEquals(false, first.getRecord("attributes").getRecord("good_for").getBoolean("lunch"));
+        assertEquals(true, first.getRecord("attributes").getRecord("good_for").getBoolean("dinner"));
+        assertNotNull(first.getRecord("attributes").getRecord("parking"));
+        assertEquals(false, first.getRecord("attributes").getRecord("parking").getBoolean("lot"));
+        assertEquals(false, first.getRecord("attributes").getRecord("parking").getBoolean("valet"));
+        assertEquals(false, first.getRecord("attributes").getRecord("parking").getBoolean("lot"));
+        assertEquals(true, first.getRecord("attributes").getBoolean("take_reservations"));
+        assertEquals("quiet", first.getRecord("attributes").getString("noise_level"));
+        assertNotNull(first.getRecord("location"));
+        assertEquals("STANDARD", first.getRecord("location").getString("zipType"));
+        assertEquals("72132", first.getRecord("location").getString("zip"));
+        assertEquals(false, first.getRecord("location").getBoolean("decomissionned"));
+        assertEquals("1400", first.getRecord("location").getString("taxReturnsFiled"));
+        assertEquals("NA-US-AR-REDFIELD", first.getRecord("location").getString("location"));
+        assertEquals("2653", first.getRecord("location").getString("estimatedPopulation"));
+        assertEquals("PRIMARY", first.getRecord("location").getString("locationType"));
+        assertEquals("56190766", first.getRecord("location").getString("totalWages"));
+        assertEquals("AR", first.getRecord("location").getString("state"));
+        assertEquals(-92.18f, first.getRecord("location").getFloat("longitude"));
+        assertEquals(34.44f, first.getRecord("location").getFloat("latitude"));
+        assertEquals("REDFIELD", first.getRecord("location").getString("city"));
+        // last record
+        assertNotNull(last);
+        assertEquals(7, last.getSchema().getEntries().size());
+        assertEquals(999, last.getInt("business_id"));
+        assertEquals("Irene's Restaurant", last.getString("name"));
+        assertEquals("Cafe", last.getString("category"));
+        assertEquals(2.0, last.getFloat("rating"));
+        assertEquals(15992, last.getInt("num_of_reviews"));
+        assertNotNull(last.getRecord("attributes"));
+        assertNotNull(last.getRecord("attributes").getRecord("good_for"));
+        assertEquals(true, last.getRecord("attributes").getRecord("good_for").getBoolean("dessert"));
+        assertEquals(false, last.getRecord("attributes").getRecord("good_for").getBoolean("kids"));
+        assertEquals(true, last.getRecord("attributes").getRecord("good_for").getBoolean("drinks"));
+        assertEquals(true, last.getRecord("attributes").getRecord("good_for").getBoolean("breakfast"));
+        assertEquals(true, last.getRecord("attributes").getRecord("good_for").getBoolean("lunch"));
+        assertEquals(false, last.getRecord("attributes").getRecord("good_for").getBoolean("dinner"));
+        assertNotNull(last.getRecord("attributes").getRecord("parking"));
+        assertEquals(true, last.getRecord("attributes").getRecord("parking").getBoolean("lot"));
+        assertEquals(false, last.getRecord("attributes").getRecord("parking").getBoolean("valet"));
+        assertEquals(true, last.getRecord("attributes").getRecord("parking").getBoolean("lot"));
+        assertEquals(false, last.getRecord("attributes").getBoolean("take_reservations"));
+        assertEquals("noisy", last.getRecord("attributes").getString("noise_level"));
+        assertNotNull(last.getRecord("location"));
+        assertEquals("STANDARD", last.getRecord("location").getString("zipType"));
+        assertEquals("23069", last.getRecord("location").getString("zip"));
+        assertEquals(false, last.getRecord("location").getBoolean("decomissionned"));
+        assertEquals("1452", last.getRecord("location").getString("taxReturnsFiled"));
+        assertEquals("NA-US-VA-HANOVER", last.getRecord("location").getString("location"));
+        assertEquals("2561", last.getRecord("location").getString("estimatedPopulation"));
+        assertEquals("PRIMARY", last.getRecord("location").getString("locationType"));
+        assertEquals("57841342", last.getRecord("location").getString("totalWages"));
+        assertEquals("VA", last.getRecord("location").getString("state"));
+        assertEquals(-77.37f, last.getRecord("location").getFloat("longitude"));
+        assertEquals(37.76f, last.getRecord("location").getFloat("latitude"));
+        assertEquals("HANOVER", last.getRecord("location").getString("city"));
     }
 }
