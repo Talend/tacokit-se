@@ -128,4 +128,23 @@ public class CsvConverterTest extends AdlsGen2TestBase {
         csvConfiguration.setCustomFileEncoding("BZH");
         assertThrows(AdlsGen2RuntimeException.class, () -> csvConfiguration.effectiveFileEncoding());
     }
+
+    @Test
+    void recordReparatorWithLF() throws Exception {
+        InputStream sample = getClass().getResource("/common/format/csv/LF-record-separated.csv").openStream();
+        csvConfiguration = new CsvConfiguration();
+        csvConfiguration.setRecordSeparator(CsvRecordSeparator.LF);
+        csvConfiguration.setRecordSeparator(CsvRecordSeparator.OTHER);
+        csvConfiguration.setCustomRecordSeparator("\\n");
+        CsvIterator it = Builder.of(recordBuilderFactory).withConfiguration(csvConfiguration).parse(sample);
+        Record record;
+        int counted =0;
+        while (it.hasNext()) {
+            record = it.next();
+            counted++;
+            assertNotNull(record);
+        }
+        assertEquals(3, counted);
+
+    }
 }
