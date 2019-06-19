@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.talend.components.azure.BaseIT;
 import org.talend.components.azure.BlobTestUtils;
@@ -35,6 +36,7 @@ import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.azure")
+@Disabled
 class ParquetOutputIT extends BaseIT {
 
     private BlobOutputConfiguration blobOutputProperties;
@@ -59,7 +61,7 @@ class ParquetOutputIT extends BaseIT {
 
         AzureBlobDataset dataset = new AzureBlobDataset();
         dataset.setConnection(dataStore);
-        dataset.setFileFormat(FileFormat.PARQUET);
+        // dataset.setFileFormat(FileFormat.PARQUET);
 
         dataset.setContainerName(containerName);
         blobOutputProperties = new BlobOutputConfiguration();
