@@ -168,10 +168,10 @@ class AvroConverterTest extends AdlsGen2TestBase {
         assertNotNull(record);
         assertEquals(5, record.getSchema().getEntries().size());
         assertNull(record.getString("string"));
-        assertEquals(0, record.getInt("int"));
-        assertEquals(0, record.getLong("long"));
-        assertEquals(0, record.getDouble("double"));
-        assertFalse(record.getBoolean("boolean"));
+        assertNull(record.get(Integer.class, "int"));
+        assertNull(record.get(Long.class, "long"));
+        assertNull(record.get(Double.class, "double"));
+        assertNull(record.get(Boolean.class, "boolean"));
     }
 
     @Test
