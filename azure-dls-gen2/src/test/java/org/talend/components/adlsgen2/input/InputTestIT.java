@@ -203,7 +203,7 @@ public class InputTestIT extends AdlsGen2TestBase {
     }
 
     @Test
-    void blobPathIsFileInsteadOfFolder(){
+    void blobPathIsFileInsteadOfFolder() {
         AvroConfiguration avroConfig = new AvroConfiguration();
         dataSet.setFormat(FileFormat.AVRO);
         dataSet.setAvroConfiguration(avroConfig);
@@ -223,7 +223,7 @@ public class InputTestIT extends AdlsGen2TestBase {
     }
 
     @Test
-    void csvEncodedInSJis(){
+    void csvEncodedInSJis() {
         CsvConfiguration csvConfiguration = new CsvConfiguration();
         csvConfiguration.setRecordSeparator(CsvRecordSeparator.LF);
         csvConfiguration.setFileEncoding(FileEncoding.OTHER);

@@ -283,10 +283,10 @@ public class OuputTestIT extends AdlsGen2TestBase {
         List<Record> testRecords = new ArrayList<>();
         testRecords.add(components.findService(RecordBuilderFactory.class).newRecordBuilder(schema)
                 .withString("stringColumn", "a").build()); // stringColumn:a, intColumn:null
-        testRecords.add(components.findService(RecordBuilderFactory.class).newRecordBuilder(schema)
-                .withString("stringColumn", "b")  //
-                .withInt("intColumn", Integer.MAX_VALUE)  //
-                .build()); // stringColumn:a,
+        testRecords
+                .add(components.findService(RecordBuilderFactory.class).newRecordBuilder(schema).withString("stringColumn", "b") //
+                        .withInt("intColumn", Integer.MAX_VALUE) //
+                        .build()); // stringColumn:a,
         // intColumn:not null
         components.setInputData(testRecords);
         Job.components() //
@@ -322,17 +322,17 @@ public class OuputTestIT extends AdlsGen2TestBase {
         String sampleB = "电话号码";
         String sampleC = "cèt été, il va faïre bôt !";
         switch (encoding) {
-            case "SJIS":
-                sample = sampleA;
-                break;
-            case "GB2312":
-                sample = sampleB;
-                break;
-            case "ISO-8859-1":
-                sample = sampleC;
-                break;
-            default:
-                fail("Should not be here for encoding:" + encoding);
+        case "SJIS":
+            sample = sampleA;
+            break;
+        case "GB2312":
+            sample = sampleB;
+            break;
+        case "ISO-8859-1":
+            sample = sampleC;
+            break;
+        default:
+            fail("Should not be here for encoding:" + encoding);
         }
         //
         Schema schema = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD) //

@@ -87,7 +87,6 @@ public class CsvConverterTest extends AdlsGen2TestBase {
         assertEquals(result, new String(output));
     }
 
-
     @Test
     void withSjisEncoding() throws Exception {
         InputStream sample = getClass().getResource("/common/format/csv/SJIS-encoded.csv").openStream();
