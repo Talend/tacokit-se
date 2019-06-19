@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.talend.components.azure.BaseIT;
 import org.talend.components.azure.BlobTestUtils;
@@ -36,6 +37,7 @@ import com.microsoft.azure.storage.StorageException;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.azure")
+@Disabled
 class AvroInputIT extends BaseIT {
 
     private BlobInputProperties blobInputProperties;
@@ -46,7 +48,7 @@ class AvroInputIT extends BaseIT {
 
         AzureBlobDataset dataset = new AzureBlobDataset();
         dataset.setConnection(dataStore);
-        dataset.setFileFormat(FileFormat.AVRO);
+        // dataset.setFileFormat(FileFormat.AVRO);
 
         dataset.setContainerName(containerName);
         dataset.setDirectory("avro");

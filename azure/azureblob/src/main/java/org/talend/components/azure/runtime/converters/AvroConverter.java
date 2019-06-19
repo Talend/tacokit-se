@@ -239,35 +239,35 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
         Schema.Entry.Builder builder = recordBuilderFactory.newEntryBuilder();
         builder.withName(field.name());
         org.apache.avro.Schema.Type type = field.schema().getType();
-        String logicalType = field.schema().getProp("logicalType"); //FIXME field.schema().getLogicalType() returns null
+        String logicalType = field.schema().getProp("logicalType"); // FIXME field.schema().getLogicalType() returns null
 
         switch (type) {
-            case RECORD:
-                builder.withType(Schema.Type.RECORD);
-                builder.withElementSchema(buildRecordFieldSchema(field));
-                break;
-            case ENUM:
-            case ARRAY:
-                builder.withType(Schema.Type.ARRAY);
-                builder.withElementSchema(buildArrayFieldSchema(field));
+        case RECORD:
+            builder.withType(Schema.Type.RECORD);
+            builder.withElementSchema(buildRecordFieldSchema(field));
             break;
-            case LONG:
-                if ("timestamp-millis".equals(logicalType)) {
-                    builder.withType(Schema.Type.DATETIME);
-                    break;
-                }
-            case STRING:
-            case BYTES:
-            case INT:
-                if ("date".equals(logicalType) || "time-milis".equals(logicalType)) {
-                    builder.withType(Schema.Type.DATETIME);
-                    break;
-                }
-            case FLOAT:
-            case DOUBLE:
-            case BOOLEAN:
-            case NULL:
-                builder.withType(translateToRecordType(type));
+        case ENUM:
+        case ARRAY:
+            builder.withType(Schema.Type.ARRAY);
+            builder.withElementSchema(buildArrayFieldSchema(field));
+            break;
+        case LONG:
+            if ("timestamp-millis".equals(logicalType)) {
+                builder.withType(Schema.Type.DATETIME);
+                break;
+            }
+        case STRING:
+        case BYTES:
+        case INT:
+            if ("date".equals(logicalType) || "time-milis".equals(logicalType)) {
+                builder.withType(Schema.Type.DATETIME);
+                break;
+            }
+        case FLOAT:
+        case DOUBLE:
+        case BOOLEAN:
+        case NULL:
+            builder.withType(translateToRecordType(type));
             break;
         }
         return builder.build();
@@ -350,7 +350,7 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
 
     protected void buildField(org.apache.avro.Schema.Field field, Object value, Record.Builder recordBuilder,
             Schema.Entry entry) {
-        String logicalType = field.schema().getProp("logicalType"); //FIXME field.schema().getLogicalType() returns null
+        String logicalType = field.schema().getProp("logicalType"); // FIXME field.schema().getLogicalType() returns null
         switch (field.schema().getType()) {
         case RECORD:
             recordBuilder.withRecord(entry, avroToRecord(GenericData.Record.class.cast(value), field.schema().getFields()));
@@ -363,7 +363,8 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
             break;
         case INT:
             if ("time-millis".equals(logicalType) || "date".equals(logicalType)) {
-                recordBuilder.withDateTime(entry, ZonedDateTime.ofInstant(Instant.ofEpochSecond((Integer) value), ZoneId.systemDefault()));
+                recordBuilder.withDateTime(entry,
+                        ZonedDateTime.ofInstant(Instant.ofEpochSecond((Integer) value), ZoneId.systemDefault()));
             } else {
                 recordBuilder.withInt(entry, (Integer) value);
             }
@@ -379,7 +380,8 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
             break;
         case LONG:
             if ("timestamp-millis".equals(logicalType)) {
-                recordBuilder.withDateTime(entry, ZonedDateTime.ofInstant(Instant.ofEpochMilli((Long) value), ZoneId.systemDefault()));
+                recordBuilder.withDateTime(entry,
+                        ZonedDateTime.ofInstant(Instant.ofEpochMilli((Long) value), ZoneId.systemDefault()));
             } else {
                 recordBuilder.withLong(entry, (Long) value);
             }
