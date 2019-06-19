@@ -328,7 +328,10 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
 
     protected Schema buildRecordFieldSchema(org.apache.avro.Schema.Field field) {
         Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Type.RECORD);
-        field.schema().getFields().stream().map(this::inferAvroField).forEach(builder::withEntry);
+        List<org.apache.avro.Schema> extractedSchemas = field.schema().getTypes().stream()
+                .filter(schema -> !schema.getType().equals(org.apache.avro.Schema.Type.NULL)).collect(toList());
+        // should have only one schema element with nullable (UNION)
+        extractedSchemas.get(0).getFields().stream().map(this::inferAvroField).forEach(builder::withEntry);
         return builder.build();
     }
 
@@ -396,7 +399,8 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
         org.apache.avro.Schema.Type fieldType = getFieldType(field);
         switch (fieldType) {
         case RECORD:
-            recordBuilder.withRecord(entry, avroToRecord((GenericRecord) value, ((GenericRecord) value).getSchema().getFields()));
+            recordBuilder.withRecord(entry, avroToRecord((GenericRecord) value, ((GenericRecord) value).getSchema().getFields(),
+                    recordBuilderFactory.newRecordBuilder()));
             break;
         case ARRAY:
             break;
