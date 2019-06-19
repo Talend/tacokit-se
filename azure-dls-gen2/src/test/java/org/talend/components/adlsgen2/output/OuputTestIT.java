@@ -20,7 +20,10 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.talend.components.adlsgen2.AdlsGen2TestBase;
+import org.talend.components.adlsgen2.common.format.FileEncoding;
 import org.talend.components.adlsgen2.common.format.FileFormat;
 import org.talend.components.adlsgen2.common.format.avro.AvroConfiguration;
 import org.talend.components.adlsgen2.common.format.csv.CsvConfiguration;
@@ -29,6 +32,7 @@ import org.talend.components.adlsgen2.common.format.csv.CsvRecordSeparator;
 import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
@@ -36,6 +40,10 @@ import org.talend.sdk.component.runtime.record.SchemaImpl;
 
 import lombok.extern.slf4j.Slf4j;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @Slf4j
@@ -195,7 +203,6 @@ public class OuputTestIT extends AdlsGen2TestBase {
                 .run();
     }
 
-
     @Test
     void testOutputNull() {
         dataSet.setFormat(FileFormat.AVRO);
@@ -299,6 +306,85 @@ public class OuputTestIT extends AdlsGen2TestBase {
         List<Record> records = components.getCollectedData(Record.class);
         Assert.assertEquals(fieldSize, records.get(0).getSchema().getEntries().size());
         Assert.assertEquals(fieldSize, records.get(1).getSchema().getEntries().size());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "SJIS", "GB2312", "ISO-8859-1" })
+    void outputToCsvEncoded(String encoding) {
+        CsvConfiguration csvConfiguration = new CsvConfiguration();
+        csvConfiguration.setRecordSeparator(CsvRecordSeparator.LF);
+        csvConfiguration.setFileEncoding(FileEncoding.OTHER);
+        csvConfiguration.setCustomFileEncoding(encoding);
+        csvConfiguration.setCsvSchema("id;value");
+        //
+        String sample = "bb";
+        String sampleA = "テスト";
+        String sampleB = "电话号码";
+        String sampleC = "cèt été, il va faïre bôt !";
+        switch (encoding) {
+            case "SJIS":
+                sample = sampleA;
+                break;
+            case "GB2312":
+                sample = sampleB;
+                break;
+            case "ISO-8859-1":
+                sample = sampleC;
+                break;
+            default:
+                fail("Should not be here for encoding:" + encoding);
+        }
+        //
+        Schema schema = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD) //
+                .withEntry(new SchemaImpl.EntryImpl("id", Schema.Type.INT, true, null, null, null)) //
+                .withEntry(new SchemaImpl.EntryImpl("value", Type.STRING, true, null, null, null)) //
+                .build();
+        List<Record> testRecords = new ArrayList<>();
+        testRecords.add(recordBuilderFactory.newRecordBuilder(schema) //
+                .withInt("id", 1) //
+                .withString("value", sample) //
+                .build());
+        //
+        String blobPath = String.format("%scsv-encoded-%s", basePathOut, encoding);
+        //
+        // now outputs
+        //
+        outDs.setFormat(FileFormat.CSV);
+        outDs.setCsvConfiguration(csvConfiguration);
+        outDs.setBlobPath(blobPath);
+        outputConfiguration.setDataSet(outDs);
+        outputConfiguration.setBlobNameTemplate(String.format("csv-%s-encoded-data-", encoding));
+        String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
+        components.setInputData(testRecords);
+        Job.components() //
+                .component("in", "test://emitter") //
+                .component("out", "Azure://AdlsGen2Output?" + outConfig) //
+                .connections() //
+                .from("in") //
+                .to("out") //
+                .build().run();
+        // now read back
+        dataSet.setFormat(FileFormat.CSV);
+        dataSet.setCsvConfiguration(csvConfiguration);
+        dataSet.setBlobPath(blobPath);
+        inputConfiguration.setDataSet(dataSet);
+        final String config = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
+        Job.components().component("in", "Azure://AdlsGen2Input?" + config) //
+                .component("out", "test://collector") //
+                .connections() //
+                .from("in") //
+                .to("out") //
+                .build() //
+                .run();
+        final List<Record> records = components.getCollectedData(Record.class);
+        assertNotNull(records);
+        assertFalse(records.isEmpty());
+        for (Record encoded : records) {
+            assertNotNull(encoded);
+            log.warn("[outputToCsvEncoded] {}", encoded);
+            assertEquals("1", encoded.getString("id"));
+            assertEquals(sample, encoded.getString("value"));
+        }
     }
 
 }

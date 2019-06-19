@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.talend.components.adlsgen2.AdlsGen2TestBase;
+import org.talend.components.adlsgen2.common.format.FileEncoding;
 import org.talend.components.adlsgen2.common.format.FileFormat;
 import org.talend.components.adlsgen2.common.format.avro.AvroConfiguration;
 import org.talend.components.adlsgen2.common.format.csv.CsvConfiguration;
@@ -219,6 +220,32 @@ public class InputTestIT extends AdlsGen2TestBase {
         final List<Record> records = components.getCollectedData(Record.class);
         assertNotNull(records);
         assertEquals(1000, records.size());
+    }
+
+    @Test
+    void csvEncodedInSJis(){
+        CsvConfiguration csvConfiguration = new CsvConfiguration();
+        csvConfiguration.setRecordSeparator(CsvRecordSeparator.LF);
+        csvConfiguration.setFileEncoding(FileEncoding.OTHER);
+        csvConfiguration.setCustomFileEncoding("SJIS");
+        dataSet.setFormat(FileFormat.CSV);
+        dataSet.setCsvConfiguration(csvConfiguration);
+        dataSet.setBlobPath(basePath + "encoding/SJIS-encoded.csv");
+        inputConfiguration.setDataSet(dataSet);
+        final String config = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
+        Job.components().component("in", "Azure://AdlsGen2Input?" + config) //
+                .component("out", "test://collector") //
+                .connections() //
+                .from("in") //
+                .to("out") //
+                .build() //
+                .run();
+        final List<Record> records = components.getCollectedData(Record.class);
+        Record encoded = records.get(0);
+        assertNotNull(encoded);
+        assertEquals("2", encoded.getString("field0"));
+        assertEquals("2000.3", encoded.getString("field1"));
+        assertEquals("テスト", encoded.getString("field2"));
     }
 
 }

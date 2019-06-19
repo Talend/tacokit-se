@@ -13,6 +13,7 @@
 package org.talend.components.adlsgen2.common.format.csv;
 
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.talend.components.adlsgen2.common.format.FileEncoding;
+import org.talend.components.adlsgen2.runtime.AdlsGen2RuntimeException;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -91,7 +93,18 @@ public class CsvConfiguration implements Serializable {
     }
 
     public String effectiveFileEncoding() {
-        return FileEncoding.OTHER.equals(getFileEncoding()) ? getCustomFileEncoding() : getFileEncoding().getEncoding();
+        if (FileEncoding.OTHER == getFileEncoding()) {
+            try {
+                Charset.forName(customFileEncoding);
+                return getCustomFileEncoding();
+            } catch (Exception e) {
+                String msg = String.format("Encoding not supported %s.", customFileEncoding);
+                log.warn("[effectiveFileEncoding] {}", msg);
+                throw new AdlsGen2RuntimeException(msg);
+            }
+        } else {
+            return getFileEncoding().getEncoding();
+        }
     }
 
     public String effectiveRecordSeparator() {

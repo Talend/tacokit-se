@@ -72,8 +72,9 @@ public class CsvContentFormatter extends AbstractContentFormatter {
             }
             printer.flush();
             printer.close();
-            return stringWriter.toString().getBytes();
+            return stringWriter.toString().getBytes(csvConfiguration.effectiveFileEncoding());
         } catch (IOException e) {
+            log.error("[feedContent] exception:", e);
             throw new AdlsGen2RuntimeException(e.getMessage());
         }
     }
