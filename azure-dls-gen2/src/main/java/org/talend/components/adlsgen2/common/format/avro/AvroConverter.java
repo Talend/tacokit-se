@@ -298,7 +298,9 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
             if (org.apache.avro.Schema.Type.ARRAY.equals(field.schema().getType())) {
                 buildArrayField(field, value, recordBuilder, entry);
             } else {
-                buildField(field, value, recordBuilder, entry);
+                if (!entry.isNullable() || value != null) {
+                    buildField(field, value, recordBuilder, entry);
+                }
             }
         }
         return recordBuilder.build();

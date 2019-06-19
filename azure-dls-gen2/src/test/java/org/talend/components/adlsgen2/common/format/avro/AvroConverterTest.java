@@ -206,6 +206,20 @@ class AvroConverterTest extends AdlsGen2TestBase {
     }
 
     @Test
+    void withNullData() throws Exception {
+        InputStream business = getClass().getResource("/common/format/avro/null-data.avro").openStream();
+        AvroIterator iter = AvroIterator.Builder.of(recordBuilderFactory).withConfiguration(new AvroConfiguration())
+                .parse(business);
+        Record first = null;
+        first = iter.next();
+        assertNotNull(first);
+        assertFalse(iter.hasNext());
+        assertEquals(2, first.getSchema().getEntries().size());
+        assertEquals("a", first.getString("stringColumn"));
+        assertNull(first.get(Integer.class, "intColumn"));
+    }
+
+    @Test
     void withBusinessAvroFile() throws Exception {
         InputStream business = getClass().getResource("/common/format/avro/business.avro").openStream();
         AvroIterator iter = AvroIterator.Builder.of(recordBuilderFactory).withConfiguration(new AvroConfiguration())

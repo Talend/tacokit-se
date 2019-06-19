@@ -28,10 +28,13 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
+import lombok.extern.slf4j.Slf4j;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
+@Slf4j
 @WithComponents("org.talend.components.adlsgen2")
 public class InputTestIT extends AdlsGen2TestBase {
 
@@ -196,6 +199,26 @@ public class InputTestIT extends AdlsGen2TestBase {
         final List<Record> records = components.getCollectedData(Record.class);
         assertNotNull(records);
         assertEquals(5000, records.size());
+    }
+
+    @Test
+    void blobPathIsFileInsteadOfFolder(){
+        AvroConfiguration avroConfig = new AvroConfiguration();
+        dataSet.setFormat(FileFormat.AVRO);
+        dataSet.setAvroConfiguration(avroConfig);
+        dataSet.setBlobPath(basePath + "business-avro/business.avro");
+        inputConfiguration.setDataSet(dataSet);
+        final String config = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
+        Job.components().component("mycomponent", "Azure://AdlsGen2Input?" + config) //
+                .component("collector", "test://collector") //
+                .connections() //
+                .from("mycomponent") //
+                .to("collector") //
+                .build() //
+                .run();
+        final List<Record> records = components.getCollectedData(Record.class);
+        assertNotNull(records);
+        assertEquals(1000, records.size());
     }
 
 }

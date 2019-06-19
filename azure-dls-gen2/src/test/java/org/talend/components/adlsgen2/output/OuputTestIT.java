@@ -13,19 +13,32 @@
  */
 package org.talend.components.adlsgen2.output;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.adlsgen2.AdlsGen2TestBase;
 import org.talend.components.adlsgen2.common.format.FileFormat;
+import org.talend.components.adlsgen2.common.format.avro.AvroConfiguration;
 import org.talend.components.adlsgen2.common.format.csv.CsvConfiguration;
 import org.talend.components.adlsgen2.common.format.csv.CsvFieldDelimiter;
 import org.talend.components.adlsgen2.common.format.csv.CsvRecordSeparator;
 import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
+import org.talend.sdk.component.runtime.record.SchemaImpl;
+
+import lombok.extern.slf4j.Slf4j;
 
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
+@Slf4j
 @WithComponents("org.talend.components.adlsgen2")
 public class OuputTestIT extends AdlsGen2TestBase {
 
@@ -132,7 +145,6 @@ public class OuputTestIT extends AdlsGen2TestBase {
         inputConfiguration.setDataSet(dataSet);
         final String inConfig = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
         //
-
         outDs.setFormat(FileFormat.CSV);
         outDs.setBlobPath(basePathOut + "csv");
         outDs.setCsvConfiguration(csvConfig);
@@ -181,6 +193,112 @@ public class OuputTestIT extends AdlsGen2TestBase {
                 .to("out") //
                 .build() //
                 .run();
+    }
+
+
+    @Test
+    void testOutputNull() {
+        dataSet.setFormat(FileFormat.AVRO);
+        AvroConfiguration avroConfig = new AvroConfiguration();
+        dataSet.setAvroConfiguration(avroConfig);
+        dataSet.setBlobPath(basePathOut + "avro-output-nulls");
+        inputConfiguration.setDataSet(dataSet);
+        final String inConfig = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
+        //
+        outDs.setFormat(FileFormat.AVRO);
+        outDs.setBlobPath(basePathOut + "avro-output-nulls");
+        outputConfiguration.setDataSet(outDs);
+        outputConfiguration.setBlobNameTemplate("avro-null-data-");
+        String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
+        final int schemaSize = 9;
+        Schema.Builder schemaBuilder = new SchemaImpl.BuilderImpl();
+        Schema schema = schemaBuilder.withType(Schema.Type.RECORD)
+                .withEntry(new SchemaImpl.EntryImpl("nullStringColumn", Schema.Type.STRING, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullStringColumn2", Schema.Type.STRING, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullIntColumn", Schema.Type.INT, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullLongColumn", Schema.Type.LONG, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullFloatColumn", Schema.Type.FLOAT, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullDoubleColumn", Schema.Type.DOUBLE, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullBooleanColumn", Schema.Type.BOOLEAN, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullByteArrayColumn", Schema.Type.BYTES, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullDateColumn", Schema.Type.DATETIME, true, null, null, null)).build();
+        Record testRecord = components.findService(RecordBuilderFactory.class).newRecordBuilder(schema)
+                .withString("nullStringColumn", null).build();
+        List<Record> testRecords = Collections.singletonList(testRecord);
+        components.setInputData(testRecords);
+        Job.components() //
+                .component("in", "test://emitter") //
+                .component("out", "Azure://AdlsGen2Output?" + outConfig) //
+                .connections() //
+                .from("in") //
+                .to("out") //
+                .build().run();
+        Job.components() //
+                .component("in", "Azure://AdlsGen2Input?" + inConfig) //
+                .component("out", "test://collector") //
+                .connections() //
+                .from("in") //
+                .to("out") //
+                .build().run();
+        List<Record> records = components.getCollectedData(Record.class);
+        Record firstRecord = records.get(0);
+        Assert.assertEquals(schemaSize, firstRecord.getSchema().getEntries().size());
+        Assert.assertNull(firstRecord.getString("nullStringColumn"));
+        Assert.assertNull(firstRecord.getString("nullStringColumn2"));
+        Assert.assertNull(firstRecord.get(Integer.class, "nullIntColumn"));
+        Assert.assertNull(firstRecord.get(Long.class, "nullLongColumn"));
+        Assert.assertNull(firstRecord.get(Float.class, "nullFloatColumn"));
+        Assert.assertNull(firstRecord.get(Double.class, "nullDoubleColumn"));
+        Assert.assertNull(firstRecord.get(Boolean.class, "nullBooleanColumn"));
+        Assert.assertNull(firstRecord.get(byte[].class, "nullByteArrayColumn"));
+        Assert.assertNull(firstRecord.getDateTime("nullDateColumn"));
+    }
+
+    @Test
+    void testSchemaIsNotMissingForNullsInFirstRecord() {
+        dataSet.setFormat(FileFormat.AVRO);
+        AvroConfiguration avroConfig = new AvroConfiguration();
+        dataSet.setAvroConfiguration(avroConfig);
+        dataSet.setBlobPath(basePathOut + "avro-nulls");
+        inputConfiguration.setDataSet(dataSet);
+        final String inConfig = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
+        //
+        outDs.setFormat(FileFormat.AVRO);
+        outDs.setBlobPath(basePathOut + "avro-nulls");
+        outputConfiguration.setDataSet(outDs);
+        outputConfiguration.setBlobNameTemplate("avro-null-data-");
+        String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
+        final int fieldSize = 2;
+        Schema.Builder schemaBuilder = new SchemaImpl.BuilderImpl();
+        Schema schema = schemaBuilder.withType(Schema.Type.RECORD)
+                .withEntry(new SchemaImpl.EntryImpl("stringColumn", Schema.Type.STRING, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("intColumn", Schema.Type.INT, true, null, null, null)).build();
+        List<Record> testRecords = new ArrayList<>();
+        testRecords.add(components.findService(RecordBuilderFactory.class).newRecordBuilder(schema)
+                .withString("stringColumn", "a").build()); // stringColumn:a, intColumn:null
+        testRecords.add(components.findService(RecordBuilderFactory.class).newRecordBuilder(schema)
+                .withString("stringColumn", "b")  //
+                .withInt("intColumn", Integer.MAX_VALUE)  //
+                .build()); // stringColumn:a,
+        // intColumn:not null
+        components.setInputData(testRecords);
+        Job.components() //
+                .component("in", "test://emitter") //
+                .component("out", "Azure://AdlsGen2Output?" + outConfig) //
+                .connections() //
+                .from("in") //
+                .to("out") //
+                .build().run();
+        Job.components() //
+                .component("in", "Azure://AdlsGen2Input?" + inConfig) //
+                .component("out", "test://collector") //
+                .connections() //
+                .from("in") //
+                .to("out") //
+                .build().run();
+        List<Record> records = components.getCollectedData(Record.class);
+        Assert.assertEquals(fieldSize, records.get(0).getSchema().getEntries().size());
+        Assert.assertEquals(fieldSize, records.get(1).getSchema().getEntries().size());
     }
 
 }
