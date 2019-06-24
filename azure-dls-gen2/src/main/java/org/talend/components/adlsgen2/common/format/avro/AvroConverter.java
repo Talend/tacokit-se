@@ -112,27 +112,26 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
         for (org.apache.avro.Schema.Field f : toRecord.getSchema().getFields()) {
             String name = f.name();
             org.apache.avro.Schema.Type fieldType = getFieldType(f);
-            org.apache.avro.Schema subSchema;
             switch (fieldType) {
             case RECORD:
-                subSchema = inferAvroSchema(fromRecord.getRecord(name).getSchema());
+                org.apache.avro.Schema subSchema = inferAvroSchema(fromRecord.getRecord(name).getSchema());
                 GenericRecord subrecord = recordToAvro(fromRecord.getRecord(name), new GenericData.Record(subSchema));
                 toRecord.put(name, subrecord);
                 break;
             case ARRAY:
                 Entry e = getSchemaForEntry(name, fromRecord.getSchema());
-                Collection<Object> recordArray = fromRecord.getArray(Object.class, name);
-                Object firstArrayValue = new Object();
+                Collection<Object> recordArray = fromRecord.getOptionalArray(Object.class, name).orElse(new ArrayList<>());
                 if (recordArray.iterator().hasNext()) {
-                    firstArrayValue = recordArray.iterator().next();
-                }
-                if (firstArrayValue instanceof Record) {
-                    subSchema = inferAvroSchema(((Record) firstArrayValue).getSchema());
-                    List<GenericRecord> records = recordArray.stream()
-                            .map(o -> recordToAvro((Record) o, new GenericData.Record(subSchema))).collect(Collectors.toList());
-                    toRecord.put(name, records);
-                } else {
-                    toRecord.put(name, fromRecord.getArray(getJavaClassForType(e.getElementSchema().getType()), name));
+                    Object firstArrayValue = recordArray.iterator().next();
+                    if (firstArrayValue instanceof Record) {
+                        subSchema = inferAvroSchema(((Record) firstArrayValue).getSchema());
+                        List<GenericRecord> records = recordArray.stream()
+                                .map(o -> recordToAvro((Record) o, new GenericData.Record(subSchema)))
+                                .collect(Collectors.toList());
+                        toRecord.put(name, records);
+                    } else {
+                        toRecord.put(name, fromRecord.getArray(getJavaClassForType(e.getElementSchema().getType()), name));
+                    }
                 }
                 break;
             case STRING:
