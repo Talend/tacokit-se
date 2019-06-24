@@ -329,18 +329,43 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
         builder.withName(field.name());
         org.apache.avro.Schema.Type type = getFieldType(field);
         String logicalType = field.schema().getProp(AVRO_LOGICAL_TYPE);
+        org.apache.avro.Schema extractedSchema;
+        Schema.Builder subBuilder;
         // handle NULLable field
         builder.withNullable(true);
         switch (type) {
         case RECORD:
             builder.withType(Type.RECORD);
-            builder.withElementSchema(buildRecordFieldSchema(field));
+            //
+            subBuilder = recordBuilderFactory.newSchemaBuilder(Type.RECORD);
+            extractedSchema = getUnionSchema(field.schema());
+            extractedSchema.getFields().stream().map(this::inferAvroField).forEach(subBuilder::withEntry);
+            builder.withElementSchema(subBuilder.build());
             break;
         case ENUM:
         case ARRAY:
-            org.apache.avro.Schema elementType = getUnionSchema(field.schema());
-            builder.withType(Type.ARRAY).withElementSchema(recordBuilderFactory.newSchemaBuilder(Type.ARRAY)
-                    .withType(translateToRecordType(elementType.getType())).build()).build();
+            builder.withType(Type.ARRAY);
+            //
+            extractedSchema = getUnionSchema(getUnionSchema(field.schema()).getElementType());
+            Type toType = translateToRecordType((extractedSchema.getType()));
+            switch (toType) {
+            case RECORD:
+            case ARRAY:
+                subBuilder = recordBuilderFactory.newSchemaBuilder(toType);
+                extractedSchema.getFields().stream().map(this::inferAvroField).forEach(subBuilder::withEntry);
+                builder.withElementSchema(subBuilder.build());
+                break;
+            case STRING:
+            case BYTES:
+            case INT:
+            case LONG:
+            case FLOAT:
+            case DOUBLE:
+            case BOOLEAN:
+            case DATETIME:
+                builder.withType(toType);
+                break;
+            }
             break;
         case INT:
         case LONG:

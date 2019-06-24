@@ -13,6 +13,7 @@
  */
 package org.talend.components.adlsgen2.input;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -178,6 +179,89 @@ public class InputTestIT extends AdlsGen2TestBase {
         final List<Record> records = components.getCollectedData(Record.class);
         assertNotNull(records);
         assertEquals(51, records.size());
+    }
+
+    @Test
+    void readAvroBigBusiness() {
+        dataSet.setFormat(FileFormat.AVRO);
+        AvroConfiguration avroConfig = new AvroConfiguration();
+        dataSet.setAvroConfiguration(avroConfig);
+        dataSet.setBlobPath(basePathIn + "big_business.avro");
+        inputConfiguration.setDataSet(dataSet);
+        final String config = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
+        Job.components().component("in", "Azure://AdlsGen2Input?" + config) //
+                .component("collector", "test://collector") //
+                .connections() //
+                .from("in") //
+                .to("collector") //
+                .build() //
+                .run();
+        final List<Record> records = components.getCollectedData(Record.class);
+        assertNotNull(records);
+        assertEquals(1000, records.size());
+        Record first = records.get(0);
+        assertNotNull(first);
+        assertEquals(3, first.getSchema().getEntries().size());
+        assertEquals(0, first.getInt("business_id"));
+        assertEquals("Betty's Cafe", first.getRecord("business").getString("name"));
+        assertEquals("Club", first.getRecord("business").getString("category"));
+        assertEquals(4.0, first.getRecord("business").getFloat("rating"));
+        assertEquals(2647, first.getRecord("business").getInt("num_of_reviews"));
+        assertNotNull(first.getRecord("business").getRecord("attributes"));
+        assertNotNull(first.getRecord("business").getRecord("attributes").getRecord("good_for"));
+        assertEquals(false, first.getRecord("business").getRecord("attributes").getRecord("good_for").getBoolean("dessert"));
+        assertEquals(true, first.getRecord("business").getRecord("attributes").getRecord("good_for").getBoolean("kids"));
+        assertEquals(false, first.getRecord("business").getRecord("attributes").getRecord("good_for").getBoolean("drinks"));
+        assertEquals(false, first.getRecord("business").getRecord("attributes").getRecord("good_for").getBoolean("breakfast"));
+        assertEquals(false, first.getRecord("business").getRecord("attributes").getRecord("good_for").getBoolean("lunch"));
+        assertEquals(true, first.getRecord("business").getRecord("attributes").getRecord("good_for").getBoolean("dinner"));
+        assertNotNull(first.getRecord("business").getRecord("attributes").getRecord("parking"));
+        assertEquals(false, first.getRecord("business").getRecord("attributes").getRecord("parking").getBoolean("lot"));
+        assertEquals(false, first.getRecord("business").getRecord("attributes").getRecord("parking").getBoolean("valet"));
+        assertEquals(false, first.getRecord("business").getRecord("attributes").getRecord("parking").getBoolean("lot"));
+        assertEquals(true, first.getRecord("business").getRecord("attributes").getBoolean("take_reservations"));
+        assertEquals("quiet", first.getRecord("business").getRecord("attributes").getString("noise_level"));
+        assertNotNull(first.getRecord("business").getRecord("location"));
+        assertEquals("STANDARD", first.getRecord("business").getRecord("location").getString("zipType"));
+        assertEquals("72132", first.getRecord("business").getRecord("location").getString("zip"));
+        assertEquals(false, first.getRecord("business").getRecord("location").getBoolean("decomissionned"));
+        assertEquals("1400", first.getRecord("business").getRecord("location").getString("taxReturnsFiled"));
+        assertEquals("NA-US-AR-REDFIELD", first.getRecord("business").getRecord("location").getString("location"));
+        assertEquals("2653", first.getRecord("business").getRecord("location").getString("estimatedPopulation"));
+        assertEquals("PRIMARY", first.getRecord("business").getRecord("location").getString("locationType"));
+        assertEquals("56190766", first.getRecord("business").getRecord("location").getString("totalWages"));
+        assertEquals("AR", first.getRecord("business").getRecord("location").getString("state"));
+        assertEquals(-92.18f, first.getRecord("business").getRecord("location").getFloat("longitude"));
+        assertEquals(34.44f, first.getRecord("business").getRecord("location").getFloat("latitude"));
+        assertEquals("REDFIELD", first.getRecord("business").getRecord("location").getString("city"));
+        Collection<Record> reviews = first.getArray(Record.class, "reviews");
+        assertNotNull(reviews);
+        Record lastReview = null;
+        int reviewCount = 0;
+        for (Record review : reviews) {
+            lastReview = review;
+            reviewCount++;
+        }
+        assertEquals(166, reviewCount);
+        assertNotNull(lastReview);
+        assertEquals(0, lastReview.getInt("business_id"));
+        assertEquals(3656, lastReview.getRecord("user").getInt("user_id"));
+        assertEquals("Doris", lastReview.getRecord("user").getString("name"));
+        assertEquals("FEMALE", lastReview.getRecord("user").getString("gender"));
+        assertEquals(17, lastReview.getRecord("user").getInt("age"));
+        assertEquals(1202, lastReview.getRecord("user").getInt("review_count"));
+        assertEquals(2.0, lastReview.getRecord("user").getFloat("avg_rating"));
+        assertEquals(410, lastReview.getRecord("user").getRecord("user_votes").getInt("helpful"));
+        assertEquals(605.0, lastReview.getRecord("user").getRecord("user_votes").getInt("cool"));
+        assertEquals(496.0, lastReview.getRecord("user").getRecord("user_votes").getInt("unhelpful"));
+        assertEquals(255, lastReview.getRecord("user").getInt("friends_count"));
+        assertEquals(4.0, lastReview.getFloat("rating"));
+        assertEquals("27/09/2010", lastReview.getString("date"));
+        assertEquals(96, lastReview.getString("review_text").length());
+        assertEquals(13, lastReview.getRecord("votes").getInt("helpful"));
+        assertEquals(5, lastReview.getRecord("votes").getInt("cool"));
+        assertEquals(8, lastReview.getRecord("votes").getInt("unhelpful"));
+
     }
 
     @Test
