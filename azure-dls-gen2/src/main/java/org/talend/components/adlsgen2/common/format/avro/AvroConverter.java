@@ -344,10 +344,16 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
 
     protected Schema buildRecordFieldSchema(org.apache.avro.Schema.Field field) {
         Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Type.RECORD);
-        List<org.apache.avro.Schema> extractedSchemas = field.schema().getTypes().stream()
-                .filter(schema -> !schema.getType().equals(org.apache.avro.Schema.Type.NULL)).collect(toList());
-        // should have only one schema element with nullable (UNION)
-        extractedSchemas.get(0).getFields().stream().map(this::inferAvroField).forEach(builder::withEntry);
+        org.apache.avro.Schema extractedSchema;
+        if (field.schema().getType() == org.apache.avro.Schema.Type.UNION) {
+            List<org.apache.avro.Schema> extractedSchemas = field.schema().getTypes().stream()
+                    .filter(schema -> !schema.getType().equals(org.apache.avro.Schema.Type.NULL)).collect(toList());
+            // should have only one schema element with nullable (UNION)
+            extractedSchema = extractedSchemas.get(0);
+        } else {
+            extractedSchema = field.schema();
+        }
+        extractedSchema.getFields().stream().map(this::inferAvroField).forEach(builder::withEntry);
         Schema rec = builder.build();
         return rec;
     }

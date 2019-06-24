@@ -97,6 +97,10 @@ public class AdlsGen2TestBase implements Serializable {
 
     protected ZonedDateTime now;
 
+    protected String basePathIn = "TestIT/in/";
+
+    protected String basePathOut = "TestIT/out/";
+
     @BeforeEach
     protected void setUp() throws Exception {
         tmpDir = System.getProperty("java.io.tmpdir", ".") + "/";

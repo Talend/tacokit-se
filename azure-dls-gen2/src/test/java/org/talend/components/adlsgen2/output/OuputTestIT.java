@@ -50,10 +50,6 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 @WithComponents("org.talend.components.adlsgen2")
 public class OuputTestIT extends AdlsGen2TestBase {
 
-    String basePathIn = "TestIT/in/";
-
-    String basePathOut = "TestIT/out/";
-
     CsvConfiguration csvConfig;
 
     AdlsGen2DataSet outDs;
