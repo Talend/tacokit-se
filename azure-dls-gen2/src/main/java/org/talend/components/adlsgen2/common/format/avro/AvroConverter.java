@@ -18,16 +18,19 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
+import java.util.stream.Collectors;
 
 import org.apache.avro.LogicalTypes;
 import org.apache.avro.SchemaBuilder;
 import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericData.Array;
 import org.apache.avro.generic.GenericRecord;
 import org.talend.components.adlsgen2.common.converter.RecordConverter;
 import org.talend.components.adlsgen2.common.format.FileFormatRuntimeException;
@@ -109,15 +112,26 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
         for (org.apache.avro.Schema.Field f : toRecord.getSchema().getFields()) {
             String name = f.name();
             org.apache.avro.Schema.Type fieldType = getFieldType(f);
+            org.apache.avro.Schema subSchema;
             switch (fieldType) {
             case RECORD:
-                org.apache.avro.Schema subSchema = inferAvroSchema(fromRecord.getRecord(name).getSchema());
+                subSchema = inferAvroSchema(fromRecord.getRecord(name).getSchema());
                 GenericRecord subrecord = recordToAvro(fromRecord.getRecord(name), new GenericData.Record(subSchema));
                 toRecord.put(name, subrecord);
                 break;
             case ARRAY:
                 Entry e = getSchemaForEntry(name, fromRecord.getSchema());
-                if (e != null) {
+                Collection<Object> recordArray = fromRecord.getArray(Object.class, name);
+                Object firstArrayValue = new Object();
+                if (recordArray.iterator().hasNext()) {
+                    firstArrayValue = recordArray.iterator().next();
+                }
+                if (firstArrayValue instanceof Record) {
+                    subSchema = inferAvroSchema(((Record) firstArrayValue).getSchema());
+                    List<GenericRecord> records = recordArray.stream()
+                            .map(o -> recordToAvro((Record) o, new GenericData.Record(subSchema))).collect(Collectors.toList());
+                    toRecord.put(name, records);
+                } else {
                     toRecord.put(name, fromRecord.getArray(getJavaClassForType(e.getElementSchema().getType()), name));
                 }
                 break;
@@ -175,6 +189,10 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
 
     protected Class<? extends Object> getJavaClassForType(Type type) {
         switch (type) {
+        case RECORD:
+            return Record.class;
+        case ARRAY:
+            return Array.class;
         case STRING:
             return String.class;
         case BYTES:
@@ -249,8 +267,8 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
                 builder = subrecord;
                 break;
             case ARRAY:
-                builder = SchemaBuilder.array()
-                        .items(org.apache.avro.Schema.create(translateToAvroType(e.getElementSchema().getType())));
+                org.apache.avro.Schema subschema = inferAvroSchema(e.getElementSchema());
+                builder = org.apache.avro.Schema.createArray(subschema);
                 break;
             case STRING:
             case BYTES:
@@ -320,8 +338,9 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
             break;
         case ENUM:
         case ARRAY:
+            org.apache.avro.Schema elementType = getUnionSchema(field.schema());
             builder.withType(Type.ARRAY).withElementSchema(recordBuilderFactory.newSchemaBuilder(Type.ARRAY)
-                    .withType(translateToRecordType(field.schema().getElementType().getType())).build()).build();
+                    .withType(translateToRecordType(elementType.getType())).build()).build();
             break;
         case INT:
         case LONG:
@@ -344,15 +363,7 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
 
     protected Schema buildRecordFieldSchema(org.apache.avro.Schema.Field field) {
         Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Type.RECORD);
-        org.apache.avro.Schema extractedSchema;
-        if (field.schema().getType() == org.apache.avro.Schema.Type.UNION) {
-            List<org.apache.avro.Schema> extractedSchemas = field.schema().getTypes().stream()
-                    .filter(schema -> !schema.getType().equals(org.apache.avro.Schema.Type.NULL)).collect(toList());
-            // should have only one schema element with nullable (UNION)
-            extractedSchema = extractedSchemas.get(0);
-        } else {
-            extractedSchema = field.schema();
-        }
+        org.apache.avro.Schema extractedSchema = getUnionSchema(field.schema());
         extractedSchema.getFields().stream().map(this::inferAvroField).forEach(builder::withEntry);
         Schema rec = builder.build();
         return rec;
@@ -388,10 +399,12 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     protected void buildArrayField(org.apache.avro.Schema.Field field, Object value, Record.Builder recordBuilder, Entry entry) {
-        switch (field.schema().getElementType().getType()) {
+        org.apache.avro.Schema arraySchema = getUnionSchema(field.schema());
+        switch (arraySchema.getElementType().getType()) {
         case RECORD:
-            recordBuilder.withArray(entry, ((GenericData.Array<GenericRecord>) value).stream()
-                    .map(record -> avroToRecord(record, field.schema().getFields())).collect(toList()));
+            List<Record> recs = ((Array<GenericRecord>) value).stream().map(record -> avroToRecord(record,
+                    arraySchema.getElementType().getFields(), recordBuilderFactory.newRecordBuilder())).collect(toList());
+            recordBuilder.withArray(entry, recs);
             break;
         case STRING:
             recordBuilder.withArray(entry, (List<String>) value);
@@ -426,6 +439,7 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
                     recordBuilderFactory.newRecordBuilder()));
             break;
         case ARRAY:
+            buildArrayField(field, value, recordBuilder, entry);
             break;
         case STRING:
             recordBuilder.withString(entry, value != null ? value.toString() : null);
@@ -464,16 +478,20 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
         }
     }
 
-    private org.apache.avro.Schema.Type getFieldType(org.apache.avro.Schema.Field field) {
-        if (org.apache.avro.Schema.Type.UNION.equals(field.schema().getType())) {
-            List<org.apache.avro.Schema.Type> tt = field.schema().getTypes().stream().map(org.apache.avro.Schema::getType)
-                    .filter(t -> !t.equals(org.apache.avro.Schema.Type.NULL)).collect(toList());
-            if (tt.size() == 0 || tt.size() > 1) {
-                throw new FileFormatRuntimeException("[inferAvroField] Problem with UNION: Cannot determine Type.");
-            }
-            return tt.get(0);
+    private org.apache.avro.Schema getUnionSchema(org.apache.avro.Schema inputSchema) {
+        org.apache.avro.Schema elementType;
+        if (inputSchema.getType() == org.apache.avro.Schema.Type.UNION) {
+            List<org.apache.avro.Schema> extractedSchemas = inputSchema.getTypes().stream()
+                    .filter(schema -> !schema.getType().equals(org.apache.avro.Schema.Type.NULL)).collect(toList());
+            // should have only one schema element with nullable (UNION)
+            elementType = extractedSchemas.get(0);
         } else {
-            return field.schema().getType();
+            elementType = inputSchema;
         }
+        return elementType;
+    }
+
+    private org.apache.avro.Schema.Type getFieldType(org.apache.avro.Schema.Field field) {
+        return getUnionSchema(field.schema()).getType();
     }
 }
