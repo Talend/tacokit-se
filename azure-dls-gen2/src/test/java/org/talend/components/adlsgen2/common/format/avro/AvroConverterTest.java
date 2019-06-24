@@ -33,6 +33,8 @@ import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.record.SchemaImpl;
 
+import lombok.extern.slf4j.Slf4j;
+
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -40,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Slf4j
 @WithComponents("org.talend.components.adlsgen2")
 class AvroConverterTest extends AdlsGen2TestBase {
 
@@ -127,8 +130,8 @@ class AvroConverterTest extends AdlsGen2TestBase {
         assertEquals(20.5f, subrecord.get("float"));
         assertEquals(20.5, subrecord.get("double"));
 
-        assertEquals(now.withZoneSameInstant(ZoneOffset.UTC),
-                ZonedDateTime.ofInstant(Instant.ofEpochMilli((long) record.get("now")), ZoneOffset.UTC));
+        assertEquals(now.withZoneSameInstant(ZoneOffset.UTC).toInstant().toEpochMilli(), ZonedDateTime
+                .ofInstant(Instant.ofEpochMilli((long) record.get("now")), ZoneOffset.UTC).toInstant().toEpochMilli());
         assertEquals(Arrays.asList("ary1", "ary2", "ary3"), record.get("array"));
     }
 
@@ -298,5 +301,43 @@ class AvroConverterTest extends AdlsGen2TestBase {
         assertEquals(-77.37f, last.getRecord("location").getFloat("longitude"));
         assertEquals(37.76f, last.getRecord("location").getFloat("latitude"));
         assertEquals("HANOVER", last.getRecord("location").getString("city"));
+        // get back a GenericRecord
+        GenericRecord gen = converter.fromRecord(last);
+        assertNotNull(gen);
+        assertEquals(7, gen.getSchema().getFields().size());
+        assertEquals(999, gen.get("business_id"));
+        assertEquals("Irene's Restaurant", gen.get("name"));
+        assertEquals("Cafe", gen.get("category"));
+        assertEquals(2.0f, gen.get("rating"));
+        assertEquals(15992, gen.get("num_of_reviews"));
+        assertNotNull(gen.get("attributes"));
+        assertNotNull(((GenericRecord) gen.get("attributes")).get("good_for"));
+        GenericRecord goodfor = (GenericRecord) ((GenericRecord) gen.get("attributes")).get("good_for");
+        assertEquals(true, goodfor.get("dessert"));
+        assertEquals(false, goodfor.get("kids"));
+        assertEquals(true, goodfor.get("drinks"));
+        assertEquals(true, goodfor.get("breakfast"));
+        assertEquals(true, goodfor.get("lunch"));
+        assertEquals(false, goodfor.get("dinner"));
+        assertNotNull(((GenericRecord) gen.get("attributes")).get("parking"));
+        GenericRecord parking = (GenericRecord) ((GenericRecord) gen.get("attributes")).get("parking");
+        assertEquals(true, parking.get("lot"));
+        assertEquals(false, parking.get("valet"));
+        assertEquals(true, parking.get("lot"));
+        assertEquals(false, ((GenericRecord) gen.get("attributes")).get("take_reservations"));
+        assertEquals("noisy", ((GenericRecord) gen.get("attributes")).get("noise_level"));
+        assertNotNull(gen.get("location"));
+        assertEquals("STANDARD", ((GenericRecord) gen.get("location")).get("zipType"));
+        assertEquals("23069", ((GenericRecord) gen.get("location")).get("zip"));
+        assertEquals(false, ((GenericRecord) gen.get("location")).get("decomissionned"));
+        assertEquals("1452", ((GenericRecord) gen.get("location")).get("taxReturnsFiled"));
+        assertEquals("NA-US-VA-HANOVER", ((GenericRecord) gen.get("location")).get("location"));
+        assertEquals("2561", ((GenericRecord) gen.get("location")).get("estimatedPopulation"));
+        assertEquals("PRIMARY", ((GenericRecord) gen.get("location")).get("locationType"));
+        assertEquals("57841342", ((GenericRecord) gen.get("location")).get("totalWages"));
+        assertEquals("VA", ((GenericRecord) gen.get("location")).get("state"));
+        assertEquals(-77.37f, ((GenericRecord) gen.get("location")).get("longitude"));
+        assertEquals(37.76f, ((GenericRecord) gen.get("location")).get("latitude"));
+        assertEquals("HANOVER", ((GenericRecord) gen.get("location")).get("city"));
     }
 }

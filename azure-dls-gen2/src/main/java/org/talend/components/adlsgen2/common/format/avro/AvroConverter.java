@@ -111,8 +111,8 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
             org.apache.avro.Schema.Type fieldType = getFieldType(f);
             switch (fieldType) {
             case RECORD:
-                GenericRecord subrecord = recordToAvro(fromRecord.getRecord(name),
-                        new GenericData.Record(avroSchema.getField(name).schema()));
+                org.apache.avro.Schema subSchema = inferAvroSchema(fromRecord.getRecord(name).getSchema());
+                GenericRecord subrecord = recordToAvro(fromRecord.getRecord(name), new GenericData.Record(subSchema));
                 toRecord.put(name, subrecord);
                 break;
             case ARRAY:
