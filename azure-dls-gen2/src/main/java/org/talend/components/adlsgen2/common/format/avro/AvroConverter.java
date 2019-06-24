@@ -329,29 +329,26 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
         builder.withName(field.name());
         org.apache.avro.Schema.Type type = getFieldType(field);
         String logicalType = field.schema().getProp(AVRO_LOGICAL_TYPE);
-        org.apache.avro.Schema extractedSchema;
-        Schema.Builder subBuilder;
         // handle NULLable field
         builder.withNullable(true);
         switch (type) {
         case RECORD:
             builder.withType(Type.RECORD);
             //
-            subBuilder = recordBuilderFactory.newSchemaBuilder(Type.RECORD);
-            extractedSchema = getUnionSchema(field.schema());
+            Schema.Builder subBuilder = recordBuilderFactory.newSchemaBuilder(Type.RECORD);
+            org.apache.avro.Schema extractedSchema = getUnionSchema(field.schema());
             extractedSchema.getFields().stream().map(this::inferAvroField).forEach(subBuilder::withEntry);
             builder.withElementSchema(subBuilder.build());
             break;
         case ENUM:
         case ARRAY:
             builder.withType(Type.ARRAY);
-            //
             extractedSchema = getUnionSchema(getUnionSchema(field.schema()).getElementType());
             Type toType = translateToRecordType((extractedSchema.getType()));
+            subBuilder = recordBuilderFactory.newSchemaBuilder(toType);
             switch (toType) {
             case RECORD:
             case ARRAY:
-                subBuilder = recordBuilderFactory.newSchemaBuilder(toType);
                 extractedSchema.getFields().stream().map(this::inferAvroField).forEach(subBuilder::withEntry);
                 builder.withElementSchema(subBuilder.build());
                 break;
@@ -363,7 +360,7 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
             case DOUBLE:
             case BOOLEAN:
             case DATETIME:
-                builder.withType(toType);
+                builder.withElementSchema(subBuilder.build());
                 break;
             }
             break;
