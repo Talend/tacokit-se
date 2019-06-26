@@ -223,7 +223,7 @@ class AvroConverterTest {
 
     }
 
-    // @Test
+    @Test
     void withAllowNullColumnSchema() {
         Schema schema = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD)
                 .withEntry(new SchemaImpl.EntryImpl("nullStringColumn", Schema.Type.STRING, true, null, null, null))
@@ -236,9 +236,8 @@ class AvroConverterTest {
                 .withEntry(new SchemaImpl.EntryImpl("nullByteArrayColumn", Schema.Type.BYTES, true, null, null, null))
                 .withEntry(new SchemaImpl.EntryImpl("nullDateColumn", Schema.Type.DATETIME, true, null, null, null)).build();
         Record testRecord = recordBuilderFactory.newRecordBuilder(schema).withString("nullStringColumn", "myString").build();
-        System.out.println("schema: " + testRecord.getSchema());
-        System.out.println("record: " + testRecord);
+
         assertNotNull(testRecord.getString("nullStringColumn"));
-        assertNull(testRecord.getInt("nullIntColumn"));
+        assertFalse(testRecord.getOptionalInt("nullIntColumn").isPresent());
     }
 }
