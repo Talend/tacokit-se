@@ -46,7 +46,7 @@ public class AvroBlobFileWriter extends BlobFileWriter {
 
     @Override
     public void generateFile() throws URISyntaxException, StorageException {
-        String directoryName = config.getDataset().getDirectory();
+        String directoryName = config.getDataset().getObjectName(); // for output we always use directory
         if (!directoryName.endsWith("/")) {
             directoryName += "/";
         }

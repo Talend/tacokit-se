@@ -66,7 +66,7 @@ class Excel2007IT extends BaseIT {
         dataset.setExcelOptions(excelFormatOptions);
 
         dataset.setContainerName(containerName);
-        dataset.setDirectory("excel2007");
+        dataset.setObjectName("excel2007");
         blobInputProperties = new BlobInputProperties();
         blobInputProperties.setDataset(dataset);
     }

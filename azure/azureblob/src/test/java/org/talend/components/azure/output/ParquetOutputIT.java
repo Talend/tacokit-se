@@ -72,7 +72,7 @@ class ParquetOutputIT extends BaseIT {
     public void testOutput() throws Exception {
         final int recordSize = 6;
 
-        blobOutputProperties.getDataset().setDirectory("testDir");
+        blobOutputProperties.getDataset().setObjectName("testDir");
         blobOutputProperties.setBlobNameTemplate("testFile");
 
         Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder()
@@ -94,7 +94,7 @@ class ParquetOutputIT extends BaseIT {
         CloudBlobContainer container = storageAccount.createCloudBlobClient().getContainerReference(containerName);
 
         Assert.assertTrue("No files were created in test container",
-                container.listBlobs(blobOutputProperties.getDataset().getDirectory(), false).iterator().hasNext());
+                container.listBlobs(blobOutputProperties.getDataset().getObjectName(), false).iterator().hasNext());
 
         BlobInputProperties inputProperties = new BlobInputProperties();
         inputProperties.setDataset(blobOutputProperties.getDataset());
@@ -117,7 +117,7 @@ class ParquetOutputIT extends BaseIT {
     @Test
     public void testBatchSizeIsGreaterThanRowSize() throws Exception {
         final int recordSize = 5;
-        blobOutputProperties.getDataset().setDirectory("avroDir");
+        blobOutputProperties.getDataset().setObjectName("testDir");
         blobOutputProperties.setBlobNameTemplate("testFile");
 
         Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder()
@@ -139,6 +139,6 @@ class ParquetOutputIT extends BaseIT {
         CloudBlobContainer container = storageAccount.createCloudBlobClient().getContainerReference(containerName);
 
         Assert.assertTrue("No files were created in test container",
-                container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext());
+                container.listBlobs(blobOutputProperties.getDataset().getObjectName() + "/", false).iterator().hasNext());
     }
 }

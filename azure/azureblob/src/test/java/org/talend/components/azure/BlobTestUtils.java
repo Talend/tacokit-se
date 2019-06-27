@@ -85,7 +85,7 @@ public class BlobTestUtils {
         CloudBlobContainer container = storageAccount.createCloudBlobClient()
                 .getContainerReference(blobInputProperties.getDataset().getContainerName());
         CloudBlockBlob blockBlob = container
-                .getBlockBlobReference(blobInputProperties.getDataset().getDirectory() + "/" + targetName);
+                .getBlockBlobReference(blobInputProperties.getDataset().getObjectName() + "/" + targetName);
 
         File resourceFile = new File(BlobTestUtils.class.getClassLoader().getResource(resourceName).toURI());
         try (FileInputStream fileInputStream = new FileInputStream(resourceFile)) {
@@ -96,8 +96,14 @@ public class BlobTestUtils {
     public static void createAndPopulateFileInStorage(CloudStorageAccount connectionAccount, AzureBlobDataset fileOptions,
             List<String> recordSchema, int recordsSize) throws Exception {
         String fileName = "file" + RandomStringUtils.randomAlphabetic(5);
+        createAndPopulateFileInStorage(connectionAccount, fileOptions, recordSchema, recordsSize, fileName);
+
+    }
+
+    public static void createAndPopulateFileInStorage(CloudStorageAccount connectionAccount, AzureBlobDataset fileOptions,
+            List<String> recordSchema, int recordsSize, String fileName) throws Exception {
         CloudBlockBlob file = connectionAccount.createCloudBlobClient().getContainerReference(fileOptions.getContainerName())
-                .getBlockBlobReference(fileOptions.getDirectory() + "/" + fileName);
+                .getBlockBlobReference(fileOptions.getObjectName() + "/" + fileName);
         byte[] content;
         if (fileOptions.getFileFormat() == FileFormat.CSV) {
             content = createCSVFileContent(recordsSize, recordSchema, fileOptions.getCsvOptions());

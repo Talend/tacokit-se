@@ -29,7 +29,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
 
-@GridLayout({ @GridLayout.Row("connection"), @GridLayout.Row("containerName"), @GridLayout.Row("directory"),
+@GridLayout({ @GridLayout.Row("connection"), @GridLayout.Row("containerName"), @GridLayout.Row("objectName"),
         @GridLayout.Row("fileFormat"), @GridLayout.Row("csvOptions"), @GridLayout.Row("excelOptions") })
 @Data
 @DataSet("AzureDataSet")
@@ -47,8 +47,8 @@ public class AzureBlobDataset implements Serializable {
     private String containerName;
 
     @Option
-    @Documentation("The full path of folder in the selected container")
-    private String directory;
+    @Documentation("The full path of folder or existing file in the selected container")
+    private String objectName;
 
     @Option
     @Required

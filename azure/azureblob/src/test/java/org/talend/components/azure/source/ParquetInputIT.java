@@ -48,7 +48,7 @@ class ParquetInputIT extends BaseIT {
         // dataset.setFileFormat(FileFormat.PARQUET);
 
         dataset.setContainerName(containerName);
-        dataset.setDirectory("excelHTML");
+        dataset.setObjectName("parquet");
         blobInputProperties = new BlobInputProperties();
         blobInputProperties.setDataset(dataset);
     }
@@ -64,7 +64,6 @@ class ParquetInputIT extends BaseIT {
         final long dateValue = 1556612530082L;
         final byte[] bytesValue = new byte[] { 1, 2, 3 };
 
-        blobInputProperties.getDataset().setDirectory("parquet");
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "parquet/testParquet1Record.parquet",
                 "testParquet1Record.parquet");
 
@@ -88,7 +87,6 @@ class ParquetInputIT extends BaseIT {
     @Test
     void testInput1FileMultipleRecords() throws StorageException, IOException, URISyntaxException {
         final int recordSize = 6;
-        blobInputProperties.getDataset().setDirectory("parquet");
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "parquet/testParquet6Records.parquet",
                 "testParquet6Records.parquet");
 
@@ -103,7 +101,6 @@ class ParquetInputIT extends BaseIT {
     @Test
     void testInputMultipleFiles() throws Exception {
         final int recordSize = 1 + 6;
-        blobInputProperties.getDataset().setDirectory("parquet");
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "parquet/testParquet1Record.parquet",
                 "testParquet1Record.parquet");
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "parquet/testParquet6Records.parquet",
@@ -121,10 +118,10 @@ class ParquetInputIT extends BaseIT {
     public void testInputReadFilesOnlyFromOneDir() throws Exception {
         final int recordSize = 1;
         // ignored dir
-        blobInputProperties.getDataset().setDirectory("parquet_ignored");
+        blobInputProperties.getDataset().setObjectName("parquet_ignored");
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "parquet/testParquet6Records.parquet",
                 "testParquet6Records.parquet");
-        blobInputProperties.getDataset().setDirectory("parquet");
+        blobInputProperties.getDataset().setObjectName("parquet");
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "parquet/testParquet1Record.parquet",
                 "testParquet1Record.parquet");
 

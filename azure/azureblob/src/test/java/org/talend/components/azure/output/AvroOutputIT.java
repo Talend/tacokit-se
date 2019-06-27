@@ -69,7 +69,7 @@ class AvroOutputIT extends BaseIT {
     @Test
     void testOutput() throws URISyntaxException, StorageException {
         final int recordSize = 5;
-        blobOutputProperties.getDataset().setDirectory("avroDir");
+        blobOutputProperties.getDataset().setObjectName("avroDir");
         blobOutputProperties.setBlobNameTemplate("testFile");
 
         Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder()
@@ -91,7 +91,7 @@ class AvroOutputIT extends BaseIT {
         CloudBlobContainer container = storageAccount.createCloudBlobClient().getContainerReference(containerName);
 
         Assert.assertTrue("No files were created in test container",
-                container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext());
+                container.listBlobs(blobOutputProperties.getDataset().getObjectName() + "/", false).iterator().hasNext());
 
         BlobInputProperties inputProperties = new BlobInputProperties();
         inputProperties.setDataset(blobOutputProperties.getDataset());
@@ -115,7 +115,7 @@ class AvroOutputIT extends BaseIT {
     @Test
     public void testBatchSizeIsGreaterThanRowSize() throws URISyntaxException, StorageException {
         final int recordSize = 5;
-        blobOutputProperties.getDataset().setDirectory("avroDir");
+        blobOutputProperties.getDataset().setObjectName("avroDir");
         blobOutputProperties.setBlobNameTemplate("testFile");
 
         Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder()
@@ -137,6 +137,6 @@ class AvroOutputIT extends BaseIT {
         CloudBlobContainer container = storageAccount.createCloudBlobClient().getContainerReference(containerName);
 
         Assert.assertTrue("No files were created in test container",
-                container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext());
+                container.listBlobs(blobOutputProperties.getDataset().getObjectName() + "/", false).iterator().hasNext());
     }
 }

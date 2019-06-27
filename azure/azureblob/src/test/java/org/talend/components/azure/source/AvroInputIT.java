@@ -51,7 +51,7 @@ class AvroInputIT extends BaseIT {
         // dataset.setFileFormat(FileFormat.AVRO);
 
         dataset.setContainerName(containerName);
-        dataset.setDirectory("avro");
+        dataset.setObjectName("avro");
         blobInputProperties = new BlobInputProperties();
         blobInputProperties.setDataset(dataset);
     }
@@ -68,7 +68,6 @@ class AvroInputIT extends BaseIT {
         final long dateValue = 1556789638915L;
         final byte[] bytesValue = new byte[] { 1, 2, 3 };
 
-        blobInputProperties.getDataset().setDirectory("avro");
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "avro/testAvro1Record.avro", "testAvro1Record.avro");
 
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
@@ -105,7 +104,6 @@ class AvroInputIT extends BaseIT {
     @Test
     void testInputMultipleFiles() throws Exception {
         final int recordSize = 1 + 5;
-        blobInputProperties.getDataset().setDirectory("avro");
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "avro/testAvro1Record.avro", "testAvro1Record.avro");
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "avro/testAvro5Records.avro", "testAvro5Records.avro");
 

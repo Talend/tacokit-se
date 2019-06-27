@@ -14,6 +14,7 @@
 package org.talend.components.azure.runtime.input;
 
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Iterator;
 
@@ -51,13 +52,26 @@ public abstract class BlobFileReader {
         CloudBlobClient blobClient = connectionServices.getConnectionService().createCloudBlobClient(connection,
                 AzureComponentServices.DEFAULT_RETRY_POLICY);
         CloudBlobContainer container = blobClient.getContainerReference(config.getContainerName());
-        String directoryName = config.getDirectory();
-        if (!directoryName.endsWith("/")) {
-            directoryName += "/";
+        String objectName = config.getObjectName();
+        boolean isObjectAFile;
+        try {
+            container.getBlobReferenceFromServer(objectName);
+            isObjectAFile = true;
+        } catch (StorageException e) {
+            // blob doesn't exist, might be not-existing directory only
+            isObjectAFile = false;
         }
-
-        Iterable<ListBlobItem> blobItems = container.listBlobs(directoryName, false, EnumSet.noneOf(BlobListingDetails.class),
-                null, AzureComponentServices.getTalendOperationContext());
+        Iterable<ListBlobItem> blobItems = null;
+        if (isObjectAFile) {
+            blobItems = Collections.singletonList(container.getBlobReferenceFromServer(objectName));
+        } else {
+            String directoryName = objectName;
+            if (!directoryName.endsWith("/")) {
+                directoryName += "/";
+            }
+            blobItems = container.listBlobs(directoryName, false, EnumSet.noneOf(BlobListingDetails.class), null,
+                    AzureComponentServices.getTalendOperationContext());
+        }
 
         this.iterator = initItemRecordIterator(blobItems);
     }

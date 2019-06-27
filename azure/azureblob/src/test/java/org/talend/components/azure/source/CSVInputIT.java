@@ -46,6 +46,8 @@ public class CSVInputIT extends BaseIT {
         formatOptions.setRecordDelimiter(RecordDelimiter.LF);
         dataset.setCsvOptions(formatOptions);
         dataset.setContainerName(containerName);
+        dataset.setObjectName("someDir");
+
         blobInputProperties = new BlobInputProperties();
         blobInputProperties.setDataset(dataset);
     }
@@ -54,7 +56,6 @@ public class CSVInputIT extends BaseIT {
     void selectAllInputPipelineTest() throws Exception {
         final int recordSize = 10;
         List<String> columns = Arrays.asList(new String[] { "a", "b", "c" });
-        blobInputProperties.getDataset().setDirectory("someDir");
         BlobTestUtils.createAndPopulateFileInStorage(storageAccount, blobInputProperties.getDataset(), columns, recordSize);
 
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
@@ -69,7 +70,7 @@ public class CSVInputIT extends BaseIT {
 
     @Test
     void selectFromNotExistingDirectory() {
-        blobInputProperties.getDataset().setDirectory("notExistingDir");
+        blobInputProperties.getDataset().setObjectName("notExistingDir");
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
         Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
                 .connections().from("azureInput").to("collector").build().run();
@@ -83,7 +84,6 @@ public class CSVInputIT extends BaseIT {
         final int recordSize = 10 + 5;
 
         List<String> columns = Arrays.asList(new String[] { "a", "b", "c" });
-        blobInputProperties.getDataset().setDirectory("someDir");
         BlobTestUtils.createAndPopulateFileInStorage(storageAccount, blobInputProperties.getDataset(), columns, 10);
         BlobTestUtils.createAndPopulateFileInStorage(storageAccount, blobInputProperties.getDataset(), columns, 5);
 
@@ -99,7 +99,6 @@ public class CSVInputIT extends BaseIT {
     void testHeaderIsGreaterThanFileContent() throws Exception {
         final int recordSize = 0;
         List<String> columns = Arrays.asList(new String[] { "a", "b", "c" });
-        blobInputProperties.getDataset().setDirectory("someDir");
         BlobTestUtils.createAndPopulateFileInStorage(storageAccount, blobInputProperties.getDataset(), columns, 1);
         blobInputProperties.getDataset().getCsvOptions().setUseHeader(true);
         blobInputProperties.getDataset().getCsvOptions().setHeader(5);
@@ -116,7 +115,6 @@ public class CSVInputIT extends BaseIT {
     void testCorrectHeader() throws Exception {
         final int recordSize = 5 - 1;
         List<String> columns = Arrays.asList(new String[] { "a", "b", "c" });
-        blobInputProperties.getDataset().setDirectory("someDir");
         BlobTestUtils.createAndPopulateFileInStorage(storageAccount, blobInputProperties.getDataset(), columns, 5);
         blobInputProperties.getDataset().getCsvOptions().setUseHeader(true);
         blobInputProperties.getDataset().getCsvOptions().setHeader(1);
@@ -127,5 +125,43 @@ public class CSVInputIT extends BaseIT {
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
         Assert.assertEquals("Records amount is different", recordSize, records.size());
+    }
+
+    @Test
+    void testReadingFromFile() throws Exception {
+        final int recordSize = 1;
+        List<String> columns = Arrays.asList(new String[] { "a", "b", "c" });
+        BlobTestUtils.createAndPopulateFileInStorage(storageAccount, blobInputProperties.getDataset(), columns, recordSize,
+                "file1");
+        blobInputProperties.getDataset().setObjectName("someDir/file1");
+
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("azureInput").to("collector").build().run();
+        List<Record> records = componentsHandler.getCollectedData(Record.class);
+
+        Assert.assertEquals("Records amount is different", recordSize, records.size());
+    }
+
+    @Test
+    void testReadFromFileWhenDirWithSameNameExist() throws Exception {
+        final int recordSize = 10;
+        final int recordSizeInAnotherFile = 20;
+        List<String> columns = Arrays.asList(new String[] { "a", "b", "c" });
+        List<String> columnsInAnotherFile = Arrays.asList(new String[] { "a", "b", "c", "d" });
+        BlobTestUtils.createAndPopulateFileInStorage(storageAccount, blobInputProperties.getDataset(), columns, recordSize,
+                "file1");
+        BlobTestUtils.createAndPopulateFileInStorage(storageAccount, blobInputProperties.getDataset(), columnsInAnotherFile,
+                recordSizeInAnotherFile, "file1/file1");
+        blobInputProperties.getDataset().setObjectName("someDir/file1");
+
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("azureInput").to("collector").build().run();
+        List<Record> records = componentsHandler.getCollectedData(Record.class);
+
+        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assert.assertEquals("File from directory was read instead of direct file", columns.size(),
+                records.get(0).getSchema().getEntries().size());
     }
 }

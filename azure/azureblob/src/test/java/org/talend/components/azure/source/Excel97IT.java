@@ -66,7 +66,7 @@ class Excel97IT extends BaseIT {
         dataset.setExcelOptions(excelFormatOptions);
 
         dataset.setContainerName(containerName);
-        dataset.setDirectory("excel97");
+        dataset.setObjectName("excel97");
         blobInputProperties = new BlobInputProperties();
         blobInputProperties.setDataset(dataset);
     }

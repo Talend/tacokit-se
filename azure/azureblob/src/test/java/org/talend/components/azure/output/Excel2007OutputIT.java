@@ -64,7 +64,7 @@ public class Excel2007OutputIT extends BaseIT {
         blobOutputProperties = new BlobOutputConfiguration();
         blobOutputProperties.setDataset(dataset);
 
-        blobOutputProperties.getDataset().setDirectory("excel2007");
+        blobOutputProperties.getDataset().setObjectName("excel2007");
         blobOutputProperties.setBlobNameTemplate("testFile");
     }
 
@@ -83,7 +83,7 @@ public class Excel2007OutputIT extends BaseIT {
         CloudBlobContainer container = storageAccount.createCloudBlobClient().getContainerReference(containerName);
 
         Assert.assertTrue("No files were created in test container",
-                container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext());
+                container.listBlobs(blobOutputProperties.getDataset().getObjectName() + "/", false).iterator().hasNext());
 
         BlobInputProperties inputProperties = new BlobInputProperties();
         inputProperties.setDataset(blobOutputProperties.getDataset());
@@ -116,7 +116,7 @@ public class Excel2007OutputIT extends BaseIT {
         CloudBlobContainer container = storageAccount.createCloudBlobClient().getContainerReference(containerName);
 
         Assert.assertTrue("No files were created in test container",
-                container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext());
+                container.listBlobs(blobOutputProperties.getDataset().getObjectName() + "/", false).iterator().hasNext());
 
         BlobInputProperties inputProperties = new BlobInputProperties();
         inputProperties.setDataset(blobOutputProperties.getDataset());
@@ -145,7 +145,7 @@ public class Excel2007OutputIT extends BaseIT {
         CloudBlobContainer container = storageAccount.createCloudBlobClient().getContainerReference(containerName);
 
         Assert.assertTrue("No files were created in test container",
-                container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext());
+                container.listBlobs(blobOutputProperties.getDataset().getObjectName() + "/", false).iterator().hasNext());
 
         BlobInputProperties inputProperties = new BlobInputProperties();
         inputProperties.setDataset(blobOutputProperties.getDataset());
@@ -178,7 +178,7 @@ public class Excel2007OutputIT extends BaseIT {
         CloudBlobContainer container = storageAccount.createCloudBlobClient().getContainerReference(containerName);
 
         Assert.assertTrue("No files were created in test container",
-                container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext());
+                container.listBlobs(blobOutputProperties.getDataset().getObjectName() + "/", false).iterator().hasNext());
     }
 
 }

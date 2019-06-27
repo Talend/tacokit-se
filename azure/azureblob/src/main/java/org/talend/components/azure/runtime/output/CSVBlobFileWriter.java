@@ -55,7 +55,7 @@ public class CSVBlobFileWriter extends BlobFileWriter {
 
     @Override
     public void generateFile() throws URISyntaxException, StorageException {
-        String directoryName = config.getDataset().getDirectory();
+        String directoryName = config.getDataset().getObjectName();
         if (!directoryName.endsWith("/")) {
             directoryName += "/";
         }

@@ -53,7 +53,7 @@ class HTMLInputIT extends BaseIT {
         dataset.setExcelOptions(excelFormatOptions);
 
         dataset.setContainerName(containerName);
-        dataset.setDirectory("excelHTML");
+        dataset.setObjectName("excelHTML");
         blobInputProperties = new BlobInputProperties();
         blobInputProperties.setDataset(dataset);
     }

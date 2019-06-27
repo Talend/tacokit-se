@@ -71,7 +71,7 @@ class CSVOutputIT extends BaseIT {
         final ZonedDateTime testDateValue = ZonedDateTime.now();
         final byte[] bytes = new byte[] { 1, 2, 3 };
 
-        blobOutputProperties.getDataset().setDirectory("testDir");
+        blobOutputProperties.getDataset().setObjectName("testDir");
         blobOutputProperties.setBlobNameTemplate("testFile");
         blobOutputProperties.getDataset().getCsvOptions().setTextEnclosureCharacter("\"");
 
@@ -90,7 +90,7 @@ class CSVOutputIT extends BaseIT {
         Job.components().component("inputFlow", "test://emitter").component("outputComponent", "Azure://Output?" + outputConfig)
                 .connections().from("inputFlow").to("outputComponent").build().run();
         BlobTestUtils.recordBuilderFactory = componentsHandler.findService(RecordBuilderFactory.class);
-        List<Record> retrievedRecords = BlobTestUtils.readDataFromCSVDirectory(blobOutputProperties.getDataset().getDirectory(),
+        List<Record> retrievedRecords = BlobTestUtils.readDataFromCSVDirectory(blobOutputProperties.getDataset().getObjectName(),
                 storageAccount, blobOutputProperties.getDataset(),
                 CSVConverter.of(recordBuilderFactory, blobOutputProperties.getDataset().getCsvOptions()).getCsvFormat());
 
