@@ -262,12 +262,17 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
             org.apache.avro.Schema builder;
             switch (type) {
             case RECORD:
-                org.apache.avro.Schema subrecord = inferAvroSchema(e.getElementSchema());
-                builder = subrecord;
+                org.apache.avro.Schema subSchema = inferAvroSchema(e.getElementSchema());
+                builder = subSchema;
                 break;
             case ARRAY:
-                org.apache.avro.Schema subschema = inferAvroSchema(e.getElementSchema());
-                builder = org.apache.avro.Schema.createArray(subschema);
+                if (e.getElementSchema().getType().equals(Type.RECORD)) {
+                    subSchema = inferAvroSchema(e.getElementSchema());
+                    builder = org.apache.avro.Schema.createArray(subSchema);
+                } else {
+                    builder = org.apache.avro.Schema
+                            .createArray(org.apache.avro.Schema.create(translateToAvroType(e.getElementSchema().getType())));
+                }
                 break;
             case STRING:
             case BYTES:
@@ -382,14 +387,6 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
         return builder.build();
     }
 
-    protected Schema buildRecordFieldSchema(org.apache.avro.Schema.Field field) {
-        Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Type.RECORD);
-        org.apache.avro.Schema extractedSchema = getUnionSchema(field.schema());
-        extractedSchema.getFields().stream().map(this::inferAvroField).forEach(builder::withEntry);
-        Schema rec = builder.build();
-        return rec;
-    }
-
     /**
      *
      */
@@ -423,28 +420,33 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
         org.apache.avro.Schema arraySchema = getUnionSchema(field.schema());
         switch (arraySchema.getElementType().getType()) {
         case RECORD:
-            List<Record> recs = ((Array<GenericRecord>) value).stream().map(record -> avroToRecord(record,
-                    arraySchema.getElementType().getFields(), recordBuilderFactory.newRecordBuilder())).collect(toList());
+            Collection<Record> recs = ((Collection<GenericRecord>) value).stream()
+                    .map(record -> avroToRecord(record, record.getSchema().getFields(), recordBuilderFactory.newRecordBuilder()))
+                    .collect(toList());
             recordBuilder.withArray(entry, recs);
             break;
         case STRING:
-            recordBuilder.withArray(entry, (List<String>) value);
+            recordBuilder.withArray(entry, (Collection<String>) value);
             break;
         case BYTES:
-            recordBuilder.withArray(entry,
-                    ((GenericData.Array<ByteBuffer>) value).stream().map(ByteBuffer::array).collect(toList()));
+            recordBuilder.withArray(entry, ((Collection<Byte[]>) value));
             break;
         case INT:
-            recordBuilder.withArray(entry, (GenericData.Array<Long>) value);
-            break;
-        case FLOAT:
-            recordBuilder.withArray(entry, (GenericData.Array<Double>) value);
-            break;
-        case BOOLEAN:
-            recordBuilder.withArray(entry, (GenericData.Array<Boolean>) value);
+            recordBuilder.withArray(entry, (Collection<Integer>) value);
             break;
         case LONG:
-            recordBuilder.withArray(entry, (GenericData.Array<Long>) value);
+            recordBuilder.withArray(entry, (Collection<Long>) value);
+            break;
+        case FLOAT:
+            recordBuilder.withArray(entry, (Collection<Float>) value);
+            break;
+        case DOUBLE:
+            recordBuilder.withArray(entry, (Collection<Double>) value);
+            break;
+        case BOOLEAN:
+            recordBuilder.withArray(entry, (Collection<Boolean>) value);
+            break;
+        case NULL:
             break;
         default:
             throw new FileFormatRuntimeException(String.format(ERROR_UNDEFINED_TYPE, entry.getType().name()));
