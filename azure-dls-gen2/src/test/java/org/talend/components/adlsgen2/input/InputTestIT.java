@@ -48,7 +48,7 @@ public class InputTestIT extends AdlsGen2TestBase {
         csvConfig.setCsvSchema("IdCustomer;FirstName;lastname;address;enrolled;zip;state");
         csvConfig.setHeader(true);
         dataSet.setCsvConfiguration(csvConfig);
-        dataSet.setBlobPath(basePathIn + "AdlsGen2Service.java:278");
+        dataSet.setBlobPath(basePathIn + "csv-w-header");
         inputConfiguration.setDataSet(dataSet);
         final String config = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
         Job.components().component("mycomponent", "Azure://AdlsGen2Input?" + config) //
