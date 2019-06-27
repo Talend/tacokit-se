@@ -387,14 +387,6 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
         return builder.build();
     }
 
-    protected Schema buildRecordFieldSchema(org.apache.avro.Schema.Field field) {
-        Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Type.RECORD);
-        org.apache.avro.Schema extractedSchema = getUnionSchema(field.schema());
-        extractedSchema.getFields().stream().map(this::inferAvroField).forEach(builder::withEntry);
-        Schema rec = builder.build();
-        return rec;
-    }
-
     /**
      *
      */
