@@ -100,6 +100,10 @@ spec:
                 expression { params.PUSH_TO_XTM == false && params.DEPLOY_FROM_XTM == false }
             }
             parallel {
+                stage('Analysis') {
+                    def spotbugs = scanForIssues tool: [$class: 'SpotBugs'], pattern: '**/target/spotbugsXml.xml'
+                    publishIssues issues:[spotbugs]
+                }
                 stage('Documentation') {
                     steps {
                         container('main') {
