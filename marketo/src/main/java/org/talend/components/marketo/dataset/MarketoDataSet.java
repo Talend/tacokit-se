@@ -70,13 +70,13 @@ public class MarketoDataSet implements Serializable {
     private String listId;
 
     @Option
-    @ActiveIf(target = "leadAction", value = { "getLeadChanges", "getLeadActivity" })
+    @ActiveIf(target = "leadAction", value = { "getLeadActivity" })
     @Documentation("Date Time Mode")
     private DateTimeMode dateTimeMode = DateTimeMode.relative;
 
     @Option
     @ActiveIfs(operator = AND, value = { //
-            @ActiveIf(target = "leadAction", value = { "getLeadChanges", "getLeadActivity" }), //
+            @ActiveIf(target = "leadAction", value = { "getLeadActivity" }), //
             @ActiveIf(target = "dateTimeMode", value = { "relative" }) })
     @Suggestable(value = DATE_RANGES, parameters = { "../dateTimeMode" })
     @Validable(VALIDATION_STRING_PROPERTY)
@@ -85,7 +85,7 @@ public class MarketoDataSet implements Serializable {
 
     @Option
     @ActiveIfs(operator = AND, value = { //
-            @ActiveIf(target = "leadAction", value = { "getLeadChanges", "getLeadActivity" }), //
+            @ActiveIf(target = "leadAction", value = { "getLeadActivity" }), //
             @ActiveIf(target = "dateTimeMode", value = { "absolute" }) })
     @Validable(VALIDATION_DATETIME_PATTERN)
     @Documentation("Since Absolute Date Time")
