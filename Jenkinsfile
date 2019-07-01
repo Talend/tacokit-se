@@ -103,7 +103,11 @@ spec:
             }
             parallel {
                 stage('Analysis') {
-                    publishIssues issues:[spotbugs]
+                    steps {
+                        container('main') {
+                            publishIssues issues:[spotbugs]
+                        }
+                    }
                 }
                 stage('Documentation') {
                     steps {
