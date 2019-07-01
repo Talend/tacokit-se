@@ -14,6 +14,8 @@ def talendOssRepositoryArg = env.BRANCH_NAME == "master" ? "" : ("-Dtalend_oss_s
 
 def calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
 
+def spotbugs = scanForIssues tool: [$class: 'SpotBugs'], pattern: '**/target/spotbugsXml.xml'
+
 pipeline {
     agent {
         kubernetes {
@@ -101,7 +103,6 @@ spec:
             }
             parallel {
                 stage('Analysis') {
-                    def spotbugs = scanForIssues tool: [$class: 'SpotBugs'], pattern: '**/target/spotbugsXml.xml'
                     publishIssues issues:[spotbugs]
                 }
                 stage('Documentation') {
