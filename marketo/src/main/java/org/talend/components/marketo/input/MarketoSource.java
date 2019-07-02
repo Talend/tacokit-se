@@ -72,7 +72,6 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
     public void init() {
         super.init();
         schema = buildSchemaMap(marketoService.getEntitySchema(configuration));
-        log.debug("[init] configuration {}. Master entity schema: {}.", configuration, schema);
         processBatch();
     }
     /*
@@ -98,7 +97,6 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
     public void processBatch() {
         JsonObject result = runAction();
         nextPageToken = result.getString(ATTR_NEXT_PAGE_TOKEN, null);
-        log.warn("[processBatch] result {}", result);
         JsonArray requestResult = result.getJsonArray(ATTR_RESULT);
         Boolean hasMore = result.getBoolean(ATTR_MORE_RESULT, true);
         if (!hasMore && requestResult != null) {
@@ -107,7 +105,6 @@ public abstract class MarketoSource extends MarketoSourceOrProcessor {
             return;
         }
         while (nextPageToken != null && requestResult == null && hasMore) {
-            log.debug("[processBatch] looping for valid results. {}", nextPageToken);
             result = runAction();
             nextPageToken = result.getString(ATTR_NEXT_PAGE_TOKEN, null);
             requestResult = result.getJsonArray(ATTR_RESULT);
