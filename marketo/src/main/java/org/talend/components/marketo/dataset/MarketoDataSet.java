@@ -16,7 +16,7 @@ import java.io.Serializable;
 import java.time.Period;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -103,7 +103,7 @@ public class MarketoDataSet implements Serializable {
     @ActiveIf(target = "leadAction", negate = true, value = { "getLeadActivity" })
     @Suggestable(value = FIELD_NAMES, parameters = { "../dataStore" })
     @Documentation("Fields")
-    private List<String> fields = Arrays.asList("id", "firstName", "lastName", "email", "createdAt", "updatedAt");
+    private List<String> fields = new ArrayList<>();
 
     public enum LeadAction {
         getLeadActivity,
