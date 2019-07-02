@@ -102,7 +102,6 @@ public class MarketoDataSet implements Serializable {
     @Option
     @ActiveIf(target = "leadAction", negate = true, value = { "getLeadActivity" })
     @Suggestable(value = FIELD_NAMES, parameters = { "../dataStore" })
-    @Validable(VALIDATION_LIST_PROPERTY)
     @Documentation("Fields")
     private List<String> fields = Arrays.asList("id", "firstName", "lastName", "email", "createdAt", "updatedAt");
 
