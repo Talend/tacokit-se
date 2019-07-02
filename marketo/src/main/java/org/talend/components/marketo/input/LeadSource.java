@@ -17,6 +17,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.EnumMap;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import javax.json.JsonObject;
 
@@ -70,8 +71,7 @@ public class LeadSource extends MarketoSource {
 
     private JsonObject getLeadsByListId() {
         Integer listId = Integer.parseInt(configuration.getDataSet().getListId());
-        String fields = configuration.getDataSet().getFields() == null ? null
-                : configuration.getDataSet().getFields().stream().collect(joining(","));
+        String fields = schema.keySet().stream().collect(Collectors.joining(","));
         return handleResponse(listClient.getLeadsByListId(accessToken, nextPageToken, listId, fields));
     }
 

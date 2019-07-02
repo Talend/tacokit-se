@@ -171,10 +171,15 @@ public class MarketoService {
         Schema s = null;
         switch (configuration.getDataSet().getLeadAction()) {
         case getLeadsByList:
-            Schema fullLeadSchema = getEntitySchema(configuration.getDataSet().getDataStore());
             Builder b = recordBuilder.newSchemaBuilder(Type.RECORD);
-            fullLeadSchema.getEntries().stream().filter(entry -> configuration.getDataSet().getFields().contains(entry.getName()))
-                    .forEach(entry -> b.withEntry(entry));
+            List<String> fields = configuration.getDataSet().getFields();
+            Schema people = getEntitySchema(configuration.getDataSet().getDataStore());
+            if (fields.size() > 0) {
+                people.getEntries().stream().filter(entry -> fields.contains(entry.getName()))
+                        .forEach(entry -> b.withEntry(entry));
+            } else {
+                people.getEntries().stream().forEach(entry -> b.withEntry(entry));
+            }
             s = b.build();
             break;
         case getLeadActivity:
