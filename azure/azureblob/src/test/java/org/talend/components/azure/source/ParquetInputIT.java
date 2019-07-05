@@ -36,7 +36,6 @@ import com.microsoft.azure.storage.StorageException;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.azure")
-@Disabled
 class ParquetInputIT extends BaseIT {
 
     private static BlobInputProperties blobInputProperties;
@@ -45,7 +44,7 @@ class ParquetInputIT extends BaseIT {
     void initDataset() {
         AzureBlobDataset dataset = new AzureBlobDataset();
         dataset.setConnection(dataStore);
-        // dataset.setFileFormat(FileFormat.PARQUET);
+        dataset.setFileFormat(FileFormat.PARQUET);
 
         dataset.setContainerName(containerName);
         dataset.setDirectory("excelHTML");
@@ -62,7 +61,7 @@ class ParquetInputIT extends BaseIT {
         final int intValue = 1;
         final double doubleValue = 2.0;
         final long dateValue = 1556612530082L;
-        final byte[] bytesValue = new byte[] { 1, 2, 3 };
+        final byte[] bytesValue = new byte[]{1, 2, 3};
 
         blobInputProperties.getDataset().setDirectory("parquet");
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "parquet/testParquet1Record.parquet",

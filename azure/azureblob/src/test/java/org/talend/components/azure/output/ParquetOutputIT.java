@@ -39,7 +39,6 @@ import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.azure")
-@Disabled
 class ParquetOutputIT extends BaseIT {
 
     private BlobOutputConfiguration blobOutputProperties;
@@ -56,7 +55,7 @@ class ParquetOutputIT extends BaseIT {
 
     final ZonedDateTime testDateValue = ZonedDateTime.now();
 
-    final byte[] bytes = new byte[] { 1, 2, 3 };
+    final byte[] bytes = new byte[]{1, 2, 3};
 
     @BeforeEach
     public void initDataset() {
@@ -64,7 +63,7 @@ class ParquetOutputIT extends BaseIT {
 
         AzureBlobDataset dataset = new AzureBlobDataset();
         dataset.setConnection(dataStore);
-        // dataset.setFileFormat(FileFormat.PARQUET);
+        dataset.setFileFormat(FileFormat.PARQUET);
 
         dataset.setContainerName(containerName);
         blobOutputProperties = new BlobOutputConfiguration();

@@ -44,7 +44,7 @@ public abstract class BlobFileReader {
     private final AzureBlobDataset config;
 
     public BlobFileReader(AzureBlobDataset config, RecordBuilderFactory recordBuilderFactory,
-            AzureBlobComponentServices connectionServices) throws URISyntaxException, StorageException {
+                          AzureBlobComponentServices connectionServices) throws URISyntaxException, StorageException {
         this.recordBuilderFactory = recordBuilderFactory;
         this.config = config;
         CloudStorageAccount connection = connectionServices.createStorageAccount(config.getConnection());
@@ -75,27 +75,29 @@ public abstract class BlobFileReader {
     public static class BlobFileReaderFactory {
 
         public static BlobFileReader getReader(AzureBlobDataset config, RecordBuilderFactory recordBuilderFactory,
-                AzureBlobComponentServices connectionServices) throws Exception {
+                                               AzureBlobComponentServices connectionServices) throws Exception {
             switch (config.getFileFormat()) {
-            case CSV:
-                return new CSVBlobFileReader(config, recordBuilderFactory, connectionServices);
-            // FIXME uncomment it when excel will be ready to integrate
-            /*
-             * case AVRO:
-             * return new AvroBlobFileReader(config, recordBuilderFactory, connectionServices);
-             * 
-             * case EXCEL: {
-             * if (config.getExcelOptions().getExcelFormat() == ExcelFormat.HTML) {
-             * return new ExcelHTMLBlobFileReader(config, recordBuilderFactory, connectionServices);
-             * } else {
-             * return new ExcelBlobFileReader(config, recordBuilderFactory, connectionServices);
-             * }
-             * }
-             * case PARQUET:
-             * return new ParquetBlobFileReader(config, recordBuilderFactory, connectionServices);
-             */
-            default:
-                throw new IllegalArgumentException("Unsupported file format"); // shouldn't be here
+                case CSV:
+                    return new CSVBlobFileReader(config, recordBuilderFactory, connectionServices);
+                // FIXME uncomment it when excel will be ready to integrate
+
+                case AVRO:
+                    return new AvroBlobFileReader(config, recordBuilderFactory, connectionServices);
+                /*
+                 * case EXCEL: {
+                 * if (config.getExcelOptions().getExcelFormat() == ExcelFormat.HTML) {
+                 * return new ExcelHTMLBlobFileReader(config, recordBuilderFactory, connectionServices);
+                 * } else {
+                 * return new ExcelBlobFileReader(config, recordBuilderFactory, connectionServices);
+                 * }
+                 * }
+                 */
+
+                case PARQUET:
+                    return new ParquetBlobFileReader(config, recordBuilderFactory, connectionServices);
+
+                default:
+                    throw new IllegalArgumentException("Unsupported file format"); // shouldn't be here
             }
         }
     }

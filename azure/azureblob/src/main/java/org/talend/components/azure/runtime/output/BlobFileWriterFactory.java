@@ -24,19 +24,15 @@ public class BlobFileWriterFactory {
         switch (config.getDataset().getFileFormat()) {
         case CSV:
             return new CSVBlobFileWriter(config, connectionServices);
-        /*
-         * case AVRO:
-         * return new AvroBlobFileWriter(config, connectionServices);
-         */
+         case AVRO:
+         return new AvroBlobFileWriter(config, connectionServices);
         // FIXME uncomment it when excel will be ready to integrate
         /*
          * case EXCEL:
          * return new ExcelBlobFileWriter(config, connectionServices);
          */
-        /*
-         * case PARQUET:
-         * return new ParquetBlobFileWriter(config, connectionServices);
-         */
+         case PARQUET:
+         return new ParquetBlobFileWriter(config, connectionServices);
         default:
             throw new IllegalArgumentException("Unsupported file format");
         }

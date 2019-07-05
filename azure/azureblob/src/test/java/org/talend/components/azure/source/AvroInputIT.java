@@ -37,7 +37,6 @@ import com.microsoft.azure.storage.StorageException;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.azure")
-@Disabled
 class AvroInputIT extends BaseIT {
 
     private BlobInputProperties blobInputProperties;
@@ -48,7 +47,7 @@ class AvroInputIT extends BaseIT {
 
         AzureBlobDataset dataset = new AzureBlobDataset();
         dataset.setConnection(dataStore);
-        // dataset.setFileFormat(FileFormat.AVRO);
+        dataset.setFileFormat(FileFormat.AVRO);
 
         dataset.setContainerName(containerName);
         dataset.setDirectory("avro");
@@ -66,7 +65,7 @@ class AvroInputIT extends BaseIT {
         final int intValue = 1;
         final double doubleValue = 2.0;
         final long dateValue = 1556789638915L;
-        final byte[] bytesValue = new byte[] { 1, 2, 3 };
+        final byte[] bytesValue = new byte[]{1, 2, 3};
 
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "avro/testAvro1Record.avro", "testAvro1Record.avro");
 

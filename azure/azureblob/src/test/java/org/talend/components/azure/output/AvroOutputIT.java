@@ -39,7 +39,6 @@ import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.azure")
-@Disabled
 class AvroOutputIT extends BaseIT {
 
     private BlobOutputConfiguration blobOutputProperties;
@@ -56,13 +55,13 @@ class AvroOutputIT extends BaseIT {
 
     private final ZonedDateTime testDateValue = ZonedDateTime.now();
 
-    private final byte[] bytes = new byte[] { 1, 2, 3 };
+    private final byte[] bytes = new byte[]{1, 2, 3};
 
     @BeforeEach
     void initDataset() {
         AzureBlobDataset dataset = new AzureBlobDataset();
         dataset.setConnection(dataStore);
-        // dataset.setFileFormat(FileFormat.AVRO);
+        dataset.setFileFormat(FileFormat.AVRO);
 
         dataset.setContainerName(containerName);
         dataset.setDirectory("avroDir");
