@@ -55,7 +55,7 @@ class AvroOutputIT extends BaseIT {
 
     private final ZonedDateTime testDateValue = ZonedDateTime.now();
 
-    private final byte[] bytes = new byte[]{1, 2, 3};
+    private final byte[] bytes = new byte[] { 1, 2, 3 };
 
     @BeforeEach
     void initDataset() {

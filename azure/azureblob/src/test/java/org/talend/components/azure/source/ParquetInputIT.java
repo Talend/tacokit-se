@@ -61,7 +61,7 @@ class ParquetInputIT extends BaseIT {
         final int intValue = 1;
         final double doubleValue = 2.0;
         final long dateValue = 1556612530082L;
-        final byte[] bytesValue = new byte[]{1, 2, 3};
+        final byte[] bytesValue = new byte[] { 1, 2, 3 };
 
         blobInputProperties.getDataset().setDirectory("parquet");
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "parquet/testParquet1Record.parquet",

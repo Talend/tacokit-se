@@ -65,7 +65,7 @@ class AvroInputIT extends BaseIT {
         final int intValue = 1;
         final double doubleValue = 2.0;
         final long dateValue = 1556789638915L;
-        final byte[] bytesValue = new byte[]{1, 2, 3};
+        final byte[] bytesValue = new byte[] { 1, 2, 3 };
 
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "avro/testAvro1Record.avro", "testAvro1Record.avro");
 

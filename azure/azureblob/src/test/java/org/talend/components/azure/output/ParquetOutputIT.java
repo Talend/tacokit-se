@@ -55,7 +55,7 @@ class ParquetOutputIT extends BaseIT {
 
     final ZonedDateTime testDateValue = ZonedDateTime.now();
 
-    final byte[] bytes = new byte[]{1, 2, 3};
+    final byte[] bytes = new byte[] { 1, 2, 3 };
 
     @BeforeEach
     public void initDataset() {
