@@ -39,7 +39,7 @@ class AdlsGen2OutputTestIT extends AdlsGen2TestBase {
     @ValueSource(strings = { "SharedKey", "SAS" })
     public void produceCsv(String authmethod) {
         connection.setAuthMethod(AuthMethod.valueOf(authmethod));
-        outputConfiguration.getDataSet().setBlobPath("customers_test_produce.csv");
+        outputConfiguration.getDataSet().setBlobPath("demo_gen2/out/customers_test_produce.csv");
         components.setInputData(asList(createData(), createData(), createData()));
         final String config = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
         Job.components() //

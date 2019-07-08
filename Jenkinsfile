@@ -210,7 +210,7 @@ spec:
                                     credentialsId: 'xtm-token',
                                     variable: 'XTM_TOKEN'),
                             usernamePassword(
-                                    credentialsId: 'github-i18n-product',
+                                    credentialsId: 'github-credentials',
                                     usernameVariable: 'GITHUB_LOGIN',
                                     passwordVariable: 'GITHUB_TOKEN')
                     ]) {

@@ -37,22 +37,12 @@ public class MarketoOutputConfiguration implements Serializable {
 
     public static final String NAME = "MarketoOutputConfiguration";
 
-    public enum ListAction {
-        addTo,
-        removeFrom
-    }
-
     public enum OutputAction {
         createOnly,
         updateOnly,
         createOrUpdate,
         createDuplicate,
         delete
-    }
-
-    public enum DeleteBy {
-        dedupeFields,
-        idField
     }
 
     /*
