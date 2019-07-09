@@ -21,6 +21,7 @@ import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.env.CouchbaseEnvironment;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
+import com.couchbase.client.java.error.InvalidPasswordException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.couchbase.dataset.CouchbaseDataSet;
@@ -38,8 +39,14 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.api.service.schema.DiscoverSchema;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import static org.talend.sdk.component.api.record.Schema.Type.*;
@@ -51,12 +58,7 @@ public class CouchbaseService {
 
     private static final transient Logger LOG = LoggerFactory.getLogger(CouchbaseService.class);
 
-    private CouchbaseEnvironment environment;
-
-    private Cluster cluster;
-
-    @Service
-    private CouchbaseDataStore couchBaseConnection;
+    private final Map<CouchbaseDataStore, ClusterHolder> clustersPool = new ConcurrentHashMap<>();
 
     @Service
     private I18nMessage i18n;
@@ -79,18 +81,24 @@ public class CouchbaseService {
         int connectTimeout = dataStore.getConnectTimeout() * 1000; // convert to sec
 
         String[] urls = resolveAddresses(bootStrapNodes);
-
         try {
-            environment = new DefaultCouchbaseEnvironment.Builder().connectTimeout(connectTimeout).build();
-            cluster = CouchbaseCluster.create(environment, urls);
-            cluster.authenticate(username, password);
+            ClusterHolder holder = clustersPool.computeIfAbsent(dataStore, ds -> {
+                CouchbaseEnvironment environment = new DefaultCouchbaseEnvironment.Builder().connectTimeout(connectTimeout)
+                        .build();
+                Cluster cluster = CouchbaseCluster.create(environment, urls);
+                cluster.authenticate(username, password);
+                return new ClusterHolder(environment, cluster);
+            });
+            holder.use();
+            Cluster cluster = holder.getCluster();
             String clusterName = cluster.clusterManager().info().raw().get("name").toString();
             LOG.debug(i18n.connectedToCluster(clusterName));
+            return cluster;
         } catch (Exception e) {
             LOG.error(i18n.connectionKO());
             throw new CouchbaseException(e);
         }
-        return cluster;
+
     }
 
     @HealthCheck("healthCheck")
@@ -99,9 +107,19 @@ public class CouchbaseService {
             openConnection(datastore);
             return new HealthCheckStatus(HealthCheckStatus.Status.OK, "Connection OK");
         } catch (Exception exception) {
-            return new HealthCheckStatus(HealthCheckStatus.Status.KO, exception.getMessage());
+            String message = "";
+            if (exception.getCause() instanceof InvalidPasswordException) {
+                message = i18n.invalidPassword();
+            } else if (exception.getCause() instanceof RuntimeException
+                    && exception.getCause().getCause() instanceof TimeoutException) {
+                message = i18n.destinationUnreachable();
+            } else {
+                message = i18n.connectionKODetailed(exception.getMessage());
+            }
+            LOG.error(message, exception);
+            return new HealthCheckStatus(HealthCheckStatus.Status.KO, message);
         } finally {
-            closeConnection();
+            closeConnection(datastore);
         }
     }
 
@@ -138,14 +156,24 @@ public class CouchbaseService {
         }
     }
 
-    public void closeConnection() {
+    public void closeConnection(CouchbaseDataStore ds) {
+        ClusterHolder holder = clustersPool.get(ds);
+        if (holder == null) {
+            return;
+        }
+        int stillUsed = holder.release();
+        if (stillUsed > 0) {
+            return;
+        }
+        clustersPool.remove(ds);
+        Cluster cluster = holder.getCluster();
+        CouchbaseEnvironment environment = holder.getEnv();
         if (cluster != null) {
             if (cluster.disconnect()) {
                 log.debug(i18n.clusterWasClosed());
             } else {
                 log.debug(i18n.cannotCloseCluster());
             }
-            cluster = null;
         }
         if (environment != null) {
             if (environment.shutdown()) {
@@ -153,7 +181,6 @@ public class CouchbaseService {
             } else {
                 log.debug(i18n.cannotCloseCouchbaseEnv());
             }
-            environment = null;
         }
     }
 
@@ -232,6 +259,30 @@ public class CouchbaseService {
             return FLOAT;
         } else {
             return STRING;
+        }
+    }
+
+    public static class ClusterHolder {
+
+        @Getter
+        private final CouchbaseEnvironment env;
+
+        @Getter
+        private final Cluster cluster;
+
+        private final AtomicInteger usages = new AtomicInteger();
+
+        public ClusterHolder(final CouchbaseEnvironment env, final Cluster cluster) {
+            this.env = env;
+            this.cluster = cluster;
+        }
+
+        public void use() {
+            usages.incrementAndGet();
+        }
+
+        public int release() {
+            return usages.decrementAndGet();
         }
     }
 }

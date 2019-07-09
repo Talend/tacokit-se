@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.talend.components.azure.BaseIT;
 import org.talend.components.azure.BlobTestUtils;
@@ -66,7 +67,6 @@ class AvroInputIT extends BaseIT {
         final long dateValue = 1556789638915L;
         final byte[] bytesValue = new byte[] { 1, 2, 3 };
 
-        blobInputProperties.getDataset().setDirectory("avro");
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "avro/testAvro1Record.avro", "testAvro1Record.avro");
 
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
@@ -113,5 +113,31 @@ class AvroInputIT extends BaseIT {
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
         Assert.assertEquals("Records amount is different", recordSize, records.size());
+    }
+
+    @Test
+    void testInputFileWithNullValues() throws Exception {
+        final int recordSize = 1;
+        final int columnSize = 9;
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "avro/testAvro1RecordNull.avro",
+                "testAvro1RecordNull.avro");
+
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("azureInput").to("collector").build().run();
+        List<Record> records = componentsHandler.getCollectedData(Record.class);
+
+        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Record firstRecord = records.get(0);
+        Assert.assertEquals(columnSize, firstRecord.getSchema().getEntries().size());
+        Assert.assertNull(firstRecord.getString("nullStringColumn"));
+        Assert.assertNull(firstRecord.getString("nullStringColumn2"));
+        Assert.assertNull(firstRecord.get(Integer.class, "nullIntColumn"));
+        Assert.assertNull(firstRecord.get(Long.class, "nullLongColumn"));
+        Assert.assertNull(firstRecord.get(Float.class, "nullFloatColumn"));
+        Assert.assertNull(firstRecord.get(Double.class, "nullDoubleColumn"));
+        Assert.assertNull(firstRecord.get(Boolean.class, "nullBooleanColumn"));
+        Assert.assertNull(firstRecord.get(byte[].class, "nullByteArrayColumn"));
+        Assert.assertNull(firstRecord.getDateTime("nullDateColumn"));
     }
 }

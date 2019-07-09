@@ -29,8 +29,9 @@ import lombok.Data;
 
 @Version(1)
 @Data
-@GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataSet" }) }), @GridLayout(names = GridLayout.FormType.ADVANCED, value = {
-        @GridLayout.Row({ "dataSet" }), @GridLayout.Row({ "limit" }) }) })
+@GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataSet" }), @GridLayout.Row("useN1QLQuery"), @GridLayout.Row("query") }),
+        @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataSet" }),
+                @GridLayout.Row({ "limit" }) }) })
 
 @Documentation("Couchbase input Mapper Configuration")
 public class CouchbaseInputConfiguration implements Serializable {
@@ -40,7 +41,19 @@ public class CouchbaseInputConfiguration implements Serializable {
     private CouchbaseDataSet dataSet;
 
     @Option
+    @Documentation("Use N1QL query")
+    private boolean useN1QLQuery = false;
+
+    @Option
+    @TextArea
+    @Code("sql")
+    @Documentation("The N1QL query.")
+    @ActiveIf(target = "useN1QLQuery", value = "true")
+    private String query;
+
+    @Option
     @Documentation("Maximum number of documents to be returned")
+    @ActiveIf(target = "useN1QLQuery", value = "false")
     private String limit = "";
 
     public CouchbaseDataSet getDataSet() {

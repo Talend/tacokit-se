@@ -101,7 +101,9 @@ public abstract class QueryManagerImpl implements QueryManager {
                     connection.commit();
                     break;
                 } catch (final SQLException e) {
-                    connection.rollback();
+                    if (!connection.getAutoCommit()) {
+                        connection.rollback();
+                    }
                     if (!retry(e) || retryCount > maxRetry) {
                         rejects.addAll(handleRejects(records, batchOrder, e));
                         break;

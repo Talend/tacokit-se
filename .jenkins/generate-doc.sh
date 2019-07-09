@@ -6,7 +6,7 @@ INDEX_OUTPUT=$OUTPUT_DIR/index.html
 rm -Rf $OUTPUT_DIR
 mkdir -p $OUTPUT_DIR
 
-modules=$(grep '^    <module>' pom.xml | sed 's/.*>\(.*\)<.*/\1/' | sort -u | grep -v common)
+modules=$(grep '^[ \t]*<module>' pom.xml | sed 's/.*>\(.*\)<.*/\1/' | sort -u | grep -v common)
 mvn -Pdocumentation-html dependency:unpack@doc-html-theme
 mvn -Pdocumentation-html -T1C asciidoctor:process-asciidoc@html \
     $(echo $modules | sed 's/[^ ]* */-pl &/g')

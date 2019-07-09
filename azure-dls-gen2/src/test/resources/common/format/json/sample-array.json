@@ -1,0 +1,86 @@
+[
+  {
+    "string1": "Bonjour",
+    "string2": "Olà",
+    "long": 1971,
+    "double": 19.71,
+    "false": false,
+    "true": true,
+    "object": {
+      "prop1": "prop1",
+      "prop2": 2
+    },
+    "intary": [
+      12,
+      212,
+      4343,
+      545
+    ],
+    "ary": [
+      {
+        "id": "string id1",
+        "cost": 1024
+      },
+      {
+        "id": "string id2",
+        "cost": 2048
+      }
+    ]
+  },
+  {
+    "string1": "Bonjour2",
+    "string2": "Olà2",
+    "long": 1972,
+    "double": 19.72,
+    "object": {
+      "prop1": "prop1",
+      "prop2": 2
+    },
+    "false": false,
+    "true": true,
+    "intary": [
+      12,
+      212,
+      4343,
+      545
+    ],
+    "ary": [
+      {
+        "id": "string id1",
+        "cost": 1024
+      },
+      {
+        "id": "string id2",
+        "cost": 2048
+      }
+    ]
+  },
+  {
+    "string1": "Bonjour3",
+    "string2": "Olà3",
+    "long": 1973,
+    "double": 19.73,
+    "false": false,
+    "true": true,
+    "intary": [
+      12,
+      212,
+      4343,
+      545
+    ],
+    "ary": [
+      {
+        "id": "string id1",
+        "cost": 1024
+      },
+      {
+        "id": "string id2",
+        "cost": 2048
+      }
+    ],
+    "object": {
+      "prop1": "prop1",
+      "prop2": 2
+    }
+  }
+]

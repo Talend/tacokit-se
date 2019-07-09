@@ -16,19 +16,23 @@ package org.talend.components.azure.output;
 import java.net.URISyntaxException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.talend.components.azure.BaseIT;
 import org.talend.components.azure.common.FileFormat;
 import org.talend.components.azure.dataset.AzureBlobDataset;
 import org.talend.components.azure.source.BlobInputProperties;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
+import org.talend.sdk.component.runtime.record.SchemaImpl;
 
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
@@ -60,15 +64,16 @@ class AvroOutputIT extends BaseIT {
         dataset.setFileFormat(FileFormat.AVRO);
 
         dataset.setContainerName(containerName);
+        dataset.setDirectory("avroDir");
         blobOutputProperties = new BlobOutputConfiguration();
         blobOutputProperties.setDataset(dataset);
+        blobOutputProperties.setBlobNameTemplate("testFile");
+
     }
 
     @Test
     void testOutput() throws URISyntaxException, StorageException {
         final int recordSize = 5;
-        blobOutputProperties.getDataset().setDirectory("avroDir");
-        blobOutputProperties.setBlobNameTemplate("testFile");
 
         Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder()
                 .withString("stringValue", testStringValue).withBoolean("booleanValue", testBooleanValue)
@@ -113,8 +118,6 @@ class AvroOutputIT extends BaseIT {
     @Test
     public void testBatchSizeIsGreaterThanRowSize() throws URISyntaxException, StorageException {
         final int recordSize = 5;
-        blobOutputProperties.getDataset().setDirectory("avroDir");
-        blobOutputProperties.setBlobNameTemplate("testFile");
 
         Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder()
                 .withString("stringValue", testStringValue).withBoolean("booleanValue", testBooleanValue)
@@ -136,5 +139,88 @@ class AvroOutputIT extends BaseIT {
 
         Assert.assertTrue("No files were created in test container",
                 container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext());
+    }
+
+    @Test
+    void testOutputNull() {
+        final int recordSize = 1;
+        final int schemaSize = 9;
+        Schema.Builder schemaBuilder = new SchemaImpl.BuilderImpl();
+        Schema schema = schemaBuilder.withType(Schema.Type.RECORD)
+                .withEntry(new SchemaImpl.EntryImpl("nullStringColumn", Schema.Type.STRING, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullStringColumn2", Schema.Type.STRING, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullIntColumn", Schema.Type.INT, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullLongColumn", Schema.Type.LONG, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullFloatColumn", Schema.Type.FLOAT, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullDoubleColumn", Schema.Type.DOUBLE, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullBooleanColumn", Schema.Type.BOOLEAN, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullByteArrayColumn", Schema.Type.BYTES, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("nullDateColumn", Schema.Type.DATETIME, true, null, null, null)).build();
+        Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder(schema)
+                .withString("nullStringColumn", null).build();
+
+        List<Record> testRecords = Collections.singletonList(testRecord);
+        componentsHandler.setInputData(testRecords);
+
+        String outputConfig = configurationByExample().forInstance(blobOutputProperties).configured().toQueryString();
+        Job.components().component("inputFlow", "test://emitter").component("outputComponent", "Azure://Output?" + outputConfig)
+                .connections().from("inputFlow").to("outputComponent").build().run();
+
+        BlobInputProperties inputProperties = new BlobInputProperties();
+        inputProperties.setDataset(blobOutputProperties.getDataset());
+
+        String inputConfig = configurationByExample().forInstance(inputProperties).configured().toQueryString();
+        Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("azureInput").to("collector").build().run();
+        List<Record> records = componentsHandler.getCollectedData(Record.class);
+
+        Assert.assertEquals(recordSize, records.size());
+        Record firstRecord = records.get(0);
+
+        Assert.assertEquals(schemaSize, firstRecord.getSchema().getEntries().size());
+        Assert.assertNull(firstRecord.getString("nullStringColumn"));
+        Assert.assertNull(firstRecord.getString("nullStringColumn2"));
+        Assert.assertNull(firstRecord.get(Integer.class, "nullIntColumn"));
+        Assert.assertNull(firstRecord.get(Long.class, "nullLongColumn"));
+        Assert.assertNull(firstRecord.get(Float.class, "nullFloatColumn"));
+        Assert.assertNull(firstRecord.get(Double.class, "nullDoubleColumn"));
+        Assert.assertNull(firstRecord.get(Boolean.class, "nullBooleanColumn"));
+        Assert.assertNull(firstRecord.get(byte[].class, "nullByteArrayColumn"));
+        Assert.assertNull(firstRecord.getDateTime("nullDateColumn"));
+    }
+
+    @Test
+    void testSchemaIsNotMissingForNullsInFirstRecord() {
+        final int recordSize = 2;
+        final int fieldSize = 2;
+        Schema.Builder schemaBuilder = new SchemaImpl.BuilderImpl();
+        Schema schema = schemaBuilder.withType(Schema.Type.RECORD)
+                .withEntry(new SchemaImpl.EntryImpl("stringColumn", Schema.Type.STRING, true, null, null, null))
+                .withEntry(new SchemaImpl.EntryImpl("intColumn", Schema.Type.INT, true, null, null, null)).build();
+
+        List<Record> testRecords = new ArrayList<>();
+        testRecords.add(componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder(schema)
+                .withString("stringColumn", "a").build()); // stringColumn:a, intColumn:null
+
+        testRecords.add(componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder(schema)
+                .withString("stringColumn", "b").withInt("intColumn", Integer.MAX_VALUE).build()); // stringColumn:a,
+        // intColumn:not null
+        componentsHandler.setInputData(testRecords);
+
+        String outputConfig = configurationByExample().forInstance(blobOutputProperties).configured().toQueryString();
+        Job.components().component("inputFlow", "test://emitter").component("outputComponent", "Azure://Output?" + outputConfig)
+                .connections().from("inputFlow").to("outputComponent").build().run();
+
+        BlobInputProperties inputProperties = new BlobInputProperties();
+        inputProperties.setDataset(blobOutputProperties.getDataset());
+
+        String inputConfig = configurationByExample().forInstance(inputProperties).configured().toQueryString();
+        Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("azureInput").to("collector").build().run();
+        List<Record> records = componentsHandler.getCollectedData(Record.class);
+
+        Assert.assertEquals(recordSize, records.size());
+        Assert.assertEquals(fieldSize, records.get(0).getSchema().getEntries().size());
+        Assert.assertEquals(fieldSize, records.get(1).getSchema().getEntries().size());
     }
 }

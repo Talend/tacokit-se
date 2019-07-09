@@ -18,8 +18,6 @@ import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.document.json.JsonObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.talend.components.couchbase.service.CouchbaseService;
 import org.talend.components.couchbase.service.I18nMessage;
 import org.talend.sdk.component.api.component.Icon;
@@ -57,8 +55,6 @@ public class CouchbaseOutput implements Serializable {
 
     private final CouchbaseService service;
 
-    private static final transient Logger LOG = LoggerFactory.getLogger(CouchbaseOutput.class);
-
     public CouchbaseOutput(@Option("configuration") final CouchbaseOutputConfiguration configuration,
             final CouchbaseService service, final I18nMessage i18n) {
         this.configuration = configuration;
@@ -81,7 +77,7 @@ public class CouchbaseOutput implements Serializable {
     @PreDestroy
     public void release() {
         service.closeBucket(bucket);
-        service.closeConnection();
+        service.closeConnection(configuration.getDataSet().getDatastore());
     }
 
     private JsonDocument toJsonDocument(String idFieldName, Record record) {
