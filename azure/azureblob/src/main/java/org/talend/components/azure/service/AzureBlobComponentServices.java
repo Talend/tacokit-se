@@ -58,6 +58,8 @@ public class AzureBlobComponentServices {
             return connectionService.testConnection(cloudStorageAccount);
         } catch (URISyntaxException e) {
             return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18nService.illegalContainerName());
+        } catch (Exception e) {
+            return new HealthCheckStatus(HealthCheckStatus.Status.KO, e.getMessage());
         }
     }
 

@@ -67,7 +67,9 @@ public class AzureComponentServices {
     }
 
     public CloudStorageAccount createStorageAccount(AzureStorageConnectionSignature azureConnection) throws URISyntaxException {
-
+        if (StringUtils.isEmpty(azureConnection.getAzureSharedAccessSignature())) {
+            throw new IllegalArgumentException(i18nService.connectionIsNull());
+        }
         Matcher matcher = Pattern.compile(SAS_PATTERN).matcher(azureConnection.getAzureSharedAccessSignature());
         if (!matcher.matches()) {
             throw new IllegalArgumentException(i18nService.wrongSASFormat());
