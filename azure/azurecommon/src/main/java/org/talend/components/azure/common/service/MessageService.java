@@ -25,4 +25,6 @@ public interface MessageService {
     String connectionIsNull();
 
     String wrongSASFormat();
+
+    String invalidAccountKeyFormat(String errorMessage);
 }

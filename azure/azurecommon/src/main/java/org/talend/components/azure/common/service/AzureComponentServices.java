@@ -60,14 +60,22 @@ public class AzureComponentServices {
     private MessageService i18nService;
 
     public CloudStorageAccount createStorageAccount(AzureStorageConnectionAccount azureConnection) throws URISyntaxException {
-        StorageCredentials credentials = new StorageCredentialsAccountAndKey(azureConnection.getAccountName(),
-                azureConnection.getAccountKey());
+        if (azureConnection == null || StringUtils.isEmpty(azureConnection.getAccountName())
+                || StringUtils.isEmpty(azureConnection.getAccountKey())) {
+            throw new IllegalArgumentException(i18nService.connectionIsNull());
+        }
 
-        return new CloudStorageAccount(credentials, azureConnection.getProtocol() == Protocol.HTTPS);
+        try {
+            StorageCredentials credentials = new StorageCredentialsAccountAndKey(azureConnection.getAccountName(),
+                    azureConnection.getAccountKey());
+            return new CloudStorageAccount(credentials, azureConnection.getProtocol() == Protocol.HTTPS);
+        } catch (IndexOutOfBoundsException e) {
+            throw new IllegalArgumentException(i18nService.invalidAccountKeyFormat(e.getMessage()), e);
+        }
     }
 
     public CloudStorageAccount createStorageAccount(AzureStorageConnectionSignature azureConnection) throws URISyntaxException {
-        if (StringUtils.isEmpty(azureConnection.getAzureSharedAccessSignature())) {
+        if (azureConnection == null || StringUtils.isEmpty(azureConnection.getAzureSharedAccessSignature())) {
             throw new IllegalArgumentException(i18nService.connectionIsNull());
         }
         Matcher matcher = Pattern.compile(SAS_PATTERN).matcher(azureConnection.getAzureSharedAccessSignature());
