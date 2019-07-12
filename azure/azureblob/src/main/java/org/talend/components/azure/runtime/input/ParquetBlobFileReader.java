@@ -28,6 +28,7 @@ import org.talend.components.azure.common.Protocol;
 import org.talend.components.azure.dataset.AzureBlobDataset;
 import org.talend.components.azure.runtime.converters.ParquetConverter;
 import org.talend.components.azure.service.AzureBlobComponentServices;
+import org.talend.components.azure.service.MessageService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
@@ -40,8 +41,9 @@ import static org.talend.components.azure.common.service.AzureComponentServices.
 public class ParquetBlobFileReader extends BlobFileReader {
 
     public ParquetBlobFileReader(AzureBlobDataset config, RecordBuilderFactory recordBuilderFactory,
-            AzureBlobComponentServices connectionServices) throws URISyntaxException, StorageException {
-        super(config, recordBuilderFactory, connectionServices);
+            AzureBlobComponentServices connectionServices, MessageService messageService)
+            throws URISyntaxException, StorageException {
+        super(config, recordBuilderFactory, connectionServices, messageService);
     }
 
     @Override

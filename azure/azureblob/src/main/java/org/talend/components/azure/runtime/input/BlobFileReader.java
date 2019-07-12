@@ -17,10 +17,11 @@ import java.net.URISyntaxException;
 import java.util.EnumSet;
 import java.util.Iterator;
 
-import org.talend.components.azure.common.excel.ExcelFormat;
+import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.common.service.AzureComponentServices;
 import org.talend.components.azure.dataset.AzureBlobDataset;
 import org.talend.components.azure.service.AzureBlobComponentServices;
+import org.talend.components.azure.service.MessageService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
@@ -36,6 +37,8 @@ import lombok.Getter;
 
 public abstract class BlobFileReader {
 
+    private final MessageService messageService;
+
     @Getter(AccessLevel.PROTECTED)
     private RecordBuilderFactory recordBuilderFactory;
 
@@ -44,13 +47,16 @@ public abstract class BlobFileReader {
     private final AzureBlobDataset config;
 
     public BlobFileReader(AzureBlobDataset config, RecordBuilderFactory recordBuilderFactory,
-            AzureBlobComponentServices connectionServices) throws URISyntaxException, StorageException {
+            AzureBlobComponentServices connectionServices, MessageService messageService)
+            throws URISyntaxException, StorageException {
         this.recordBuilderFactory = recordBuilderFactory;
         this.config = config;
+        this.messageService = messageService;
         CloudStorageAccount connection = connectionServices.createStorageAccount(config.getConnection());
         CloudBlobClient blobClient = connectionServices.getConnectionService().createCloudBlobClient(connection,
                 AzureComponentServices.DEFAULT_RETRY_POLICY);
-        CloudBlobContainer container = blobClient.getContainerReference(config.getContainerName());
+        CloudBlobContainer container = checkBlobContainer(config, blobClient);
+
         String directoryName = config.getDirectory();
         if (!directoryName.endsWith("/")) {
             directoryName += "/";
@@ -60,6 +66,20 @@ public abstract class BlobFileReader {
                 null, AzureComponentServices.getTalendOperationContext());
 
         this.iterator = initItemRecordIterator(blobItems);
+    }
+
+    public CloudBlobContainer checkBlobContainer(AzureBlobDataset config, CloudBlobClient blobClient)
+            throws URISyntaxException, StorageException {
+        CloudBlobContainer container = blobClient.getContainerReference(config.getContainerName());
+
+        try {
+            if (!container.exists()) {
+                throw new BlobRuntimeException(messageService.containerNotExist());
+            }
+        } catch (StorageException e) {
+            throw new BlobRuntimeException(messageService.illegalContainerName(), e);
+        }
+        return container;
     }
 
     protected abstract ItemRecordIterator initItemRecordIterator(Iterable<ListBlobItem> blobItems);
@@ -75,26 +95,26 @@ public abstract class BlobFileReader {
     public static class BlobFileReaderFactory {
 
         public static BlobFileReader getReader(AzureBlobDataset config, RecordBuilderFactory recordBuilderFactory,
-                AzureBlobComponentServices connectionServices) throws Exception {
+                AzureBlobComponentServices connectionServices, MessageService messageService) throws Exception {
             switch (config.getFileFormat()) {
             case CSV:
-                return new CSVBlobFileReader(config, recordBuilderFactory, connectionServices);
+                return new CSVBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
             // FIXME uncomment it when excel will be ready to integrate
 
             case AVRO:
-                return new AvroBlobFileReader(config, recordBuilderFactory, connectionServices);
+                return new AvroBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
             /*
              * case EXCEL: {
              * if (config.getExcelOptions().getExcelFormat() == ExcelFormat.HTML) {
-             * return new ExcelHTMLBlobFileReader(config, recordBuilderFactory, connectionServices);
+             * return new ExcelHTMLBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
              * } else {
-             * return new ExcelBlobFileReader(config, recordBuilderFactory, connectionServices);
+             * return new ExcelBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
              * }
              * }
              */
 
             case PARQUET:
-                return new ParquetBlobFileReader(config, recordBuilderFactory, connectionServices);
+                return new ParquetBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
 
             default:
                 throw new IllegalArgumentException("Unsupported file format"); // shouldn't be here

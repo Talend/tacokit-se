@@ -52,9 +52,10 @@ public class BlobSource implements Serializable {
     @PostConstruct
     public void init() throws Exception {
         try {
-            reader = BlobFileReader.BlobFileReaderFactory.getReader(configuration.getDataset(), builderFactory, service);
+            reader = BlobFileReader.BlobFileReaderFactory.getReader(configuration.getDataset(), builderFactory, service,
+                    messageService);
         } catch (Exception e) {
-            throw new BlobRuntimeException(messageService.cantStartReadBlobItems(), e);
+            throw new BlobRuntimeException(messageService.cantStartReadBlobItems(e.getMessage()), e);
         }
     }
 

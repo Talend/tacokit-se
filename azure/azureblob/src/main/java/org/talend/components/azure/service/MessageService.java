@@ -26,5 +26,7 @@ public interface MessageService {
 
     String errorSubmitRows();
 
-    String cantStartReadBlobItems();
+    String cantStartReadBlobItems(String message);
+
+    String containerNotExist();
 }

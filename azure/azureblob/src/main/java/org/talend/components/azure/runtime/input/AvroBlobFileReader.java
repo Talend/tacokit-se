@@ -25,6 +25,7 @@ import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.dataset.AzureBlobDataset;
 import org.talend.components.azure.runtime.converters.AvroConverter;
 import org.talend.components.azure.service.AzureBlobComponentServices;
+import org.talend.components.azure.service.MessageService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
@@ -36,8 +37,9 @@ import lombok.extern.slf4j.Slf4j;
 public class AvroBlobFileReader extends BlobFileReader {
 
     public AvroBlobFileReader(AzureBlobDataset config, RecordBuilderFactory recordBuilderFactory,
-            AzureBlobComponentServices connectionServices) throws URISyntaxException, StorageException {
-        super(config, recordBuilderFactory, connectionServices);
+            AzureBlobComponentServices connectionServices, MessageService messageService)
+            throws URISyntaxException, StorageException {
+        super(config, recordBuilderFactory, connectionServices, messageService);
     }
 
     @Override
