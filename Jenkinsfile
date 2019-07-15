@@ -72,15 +72,15 @@ spec:
     }
 
     parameters {
-        choice(name: 'RunningType', 
+        choice(name: 'Action', 
                choices: [ 'STANDARD', 'PUSH_TO_XTM', 'DEPLOY_FROM_XTM', 'RELEASE' ],
-               description: 'Kind of running : \n PUSH_TO_XTM : Export the project i18n resources to Xtm to be translated. This action can be performed from master or maintenance branches only. \nDEPLOY_FROM_XTM: Download and deploy i18n resources from Xtm to nexus for this branch.')
+               description: 'Kind of running : \nSTANDARD (default), normal building\n PUSH_TO_XTM : Export the project i18n resources to Xtm to be translated. This action can be performed from master or maintenance branches only. \nDEPLOY_FROM_XTM: Download and deploy i18n resources from Xtm to nexus for this branch.\nRELEASE : build release')
     }
 
     stages {
         stage('Run maven') {
             when {
-                expression { params.RunningType == 'STANDARD' }
+                expression { params.Action == 'STANDARD' }
             }
             steps {
                 container('main') {
@@ -108,7 +108,7 @@ spec:
         }
         stage('Post Build Steps') {
             when {
-                expression { params.RunningType == 'STANDARD' }
+                expression { params.Action == 'STANDARD' }
             }
             parallel {
                 stage('Documentation') {
@@ -161,7 +161,7 @@ spec:
         stage('Push to Xtm') {
             when {
                 anyOf {
-                    expression { params.RunningType == 'PUSH_TO_XTM' }
+                    expression { params.Action == 'PUSH_TO_XTM' }
 //                    allOf{
 //                        triggeredBy 'TimerTrigger'
 //                        expression {
@@ -190,7 +190,7 @@ spec:
         }
         stage('Deploy from Xtm') {
             when {
-                expression { params.RunningType == 'DEPLOY_FROM_XTM' }
+                expression { params.Action == 'DEPLOY_FROM_XTM' }
                 anyOf {
                     branch 'master'
                     expression { BRANCH_NAME.startsWith('maintenance/') }
@@ -213,7 +213,7 @@ spec:
         }
         stage('Release') {
 			when {
-				expression { params.RunningType == 'RELEASE' }
+				expression { params.Action == 'RELEASE' }
                 anyOf {
                     branch 'master'
                     expression { BRANCH_NAME.startsWith('maintenance/') }
@@ -224,12 +224,10 @@ spec:
 					container('main') {
                 		
 						sh """
-						    git config --global push.default current
-						    git checkout ${env.BRANCH_NAME}
 						    mvn -B -s .jenkins/settings.xml release:clean release:prepare
 						    if [[ \$? -eq 0 ]] ; then
 						        PROJECT_VERSION=\$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
-						    	mvn -B -s .jenkins/settings.xml -Darguments='-Dmaven.javadoc.skip=true -DskipTests' release:perform
+						    	mvn -B -s .jenkins/settings.xml -Darguments='-Dmaven.javadoc.skip=true' release:perform
 						    	git push origin release/\${PROJECT_VERSION}
 						    	git push
 						    fi
