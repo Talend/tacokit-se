@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
+import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
@@ -49,7 +50,13 @@ public class UIActionService implements Serializable {
         try {
             service.filesystemList(connection);
         } catch (Exception e) {
-            return new HealthCheckStatus(KO, i18n.healthCheckFailed(e.getMessage()));
+            String msg;
+            if (connection.getAuthMethod() == AuthMethod.SAS) {
+                msg = i18n.healthCheckSAS();
+            } else {
+                msg = i18n.healthCheckSharedKey();
+            }
+            return new HealthCheckStatus(KO, i18n.healthCheckFailed(msg, e.getMessage()));
         }
         return new HealthCheckStatus(OK, i18n.healthCheckOk());
     }
