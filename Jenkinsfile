@@ -84,11 +84,26 @@ spec:
             }
             steps {
                 container('main') {
-                    // for next concurrent builds
-                    sh 'for i in ci_documentation ci_nexus ci_site; do rm -Rf $i; rsync -av . $i; done'
-                    // real task
-                    withCredentials([nexusCredentials]) {
-                        sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -e ${talendOssRepositoryArg}"
+                	script {
+	                    // for next concurrent builds
+	                    sh 'for i in ci_documentation ci_nexus ci_site; do rm -Rf $i; rsync -av . $i; done'
+	                    // real task
+	
+	                    withCredentials([nexusCredentials, gitCredentials]) {
+	                        sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -e ${talendOssRepositoryArg}"
+	
+							// On pull request => add spotbugs comments on PR for ecach changed file.                        
+	                        if (env.CHANGE_ID) {
+		                     	sh """
+		                     	    |mvn --batch-mode -Dspotbugs.effort=max com.github.spotbugs:spotbugs-maven-plugin:3.1.12:spotbugs  -s .jenkins/settings.xml
+		                     	    |current_rep=`pwd` 
+		                     	    |cd .jenkins/prvalidator
+		                     	    |mvn package -DskipTests --batch-mode  -s ../settings.xml
+		                     	    |cd target
+		                     	    |java -jar prvalidator-1.0.jar ${GITHUB_LOGIN} ${GITHUB_TOKEN} ${env.CHANGE_ID} ${env.GIT_COMMIT} connectors-se \${current_rep}
+		                        """.stripMargin()   
+		                    }        
+	                    }
                     }
                 }
             }
