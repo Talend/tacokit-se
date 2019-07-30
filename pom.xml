@@ -40,6 +40,7 @@
         <module>azure-eventhubs</module>
         <module>azure-dls-gen2</module>
         <module>marketo</module>
+      <module>mail</module>
     </modules>
 
     <scm>
@@ -66,7 +67,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <component-runtime.version>1.1.9</component-runtime.version>
+        <component-runtime.version>1.1.11</component-runtime.version>
         <slf4j.version>1.7.25</slf4j.version>
 
         <beam.version>2.12.0</beam.version>
@@ -76,10 +77,10 @@
         <tcomp0.version>0.23.2</tcomp0.version> <!-- until they are rewritten -->
         <daikon.version>0.31.0</daikon.version>
 
-        <junit5.version>5.3.1</junit5.version>
+        <junit5.version>5.5.1</junit5.version>
 
         <surefire.version>3.0.0-M3</surefire.version>
-        <jacoco.version>0.8.2</jacoco.version>
+        <jacoco.version>0.8.4</jacoco.version>
 
         <commons-csv.version>1.4</commons-csv.version>
         <guava.version>20.0</guava.version>
@@ -96,6 +97,8 @@
         <!-- The XTM customer id that manage the translation of this project-->
         <xtm.customer.id>12240076</xtm.customer.id>
         <xtm.api.url>https://www.xtm-cloud.com/rest-api</xtm.api.url>
+
+        <spotbugs.failOnError>false</spotbugs.failOnError>
     </properties>
 
     <dependencyManagement>
@@ -213,6 +216,12 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>annotations</artifactId>
+            <version>3.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.talend.sdk.component</groupId>
             <artifactId>component-api</artifactId>
             <version>${component-runtime.version}</version>
@@ -233,14 +242,14 @@
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
+            <artifactId>junit-jupiter</artifactId>
             <version>${junit5.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit5.version}</version>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13-beta-3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -425,6 +434,13 @@
                         </goals>
                     </execution>
                     <execution>
+                        <id>talend-component-png-icon-generation</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>svg2png</goal>
+                        </goals>
+                    </execution>
+                    <execution>
                         <id>talend-component-icon-report</id>
                         <phase>process-classes</phase>
                         <goals>
@@ -592,14 +608,13 @@
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
                 <version>${spotbugs.version}</version>
-
                 <executions>
                     <execution>
                         <phase>compile</phase>
                         <goals><goal>check</goal></goals>
                         <configuration>
                             <effort>Max</effort>
-                            <failOnError>false</failOnError>
+                            <failOnError>${spotbugs.failOnError}</failOnError>
                         </configuration>
                     </execution>
                 </executions>

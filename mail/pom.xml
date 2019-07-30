@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.talend.components</groupId>
+    <artifactId>connectors-se</artifactId>
+    <version>1.3.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>mail</artifactId>
+
+  <name>Components :: Mail</name>
+
+  <properties>
+    <talend.validation.placeholder>true</talend.validation.placeholder>
+    <spotbugs.failOnError>true</spotbugs.failOnError>
+  </properties>
+
+  <dependencies>
+    <dependency><!-- todo: move to geronimo-javamail? -->
+      <groupId>com.sun.mail</groupId>
+      <artifactId>javax.mail</artifactId>
+      <version>1.6.2</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.icegreen</groupId>
+      <artifactId>greenmail</artifactId>
+      <!-- 1.6.0 will get a junit5 module and we could drop our custom extension -->
+      <version>1.5.10</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

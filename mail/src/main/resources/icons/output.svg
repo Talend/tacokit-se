@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16mm"
+    height="16mm"
+    viewBox="0 0 16 16"
+    version="1.1"
+    id="svg4953">
+  <g
+      transform="matrix(0.12809452,0,0,0.12809452,-5.2838254,-20.752822)"
+      id="g6410">
+    <rect
+        style="fill:#ffffff;fill-opacity:0.74271845;stroke:#0675c1;stroke-width:20.34388161;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+        y="181.70175"
+        x="51.956207"
+        height="85.453659"
+        width="103.21854"
+        id="rect3713-7"/>
+    <rect
+        transform="rotate(-60.939499)"
+        y="147.51395"
+        x="-140.20065"
+        height="48.91032"
+        width="4.0090427"
+        id="rect4809-5"
+        style="fill:#0675c1;fill-opacity:1;stroke:none;stroke-width:22;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"/>
+    <rect
+        transform="matrix(-0.4857329,-0.87410729,-0.87410729,0.4857329,0,0)"
+        y="-33.593761"
+        x="-240.84045"
+        height="48.91032"
+        width="4.0090423"
+        id="rect4809-3-3"
+        style="fill:#0675c1;fill-opacity:1;stroke:none;stroke-width:22;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"/>
+    <g
+        transform="matrix(0,0.65366199,-0.65366199,0,136.13627,137.73127)"
+        id="g4865-5">
+      <rect
+          style="fill:#389239;fill-opacity:1;stroke:none;stroke-width:22;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+          id="rect4858-6"
+          width="19.654762"
+          height="69.925591"
+          x="173.1131"
+          y="73.616074"/>
+      <path
+          style="fill:#389239;fill-opacity:1;stroke:none;stroke-width:22;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+          d="m 182.94048,54.416214 26.19241,26.192416 -25.43646,0.112057 -26.94837,-0.112058 z"
+          id="rect4860-2"/>
+    </g>
+  </g>
+</svg>

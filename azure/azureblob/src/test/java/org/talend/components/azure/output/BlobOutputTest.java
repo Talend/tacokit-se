@@ -15,13 +15,10 @@ package org.talend.components.azure.output;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.talend.components.azure.common.FileFormat;
 import org.talend.components.azure.common.excel.ExcelFormat;
 import org.talend.components.azure.common.excel.ExcelFormatOptions;
 import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.dataset.AzureBlobDataset;
-import org.talend.components.azure.service.MessageService;
 
 public class BlobOutputTest {
 
@@ -37,7 +34,7 @@ public class BlobOutputTest {
         BlobOutputConfiguration outputConfiguration = new BlobOutputConfiguration();
         outputConfiguration.setDataset(dataset);
 
-        BlobOutput output = new BlobOutput(outputConfiguration, null, Mockito.mock(MessageService.class));
+        BlobOutput output = new BlobOutput(outputConfiguration, null, null);
         Assertions.assertThrows(BlobRuntimeException.class, output::init);
     }
 }

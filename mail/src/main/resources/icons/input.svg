@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16mm"
+    height="16mm"
+    viewBox="0 0 16 16"
+    version="1.1"
+    id="svg4953">
+  <g
+      transform="matrix(0.11260491,0,0,0.11260491,-4.1573918,0.18973343)"
+      id="g5133">
+    <g
+        transform="translate(12.095238,-36.285714)"
+        id="g4829">
+      <rect
+          id="rect3713"
+          width="103.21854"
+          height="85.453659"
+          x="35.520596"
+          y="65.496849"
+          style="fill:#ffffff;fill-opacity:0.74271845;stroke:#0675c1;stroke-width:20.34388161;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"/>
+      <rect
+          style="fill:#0675c1;fill-opacity:1;stroke:none;stroke-width:22;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+          id="rect4809"
+          width="4.0090427"
+          height="48.91032"
+          x="-46.608433"
+          y="76.702919"
+          transform="rotate(-60.939499)"/>
+      <rect
+          style="fill:#0675c1;fill-opacity:1;stroke:none;stroke-width:22;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+          id="rect4809-3"
+          width="4.0090423"
+          height="48.91032"
+          x="-131.28159"
+          y="-75.671814"
+          transform="matrix(-0.4857329,-0.87410729,-0.87410729,0.4857329,0,0)"/>
+    </g>
+    <g
+        transform="matrix(0,0.653662,-0.653662,0,213.30668,-15.23504)"
+        id="g4865">
+      <rect
+          style="fill:#389239;fill-opacity:1;stroke:none;stroke-width:22;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+          id="rect4858"
+          width="19.654762"
+          height="69.925591"
+          x="173.1131"
+          y="73.616074"/>
+      <path
+          style="fill:#389239;fill-opacity:1;stroke:none;stroke-width:22;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+          d="m 182.94048,54.416214 26.19241,26.192416 -25.43646,0.112057 -26.94837,-0.112058 z"
+          id="rect4860"/>
+    </g>
+  </g>
+</svg>
