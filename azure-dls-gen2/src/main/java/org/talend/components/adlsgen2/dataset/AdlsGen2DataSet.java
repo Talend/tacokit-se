@@ -75,15 +75,15 @@ public class AdlsGen2DataSet implements Serializable {
     private CsvConfiguration csvConfiguration;
 
     @Option
-    @ActiveIf(target = "format", value = "AVRO")
+    @ActiveIf(target = "format", value = "AVRO_ENABLED")
     private AvroConfiguration avroConfiguration;
 
     @Option
-    @ActiveIf(target = "format", value = "PARQUET")
+    @ActiveIf(target = "format", value = "PARQUET_ENABLED")
     private ParquetConfiguration parquetConfiguration;
 
     @Option
-    @ActiveIf(target = "format", value = "JSON")
+    @ActiveIf(target = "format", value = "JSON_ENABLED")
     private JsonConfiguration jsonConfiguration;
 
 }
