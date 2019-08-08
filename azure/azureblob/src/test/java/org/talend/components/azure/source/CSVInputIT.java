@@ -10,13 +10,14 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-
 package org.talend.components.azure.source;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.azure.BaseIT;
@@ -24,6 +25,7 @@ import org.talend.components.azure.BlobTestUtils;
 import org.talend.components.azure.common.FileFormat;
 import org.talend.components.azure.common.csv.CSVFormatOptions;
 import org.talend.components.azure.common.csv.RecordDelimiter;
+import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.dataset.AzureBlobDataset;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit5.WithComponents;
@@ -76,6 +78,28 @@ public class CSVInputIT extends BaseIT {
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
         Assert.assertEquals("Records were taken from empty directory", 0, records.size());
+    }
+
+    @Test
+    void selectFromNotExistingContainer() {
+        blobInputProperties.getDataset().setContainerName("notexistingcontainer");
+        blobInputProperties.getDataset().setDirectory("notExistingDir");
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        Job.ExecutorBuilder job = Job.components().component("azureInput", "Azure://Input?" + inputConfig)
+                .component("collector", "test://collector").connections().from("azureInput").to("collector").build();
+        Assertions.assertThrows(BlobRuntimeException.class, job::run,
+                "Can't start reading blob items: Specified container doesn't exist");
+    }
+
+    @Test
+    void invalidContainerNameInDataSet() {
+        blobInputProperties.getDataset().setContainerName("inVaLiDcoNtAinErName");
+        blobInputProperties.getDataset().setDirectory("notExistingDir");
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        Job.ExecutorBuilder job = Job.components().component("azureInput", "Azure://Input?" + inputConfig)
+                .component("collector", "test://collector").connections().from("azureInput").to("collector").build();
+        Assertions.assertThrows(BlobRuntimeException.class, job::run,
+                "Can't start reading blob items: Container name is not valid");
     }
 
     @Test

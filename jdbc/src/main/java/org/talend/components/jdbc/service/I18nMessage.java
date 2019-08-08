@@ -87,4 +87,6 @@ public interface I18nMessage {
     String actionOnDataDelete();
 
     String actionOnDataBulkLoad();
+
+    String errorVacantAccountKey();
 }
