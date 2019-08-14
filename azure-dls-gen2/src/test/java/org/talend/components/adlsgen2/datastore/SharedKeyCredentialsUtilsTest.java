@@ -13,6 +13,8 @@
 package org.talend.components.adlsgen2.datastore;
 
 import java.net.URL;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,9 +24,7 @@ import org.talend.components.adlsgen2.AdlsGen2TestBase;
 import org.talend.components.adlsgen2.datastore.Constants.MethodConstants;
 import org.talend.sdk.component.junit5.WithComponents;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @WithComponents("org.talend.components.adlsgen2")
 class SharedKeyCredentialsUtilsTest extends AdlsGen2TestBase {
@@ -37,6 +37,10 @@ class SharedKeyCredentialsUtilsTest extends AdlsGen2TestBase {
 
     private Map<String, String> headers;
 
+    private String signature;
+
+    private String expectedSignature;
+
     @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
@@ -44,6 +48,11 @@ class SharedKeyCredentialsUtilsTest extends AdlsGen2TestBase {
         url = new URL(
                 "https://undxgen2.dfs.core.windows.net/adls-gen2?directory=myNewFolder&recursive=false&resource=filesystem&timeout=60");
         headers = new HashMap<>();
+        OffsetDateTime signatureTime = OffsetDateTime.of(2019, 8, 7, 11, 11, 0, 0, ZoneOffset.UTC);
+        headers.put(Constants.HeaderConstants.USER_AGENT, Constants.HeaderConstants.USER_AGENT_AZURE_DLS_GEN2);
+        headers.put(Constants.HeaderConstants.DATE, Constants.RFC1123GMTDateFormatter.format(signatureTime));
+        headers.put(Constants.HeaderConstants.CONTENT_TYPE, Constants.HeaderConstants.DFS_CONTENT_TYPE);
+        headers.put(Constants.HeaderConstants.VERSION, Constants.HeaderConstants.TARGET_STORAGE_VERSION);
     }
 
     @Test
@@ -52,9 +61,30 @@ class SharedKeyCredentialsUtilsTest extends AdlsGen2TestBase {
     }
 
     @Test
-    void buildAuthenticationSignature() throws Exception {
-        String signature = utils.buildAuthenticationSignature(url, MethodConstants.GET, headers);
+    void checkSignature() throws Exception {
+        expectedSignature = "SharedKey username:8GgdJcEk+FLk2oNJeLuAAIj4O2QMrG4Z1SE4xoV3oTI=";
+        signature = utils.buildAuthenticationSignature(url, MethodConstants.GET, headers);
         assertNotNull(signature);
         assertTrue(signature.startsWith("SharedKey username:"));
+        assertEquals(expectedSignature, signature);
+        OffsetDateTime oneSecLater = OffsetDateTime.of(2019, 8, 7, 11, 11, 1, 0, ZoneOffset.UTC);
+        headers.put(Constants.HeaderConstants.DATE, Constants.RFC1123GMTDateFormatter.format(oneSecLater));
+        signature = utils.buildAuthenticationSignature(url, MethodConstants.GET, headers);
+        assertNotEquals(expectedSignature, signature);
+    }
+
+    @Test
+    void checkSignatureWithSpacesInBlobName() throws Exception {
+        expectedSignature = "SharedKey username:jIgUXkXGQGVmfyHYMWDC7AGEkQyVmcldGmTiQYL4oFc=";
+        url = new URL("https://undxgen2.dfs.core.windows.net/adls-gen2/directory/my New Blob.spacy&timeout=60");
+        signature = utils.buildAuthenticationSignature(url, MethodConstants.GET, headers);
+        assertNotNull(signature);
+        assertTrue(signature.startsWith("SharedKey username:"));
+        assertEquals(expectedSignature, signature);
+        url = new URL("https://undxgen2.dfs.core.windows.net/adls-gen2/directory/my%20New%20Blob.spacy&timeout=60");
+        signature = utils.buildAuthenticationSignature(url, MethodConstants.GET, headers);
+        assertNotNull(signature);
+        assertTrue(signature.startsWith("SharedKey username:"));
+        assertEquals(expectedSignature, signature);
     }
 }
