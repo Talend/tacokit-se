@@ -20,11 +20,16 @@ import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnJre;
+import org.junit.jupiter.api.condition.JRE;
 import org.talend.components.adlsgen2.AdlsGen2TestBase;
 import org.talend.components.adlsgen2.datastore.Constants.MethodConstants;
 import org.talend.sdk.component.junit5.WithComponents;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @WithComponents("org.talend.components.adlsgen2")
 class SharedKeyCredentialsUtilsTest extends AdlsGen2TestBase {
@@ -61,6 +66,7 @@ class SharedKeyCredentialsUtilsTest extends AdlsGen2TestBase {
     }
 
     @Test
+    @EnabledOnJre({ JRE.JAVA_11 })
     void checkSignature() throws Exception {
         expectedSignature = "SharedKey username:8GgdJcEk+FLk2oNJeLuAAIj4O2QMrG4Z1SE4xoV3oTI=";
         signature = utils.buildAuthenticationSignature(url, MethodConstants.GET, headers);
@@ -74,6 +80,7 @@ class SharedKeyCredentialsUtilsTest extends AdlsGen2TestBase {
     }
 
     @Test
+    @EnabledOnJre({ JRE.JAVA_11 })
     void checkSignatureWithSpacesInBlobName() throws Exception {
         expectedSignature = "SharedKey username:jIgUXkXGQGVmfyHYMWDC7AGEkQyVmcldGmTiQYL4oFc=";
         url = new URL("https://undxgen2.dfs.core.windows.net/adls-gen2/directory/my New Blob.spacy&timeout=60");
