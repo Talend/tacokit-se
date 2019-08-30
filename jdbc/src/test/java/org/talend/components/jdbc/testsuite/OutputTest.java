@@ -45,6 +45,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -250,14 +251,36 @@ class OutputTest extends BaseJdbcTest {
             final OutputConfig deleteConfig = new OutputConfig();
             deleteConfig.setDataset(newTableNameDataset(testTableName, container));
             deleteConfig.setActionOnData(OutputConfig.ActionOnData.DELETE.name());
-            final String updateConfig = configurationByExample().forInstance(deleteConfig).configured().toQueryString();
+            final String config = configurationByExample().forInstance(deleteConfig).configured().toQueryString();
             Job.components()
                     .component("userGenerator",
                             "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, false, null, withBoolean, withBytes))
-                    .component("jdbcOutput", "Jdbc://Output?" + updateConfig).connections().from("userGenerator").to("jdbcOutput")
+                    .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("userGenerator").to("jdbcOutput")
                     .build().run();
         });
         assertTrue(error.getMessage().contains(getI18nMessage().errorNoKeyForDeleteQuery()));
+        assertEquals(rowCount, countAll(testTableName, container));
+    }
+
+    @TestTemplate
+    @DisplayName("Delete - Wrong key param")
+    void deleteWithNoFieldForQueryParam(final TestInfo testInfo, final JdbcTestContainer container) {
+        final long rowCount = 3;
+        final String testTableName = getTestTableName(testInfo);
+        insertRows(testTableName, container, rowCount, false, null);
+        final Exception error = assertThrows(Exception.class, () -> {
+            final OutputConfig deleteConfig = new OutputConfig();
+            deleteConfig.setDataset(newTableNameDataset(testTableName, container));
+            deleteConfig.setActionOnData(OutputConfig.ActionOnData.DELETE.name());
+            deleteConfig.setKeys(singletonList("aMissingColumn"));
+            final String config = configurationByExample().forInstance(deleteConfig).configured().toQueryString();
+            Job.components()
+                    .component("userGenerator",
+                            "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, false, null, withBoolean, withBytes))
+                    .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("userGenerator").to("jdbcOutput")
+                    .build().run();
+        });
+        assertTrue(error.getMessage().contains(getI18nMessage().errorNoFieldForQueryParam("aMissingColumn")));
         assertEquals(rowCount, countAll(testTableName, container));
     }
 
