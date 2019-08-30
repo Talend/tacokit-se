@@ -89,4 +89,6 @@ public interface I18nMessage {
     String actionOnDataBulkLoad();
 
     String errorVacantAccountKey();
+
+    String errorNoRecordReceived();
 }
