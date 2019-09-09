@@ -91,4 +91,6 @@ public interface I18nMessage {
     String errorSingleSortKeyInvalid();
 
     String errorVacantAccountKey();
+
+    String errorNoRecordReceived();
 }
