@@ -70,7 +70,7 @@ public interface RecordConverter<T> extends Serializable {
         while (!allIsDifferent) {
             allIsDifferent = !previousNames.contains(currentName);
             if (!allIsDifferent) {
-                currentName += (++index);
+                currentName = name + (++index);
             }
         }
         return currentName;
