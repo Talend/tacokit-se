@@ -70,8 +70,8 @@ public class RedshiftPlatform extends Platform {
             sql.append(createSortKeys(table.getSortStrategy(), columns.stream().filter(Column::isSortKey).collect(toList())));
         }
 
-        log.debug("### create table query ###");
-        log.debug(sql.toString());
+        log.info("Database - create table query ");
+        log.info(sql.toString());
         return sql.toString();
     }
 
@@ -83,15 +83,15 @@ public class RedshiftPlatform extends Platform {
     private String createDistributionKeys(final DistributionStrategy distributionStrategy, final List<Column> columns) {
         switch (distributionStrategy) {
         case ALL:
-            return "diststyle all ";
+            return " diststyle all ";
         case EVEN:
-            return "diststyle even ";
+            return " diststyle even ";
         case KEYS:
             return columns.isEmpty() ? ""
-                    : "diststyle key distkey" + columns.stream().map(Column::getName).collect(joining(",", "(", ") "));
+                    : " diststyle key distkey" + columns.stream().map(Column::getName).collect(joining(",", "(", ") "));
         default:
         case AUTO:
-            return "diststyle auto ";
+            return " diststyle auto ";
         }
     }
 
@@ -111,7 +111,7 @@ public class RedshiftPlatform extends Platform {
         return identifier(column.getName())//
                 + " " + toDBType(column)//
                 + " " + isRequired(column)//
-                + (RedshiftSortStrategy.SINGLE.equals(sortStrategy) && sortKeys.contains(column) ? "" : " sortkey");
+                + (RedshiftSortStrategy.SINGLE.equals(sortStrategy) && sortKeys.contains(column) ? " sortkey" : "");
     }
 
     private String toDBType(final Column column) {
