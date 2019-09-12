@@ -54,16 +54,10 @@ public class SchemaUtils {
     }
 
     private static String getUniqueName(String name, Set<String> previousNames) {
-        boolean allIsDifferent = false;
         int index = 0;
         String currentName = name;
-        while (!allIsDifferent) {
-
-            allIsDifferent = !previousNames.contains(currentName);
-
-            if (!allIsDifferent) {
-                currentName = currentName + (++index);
-            }
+        while (previousNames.contains(currentName)) {
+            currentName = name + (++index);
         }
         return currentName;
     }
