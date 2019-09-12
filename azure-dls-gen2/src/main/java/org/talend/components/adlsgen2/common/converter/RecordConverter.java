@@ -66,7 +66,7 @@ public interface RecordConverter<T> extends Serializable {
     static String getUniqueNameForSchemaField(String name, Set<String> previousNames) {
         int index = 0;
         String currentName = name;
-        while (previousNames.contains(currentName)) {
+        while (previousNames != null && previousNames.contains(currentName)) {
             currentName = name + (++index);
         }
         return currentName;
