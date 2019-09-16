@@ -74,6 +74,8 @@ public class AdlsGen2DataSet implements Serializable {
     @ActiveIf(target = "format", value = "CSV")
     private CsvConfiguration csvConfiguration;
 
+    // next options are temporarily hidden because they generate unwanted fields in studio
+    // (empty file format configurations)
     @Option
     @ActiveIf(target = "format", value = "AVRO_ENABLED")
     private AvroConfiguration avroConfiguration;
