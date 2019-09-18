@@ -1,18 +1,24 @@
 package org.talend.components.rest.service;
 
+import com.sun.org.apache.regexp.internal.RECompiler;
 import lombok.extern.slf4j.Slf4j;
+import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestConfig;
+import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -27,6 +33,9 @@ public class RestServiceTest {
     @Service
     RestService service;
 
+    @Service
+    protected RecordBuilderFactory recordBuilderFactory;
+
     @Injected
     private BaseComponentsHandler handler;
 
@@ -36,7 +45,6 @@ public class RestServiceTest {
     void buildConfig() {
         // Inject needed services
         handler.injectServices(this);
-
         config = RequestConfigBuilder.getEmptyRequestConfig();
     }
 
@@ -69,6 +77,30 @@ public class RestServiceTest {
             assertEquals("get/" + params[0] + "/" + params[1] + "/" + params[2] + "/id/" + params[1] + "/resource/" + params[0]
                     + "/end", finalResource);
         }
+    }
+
+    @Test
+    void setParamsFromRecords() throws Exception {
+        int id = 150;
+        String name = "paco";
+        ZonedDateTime now = ZonedDateTime.now();
+
+        Record record = recordBuilderFactory.newRecordBuilder() //
+                .withInt("id", id).withString("name", name) //
+                .withDateTime("date", now) //
+                .withString("unused", "unused") //
+                .build();
+
+        List<Param> queryParams = new ArrayList<>();
+        queryParams.add(new Param("id", "${id}"));
+        queryParams.add(new Param("name", "<name>${name}</name>"));
+        queryParams.add(new Param("complexe", "<name>${name}</name><id>${id}</id><unexists>${unexists}</unexists>"));
+        config.getDataset().setHasQueryParams(true);
+        config.getDataset().setQueryParams(queryParams);
+
+        Map<String, String> updatedQueryParams = service.updateParamsFromRecord(config.queryParams(), record);
+
+        assertEquals("" + id, updatedQueryParams.get("id"));
 
     }
 

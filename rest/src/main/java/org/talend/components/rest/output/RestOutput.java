@@ -12,6 +12,7 @@ import org.talend.sdk.component.api.processor.AfterGroup;
 import org.talend.sdk.component.api.processor.BeforeGroup;
 import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.processor.Input;
+import org.talend.sdk.component.api.processor.Output;
 import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
 
@@ -46,11 +47,9 @@ public class RestOutput implements Serializable {
     public void init() {
     }
 
-    @AfterGroup
-    public void afterGroup(final Collection<Record> records) throws SQLException {
-        for (Record record : records) {
-            Record result = client.execute(config, record);
-        }
+    @ElementListener
+    public void process(final Record input) {
+        Record result = client.execute(config, input);
     }
 
 }

@@ -14,22 +14,25 @@ package org.talend.components.rest.service;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.rest.configuration.RequestBody;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-import sun.net.www.protocol.http.HttpURLConnection;
 
 import javax.json.JsonObject;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toSet;
 
 @Slf4j
 @Data
@@ -53,13 +56,31 @@ public class RestService {
     // Pattern to retrieve {xxxx} in a non-greddy way
     private final Pattern pathPattern = Pattern.compile("\\{.+?\\}");
 
-    public Record execute(final RequestConfig config, Record record) {
-        return execute(config);
+    private final Pattern queryPattern = Pattern.compile("$\\{.+?\\}");
+
+    public Record execute(final RequestConfig config, final Record record) {
+        return execute(config, record);
     }
 
     public Record execute(final RequestConfig config) {
+        return _execute(config, null);
+    }
+
+    private Record _execute(final RequestConfig config, final Record record) {
+        log.info("Execute");
+        Map<String, String> headers = config.headers();
+        Map<String, String> queryParams = config.queryParams();
+        Map<String, String> pathParams = config.pathParams();
+        RequestBody body = config.body();
+
+        if (record != null) {
+            headers = updateParamsFromRecord(headers, record);
+            queryParams = updateParamsFromRecord(queryParams, record);
+            pathParams = updateParamsFromRecord(pathParams, record);
+        }
+
         Response<JsonObject> resp = client.execute(config, client, config.getDataset().getMethodType().name(),
-                this.buildUrl(config), config.headers(), config.queryParams(), config.body());
+                this.buildUrl(config, pathParams), headers, queryParams, body);
         return this.handleResponse(resp, config);
     }
 
@@ -89,7 +110,7 @@ public class RestService {
 
         /*
          * boolean redirect = Arrays.binarySearch(REDIRECT_CODES, previousResp.status()) != -1;
-         * 
+         *
          * if(redirect){
          * String location = previousResp.headers().get("Location").get(0);
          * }
@@ -98,9 +119,9 @@ public class RestService {
         return previousResp;
     }
 
-    private String buildUrl(final RequestConfig config) {
-        return config.getDataset().getDatastore().getBase() + '/' + this.setPathParams(config.getDataset().getResource(),
-                config.getDataset().getHasPathParams(), config.pathParams());
+    private String buildUrl(final RequestConfig config, Map<String, String> params) {
+        return config.getDataset().getDatastore().getBase() + '/'
+                + this.setPathParams(config.getDataset().getResource(), config.getDataset().getHasPathParams(), params);
     }
 
     public String setPathParams(String resource, boolean hasPathParams, Map<String, String> params) {
@@ -108,25 +129,40 @@ public class RestService {
             return resource;
         }
 
+        return replaceAll(resource, pathPattern, params);
+    }
+
+    public Map<String, String> updateParamsFromRecord(final Map<String, String> params, final Record record) {
+        Map<String, String> updated = new HashMap<>();
+        params.forEach((k, v) -> updated.put(k, updateParamFromRecord(v, record)));
+
+        return updated;
+    }
+
+    private String updateParamFromRecord(String param, final Record record) {
+        return replaceAll(param, queryPattern, RecordToMap(record));
+    }
+
+    private String replaceAll(String input, final Pattern search, Map<String, String> params) {
         // Find parameters
         final List<String> found = new ArrayList<>();
-        Matcher matcher = pathPattern.matcher(resource);
+        Matcher matcher = search.matcher(input);
 
         while (matcher.find()) {
             found.add(matcher.group());
         }
 
         for (String param : found) {
-            String name = param.substring(1).substring(0, param.length() - 2);
+            String name = param.substring(2).substring(0, param.length() - 3);
             if (!params.containsKey(name)) {
-                throw new RuntimeException("No value found for path param " + param);
+                throw new RuntimeException("No value found for " + param);
             }
 
             // We have to transform {name} to \{name\} and then replace all occurences with desired value
-            resource = resource.replaceAll("\\" + param.substring(0, param.length() - 1) + "\\}", params.get(name));
+            input = input.replace(param, params.get(name));
         }
 
-        return resource;
+        return input;
     }
 
     private boolean isSuccess(int code) {
@@ -187,6 +223,29 @@ public class RestService {
         }
 
         return builder.build();
+    }
+
+    private static Map<String, String> RecordToMap(Record record) {
+        Map<String, String> recordAsMap = new HashMap<>();
+        Set<String> keys = record.getSchema().getEntries().stream().map(Schema.Entry::getName).collect(toSet());
+
+        for (Schema.Entry e : record.getSchema().getEntries()) {
+            String value = "undefined";
+            switch (e.getType()) {
+            case RECORD:
+                // value = record.
+                break;
+            case ARRAY:
+                break;
+            case DATETIME:
+                break;
+            default:
+                value = record.getString(e.getName());
+            }
+            recordAsMap.put(e.getName(), value);
+        }
+
+        return recordAsMap;
     }
 
 }
