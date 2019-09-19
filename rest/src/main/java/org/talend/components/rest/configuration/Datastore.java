@@ -13,8 +13,10 @@
 package org.talend.components.rest.configuration;
 
 import lombok.Data;
+import org.talend.components.rest.service.RestService;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Pattern;
@@ -30,6 +32,7 @@ import java.io.Serializable;
 @Version(1)
 @Data
 @DataStore("Datastore")
+@Checkable(RestService.HEALTHCHECK)
 @Documentation("Define where is the REST API and its description.")
 @OptionsOrder({ "base" })
 public class Datastore implements Serializable {

@@ -37,6 +37,7 @@
         <module>salesforce</module>
         <module>couchbase</module>
         <module>azure</module>
+        <module>rest</module>
         <!-- disable eventhubs build before all ready
         <module>azure-eventhubs</module> 
         -->
@@ -219,7 +220,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.8</version>
+            <version>1.18.10</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

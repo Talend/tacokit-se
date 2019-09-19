@@ -21,12 +21,14 @@ import org.talend.sdk.component.api.meta.Documentation;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
 @AllArgsConstructor
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "accessTokeUrl" }), @GridLayout.Row({ "username" }),
         @GridLayout.Row({ "password" }), @GridLayout.Row({ "clientId" }), @GridLayout.Row({ "clientSecret" }),
         @GridLayout.Row({ "scopes" }), })
-public class PasswordGrant {
+public class PasswordGrant implements Serializable {
 
     @Option
     @Pattern("^(http|https)://")

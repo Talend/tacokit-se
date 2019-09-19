@@ -14,15 +14,23 @@ package org.talend.components.rest.service;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.rest.configuration.Datastore;
 import org.talend.components.rest.configuration.RequestBody;
 import org.talend.components.rest.configuration.RequestConfig;
+import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
+import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import javax.json.JsonObject;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,6 +46,8 @@ import static java.util.stream.Collectors.toSet;
 @Data
 @Service
 public class RestService {
+
+    public final static String HEALTHCHECK = "healthcheck";
 
     /*
      * private final static int[] REDIRECT_CODES = new int[]{HttpURLConnection.HTTP_MOVED_TEMP, HttpURLConnection.HTTP_MOVED_PERM,
@@ -56,7 +66,7 @@ public class RestService {
     // Pattern to retrieve {xxxx} in a non-greddy way
     private final Pattern pathPattern = Pattern.compile("\\{.+?\\}");
 
-    private final Pattern queryPattern = Pattern.compile("$\\{.+?\\}");
+    private final Pattern queryPattern = Pattern.compile("\\$\\{.+?\\}");
 
     public Record execute(final RequestConfig config, final Record record) {
         return execute(config, record);
@@ -129,7 +139,7 @@ public class RestService {
             return resource;
         }
 
-        return replaceAll(resource, pathPattern, params);
+        return replaceAll(resource, pathPattern, 1, params);
     }
 
     public Map<String, String> updateParamsFromRecord(final Map<String, String> params, final Record record) {
@@ -140,10 +150,10 @@ public class RestService {
     }
 
     private String updateParamFromRecord(String param, final Record record) {
-        return replaceAll(param, queryPattern, RecordToMap(record));
+        return replaceAll(param, queryPattern, 2, RecordToMap(record));
     }
 
-    private String replaceAll(String input, final Pattern search, Map<String, String> params) {
+    private String replaceAll(String input, final Pattern search, final int substrStart, Map<String, String> params) {
         // Find parameters
         final List<String> found = new ArrayList<>();
         Matcher matcher = search.matcher(input);
@@ -153,20 +163,18 @@ public class RestService {
         }
 
         for (String param : found) {
-            String name = param.substring(2).substring(0, param.length() - 3);
-            if (!params.containsKey(name)) {
-                throw new RuntimeException("No value found for " + param);
+            String name = param.substring(substrStart).substring(0, param.length() - substrStart - 1);
+            if (params.containsKey(name)) {
+                // We have to transform {name} to \{name\} and then replace all occurences with desired value
+                input = input.replace(param, params.get(name));
             }
-
-            // We have to transform {name} to \{name\} and then replace all occurences with desired value
-            input = input.replace(param, params.get(name));
         }
 
         return input;
     }
 
     private boolean isSuccess(int code) {
-        return code == sun.net.www.protocol.http.HttpURLConnection.HTTP_OK;
+        return code == HttpURLConnection.HTTP_OK;
     }
 
     private Record buildRecord(Response<JsonObject> resp) {
@@ -233,19 +241,57 @@ public class RestService {
             String value = "undefined";
             switch (e.getType()) {
             case RECORD:
-                // value = record.
-                break;
+                // Maybe convert to json
+                throw new RuntimeException("Unsuported");
             case ARRAY:
+                // Maybe convert to string
+                throw new RuntimeException("Unsuported");
+            case STRING:
+                value = record.getString(e.getName());
+                break;
+            case BYTES:
+                value = new String(record.getBytes(e.getName()));
+                break;
+            case INT:
+                value = "" + record.getInt(e.getName());
+                break;
+            case LONG:
+                value = "" + record.getLong(e.getName());
+                break;
+            case FLOAT:
+                value = "" + record.getFloat(e.getName());
+                break;
+            case DOUBLE:
+                value = "" + record.getDouble(e.getName());
+                break;
+            case BOOLEAN:
+                value = "" + record.getBoolean(e.getName());
                 break;
             case DATETIME:
                 break;
             default:
-                value = record.getString(e.getName());
+                throw new RuntimeException("Unknown type");
             }
             recordAsMap.put(e.getName(), value);
         }
 
         return recordAsMap;
+    }
+
+    @HealthCheck(HEALTHCHECK)
+    public HealthCheckStatus healthCheck(@Option final Datastore datastore) {
+        try {
+            HttpURLConnection conn = (HttpURLConnection) new URL(datastore.getBase()).openConnection();
+            conn.setRequestMethod("HEAD");
+            if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                return new HealthCheckStatus(HealthCheckStatus.Status.OK, "url is accessible");
+            }
+
+        } catch (IOException e) {
+            // do nothing
+        }
+
+        return new HealthCheckStatus(HealthCheckStatus.Status.KO, "Can't access url");
     }
 
 }
