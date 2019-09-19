@@ -22,6 +22,16 @@
             <groupId>org.talend.apimgmt.common</groupId>
             <artifactId>tadt-definitions.translator</artifactId>
             <version>7.2.5</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.json</groupId>
+                    <artifactId>javax.json-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.glassfish</groupId>
+                    <artifactId>javax.json</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- Testing -->
         <dependency>

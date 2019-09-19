@@ -67,14 +67,14 @@ public class Dataset implements Serializable {
     @Option
     @Required
     @Documentation("")
-    @DefaultValue("100")
+    @DefaultValue("500")
     private Integer connectionTimeout;
 
     @Min(0)
     @Option
     @Required
     @Documentation("")
-    @DefaultValue("100")
+    @DefaultValue("500")
     private Integer readTimeout;
 
     @Option

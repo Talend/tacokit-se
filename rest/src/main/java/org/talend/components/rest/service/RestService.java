@@ -69,7 +69,7 @@ public class RestService {
     private final Pattern queryPattern = Pattern.compile("\\$\\{.+?\\}");
 
     public Record execute(final RequestConfig config, final Record record) {
-        return execute(config, record);
+        return _execute(config, record);
     }
 
     public Record execute(final RequestConfig config) {
