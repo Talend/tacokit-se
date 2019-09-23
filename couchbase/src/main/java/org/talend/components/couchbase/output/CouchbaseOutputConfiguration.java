@@ -22,19 +22,18 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
-import org.talend.sdk.component.api.configuration.ui.widget.Code;
-import org.talend.sdk.component.api.configuration.ui.widget.TextArea;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
 
 @Version(1)
 @Data
-@GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataSet" }), @GridLayout.Row({ "idFieldName" }), //
-        @GridLayout.Row({ "useN1QLQuery" }), //
-        @GridLayout.Row({ "query" }), //
-        @GridLayout.Row({ "queryParams" }), //
-        }), @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataSet" }) }) })
+@GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataSet" }), @GridLayout.Row({ "idFieldName", "partialUpdate" }), }),
+                     @GridLayout.Row({ "useN1QLQuery" }), //
+                     @GridLayout.Row({ "query" }), //
+                     @GridLayout.Row({ "queryParams" }), //
+             }),
+                     @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataSet" }) }) })
 @Documentation("Couchbase output configuration")
 public class CouchbaseOutputConfiguration implements Serializable {
 
@@ -50,6 +49,11 @@ public class CouchbaseOutputConfiguration implements Serializable {
     @Documentation("Field to use as ID")
     @ActiveIf(target = "useN1QLQuery", value = "false")
     private String idFieldName;
+
+    @Option
+    @Documentation("Do a partial update of document")
+    private boolean partialUpdate;
+
 
     @Option
     @TextArea

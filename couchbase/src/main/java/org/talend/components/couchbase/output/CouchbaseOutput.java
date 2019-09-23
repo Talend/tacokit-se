@@ -40,6 +40,12 @@ import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.query.N1qlQuery;
 import com.couchbase.client.java.query.N1qlQueryResult;
+import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.Cluster;
+import com.couchbase.client.java.document.JsonDocument;
+import com.couchbase.client.java.document.json.JsonArray;
+import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.subdoc.MutateInBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -89,14 +95,24 @@ public class CouchbaseOutput implements Serializable {
                 throw new RuntimeException(errors);
             }
         } else {
+        if (configuration.isPartialUpdate()) {
+            updatePartiallyDocument(record);
+        } else {
             bucket.upsert(toJsonDocument(idFieldName, record));
-        }
+        }}
     }
 
     @PreDestroy
     public void release() {
         service.closeBucket(bucket);
         service.closeConnection(configuration.getDataSet().getDatastore());
+    }
+
+    private void updatePartiallyDocument(Record record) {
+        final MutateInBuilder[] mutateBuilder = { bucket.mutateIn(record.getString(idFieldName)) };
+        record.getSchema().getEntries().stream().filter(e -> !idFieldName.equals(e.getName()))
+                .forEach(e -> mutateBuilder[0] = mutateBuilder[0].upsert(e.getName(), jsonValueFromRecordValue(e, record)));
+        mutateBuilder[0].execute();
     }
 
     private Object jsonValueFromRecordValue(Schema.Entry entry, Record record) {
