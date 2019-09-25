@@ -66,6 +66,6 @@ public class UIActionService {
         for (String s : service.filesystemList(connection)) {
             items.add(new SuggestionValues.Item(s, s));
         }
-        return new SuggestionValues(true, items);
+        return new SuggestionValues(false, items);
     }
 }
