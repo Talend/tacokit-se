@@ -43,7 +43,6 @@
         <parquet.version>1.10.1</parquet.version>
         <hadoop.version>3.2.0</hadoop.version>
         <excel.streamer.version>2.1.0</excel.streamer.version>
-        <mockito.version>2.23.0</mockito.version>
     </properties>
 
     <dependencies>
@@ -116,12 +115,6 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-azure</artifactId>
             <version>${hadoop.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-junit-jupiter</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
