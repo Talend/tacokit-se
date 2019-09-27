@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Queue;
 
 @Version(1)
-@Icon(value = Icon.IconType.CUSTOM, custom = "Http")
+@Icon(value = Icon.IconType.CUSTOM, custom = "talend-rest")
 @Emitter(name = "Input")
 @Documentation("Http REST Input component")
 public class RestEmitter implements Serializable {

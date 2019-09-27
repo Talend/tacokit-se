@@ -40,7 +40,7 @@ import java.util.List;
 @Getter
 @Version
 @Processor(name = "Output")
-@Icon(value = Icon.IconType.CUSTOM, custom = "Http")
+@Icon(value = Icon.IconType.CUSTOM, custom = "talend-rest")
 @Documentation("Http REST Output component")
 public class RestOutput implements Serializable {
 

@@ -272,6 +272,18 @@ class ClientTest {
         assertEquals("ok", payload.getJsonObject("args").getString("redirect"));
     }
 
+    @Test
+    void testDigestAuth() {
+        Authentication auth = new Authentication();
+        auth.setType(Authorization.AuthorizationType.Digest);
+
+        config.getDataset().setAuthentication(auth);
+        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().setResource("/digest-auth/qop-value/user-value/pwd-value");
+
+        Record resp = service.execute(config);
+    }
+
     /*
      * @Test
      * void testReadStreaming() throws Exception {

@@ -88,10 +88,8 @@ class RestInputTest {
         config.getDataset().setMethodType(HttpMethod.GET);
 
         config.getDataset().setHasQueryParams(true);
-        config.getDataset().setQueryParams(Arrays.asList(
-                new Param("param1", "param1_value"),
-                new Param("param2", "param1_value2")
-        ));
+        config.getDataset()
+                .setQueryParams(Arrays.asList(new Param("param1", "param1_value"), new Param("param2", "param1_value2")));
 
         final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
 
@@ -107,7 +105,8 @@ class RestInputTest {
         final List<Record> records = components.getCollectedData(Record.class);
 
         assertEquals(1, records.size());
-        assertEquals("{\"args\":{\"param1\":\"param1_value\",\"param2\":\"param1_value2\"},\"headers\":{\"Accept\":\"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2\",\"Connection\":\"keep-alive\",\"Host\":\"tal-rd22.talend.lan:8084\",\"User-Agent\":\"Java/11.0.2\"},\"origin\":\"192.168.61.179\",\"url\":\"http://tal-rd22.talend.lan:8084/get?param1=param1_value&param2=param1_value2\"}",
+        assertEquals(
+                "{\"args\":{\"param1\":\"param1_value\",\"param2\":\"param1_value2\"},\"headers\":{\"Accept\":\"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2\",\"Connection\":\"keep-alive\",\"Host\":\"tal-rd22.talend.lan:8084\",\"User-Agent\":\"Java/11.0.2\"},\"origin\":\"192.168.61.179\",\"url\":\"http://tal-rd22.talend.lan:8084/get?param1=param1_value&param2=param1_value2\"}",
                 records.get(0).getString("body"));
     }
 

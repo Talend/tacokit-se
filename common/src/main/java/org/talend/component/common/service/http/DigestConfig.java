@@ -10,21 +10,8 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.rest.configuration.auth;
+package org.talend.component.common.service.http;
 
-public interface Authorization {
-
-    /**
-     * @return The basic Authorization header value `Basic LFKFIGTBGKG`
-     */
-    String getAuthorizationHeader();
-
-    enum AuthorizationType {
-        NoAuth,
-        Basic,
-        Digest,
-        Bearer,
-        Oauth2,
-    }
+public class DigestConfig {
 
 }

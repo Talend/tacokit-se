@@ -14,9 +14,11 @@ package org.talend.components.rest.service;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.talend.component.common.service.http.UserNamePassword;
 import org.talend.components.rest.configuration.Datastore;
 import org.talend.components.rest.configuration.RequestBody;
 import org.talend.components.rest.configuration.RequestConfig;
+import org.talend.components.rest.configuration.auth.Authorization;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -29,7 +31,6 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import javax.json.JsonObject;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -78,19 +79,22 @@ public class RestService {
 
     private Record _execute(final RequestConfig config, final Record record) {
         log.info("Execute");
-        Map<String, String> headers = config.headers();
-        Map<String, String> queryParams = config.queryParams();
-        Map<String, String> pathParams = config.pathParams();
+        final Map<String, String> headers = updateParamsFromRecord(config.headers(), record);
+        final Map<String, String> queryParams = updateParamsFromRecord(config.queryParams(), record);
+        final Map<String, String> pathParams = updateParamsFromRecord(config.pathParams(), record);
         RequestBody body = config.body();
 
-        if (record != null) {
-            headers = updateParamsFromRecord(headers, record);
-            queryParams = updateParamsFromRecord(queryParams, record);
-            pathParams = updateParamsFromRecord(pathParams, record);
+        Response<JsonObject> resp = null;
+        if(config.getDataset().getAuthentication().getType() == Authorization.AuthorizationType.Digest){
+            DigestAuthService das = new DigestAuthService();
+            das.call(new UserNamePassword(config.getDataset().getAuthentication().getBasic().getUsername(), config.getDataset().getAuthentication().getBasic().getPassword()),() -> client.executeWithDigestAuth(config, client, config.getDataset().getMethodType().name(),
+                    this.buildUrl(config, pathParams), headers, queryParams, body));
+        }
+        else {
+            resp = client.execute(config, client, config.getDataset().getMethodType().name(),
+                    this.buildUrl(config, pathParams), headers, queryParams, body);
         }
 
-        Response<JsonObject> resp = client.execute(config, client, config.getDataset().getMethodType().name(),
-                this.buildUrl(config, pathParams), headers, queryParams, body);
         return this.handleResponse(resp, config);
     }
 
@@ -150,6 +154,10 @@ public class RestService {
     }
 
     private String updateParamFromRecord(String param, final Record record) {
+        if(record == null){
+            return param;
+        }
+
         return replaceAll(param, queryPattern, 2, RecordToMap(record));
     }
 

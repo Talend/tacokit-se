@@ -14,14 +14,15 @@ package org.talend.components.rest.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.rest.configuration.RequestConfig;
-import org.talend.sdk.component.api.service.http.configurer.oauth1.OAuth1;
+import org.talend.sdk.component.api.service.http.Configurer;
 
 @Slf4j
-public class RequestConfigurer extends OAuth1.Configurer {
+public class SimpleAuthConfigurer implements Configurer {
 
     @Override
     public void configure(final Connection connection, final ConfigurerConfiguration configuration) {
         final RequestConfig config = configuration.get("configuration", RequestConfig.class);
+        final Client client = configuration.get("httpClient", Client.class);
 
         if (config.getDataset().getConnectionTimeout() != null) {
             connection.withConnectionTimeout(config.getDataset().getConnectionTimeout());
@@ -31,12 +32,12 @@ public class RequestConfigurer extends OAuth1.Configurer {
         }
 
         switch (config.getDataset().getAuthentication().getType()) {
-        case Basic:
-            connection.withHeader("Authorization", config.getDataset().getAuthentication().getBasic().getAuthorizationHeader());
-            break;
-        case Bearer:
-            connection.withHeader("Authorization", "Bearer " + config.getDataset().getAuthentication().getBearerToken());
-            break;
+            case Basic:
+                connection.withHeader("Authorization", config.getDataset().getAuthentication().getBasic().getAuthorizationHeader());
+                break;
+            case Bearer:
+                connection.withHeader("Authorization", "Bearer " + config.getDataset().getAuthentication().getBearerToken());
+                break;
         }
 
     }
