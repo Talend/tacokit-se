@@ -83,7 +83,6 @@ public class AdlsGen2Output implements Serializable {
 
     @ElementListener
     public void onNext(@Input final Record record) {
-        log.debug("[onNext] record: {} - {}", record, record == null ? "" : record.getSchema());
         // skip empty record
         if (record != null && record.getSchema().getEntries().isEmpty()) {
             log.info("[onNext] Skipping empty record.");
