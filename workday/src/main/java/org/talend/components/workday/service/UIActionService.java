@@ -7,14 +7,12 @@ import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 
-import java.io.Serializable;
-
 import static org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status.KO;
 import static org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status.OK;
 
 @Slf4j
 @Service
-public class UIActionService implements Serializable {
+public class UIActionService {
 
     public static final String HEALTH_CHECK = "WORKDAY_HEALTH_CHECK";
 
@@ -30,11 +28,10 @@ public class UIActionService implements Serializable {
     public HealthCheckStatus validateConnection(@Option final WorkdayDataStore dataStore) {
         try {
             service.getAccessToken(dataStore);
+            return new HealthCheckStatus(OK, i18n.healthCheckOk());
         }
         catch (Exception e) {
-
             return new HealthCheckStatus(KO, i18n.healthCheckFailed("msg", e.getMessage()));
         }
-        return new HealthCheckStatus(OK, i18n.healthCheckOk());
     }
 }
