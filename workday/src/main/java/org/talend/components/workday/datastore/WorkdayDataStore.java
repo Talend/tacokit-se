@@ -58,7 +58,7 @@ public class WorkdayDataStore implements Serializable {
     public String getAuthorizationHeader() {
         final String idSecret = this.clientId + ':' + this.clientSecret;
         final String idForHeader = Base64.getEncoder().encodeToString(idSecret.getBytes());
-        return "Basic ID " + idForHeader;
+        return "Basic " + idForHeader;
     }
 
     public void addAuthorizeHeader(BiConsumer<String, String> headerFunction) {

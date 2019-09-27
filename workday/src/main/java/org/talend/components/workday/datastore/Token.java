@@ -16,7 +16,7 @@ public class Token {
 
     private final Instant expireDate;
 
-    public void addHeader(BiConsumer<String, String> headerPutFunction) {
-        headerPutFunction.accept("Authorization", tokenType + ' ' + accessToken);
+    public String getAuthorizationHeaderValue() {
+        return tokenType + ' ' + accessToken;
     }
 }
