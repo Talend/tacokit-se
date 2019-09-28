@@ -1,5 +1,18 @@
+/*
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.talend.components.rest.service;
 
+import org.talend.component.common.service.http.BasicHeader;
 import org.talend.component.common.service.http.DigestAuthContext;
 import org.talend.component.common.service.http.DigestScheme;
 import org.talend.component.common.service.http.UserNamePassword;
@@ -28,7 +41,7 @@ public class DigestAuthService {
                     status = resp.status();
                     headers = resp.headers();
                 }
-                //return response;
+                // return response;
             } catch (final HttpException he) {
                 response = he.getResponse();
                 status = response.status();
@@ -40,16 +53,19 @@ public class DigestAuthService {
                 List<String> lwa = Optional.ofNullable(headers.get("WWW-Authenticate")).orElse(Collections.emptyList());
                 if (lwa.size() >= 0) {
                     // if WWW-Authenticate exists
+                    BasicHeader authChallenge = new BasicHeader("WWW-Authenticate", lwa.get(0));
                     DigestScheme scheme = new DigestScheme();
-                    scheme.initPreemptive(cred.getUser(), cred.getPassword(), );
-                    String digest = scheme.ge "authent"; // compute header
                     DigestAuthContext threadLocalContext = DigestAuthContext.getThreadLocalContext();
+                    String digest = scheme.createDigestResponse(cred.getUser(), cred.getPassword(), authChallenge,
+                            threadLocalContext); // compute header
                     threadLocalContext.setDigestAuthHeader(digest);
 
                     response = call.get();
 
                 }
             }
+        } catch (DigestScheme.AuthenticationException e) {
+            throw new RuntimeException(e.getMessage(), e);
         } finally {
             DigestAuthContext.removeThreadLocalContext();
         }

@@ -27,7 +27,7 @@ import org.talend.sdk.component.api.service.http.UseConfigurer;
 import javax.json.JsonObject;
 import java.util.Map;
 
-public interface Client extends HttpClient{
+public interface Client extends HttpClient {
 
     @Request
     @UseConfigurer(SimpleAuthConfigurer.class)
@@ -39,8 +39,8 @@ public interface Client extends HttpClient{
     @Request
     @UseConfigurer(DigestAuthConfigurer.class)
     Response<JsonObject> executeWithDigestAuth(@ConfigurerOption("configuration") RequestConfig config,
-                                 @ConfigurerOption("httpClient") Client httpClient, // Needed to do intermediate call for example to get oauth token
-                                 @HttpMethod String httpMethod, @Url String url, @Headers Map<String, String> headers,
-                                 @QueryParams() Map<String, String> queryParams, RequestBody body);
+            @ConfigurerOption("httpClient") Client httpClient, // Needed to do intermediate call for example to get oauth token
+            @HttpMethod String httpMethod, @Url String url, @Headers Map<String, String> headers,
+            @QueryParams() Map<String, String> queryParams, RequestBody body);
 
 }

@@ -13,8 +13,10 @@
 package org.talend.component.common.service.http;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -138,7 +140,17 @@ public class BasicHeaderValueParser {
         return new BasicHeaderElement(name, value, params);
     }
 
-    public static NameValuePair[] parseParameters(final BasicHeader header, BasicHeaderValueParser parser) {
+    public static Map<String, NameValuePair> parseParametersAsMap(final BasicHeader header, final BasicHeaderValueParser parser) {
+        NameValuePair[] pairs = parseParameters(header, parser);
+        Map<String, NameValuePair> map = new HashMap<>();
+        for (NameValuePair p : pairs) {
+            map.put(p.getName(), p);
+        }
+
+        return map;
+    }
+
+    public static NameValuePair[] parseParameters(final BasicHeader header, final BasicHeaderValueParser parser) {
 
         NameValuePair wwwAuthenticateType = null;
         String value = header.getValue().trim();

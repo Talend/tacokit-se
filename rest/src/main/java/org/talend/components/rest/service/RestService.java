@@ -85,14 +85,16 @@ public class RestService {
         RequestBody body = config.body();
 
         Response<JsonObject> resp = null;
-        if(config.getDataset().getAuthentication().getType() == Authorization.AuthorizationType.Digest){
+        if (config.getDataset().getAuthentication().getType() == Authorization.AuthorizationType.Digest) {
             DigestAuthService das = new DigestAuthService();
-            das.call(new UserNamePassword(config.getDataset().getAuthentication().getBasic().getUsername(), config.getDataset().getAuthentication().getBasic().getPassword()),() -> client.executeWithDigestAuth(config, client, config.getDataset().getMethodType().name(),
-                    this.buildUrl(config, pathParams), headers, queryParams, body));
-        }
-        else {
-            resp = client.execute(config, client, config.getDataset().getMethodType().name(),
-                    this.buildUrl(config, pathParams), headers, queryParams, body);
+            resp = das.call(
+                    new UserNamePassword(config.getDataset().getAuthentication().getBasic().getUsername(),
+                            config.getDataset().getAuthentication().getBasic().getPassword()),
+                    () -> client.executeWithDigestAuth(config, client, config.getDataset().getMethodType().name(),
+                            this.buildUrl(config, pathParams), headers, queryParams, body));
+        } else {
+            resp = client.execute(config, client, config.getDataset().getMethodType().name(), this.buildUrl(config, pathParams),
+                    headers, queryParams, body);
         }
 
         return this.handleResponse(resp, config);
@@ -154,7 +156,7 @@ public class RestService {
     }
 
     private String updateParamFromRecord(String param, final Record record) {
-        if(record == null){
+        if (record == null) {
             return param;
         }
 

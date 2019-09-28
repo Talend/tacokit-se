@@ -43,6 +43,7 @@
         -->
         <module>azure-dls-gen2</module>
         <module>marketo</module>
+        <module>common</module>
     </modules>
 
     <scm>

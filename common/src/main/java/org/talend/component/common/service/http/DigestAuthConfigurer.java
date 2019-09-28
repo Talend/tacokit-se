@@ -27,7 +27,7 @@ public class DigestAuthConfigurer implements Configurer {
         try {
             URI uri = new URI(connection.getUrl());
             DigestAuthContext context = Optional.ofNullable(DigestAuthContext.getThreadLocalContext())
-                    .orElse(new DigestAuthContext(uri.toString(), connection.getMethod(), uri.getHost(), uri.getPort(),
+                    .orElse(new DigestAuthContext(uri.getPath(), connection.getMethod(), uri.getHost(), uri.getPort(),
                             connection.getPayload()));
 
             DigestAuthContext.setThreadLocalContext(context);

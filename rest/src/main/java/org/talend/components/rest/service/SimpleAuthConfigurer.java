@@ -32,12 +32,12 @@ public class SimpleAuthConfigurer implements Configurer {
         }
 
         switch (config.getDataset().getAuthentication().getType()) {
-            case Basic:
-                connection.withHeader("Authorization", config.getDataset().getAuthentication().getBasic().getAuthorizationHeader());
-                break;
-            case Bearer:
-                connection.withHeader("Authorization", "Bearer " + config.getDataset().getAuthentication().getBearerToken());
-                break;
+        case Basic:
+            connection.withHeader("Authorization", config.getDataset().getAuthentication().getBasic().getAuthorizationHeader());
+            break;
+        case Bearer:
+            connection.withHeader("Authorization", "Bearer " + config.getDataset().getAuthentication().getBearerToken());
+            break;
         }
 
     }

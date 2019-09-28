@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.StringTokenizer;
 
@@ -91,12 +92,14 @@ public class DigestScheme {
         this.complete = false;
     }
 
-   /* public void initPreemptive(final String username, final String password, final String cnonce, final String realm) {
-        this.username = username;
-        this.password = password.toCharArray();
-        this.paramMap.put("cnonce", cnonce);
-        this.paramMap.put("realm", realm);
-    }*/
+    /*
+     * public void initPreemptive(final String username, final String password, final String cnonce, final String realm) {
+     * this.username = username;
+     * this.password = password.toCharArray();
+     * this.paramMap.put("cnonce", cnonce);
+     * this.paramMap.put("realm", realm);
+     * }
+     */
 
     public String getName() {
         return "digest";
@@ -138,10 +141,10 @@ public class DigestScheme {
      * final HttpHost host,
      * final CredentialsProvider credentialsProvider,
      * final HttpContext context) throws AuthenticationException {
-     * 
+     *
      * Args.notNull(host, "Auth host");
      * Args.notNull(credentialsProvider, "CredentialsProvider");
-     * 
+     *
      * final Credentials credentials = credentialsProvider.getCredentials(
      * new AuthScope(host, getRealm(), getName()), context);
      * if (credentials != null) {
@@ -164,7 +167,7 @@ public class DigestScheme {
      * final HttpHost host,
      * final HttpRequest request,
      * final HttpContext context) throws AuthenticationException {
-     * 
+     *
      * if (this.paramMap.get("realm") == null) {
      * throw new AuthenticationException("missing realm");
      * }
@@ -183,14 +186,23 @@ public class DigestScheme {
         }
     }
 
-    private String createDigestResponse(final String username, final String password, final DigestAuthContext context) throws AuthenticationException {
+    public String createDigestResponse(final String username, final String password, final BasicHeader authChallenge,
+            final DigestAuthContext context) throws AuthenticationException {
+        Map<String, NameValuePair> pairs = BasicHeaderValueParser.parseParametersAsMap(authChallenge,
+                new BasicHeaderValueParser());
+
+        pairs.entrySet().forEach(k -> this.paramMap.put(k.getKey(), k.getValue().getValue()));
 
         final String uri = context.getUri();
         final String method = context.getMethod();
-        final String realm = this.paramMap.get("realm");
-        final String nonce = this.paramMap.get("nonce");
-        final String opaque = this.paramMap.get("opaque");
-        String algorithm = this.paramMap.get("algorithm");
+        final String realm = Optional.ofNullable(pairs.get("realm").getValue())
+                .orElseThrow(() -> new AuthenticationException("No realm value in digest authentication challenge."));
+        final String nonce = Optional.ofNullable(pairs.get("nonce").getValue())
+                .orElse("No nonce value in digest authentication challenge.");
+        final String opaque = Optional.ofNullable(pairs.get("opaque").getValue())
+                .orElse("No opaque value in digest authentication challenge.");
+        String algorithm = Optional.ofNullable(pairs.get("algorithm").getValue())
+                .orElse("No algorithm value in digest authentication challenge.");
         // If an algorithm is not specified, default to MD5.
         if (algorithm == null) {
             algorithm = "MD5";

@@ -79,7 +79,7 @@ class ClientTest {
 
         config = RequestConfigBuilder.getEmptyRequestConfig();
 
-        config.getDataset().getDatastore().setBase(HTTP_BIN_BASE);
+        config.getDataset().getDatastore().setBase(HTTP_BIN_BASE_LATEST);
         config.getDataset().setConnectionTimeout(5000);
         config.getDataset().setReadTimeout(5000);
     }
@@ -274,14 +274,24 @@ class ClientTest {
 
     @Test
     void testDigestAuth() {
+        String user = "my_user";
+        String pwd = "my_password";
+        String qop = "auth-int";
+
+        Basic basic = new Basic();
+        basic.setUsername(user);
+        basic.setPassword(pwd);
+
         Authentication auth = new Authentication();
         auth.setType(Authorization.AuthorizationType.Digest);
+        auth.setBasic(basic);
 
         config.getDataset().setAuthentication(auth);
         config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setResource("/digest-auth/qop-value/user-value/pwd-value");
+        config.getDataset().setResource("digest-auth/"+qop+"/"+user+"/"+pwd);
 
         Record resp = service.execute(config);
+        assertEquals(200, resp.getInt("status"));
     }
 
     /*
