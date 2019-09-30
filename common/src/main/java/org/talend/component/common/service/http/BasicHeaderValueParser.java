@@ -42,8 +42,6 @@ public class BasicHeaderValueParser {
 
     private final static char[] ALL_DELIMITERS = new char[] { PARAM_DELIMITER, ELEM_DELIMITER };
 
-    // public default constructor
-
     /**
      * Parses elements with the given parser.
      *
@@ -51,7 +49,8 @@ public class BasicHeaderValueParser {
      * @param parser the parser to use, or <code>null</code> for default
      * @return array holding the header elements, never <code>null</code>
      */
-    public final static HeaderElement[] parseElements(final String value, BasicHeaderValueParser parser) throws ParseException {
+    public final static BasicHeaderElement[] parseElements(final String value, BasicHeaderValueParser parser)
+            throws ParseException {
 
         if (value == null) {
             throw new IllegalArgumentException("Value to parse may not be null");
@@ -67,7 +66,7 @@ public class BasicHeaderValueParser {
     }
 
     // non-javadoc, see interface HeaderValueParser
-    public HeaderElement[] parseElements(final CharArrayBuffer buffer, final ParserCursor cursor) {
+    public BasicHeaderElement[] parseElements(final CharArrayBuffer buffer, final ParserCursor cursor) {
 
         if (buffer == null) {
             throw new IllegalArgumentException("Char array buffer may not be null");
@@ -78,39 +77,16 @@ public class BasicHeaderValueParser {
 
         List elements = new ArrayList();
         while (!cursor.atEnd()) {
-            HeaderElement element = parseHeaderElement(buffer, cursor);
+            BasicHeaderElement element = parseHeaderElement(buffer, cursor);
             if (!(element.getName().length() == 0 && element.getValue() == null)) {
                 elements.add(element);
             }
         }
-        return (HeaderElement[]) elements.toArray(new HeaderElement[elements.size()]);
-    }
-
-    /**
-     * Parses an element with the given parser.
-     *
-     * @param value the header element to parse
-     * @param parser the parser to use, or <code>null</code> for default
-     * @return the parsed header element
-     */
-    public final static HeaderElement parseHeaderElement(final String value, BasicHeaderValueParser parser)
-            throws ParseException {
-
-        if (value == null) {
-            throw new IllegalArgumentException("Value to parse may not be null");
-        }
-
-        if (parser == null)
-            parser = BasicHeaderValueParser.DEFAULT;
-
-        CharArrayBuffer buffer = new CharArrayBuffer(value.length());
-        buffer.append(value);
-        ParserCursor cursor = new ParserCursor(0, value.length());
-        return parser.parseHeaderElement(buffer, cursor);
+        return (BasicHeaderElement[]) elements.toArray(new BasicHeaderElement[elements.size()]);
     }
 
     // non-javadoc, see interface HeaderValueParser
-    public HeaderElement parseHeaderElement(final CharArrayBuffer buffer, final ParserCursor cursor) {
+    public BasicHeaderElement parseHeaderElement(final CharArrayBuffer buffer, final ParserCursor cursor) {
 
         if (buffer == null) {
             throw new IllegalArgumentException("Char array buffer may not be null");
@@ -119,8 +95,8 @@ public class BasicHeaderValueParser {
             throw new IllegalArgumentException("Parser cursor may not be null");
         }
 
-        NameValuePair nvp = parseNameValuePair(buffer, cursor);
-        NameValuePair[] params = null;
+        BasicNameValuePair nvp = parseNameValuePair(buffer, cursor);
+        BasicNameValuePair[] params = null;
         if (!cursor.atEnd()) {
             char ch = buffer.charAt(cursor.getPos() - 1);
             if (ch != ELEM_DELIMITER) {
@@ -136,23 +112,24 @@ public class BasicHeaderValueParser {
      *
      * @return a header element representing the argument
      */
-    protected HeaderElement createHeaderElement(final String name, final String value, final NameValuePair[] params) {
+    protected BasicHeaderElement createHeaderElement(final String name, final String value, final BasicNameValuePair[] params) {
         return new BasicHeaderElement(name, value, params);
     }
 
-    public static Map<String, NameValuePair> parseParametersAsMap(final BasicHeader header, final BasicHeaderValueParser parser) {
-        NameValuePair[] pairs = parseParameters(header, parser);
-        Map<String, NameValuePair> map = new HashMap<>();
-        for (NameValuePair p : pairs) {
+    public static Map<String, BasicNameValuePair> parseParametersAsMap(final BasicHeader header,
+            final BasicHeaderValueParser parser) {
+        BasicNameValuePair[] pairs = parseParameters(header, parser);
+        Map<String, BasicNameValuePair> map = new HashMap<>();
+        for (BasicNameValuePair p : pairs) {
             map.put(p.getName(), p);
         }
 
         return map;
     }
 
-    public static NameValuePair[] parseParameters(final BasicHeader header, final BasicHeaderValueParser parser) {
+    public static BasicNameValuePair[] parseParameters(final BasicHeader header, final BasicHeaderValueParser parser) {
 
-        NameValuePair wwwAuthenticateType = null;
+        BasicNameValuePair wwwAuthenticateType = null;
         String value = header.getValue().trim();
 
         boolean isWWWAuthent = "WWW-Authenticate".equals(header.getName());
@@ -162,7 +139,7 @@ public class BasicHeaderValueParser {
             value = value.substring(type.get().length());
         }
 
-        NameValuePair[] nameValuePairs = parseParameters(value, parser);
+        BasicNameValuePair[] nameValuePairs = parseParameters(value, parser);
 
         if (isWWWAuthent && type.isPresent()) {
             wwwAuthenticateType = new BasicNameValuePair("WWW-Authenticate-Type", type.get());
@@ -204,7 +181,8 @@ public class BasicHeaderValueParser {
      * @param parser the parser to use, or <code>null</code> for default
      * @return array holding the parameters, never <code>null</code>
      */
-    public final static NameValuePair[] parseParameters(final String value, BasicHeaderValueParser parser) throws ParseException {
+    public final static BasicNameValuePair[] parseParameters(final String value, BasicHeaderValueParser parser)
+            throws ParseException {
 
         if (value == null) {
             throw new IllegalArgumentException("Value to parse may not be null");
@@ -220,7 +198,7 @@ public class BasicHeaderValueParser {
     }
 
     // non-javadoc, see interface HeaderValueParser
-    public NameValuePair[] parseParameters(final CharArrayBuffer buffer, final ParserCursor cursor) {
+    public BasicNameValuePair[] parseParameters(final CharArrayBuffer buffer, final ParserCursor cursor) {
 
         if (buffer == null) {
             throw new IllegalArgumentException("Char array buffer may not be null");
@@ -242,44 +220,21 @@ public class BasicHeaderValueParser {
         }
         cursor.updatePos(pos);
         if (cursor.atEnd()) {
-            return new NameValuePair[] {};
+            return new BasicNameValuePair[] {};
         }
 
         List params = new ArrayList();
         while (!cursor.atEnd()) {
-            NameValuePair param = parseNameValuePair(buffer, cursor);
+            BasicNameValuePair param = parseNameValuePair(buffer, cursor);
             params.add(param);
             char ch = buffer.charAt(cursor.getPos() - 1);
         }
 
-        return (NameValuePair[]) params.toArray(new NameValuePair[params.size()]);
-    }
-
-    /**
-     * Parses a name-value-pair with the given parser.
-     *
-     * @param value the NVP to parse
-     * @param parser the parser to use, or <code>null</code> for default
-     * @return the parsed name-value pair
-     */
-    public final static NameValuePair parseNameValuePair(final String value, BasicHeaderValueParser parser)
-            throws ParseException {
-
-        if (value == null) {
-            throw new IllegalArgumentException("Value to parse may not be null");
-        }
-
-        if (parser == null)
-            parser = BasicHeaderValueParser.DEFAULT;
-
-        CharArrayBuffer buffer = new CharArrayBuffer(value.length());
-        buffer.append(value);
-        ParserCursor cursor = new ParserCursor(0, value.length());
-        return parser.parseNameValuePair(buffer, cursor);
+        return (BasicNameValuePair[]) params.toArray(new BasicNameValuePair[params.size()]);
     }
 
     // non-javadoc, see interface HeaderValueParser
-    public NameValuePair parseNameValuePair(final CharArrayBuffer buffer, final ParserCursor cursor) {
+    public BasicNameValuePair parseNameValuePair(final CharArrayBuffer buffer, final ParserCursor cursor) {
         return parseNameValuePair(buffer, cursor, ALL_DELIMITERS);
     }
 
@@ -294,7 +249,8 @@ public class BasicHeaderValueParser {
         return false;
     }
 
-    public NameValuePair parseNameValuePair(final CharArrayBuffer buffer, final ParserCursor cursor, final char[] delimiters) {
+    public BasicNameValuePair parseNameValuePair(final CharArrayBuffer buffer, final ParserCursor cursor,
+            final char[] delimiters) {
 
         if (buffer == null) {
             throw new IllegalArgumentException("Char array buffer may not be null");
@@ -389,19 +345,12 @@ public class BasicHeaderValueParser {
      * @param value the value, or <code>null</code>
      * @return a name-value pair representing the arguments
      */
-    protected NameValuePair createNameValuePair(final String name, final String value) {
+    protected BasicNameValuePair createNameValuePair(final String name, final String value) {
         return new BasicNameValuePair(name, value);
     }
 
     public final static class ParseException extends RuntimeException {
 
-        public ParseException() {
-            super();
-        }
-
-        public ParseException(String message) {
-            super(message);
-        }
     }
 
 }

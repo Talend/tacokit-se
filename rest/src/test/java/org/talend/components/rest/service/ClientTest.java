@@ -15,6 +15,8 @@ package org.talend.components.rest.service;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestConfig;
@@ -272,11 +274,11 @@ class ClientTest {
         assertEquals("ok", payload.getJsonObject("args").getString("redirect"));
     }
 
-    @Test
-    void testDigestAuth() {
+    @ParameterizedTest
+    @CsvSource(value = { "auth-int", "auth", "unknown-qop" })
+    void testDigestAuth1(final String qop) {
         String user = "my_user";
         String pwd = "my_password";
-        String qop = "auth-int";
 
         Basic basic = new Basic();
         basic.setUsername(user);
@@ -288,10 +290,58 @@ class ClientTest {
 
         config.getDataset().setAuthentication(auth);
         config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setResource("digest-auth/"+qop+"/"+user+"/"+pwd);
+        config.getDataset().setResource("digest-auth/" + qop + "/" + user + "/" + pwd);
 
         Record resp = service.execute(config);
         assertEquals(200, resp.getInt("status"));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = { "auth-int,MD5", "auth,MD5", "unknown-qop,MD5", "auth-int,MD5-sess", "auth,MD5-sess",
+            "unknown-qop,MD5-sess", "unknown-qop,unknown-algo" })
+    void testDigestAuth2(final String qop, final String algo) {
+        String user = "my_user";
+        String pwd = "my_password";
+
+        Basic basic = new Basic();
+        basic.setUsername(user);
+        basic.setPassword(pwd);
+
+        Authentication auth = new Authentication();
+        auth.setType(Authorization.AuthorizationType.Digest);
+        auth.setBasic(basic);
+
+        config.getDataset().setAuthentication(auth);
+        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().setResource("digest-auth/" + qop + "/" + user + "/" + pwd + "/" + algo);
+
+        Record resp = service.execute(config);
+        assertEquals(200, resp.getInt("status"));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = { "auth-int,MD5,xxx", "auth,MD5,xxx", "unknown-qop,MD5,xxx", "auth-int,MD5-sess,xxxx", "auth,MD5-sess,xxx",
+            "unknown-qop,MD5-sess,xxx", "unknown-qop,unknown-algo,xxx" })
+    void testDigestAuth2(final String qop, final String algo, final String stale_after) {
+        String user = "my_user";
+        String pwd = "my_password";
+
+        Basic basic = new Basic();
+        basic.setUsername(user);
+        basic.setPassword(pwd);
+
+        Authentication auth = new Authentication();
+        auth.setType(Authorization.AuthorizationType.Digest);
+        auth.setBasic(basic);
+
+        config.getDataset().setAuthentication(auth);
+        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().setResource("digest-auth/" + qop + "/" + user + "/" + pwd + "/" + algo + "/" + stale_after);
+
+        Record resp = service.execute(config);
+        assertEquals(200, resp.getInt("status"));
+
+        assertTrue(false); // should better test authent since always success even if I set wrong values
     }
 
     /*

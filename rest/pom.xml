@@ -19,6 +19,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.talend.components</groupId>
+            <artifactId>common</artifactId>
+            <version>1.3.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>org.talend.apimgmt.common</groupId>
             <artifactId>tadt-definitions.translator</artifactId>
             <version>7.2.5</version>

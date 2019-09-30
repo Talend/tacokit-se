@@ -16,13 +16,8 @@ import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 
-/**
- * Basic implementation of {@link NameValuePair}.
- *
- * @since 4.0
- */
 @EqualsAndHashCode(of = { "name", "value" })
-public class BasicNameValuePair implements NameValuePair, Cloneable, Serializable {
+public class BasicNameValuePair implements Cloneable, Serializable {
 
     private static final long serialVersionUID = -6437800749411518984L;
 

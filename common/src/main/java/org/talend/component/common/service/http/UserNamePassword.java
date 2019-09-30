@@ -19,7 +19,6 @@ import lombok.Data;
 public class UserNamePassword {
 
     final String user;
-
     final String password;
 
 }

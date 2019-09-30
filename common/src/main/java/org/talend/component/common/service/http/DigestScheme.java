@@ -92,91 +92,9 @@ public class DigestScheme {
         this.complete = false;
     }
 
-    /*
-     * public void initPreemptive(final String username, final String password, final String cnonce, final String realm) {
-     * this.username = username;
-     * this.password = password.toCharArray();
-     * this.paramMap.put("cnonce", cnonce);
-     * this.paramMap.put("realm", realm);
-     * }
-     */
-
     public String getName() {
         return "digest";
     }
-
-    public boolean isConnectionBased() {
-        return false;
-    }
-
-    public String getRealm() {
-        return this.paramMap.get("realm");
-    }
-
-    /*
-     * public void processChallenge(
-     * final AuthChallenge authChallenge,
-     * final HttpContext context) throws MalformedChallengeException {
-     * this.paramMap.clear();
-     * final List<NameValuePair> params = authChallenge.getParams();
-     * if (params != null) {
-     * for (final NameValuePair param : params) {
-     * this.paramMap.put(param.getName().toLowerCase(Locale.ROOT), param.getValue());
-     * }
-     * }
-     * if (this.paramMap.isEmpty()) {
-     * throw new MalformedChallengeException("Missing digest auth parameters");
-     * }
-     * this.complete = true;
-     * }
-     */
-
-    public boolean isChallengeComplete() {
-        final String s = this.paramMap.get("stale");
-        return !"true".equalsIgnoreCase(s) && this.complete;
-    }
-
-    /*
-     * public boolean isResponseReady(
-     * final HttpHost host,
-     * final CredentialsProvider credentialsProvider,
-     * final HttpContext context) throws AuthenticationException {
-     *
-     * Args.notNull(host, "Auth host");
-     * Args.notNull(credentialsProvider, "CredentialsProvider");
-     *
-     * final Credentials credentials = credentialsProvider.getCredentials(
-     * new AuthScope(host, getRealm(), getName()), context);
-     * if (credentials != null) {
-     * this.username = credentials.getUserPrincipal().getName();
-     * this.password = credentials.getPassword();
-     * return true;
-     * }
-     * this.username = null;
-     * this.password = null;
-     * return false;
-     * }
-     */
-
-    public Principal getPrincipal() {
-        return null;
-    }
-
-    /*
-     * public String generateAuthResponse(
-     * final HttpHost host,
-     * final HttpRequest request,
-     * final HttpContext context) throws AuthenticationException {
-     *
-     * if (this.paramMap.get("realm") == null) {
-     * throw new AuthenticationException("missing realm");
-     * }
-     * if (this.paramMap.get("nonce") == null) {
-     * throw new AuthenticationException("missing nonce");
-     * }
-     * return createDigestResponse(request);
-     * }
-     */
 
     private static MessageDigest createMessageDigest(final String digAlg) throws UnsupportedDigestAlgorithmException {
         try {
@@ -188,7 +106,7 @@ public class DigestScheme {
 
     public String createDigestResponse(final String username, final String password, final BasicHeader authChallenge,
             final DigestAuthContext context) throws AuthenticationException {
-        Map<String, NameValuePair> pairs = BasicHeaderValueParser.parseParametersAsMap(authChallenge,
+        Map<String, BasicNameValuePair> pairs = BasicHeaderValueParser.parseParametersAsMap(authChallenge,
                 new BasicHeaderValueParser());
 
         pairs.entrySet().forEach(k -> this.paramMap.put(k.getKey(), k.getValue().getValue()));
@@ -304,21 +222,6 @@ public class DigestScheme {
             // Method ":" digest-uri-value
             a2 = buffer.append(method).append(":").append(uri).toByteArray();
         } else if (qop == QOP_AUTH_INT) {
-            // Method ":" digest-uri-value ":" H(entity-body)
-            /*
-             * final HttpEntity entity = request instanceof ClassicHttpRequest ? ((ClassicHttpRequest) request).getEntity() :
-             * null;
-             * if (entity != null && !entity.isRepeatable()) {
-             * // If the entity is not repeatable, try falling back onto QOP_AUTH
-             * if (qopset.contains("auth")) {
-             * qop = QOP_AUTH;
-             * a2 = buffer.append(method).append(":").append(uri).toByteArray();
-             * } else {
-             * throw new AuthenticationException("Qop auth-int cannot be used with " +
-             * "a non-repeatable entity");
-             * }
-             * } else {
-             */
             final HttpEntityDigester entityDigester = new HttpEntityDigester(digester);
             try {
                 if (context.hasPayload()) {
@@ -386,26 +289,6 @@ public class DigestScheme {
         return buffer.toString();
     }
 
-    private String getNonce() {
-        return lastNonce;
-    }
-
-    private long getNounceCount() {
-        return nounceCount;
-    }
-
-    private String getCnonce() {
-        return cnonce;
-    }
-
-    private String getA1() {
-        return a1 != null ? new String(a1, StandardCharsets.US_ASCII) : null;
-    }
-
-    private String getA2() {
-        return a2 != null ? new String(a2, StandardCharsets.US_ASCII) : null;
-    }
-
     /**
      * Encodes the 128 bit (16 bytes) MD5 digest into a 32 characters long
      * <CODE>String</CODE> according to RFC 2617.
@@ -459,17 +342,6 @@ public class DigestScheme {
         return getName() + this.paramMap.toString();
     }
 
-    public static class MalformedChallengeException extends Exception {
-
-        public MalformedChallengeException(final String msg) {
-            super(msg);
-        }
-
-        public MalformedChallengeException(final String msg, final Exception e) {
-            super(msg, e);
-        }
-    }
-
     public static class AuthenticationException extends Exception {
 
         public AuthenticationException(final String msg) {
@@ -487,9 +359,6 @@ public class DigestScheme {
             super(msg);
         }
 
-        public UnsupportedDigestAlgorithmException(final String msg, final Exception e) {
-            super(msg, e);
-        }
     }
 
 }

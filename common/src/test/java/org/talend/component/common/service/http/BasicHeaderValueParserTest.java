@@ -109,7 +109,7 @@ class BasicHeaderValueParserTest {
 
     private void parseHeader(final String headerName, final Map<String, String> expected, final String challenge) {
         BasicHeader authChallenge = new BasicHeader(headerName, challenge);
-        NameValuePair[] nameValuePairs = BasicHeaderValueParser.parseParameters(authChallenge, new BasicHeaderValueParser());
+        BasicNameValuePair[] nameValuePairs = BasicHeaderValueParser.parseParameters(authChallenge, new BasicHeaderValueParser());
 
         assertEquals(expected.size(), nameValuePairs.length);
         expected.entrySet().stream().forEach(k -> {
@@ -118,14 +118,14 @@ class BasicHeaderValueParserTest {
         });
     }
 
-    private boolean existsOnce(NameValuePair[] pairs, String name) {
-        List<NameValuePair> list = Arrays.asList(pairs).stream().filter(p -> name.equals(p.getName()))
+    private boolean existsOnce(BasicNameValuePair[] pairs, String name) {
+        List<BasicNameValuePair> list = Arrays.asList(pairs).stream().filter(p -> name.equals(p.getName()))
                 .collect(Collectors.toList());
         return list.size() == 1;
     }
 
-    private NameValuePair getByName(NameValuePair[] pairs, String name) {
-        List<NameValuePair> list = Arrays.asList(pairs).stream().filter(p -> name.equals(p.getName()))
+    private BasicNameValuePair getByName(BasicNameValuePair[] pairs, String name) {
+        List<BasicNameValuePair> list = Arrays.asList(pairs).stream().filter(p -> name.equals(p.getName()))
                 .collect(Collectors.toList());
         if (list.size() <= 0) {
             return new BasicNameValuePair("", "");

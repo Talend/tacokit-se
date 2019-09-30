@@ -12,16 +12,18 @@
  */
 package org.talend.component.common.service.http;
 
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+@Data
 @EqualsAndHashCode
-public class BasicHeaderElement implements HeaderElement, Cloneable {
+public class BasicHeaderElement implements Cloneable {
 
     private final String name;
 
     private final String value;
 
-    private final NameValuePair[] parameters;
+    private final BasicNameValuePair[] parameters;
 
     /**
      * Constructor with name, value and parameters.
@@ -31,15 +33,11 @@ public class BasicHeaderElement implements HeaderElement, Cloneable {
      * @param parameters header element parameters. May be <tt>null</tt>.
      * Parameters are copied by reference, not by value
      */
-    public BasicHeaderElement(final String name, final String value, final NameValuePair[] parameters) {
+    public BasicHeaderElement(final String name, final String value, final BasicNameValuePair[] parameters) {
         super();
         this.name = name;
         this.value = value;
-        if (parameters != null) {
-            this.parameters = parameters;
-        } else {
-            this.parameters = new NameValuePair[] {};
-        }
+        this.parameters = parameters;
     }
 
     /**
@@ -49,18 +47,10 @@ public class BasicHeaderElement implements HeaderElement, Cloneable {
      * @param value header element value. May be <tt>null</tt>
      */
     public BasicHeaderElement(final String name, final String value) {
-        this(name, value, null);
+        this(name, value, new BasicNameValuePair[] {});
     }
 
-    public String getName() {
-        return this.name;
-    }
-
-    public String getValue() {
-        return this.value;
-    }
-
-    public NameValuePair[] getParameters() {
+    public BasicNameValuePair[] getParameters() {
         return this.parameters.clone();
     }
 
@@ -68,18 +58,18 @@ public class BasicHeaderElement implements HeaderElement, Cloneable {
         return this.parameters.length;
     }
 
-    public NameValuePair getParameter(final int index) {
+    public BasicNameValuePair getParameter(final int index) {
         // ArrayIndexOutOfBoundsException is appropriate
         return this.parameters[index];
     }
 
-    public NameValuePair getParameterByName(final String name) {
-        NameValuePair found = null;
+    public BasicNameValuePair getParameterByName(final String name) {
+        BasicNameValuePair found = null;
         if (name == null) {
             return found;
         }
 
-        for (final NameValuePair current : this.parameters) {
+        for (final BasicNameValuePair current : this.parameters) {
             if (current.getName().equalsIgnoreCase(name)) {
                 found = current;
                 break;
@@ -96,7 +86,7 @@ public class BasicHeaderElement implements HeaderElement, Cloneable {
             buffer.append("=");
             buffer.append(this.value);
         }
-        for (final NameValuePair parameter : this.parameters) {
+        for (final BasicNameValuePair parameter : this.parameters) {
             buffer.append("; ");
             buffer.append(parameter);
         }
