@@ -94,7 +94,7 @@ public class ParquetBlobReader extends BlobReader {
                 reader = AvroParquetReader.<GenericRecord> builder(hdpIn).build();
                 currentRecord = reader.read();
             } catch (IOException e) {
-                log.error("[ParquetIterator] {}", e);
+                log.error("[ParquetIterator] {}", e.getMessage());
                 throw new FileFormatRuntimeException(e.getMessage());
             }
         }

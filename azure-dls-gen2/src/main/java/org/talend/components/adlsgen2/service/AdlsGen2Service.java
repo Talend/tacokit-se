@@ -112,7 +112,7 @@ public class AdlsGen2Service {
                         .buildAuthenticationSignature(dest, method, headers);
                 headers.put(HeaderConstants.AUTHORIZATION, auth);
             } catch (Exception e) {
-                log.error("[preprareRequest] {}", e);
+                log.error("[preprareRequest] {}", e.getMessage());
                 throw new AdlsGen2RuntimeException(e.getMessage());
             }
             break;

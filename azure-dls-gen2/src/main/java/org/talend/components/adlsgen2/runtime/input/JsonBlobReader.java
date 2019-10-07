@@ -109,7 +109,7 @@ public class JsonBlobReader extends BlobReader {
                     }
                 }
             } catch (Exception e) {
-                log.error("[readBlob] {}", e);
+                log.error("[readBlob] {}", e.getMessage());
                 throw new AdlsGen2RuntimeException(e.getMessage());
             }
         }
