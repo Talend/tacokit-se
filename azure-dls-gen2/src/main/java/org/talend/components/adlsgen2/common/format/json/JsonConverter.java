@@ -47,8 +47,6 @@ public class JsonConverter implements RecordConverter<JsonObject>, Serializable 
 
     private Schema schema;
 
-    private JsonObjectBuilder rcd;
-
     public static JsonConverter of(final RecordBuilderFactory factory, final JsonBuilderFactory jsonFactory,
             final @Configuration("jsonConfiguration") JsonConfiguration configuration) {
         return new JsonConverter(factory, jsonFactory, configuration);
@@ -125,51 +123,6 @@ public class JsonConverter implements RecordConverter<JsonObject>, Serializable 
             }
         }
         return json.build();
-    }
-
-    private JsonObjectBuilder convertRecordToJsonObject(JsonObjectBuilder json, Entry entry, Record record) {
-        log.debug("[convertRecordToJsonObject] entry:{}; type: {}; value: {}.", entry.getName(), entry.getType(),
-                record.get(Object.class, entry.getName()));
-        switch (entry.getType()) {
-        case RECORD:
-            JsonObjectBuilder rcd = jsonBuilderFactory.createObjectBuilder();
-            Record subRecord = record.getRecord(entry.getName());
-            for (Entry subEntry : entry.getElementSchema().getEntries()) {
-                log.debug("[convertRecordToJsonObject] subentry:{}; type: {}; value: {}.", subEntry.getName(), subEntry.getType(),
-                        subRecord.get(Object.class, subEntry.getName()));
-                rcd.add(subEntry.getName(), convertRecordToJsonObject(rcd, subEntry, subRecord));
-            }
-            log.debug("[.] {}", rcd);
-            json.add(entry.getName(), rcd);
-            break;
-        case ARRAY:
-            break;
-        case STRING:
-            json.add(entry.getName(), record.getString(entry.getName()));
-            break;
-        case BYTES:
-            json.add(entry.getName(), record.getBytes(entry.getName()).toString());
-            break;
-        case INT:
-            json.add(entry.getName(), record.getInt(entry.getName()));
-            break;
-        case LONG:
-            json.add(entry.getName(), record.getLong(entry.getName()));
-            break;
-        case FLOAT:
-            json.add(entry.getName(), record.getFloat(entry.getName()));
-            break;
-        case DOUBLE:
-            json.add(entry.getName(), record.getDouble(entry.getName()));
-            break;
-        case BOOLEAN:
-            json.add(entry.getName(), record.getBoolean(entry.getName()));
-            break;
-        case DATETIME:
-            json.add(entry.getName(), record.getDateTime(entry.getName()).toString());
-            break;
-        }
-        return json;
     }
 
     /**
