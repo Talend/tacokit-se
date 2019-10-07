@@ -124,18 +124,19 @@ public class JsonConverter implements RecordConverter<JsonObject>, Serializable 
     }
 
     private JsonObjectBuilder convertRecordToJsonObject(JsonObjectBuilder json, Entry entry, Record record) {
-        log.warn("[convertRecordToJsonObject] entry:{}; type: {}; value: {}.", entry.getName(), entry.getType(),
+        log.debug("[convertRecordToJsonObject] entry:{}; type: {}; value: {}.", entry.getName(), entry.getType(),
                 record.get(Object.class, entry.getName()));
         switch (entry.getType()) {
         case RECORD:
             JsonObjectBuilder rcd = jsonBuilderFactory.createObjectBuilder();
             Record subRecord = record.getRecord(entry.getName());
             for (Entry subEntry : entry.getElementSchema().getEntries()) {
-                log.warn("[convertRecordToJsonObject] subentry:{}; type: {}; value: {}.", subEntry.getName(), subEntry.getType(),
+                log.debug("[convertRecordToJsonObject] subentry:{}; type: {}; value: {}.", subEntry.getName(),
+                        subEntry.getType(),
                         subRecord.get(Object.class, subEntry.getName()));
                 rcd.add(subEntry.getName(), convertRecordToJsonObject(rcd, subEntry, subRecord));
             }
-            log.warn("[.] {}", rcd);
+            log.debug("[.] {}", rcd);
             json.add(entry.getName(), rcd);
             break;
         case ARRAY:

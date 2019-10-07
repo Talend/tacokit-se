@@ -146,7 +146,7 @@ public class JsonBlobReader extends BlobReader {
                 try {
                     currentItemInputStream.close();
                 } catch (IOException e) {
-                    log.warn("Can't close stream", e);
+                    log.error("Can't close stream: {}.", e.getMessage());
                 }
             }
         }

@@ -99,7 +99,7 @@ public class CsvConfiguration implements Serializable {
                 return getCustomFileEncoding();
             } catch (Exception e) {
                 String msg = String.format("Encoding not supported %s.", customFileEncoding);
-                log.warn("[effectiveFileEncoding] {}", msg);
+                log.error("[effectiveFileEncoding] {}", msg);
                 throw new AdlsGen2RuntimeException(msg);
             }
         } else {
