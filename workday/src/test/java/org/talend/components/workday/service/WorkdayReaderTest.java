@@ -16,8 +16,6 @@ import javax.json.JsonObject;
 import javax.json.bind.JsonbBuilder;
 import java.util.HashMap;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class WorkdayReaderTest {
 
     @Test

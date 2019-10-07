@@ -20,9 +20,9 @@ import java.util.function.BiConsumer;
 @DataStore(WorkdayDataStore.NAME)
 @GridLayouts({ //
         @GridLayout({ //
-                @GridLayout.Row({ "endpoint" }), //
+                @GridLayout.Row({ "authEndpoint" }), //
                 @GridLayout.Row({ "clientId", "clientSecret" }), //
-                @GridLayout.Row({ "tenentAlias" }) //
+                @GridLayout.Row({ "endpoint", "tenentAlias"  }) //
         }) //
 })
 @Checkable(UIActionService.HEALTH_CHECK)
@@ -37,7 +37,7 @@ public class WorkdayDataStore implements Serializable {
     @Option
     @Validable(UIActionService.VALIDATION_URL_PROPERTY)
     @Documentation("Workday token Auth Endpoint (host only, ie: https://auth.api.workday.com/v1/token)")
-    private String endpoint;
+    private String authEndpoint;
 
     @Option
     @Documentation("Workday Client Id")
@@ -49,9 +49,12 @@ public class WorkdayDataStore implements Serializable {
     private String clientSecret;
 
     @Option
+    @Documentation("Workday endpoint for REST services")
+    private String endpoint;
+
+    @Option
     @Documentation("Workday tenant alias")
     private String tenantAlias;
-
 
     private transient Token token = null;
 

@@ -9,8 +9,6 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 
-import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
-
 
 @Data
 @DataSet("WorkdayDataset")

@@ -14,8 +14,6 @@ import org.talend.sdk.component.runtime.manager.service.http.HttpClientFactoryIm
 import javax.json.bind.JsonbBuilder;
 import java.util.HashMap;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class AccessTokenProviderTest {
 
     @Test
