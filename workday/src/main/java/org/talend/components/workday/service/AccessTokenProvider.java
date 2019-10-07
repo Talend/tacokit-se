@@ -24,7 +24,7 @@ public interface AccessTokenProvider extends HttpClient {
     default Token getAccessToken(WorkdayDataStore ds) {
         Instant nowUTC = Instant.now();
 
-        this.base(ds.getEndpoint());
+        this.base(ds.getAuthEndpoint());
 
         final String payload = "tenant_alias=" + ds.getTenantAlias() + "&grant_type=client_credentials";
 

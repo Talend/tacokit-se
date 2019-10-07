@@ -26,7 +26,7 @@ public class ConfigHelper {
         wds.setClientId(props.getProperty("clientId"));
         wds.setClientSecret(props.getProperty("clientSecret"));
         wds.setTenantAlias(props.getProperty("tenant"));
-        wds.setEndpoint(props.getProperty("authendpoint"));
+        wds.setAuthEndpoint(props.getProperty("authendpoint"));
         return wds;
     }
 }

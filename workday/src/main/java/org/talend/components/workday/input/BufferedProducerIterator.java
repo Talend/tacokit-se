@@ -1,112 +1,111 @@
 package org.talend.components.workday.input;
 
+import lombok.extern.slf4j.Slf4j;
+import org.talend.components.workday.WorkdayException;
+
 import java.util.Iterator;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Supplier;
 
-
+/**
+ * Help to get a full iterator from a 'per page' getter.
+ * Many REST services that provide array work with per page system
+ * example : get?page=1 ... page=20 ...
+ * This class simplify client interface for this kind of service by exposing simple iterator.
+ * while itering on a page, it load the next, and so on.
+ * @param <T>
+ */
+@Slf4j
 public class BufferedProducerIterator<T> {
+
+    @FunctionalInterface
+    public static interface PageGetter<T> {
+        Iterator<T> find(int pageNumber);
+    }
 
     private final ExecutorService exe = Executors.newFixedThreadPool(2);
 
-    private final Supplier<Iterator<T>> supplier;
+    /** result pages */
+    private PageRetriever<T>[] retrivers = new PageRetriever[2];
 
-    private Iterator<T>[] currents = new Iterator[2];
+    /** current page */
+    private int currentRetriver = 0;
 
-    CompletableFuture[] cp = new CompletableFuture[2];
+    /** next page to retrieve */
+    private final AtomicInteger nextPage;
 
-    private final ReentrantReadWriteLock[] lock = new ReentrantReadWriteLock[2];
+    private final PageGetter<T> getter;
 
-    private int current = 0;
+    public BufferedProducerIterator(PageGetter<T> getter) {
+        this.retrivers[0] = new PageRetriever<>();
+        this.retrivers[1] = new PageRetriever<>();
+        this.getter = getter;
 
-    public BufferedProducerIterator(Supplier<Iterator<T>> supplier) {
-        this.supplier = supplier;
-        this.currents[0] = this.supplier.get();
-        this.currents[1] = null;
-        this.current = 0;
-        lock[0] = new ReentrantReadWriteLock();
-        lock[1] = new ReentrantReadWriteLock();
-        this.buildNext(1);
+        this.retrivers[0].buildNext(exe, getter, 0);
+        this.retrivers[1].buildNext(exe, getter, 1);
+        nextPage = new AtomicInteger(2);
     }
 
     public T next() {
-        Iterator<T> c = this.current();
-        if (c == null || !c.hasNext()) {
-            this.switchIter();
-            if (this.cp[this.current] != null) {
-                waitcurrent();
-            }
-            c = this.current();
-            this.buildNext(1 - this.current);
+        Iterator<T> c = this.getCurrent().getPageIterator();
+        if (c == null) {
+            return null;
         }
-        return c != null && c.hasNext() ? c.next() : null;
+        if (!c.hasNext()) {
+            this.getCurrent().buildNext(exe, getter, nextPage.getAndIncrement());
+            this.currentRetriver = 1 - this.currentRetriver;
+            return this.next();
+        }
+        return c.next();
     }
 
-    private void waitcurrent() {
-        CompletableFuture currentCp = this.cp[this.current];
-        if (currentCp != null) {
+    private PageRetriever<T> getCurrent() {
+        return this.retrivers[ this.currentRetriver ];
+    }
+
+
+    private static class PageRetriever<T> {
+
+        private Iterator<T> currentPage = null;
+
+        private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+
+        private CompletableFuture<Iterator<T>> futurePage = null;
+
+        public void buildNext(Executor exe, PageGetter<T> getter, int pageNumber) {
+            final Lock wr = this.lock.writeLock();
+            this.currentPage = null;
+            this.futurePage = CompletableFuture.supplyAsync(() -> {
+                        wr.lock(); return getter.find(pageNumber);
+                    },
+                    exe)
+                    .whenComplete( (input, exception) -> { wr.unlock(); });
+        }
+
+        public Iterator<T> getPageIterator() {
+            this.lock.readLock().lock();
             try {
-                this.cp[this.current] = null;
-                currentCp.get();
+                if (this.currentPage == null && this.futurePage != null) {
+                    this.currentPage = this.futurePage.get();
+                }
+                return this.currentPage;
             }
             catch (InterruptedException e) {
-                e.printStackTrace();
+                Thread.currentThread().interrupt();
+                log.error("execution exception try to get workday page", e);
+                throw new WorkdayException("Error with workday");
             }
             catch (ExecutionException e) {
-                e.printStackTrace();
+                log.error("execution exception try to get workday page", e);
+                throw new WorkdayException("Error with workday");
+            }
+            finally {
+                this.lock.readLock().unlock();
             }
         }
-    }
 
-    private  Iterator<T> current() {
-        try {
-            this.lock[ this.current ].readLock().lock();
-            return this.currents[ this.current ];
-        }
-        finally {
-            this.lock[ this.current ].readLock().unlock();
-        }
-    }
-
-    private  void putIter(int indice, Iterator<T> iter) {
-        try {
-            this.lock[ indice ].writeLock().lock();
-            this.currents[ indice ] = iter;
-        }
-        finally {
-            this.lock[ indice ].writeLock().unlock();
-        }
-    }
-
-    private void switchIter() {
-        try {
-            this.lock[ 0 ].writeLock().lock();
-            this.lock[ 1 ].writeLock().lock();
-            this.current = 1 - this.current; // switch
-        }
-        finally {
-            this.lock[ 0 ].writeLock().unlock();
-            this.lock[ 1 ].writeLock().unlock();
-        }
-    }
-
-    private void buildNext(int numtobuild) {
-        final Lock wr = this.lock[ numtobuild ].writeLock();
-
-        CompletableFuture cpf = CompletableFuture.supplyAsync(() -> {
-                wr.lock(); return this.supplier.get();
-            },
-                exe)
-                    .thenAccept( x -> this.putIter(numtobuild, x))
-                    .thenAccept( (Void x) -> { wr.unlock(); });
-
-        this.cp[ numtobuild ] = cpf;
-    }
-
-    private Callable<Iterator<T>> call() {
-        return () -> this.supplier.get();
     }
 
 }

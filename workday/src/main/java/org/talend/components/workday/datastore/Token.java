@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.time.Instant;
-import java.util.function.BiConsumer;
 
 @Getter
 @RequiredArgsConstructor
