@@ -26,6 +26,8 @@ import org.talend.components.couchbase.dataset.CouchbaseDataSet;
 import org.talend.components.couchbase.datastore.CouchbaseDataStore;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.record.Schema.Type;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
@@ -37,6 +39,15 @@ import com.couchbase.client.java.env.CouchbaseEnvironment;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import com.couchbase.client.java.query.N1qlQuery;
 import com.couchbase.client.java.query.N1qlQueryResult;
+import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.Cluster;
+import com.couchbase.client.java.CouchbaseCluster;
+import com.couchbase.client.java.document.JsonDocument;
+import com.couchbase.client.java.env.CouchbaseEnvironment;
+import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
+import com.couchbase.client.java.query.N1qlQuery;
+import com.couchbase.client.java.query.N1qlQueryResult;
+import com.couchbase.client.java.query.N1qlQueryRow;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -58,8 +69,8 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
 
         bucket.bucketManager().createN1qlPrimaryIndex(true, false);
 
-        N1qlQueryResult n1qlQueryResult = bucket.query(N1qlQuery
-                .simple("SELECT META(" + BUCKET_NAME + ").id FROM " + BUCKET_NAME + " ORDER BY META(" + BUCKET_NAME + ").id"));
+        N1qlQueryResult n1qlQueryResult = bucket.query(N1qlQuery.simple("SELECT META(" + BUCKET_NAME + ").id FROM " + BUCKET_NAME
+                + " WHERE key3 IS MISSING ORDER BY " + "META(" + BUCKET_NAME + ").id"));
         List<JsonDocument> resultList = n1qlQueryResult.allRows().stream().map(index -> index.value().get("id"))
                 .map(Object::toString).map(index -> bucket.get(index)).collect(Collectors.toList());
 
@@ -127,6 +138,86 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
         configuration.setIdFieldName("t_string");
         configuration.setDataSet(couchbaseDataSet);
         return configuration;
+    }
+
+    private List<Record> createRecordsForN1QL() {
+        final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
+        return Stream.iterate(1, op -> op + 1).limit(5)
+                .map(idx -> recordBuilderFactory.newRecordBuilder()
+                        .withString(entryBuilder.withName("docId").withType(Schema.Type.STRING).build(), "DOC_PK_" + idx)
+                        .withString(entryBuilder.withName("key1").withType(Schema.Type.STRING).build(), "ZzZ" + idx)
+                        .withString(entryBuilder.withName("key2").withType(Schema.Type.STRING).build(), "ZzTop" + idx)
+                        .withString(entryBuilder.withName("key3").withType(Schema.Type.STRING).build(), "KEY_3")
+                        .withInt(entryBuilder.withName("count").withType(Type.INT).build(), idx).build())
+                .collect(Collectors.toList());
+    }
+
+    private List<N1qlQueryRow> retrieveN1QLQueryParamDataFromDatabase(String testingKey) {
+        CouchbaseEnvironment environment = new DefaultCouchbaseEnvironment.Builder().connectTimeout(DEFAULT_TIMEOUT_IN_SEC * 1000)
+                .build();
+        Cluster cluster = CouchbaseCluster.create(environment, COUCHBASE_CONTAINER.getContainerIpAddress());
+        Bucket bucket = cluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
+        bucket.bucketManager().createN1qlPrimaryIndex(true, false);
+        N1qlQueryResult n1qlQueryResult = bucket.query(N1qlQuery.simple("SELECT META(" + BUCKET_NAME
+                + ").id, key1, key2, key3, count FROM " + BUCKET_NAME + " WHERE key3='" + testingKey + "'"));
+        List<N1qlQueryRow> resultList = n1qlQueryResult.allRows();
+        bucket.close();
+        cluster.disconnect();
+        environment.shutdown();
+        return resultList;
+    }
+
+    @Test
+    @DisplayName("Simple N1QL query with no parameters")
+    void executeSimpleN1QLQueryWithNoParameters() {
+        CouchbaseOutputConfiguration configuration = getOutputConfiguration();
+        configuration.setUseN1QLQuery(true);
+        String qry = String.format(
+                "UPSERT INTO `%s` (KEY, VALUE) VALUES (\"PK000\", {\"key1\": \"masterkey1\", \"key2\": \"masterkey2\", \"key3\": \"masterkey3\", \"count\": 19})",
+                BUCKET_NAME);
+        configuration.setQuery(qry);
+        String cfg = configurationByExample().forInstance(configuration).configured().toQueryString();
+        componentsHandler.setInputData(createRecordsForN1QL());
+        executeJob(cfg);
+        List<N1qlQueryRow> results = retrieveN1QLQueryParamDataFromDatabase("masterkey3");
+        assertEquals(1, results.size());
+        N1qlQueryRow result = results.get(0);
+        assertEquals("PK000", result.value().getString("id"));
+        assertEquals("masterkey1", result.value().getString("key1"));
+        assertEquals("masterkey2", result.value().getString("key2"));
+        assertEquals("masterkey3", result.value().getString("key3"));
+        assertEquals(19, result.value().getInt("count"));
+    }
+
+    @Test
+    @DisplayName("N1QL query with parameters")
+    void executeSimpleN1QLQueryWithParameters() {
+        CouchbaseOutputConfiguration configuration = getOutputConfiguration();
+        configuration.setUseN1QLQuery(true);
+        String qry = String.format(
+                "INSERT INTO `%s` (KEY, VALUE) VALUES ($id, {\"key1\": $k1, \"key2\": $k2, " + "\"key3\": $k3, \"count\": $cn})",
+                BUCKET_NAME);
+        configuration.setQuery(qry);
+        List<N1QLQueryParameter> params = new ArrayList<>();
+        params.add(new N1QLQueryParameter("id", "docId"));
+        params.add(new N1QLQueryParameter("k1", "key1"));
+        params.add(new N1QLQueryParameter("k2", "key2"));
+        params.add(new N1QLQueryParameter("k3", "key3"));
+        params.add(new N1QLQueryParameter("cn", "count"));
+        configuration.setQueryParams(params);
+        String cfg = configurationByExample().forInstance(configuration).configured().toQueryString();
+        componentsHandler.setInputData(createRecordsForN1QL());
+        executeJob(cfg);
+        List<N1qlQueryRow> results = retrieveN1QLQueryParamDataFromDatabase("KEY_3");
+        assertEquals(5, results.size());
+        Stream.iterate(1, o -> o + 1).limit(5).forEach(idx -> {
+            N1qlQueryRow result = results.get(idx - 1);
+            assertEquals("DOC_PK_" + idx, result.value().getString("id"));
+            assertEquals("ZzZ" + idx, result.value().getString("key1"));
+            assertEquals("ZzTop" + idx, result.value().getString("key2"));
+            assertEquals("KEY_3", result.value().getString("key3"));
+            assertEquals(idx, result.value().getInt("count"));
+        });
     }
 
     public List<Record> createPartialUpdateRecords() {

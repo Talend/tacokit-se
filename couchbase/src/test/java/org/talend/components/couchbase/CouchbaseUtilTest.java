@@ -60,7 +60,9 @@ public abstract class CouchbaseUtilTest implements Extension {
     protected BaseComponentsHandler componentsHandler;
 
     static {
-        COUCHBASE_CONTAINER = new CouchbaseContainer().withClusterAdmin(CLUSTER_USERNAME, CLUSTER_PASSWORD)
+        final String couchbaseServerDockerImage = System.getProperty("couchbase.server.docker.image");
+        COUCHBASE_CONTAINER = new CouchbaseContainer(couchbaseServerDockerImage)
+                .withClusterAdmin(CLUSTER_USERNAME, CLUSTER_PASSWORD)
                 .withNewBucket(DefaultBucketSettings.builder().enableFlush(true).name(BUCKET_NAME).password(BUCKET_PASSWORD)
                         .quota(BUCKET_QUOTA).type(BucketType.COUCHBASE).build());
         COUCHBASE_CONTAINER.setPortBindings(ports);
