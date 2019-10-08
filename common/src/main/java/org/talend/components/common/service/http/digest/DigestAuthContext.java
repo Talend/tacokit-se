@@ -10,26 +10,13 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.component.common.service.http;
+package org.talend.components.common.service.http.digest;
 
 import lombok.Data;
+import org.talend.components.common.service.http.UserNamePassword;
 
 @Data
 public class DigestAuthContext {
-
-    private static final ThreadLocal<DigestAuthContext> digestAuthContext = new ThreadLocal<>();
-
-    public static DigestAuthContext getThreadLocalContext() {
-        return digestAuthContext.get();
-    }
-
-    public static void setThreadLocalContext(DigestAuthContext context) {
-        digestAuthContext.set(context);
-    }
-
-    public static void removeThreadLocalContext() {
-        digestAuthContext.remove();
-    }
 
     private String uri;
 
@@ -43,12 +30,15 @@ public class DigestAuthContext {
 
     private String digestAuthHeader;
 
-    public DigestAuthContext(final String uri, final String method, final String host, final int port, final byte[] payload) {
+    private UserNamePassword credentials;
+
+    public DigestAuthContext(final String uri, final String method, final String host, final int port, final byte[] payload, final UserNamePassword credentials) {
         this.uri = uri;
         this.method = method;
         this.host = host;
         this.port = port;
         this.payload = payload;
+        this.credentials = credentials;
     }
 
     public boolean hasPayload() {

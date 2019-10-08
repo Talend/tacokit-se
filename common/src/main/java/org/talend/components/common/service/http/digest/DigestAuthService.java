@@ -10,12 +10,9 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.rest.service;
+package org.talend.components.common.service.http.digest;
 
-import org.talend.component.common.service.http.BasicHeader;
-import org.talend.component.common.service.http.DigestAuthContext;
-import org.talend.component.common.service.http.DigestScheme;
-import org.talend.component.common.service.http.UserNamePassword;
+import org.talend.components.common.service.http.BasicHeader;
 import org.talend.sdk.component.api.service.http.HttpException;
 
 import java.util.Collections;
@@ -28,14 +25,14 @@ import org.talend.sdk.component.api.service.http.Response;
 
 public class DigestAuthService {
 
-    public Response call(UserNamePassword cred, Supplier<Response> call) {
+    public Response call(DigestAuthContext context, Supplier<Response> supplier) {
 
         int status = -1;
         Map<String, List<String>> headers = Collections.emptyMap();
         Response response = null;
         try {
             try {
-                response = call.get();
+                response = supplier.get();
                 if (Response.class.isInstance(response)) {
                     final Response resp = Response.class.cast(response);
                     status = resp.status();
@@ -55,19 +52,18 @@ public class DigestAuthService {
                     // if WWW-Authenticate exists
                     BasicHeader authChallenge = new BasicHeader("WWW-Authenticate", lwa.get(0));
                     DigestScheme scheme = new DigestScheme();
-                    DigestAuthContext threadLocalContext = DigestAuthContext.getThreadLocalContext();
-                    String digest = scheme.createDigestResponse(cred.getUser(), cred.getPassword(), authChallenge,
-                            threadLocalContext); // compute header
-                    threadLocalContext.setDigestAuthHeader(digest);
+                    String digest = scheme.createDigestResponse(context.getCredentials().getUser(), context.getCredentials().getPassword(), authChallenge,
+                            context); // compute header
+                    context.setDigestAuthHeader(digest);
 
-                    response = call.get();
+                    response = supplier.get();
 
                 }
             }
         } catch (DigestScheme.AuthenticationException e) {
             throw new RuntimeException(e.getMessage(), e);
         } finally {
-            DigestAuthContext.removeThreadLocalContext();
+            context.setDigestAuthHeader(null);
         }
 
         return response;

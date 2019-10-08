@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ContentType {
 
-    public final static String headerValue = "Content-Type";
+    public final static String HEADER_KEY = "Content-Type";
 
     public enum ContentTypeEnum {
         TEXT_PLAIN("text/plain"),

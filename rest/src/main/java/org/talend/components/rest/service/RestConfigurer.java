@@ -13,11 +13,14 @@
 package org.talend.components.rest.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.common.service.http.basic.BasicAuthConfigurer;
+import org.talend.components.common.service.http.bearer.BearerAuthConfigurer;
+import org.talend.components.common.service.http.digest.DigestAuthConfigurer;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.sdk.component.api.service.http.Configurer;
 
 @Slf4j
-public class SimpleAuthConfigurer implements Configurer {
+public class RestConfigurer implements Configurer {
 
     @Override
     public void configure(final Connection connection, final ConfigurerConfiguration configuration) {
@@ -31,13 +34,20 @@ public class SimpleAuthConfigurer implements Configurer {
             connection.withReadTimeout(config.getDataset().getReadTimeout());
         }
 
+        // Manage authentication
         switch (config.getDataset().getAuthentication().getType()) {
-        case Basic:
-            connection.withHeader("Authorization", config.getDataset().getAuthentication().getBasic().getAuthorizationHeader());
-            break;
-        case Bearer:
-            connection.withHeader("Authorization", "Bearer " + config.getDataset().getAuthentication().getBearerToken());
-            break;
+            case Basic:
+                BasicAuthConfigurer basic= new BasicAuthConfigurer();
+                basic.configure(connection, configuration);
+                break;
+            case Digest:
+                DigestAuthConfigurer digest = new DigestAuthConfigurer();
+                digest.configure(connection, configuration);
+                break;
+            case Bearer:
+                BearerAuthConfigurer bearer = new BearerAuthConfigurer();
+                bearer.configure(connection, configuration);
+                break;
         }
 
     }

@@ -26,8 +26,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 import lombok.Data;
 
 @Data
-@GridLayout({ @GridLayout.Row({ "type" }), @GridLayout.Row({ "rawValue" }), @GridLayout.Row({ "params" }),
-        @GridLayout.Row({ "binaryPath" }), })
+@GridLayout({ @GridLayout.Row({ "rawValue" }) })
 @Documentation("")
 public class RequestBody implements Serializable {
 

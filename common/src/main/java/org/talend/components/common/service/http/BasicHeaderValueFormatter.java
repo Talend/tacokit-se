@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.component.common.service.http;
+package org.talend.components.common.service.http;
 
 /**
  * Basic implementation for formatting header value elements.
@@ -53,7 +53,7 @@ public class BasicHeaderValueFormatter {
 
     // non-javadoc, see interface HeaderValueFormatter
     public CharArrayBuffer formatNameValuePair(final CharArrayBuffer charBuffer, final BasicNameValuePair nvp,
-            final boolean quote) {
+                                               final boolean quote) {
         final int len = estimateNameValuePairLen(nvp);
         CharArrayBuffer buffer = charBuffer;
         if (buffer == null) {

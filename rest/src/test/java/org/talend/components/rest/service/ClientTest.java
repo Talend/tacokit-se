@@ -36,16 +36,20 @@ import javax.json.JsonValue;
 
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
+import java.net.HttpURLConnection;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
-// @HttpApi(useSsl = true)
 @WithComponents(value = "org.talend.components.rest")
 class ClientTest {
 
@@ -55,12 +59,6 @@ class ClientTest {
 
     private final static int CONNECT_TIMEOUT = 5000;
     private final static int READ_TIMEOUT = 5000;
-
-    /*
-     * static {
-     * System.setProperty("talend.junit.http.capture", "true");
-     * }
-     */
 
     @Service
     RestService service;
@@ -85,6 +83,26 @@ class ClientTest {
         config.getDataset().getDatastore().setBase(HTTP_BIN_BASE);
         config.getDataset().setConnectionTimeout(CONNECT_TIMEOUT);
         config.getDataset().setReadTimeout(READ_TIMEOUT);
+    }
+
+    private String getEncoding(Record rec) {
+        String encoding = "UTF-8";
+
+        Map<String, String> headers = rec.getArray(Record.class, "headers").stream().collect(Collectors.toMap(r -> r.getString("key"), r-> r.getString("value")));
+        String contentTypeStr = Optional.ofNullable(headers.get(ContentType.HEADER_KEY)).orElse("");
+        if (contentTypeStr.indexOf(';') > 1) {
+            String[] split = contentTypeStr.split(";");
+            contentTypeStr = split[0];
+            encoding = split[1];
+        }
+
+        return encoding;
+    }
+
+    private String getBodyAsString(Record rec){
+        String enc = getEncoding(rec);
+        byte[] body = rec.getBytes("body");
+        return new String(body, 0, body.length, Charset.forName(enc));
     }
 
     @Test
@@ -118,7 +136,7 @@ class ClientTest {
         });
         assertTrue(headerToCheck.size() > 0); // it may have more header returned by the server
 
-        String bodyS = resp.getString("body");
+        String bodyS = getBodyAsString(resp);
         JsonObject bodyJson = jsonReaderFactory.createReader(new ByteArrayInputStream((bodyS == null ? "" : bodyS).getBytes()))
                 .readObject();
 
@@ -167,7 +185,7 @@ class ClientTest {
 
         assertEquals(200, resp.getInt("status"));
 
-        JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(resp.getString("body")));
+        JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(getBodyAsString(resp)));
         JsonObject payload = payloadReader.readObject();
 
         assertEquals(0, payload.getJsonObject("args").size());
@@ -198,7 +216,7 @@ class ClientTest {
 
             assertEquals(200, resp.getInt("status"));
 
-            JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(resp.getString("body")));
+            JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(getBodyAsString(resp)));
             JsonObject payload = payloadReader.readObject();
 
             assertEquals("value1", payload.getJsonObject("args").getString("params1"));
@@ -238,8 +256,6 @@ class ClientTest {
 
     @Test
     void testBearerAuth() throws Exception {
-        String token = "123456789";
-
         Authentication auth = new Authentication();
         auth.setType(Authorization.AuthorizationType.Bearer);
 
@@ -260,6 +276,9 @@ class ClientTest {
 
     @Test
     void testRedirect() throws Exception {
+        boolean followRedirects_backup = HttpURLConnection.getFollowRedirects();
+        HttpURLConnection.setFollowRedirects(false);
+
         String redirect_url = HTTP_BIN_BASE + "/get?redirect=ok";
         config.getDataset().setResource("redirect-to?url=" + redirect_url);
 
@@ -268,17 +287,18 @@ class ClientTest {
         Record resp = service.execute(config);
         assertEquals(200, resp.getInt("status"));
 
-        JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(resp.getString("body")));
+        JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(getBodyAsString(resp)));
         JsonObject payload = payloadReader.readObject();
 
         assertEquals("ok", payload.getJsonObject("args").getString("redirect"));
+        HttpURLConnection.setFollowRedirects(followRedirects_backup);
     }
 
     @ParameterizedTest
     @CsvSource(value = {"auth-int,MD5", "auth,MD5",
-                        "auth-int,MD5-sess", "auth,MD5-sess",
-                        "auth-int,SHA-256", "auth,SHA-256",
-                        "auth-int,SHA-512", "auth,SHA-512"})
+            "auth-int,MD5-sess", "auth,MD5-sess",
+            "auth-int,SHA-256", "auth,SHA-256",
+            "auth-int,SHA-512", "auth,SHA-512"})
     void testDisgestAuth(final String qop, final String algo) {
         String user = "my_user";
         String pwd = "my_password";
@@ -298,7 +318,7 @@ class ClientTest {
         testDigestAuthWithQopAlgo(401, user, pwd + "x", auth, qop, algo);
     }
 
-    void testDigestAuthWithQop(final int expected, final String user, final String pwd, final Authentication auth, final String qop) {
+    private void testDigestAuthWithQop(final int expected, final String user, final String pwd, final Authentication auth, final String qop) {
         config.getDataset().setAuthentication(auth);
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("digest-auth/" + qop + "/" + user + "/" + pwd);
@@ -307,7 +327,7 @@ class ClientTest {
         assertEquals(expected, resp.getInt("status"));
     }
 
-    void testDigestAuthWithQopAlgo(final int expected, final String user, final String pwd, final Authentication auth, final String qop, final String algo) {
+    private void testDigestAuthWithQopAlgo(final int expected, final String user, final String pwd, final Authentication auth, final String qop, final String algo) {
         config.getDataset().setAuthentication(auth);
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("digest-auth/" + qop + "/" + user + "/" + pwd + "/" + algo);
@@ -315,6 +335,19 @@ class ClientTest {
         Record resp = service.execute(config);
         assertEquals(expected, resp.getInt("status"));
     }
+
+
+    @ParameterizedTest
+    @CsvSource(value = {"json", "xml", "html"})
+    void testformats(final String type) {
+        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().setResource(type);
+
+        Record resp = service.execute(config);
+
+        assertEquals(200, resp.getInt("status"));
+    }
+
 
     /*
      * @Test

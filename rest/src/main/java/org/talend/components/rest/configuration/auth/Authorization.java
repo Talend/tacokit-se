@@ -17,7 +17,7 @@ public interface Authorization {
     /**
      * @return The basic Authorization header value `Basic LFKFIGTBGKG`
      */
-    String getAuthorizationHeader();
+    //String getAuthorizationHeader();
 
     enum AuthorizationType {
         NoAuth,

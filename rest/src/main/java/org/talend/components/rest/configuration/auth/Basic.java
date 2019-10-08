@@ -37,9 +37,4 @@ public class Basic implements Authorization, Serializable {
     @Documentation("password for the basic authentication")
     private String password;
 
-    @Override
-    public String getAuthorizationHeader() {
-        return "Basic " + Base64.getEncoder()
-                .encodeToString((this.getUsername() + ":" + this.getPassword()).getBytes(StandardCharsets.UTF_8));
-    }
 }
