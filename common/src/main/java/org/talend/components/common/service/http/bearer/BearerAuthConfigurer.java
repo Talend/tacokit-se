@@ -27,7 +27,7 @@ public class BearerAuthConfigurer implements Configurer {
     @Override
     public void configure(Connection connection, ConfigurerConfiguration configuration) {
         String context = configuration.get(BEARER_TOKEN_CONF, String.class);
-        connection.withHeader("Authorization", "Bearer " +context);
+        connection.withHeader("Authorization", "Bearer " + context);
     }
 
 }

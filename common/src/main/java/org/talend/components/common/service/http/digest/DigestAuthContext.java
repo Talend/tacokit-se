@@ -32,7 +32,8 @@ public class DigestAuthContext {
 
     private UserNamePassword credentials;
 
-    public DigestAuthContext(final String uri, final String method, final String host, final int port, final byte[] payload, final UserNamePassword credentials) {
+    public DigestAuthContext(final String uri, final String method, final String host, final int port, final byte[] payload,
+            final UserNamePassword credentials) {
         this.uri = uri;
         this.method = method;
         this.host = host;

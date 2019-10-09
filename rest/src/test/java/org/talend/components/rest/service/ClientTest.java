@@ -17,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestConfig;
@@ -39,13 +40,13 @@ import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -58,6 +59,7 @@ class ClientTest {
     private final static String DONT_CHECK = "%DONT_CHECK%";
 
     private final static int CONNECT_TIMEOUT = 5000;
+
     private final static int READ_TIMEOUT = 5000;
 
     @Service
@@ -88,7 +90,8 @@ class ClientTest {
     private String getEncoding(Record rec) {
         String encoding = "UTF-8";
 
-        Map<String, String> headers = rec.getArray(Record.class, "headers").stream().collect(Collectors.toMap(r -> r.getString("key"), r-> r.getString("value")));
+        Map<String, String> headers = rec.getArray(Record.class, "headers").stream()
+                .collect(Collectors.toMap(r -> r.getString("key"), r -> r.getString("value")));
         String contentTypeStr = Optional.ofNullable(headers.get(ContentType.HEADER_KEY)).orElse("");
         if (contentTypeStr.indexOf(';') > 1) {
             String[] split = contentTypeStr.split(";");
@@ -99,7 +102,7 @@ class ClientTest {
         return encoding;
     }
 
-    private String getBodyAsString(Record rec){
+    private String getBodyAsString(Record rec) {
         String enc = getEncoding(rec);
         byte[] body = rec.getBytes("body");
         return new String(body, 0, body.length, Charset.forName(enc));
@@ -167,7 +170,7 @@ class ClientTest {
      */
     @Test
     void testParamsDisabled() throws Exception {
-        HttpMethod[] verbs = {HttpMethod.DELETE, HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT};
+        HttpMethod[] verbs = { HttpMethod.DELETE, HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT };
         config.getDataset().setResource("get");
         config.getDataset().setMethodType(HttpMethod.GET);
 
@@ -195,7 +198,7 @@ class ClientTest {
 
     @Test
     void testQueryAndHeaderParams() throws Exception {
-        HttpMethod[] verbs = {HttpMethod.DELETE, HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT};
+        HttpMethod[] verbs = { HttpMethod.DELETE, HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT };
         for (HttpMethod m : verbs) {
             config.getDataset().setResource(m.name().toLowerCase());
             config.getDataset().setMethodType(m);
@@ -281,8 +284,10 @@ class ClientTest {
 
         String redirect_url = HTTP_BIN_BASE + "/get?redirect=ok";
         config.getDataset().setResource("redirect-to?url=" + redirect_url);
-
         config.getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().setRedirect(true);
+        config.getDataset().setMaxRedirect(1);
+
 
         Record resp = service.execute(config);
         assertEquals(200, resp.getInt("status"));
@@ -295,10 +300,44 @@ class ClientTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {"auth-int,MD5", "auth,MD5",
-            "auth-int,MD5-sess", "auth,MD5-sess",
-            "auth-int,SHA-256", "auth,SHA-256",
-            "auth-int,SHA-512", "auth,SHA-512"})
+    @CsvSource(value = { "6,-1", "3,3", "3,5"})
+    void testRedirectNOk(final int nbRedirect, final int maxRedict) throws Exception {
+        boolean followRedirects_backup = HttpURLConnection.getFollowRedirects();
+        HttpURLConnection.setFollowRedirects(false);
+
+        config.getDataset().setResource("redirect/"+nbRedirect);
+        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().setRedirect(true);
+        config.getDataset().setMaxRedirect(maxRedict);
+
+
+        Record resp = service.execute(config);
+        assertEquals(200, resp.getInt("status"));
+
+        HttpURLConnection.setFollowRedirects(followRedirects_backup);
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = { "3,0", "3,1", "3,2", "5,4"})
+    void testRedirectNko(final int nbRedirect, final int maxRedict) throws Exception {
+        boolean followRedirects_backup = HttpURLConnection.getFollowRedirects();
+        HttpURLConnection.setFollowRedirects(false);
+
+        config.getDataset().setResource("redirect/"+nbRedirect);
+        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().setRedirect(true);
+        config.getDataset().setMaxRedirect(maxRedict);
+
+
+        Exception e = assertThrows(IllegalArgumentException.class, () -> service.execute(config));
+        log.info(e.getMessage());
+
+        HttpURLConnection.setFollowRedirects(followRedirects_backup);
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = { "auth-int,MD5", "auth,MD5", "auth-int,MD5-sess", "auth,MD5-sess", "auth-int,SHA-256", "auth,SHA-256",
+            "auth-int,SHA-512", "auth,SHA-512" })
     void testDisgestAuth(final String qop, final String algo) {
         String user = "my_user";
         String pwd = "my_password";
@@ -318,7 +357,8 @@ class ClientTest {
         testDigestAuthWithQopAlgo(401, user, pwd + "x", auth, qop, algo);
     }
 
-    private void testDigestAuthWithQop(final int expected, final String user, final String pwd, final Authentication auth, final String qop) {
+    private void testDigestAuthWithQop(final int expected, final String user, final String pwd, final Authentication auth,
+            final String qop) {
         config.getDataset().setAuthentication(auth);
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("digest-auth/" + qop + "/" + user + "/" + pwd);
@@ -327,7 +367,8 @@ class ClientTest {
         assertEquals(expected, resp.getInt("status"));
     }
 
-    private void testDigestAuthWithQopAlgo(final int expected, final String user, final String pwd, final Authentication auth, final String qop, final String algo) {
+    private void testDigestAuthWithQopAlgo(final int expected, final String user, final String pwd, final Authentication auth,
+            final String qop, final String algo) {
         config.getDataset().setAuthentication(auth);
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("digest-auth/" + qop + "/" + user + "/" + pwd + "/" + algo);
@@ -336,9 +377,8 @@ class ClientTest {
         assertEquals(expected, resp.getInt("status"));
     }
 
-
     @ParameterizedTest
-    @CsvSource(value = {"json", "xml", "html"})
+    @CsvSource(value = { "json", "xml", "html" })
     void testformats(final String type) {
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource(type);
@@ -348,6 +388,9 @@ class ClientTest {
         assertEquals(200, resp.getInt("status"));
     }
 
+    static IntStream threeSixNine() {
+        return IntStream.range(1, 10).filter(l -> l % 3 == 0);
+    }
 
     /*
      * @Test

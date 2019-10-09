@@ -37,7 +37,7 @@ import java.util.List;
         @GridLayout.Row({ "authentication" }), @GridLayout.Row({ "hasPathParams" }), @GridLayout.Row({ "pathParams" }),
         @GridLayout.Row({ "hasHeaders" }), @GridLayout.Row({ "headers" }), @GridLayout.Row({ "hasQueryParams" }),
         @GridLayout.Row({ "queryParams" }), @GridLayout.Row({ "body" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "redirect", "force_302_redirect" }),
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "redirect", "maxRedirect", "force_302_redirect" }),
         @GridLayout.Row({ "connectionTimeout" }), @GridLayout.Row({ "readTimeout" }) })
 @Documentation("Define the resource and authentication")
 public class Dataset implements Serializable {
@@ -80,7 +80,14 @@ public class Dataset implements Serializable {
     @Option
     @Documentation("")
     @DefaultValue("false")
-    private Boolean redirect;
+    private Boolean redirect = false;
+
+    @Option
+    @Documentation("")
+    @DefaultValue("1")
+    @ActiveIf(target = "redirect", value = "true")
+    @Min(-1)
+    private Integer maxRedirect = 1;
 
     @Option
     @Documentation("")

@@ -36,20 +36,19 @@ public class RestConfigurer implements Configurer {
 
         // Manage authentication
         switch (config.getDataset().getAuthentication().getType()) {
-            case Basic:
-                BasicAuthConfigurer basic= new BasicAuthConfigurer();
-                basic.configure(connection, configuration);
-                break;
-            case Digest:
-                DigestAuthConfigurer digest = new DigestAuthConfigurer();
-                digest.configure(connection, configuration);
-                break;
-            case Bearer:
-                BearerAuthConfigurer bearer = new BearerAuthConfigurer();
-                bearer.configure(connection, configuration);
-                break;
+        case Basic:
+            BasicAuthConfigurer basic = new BasicAuthConfigurer();
+            basic.configure(connection, configuration);
+            break;
+        case Digest:
+            DigestAuthConfigurer digest = new DigestAuthConfigurer();
+            digest.configure(connection, configuration);
+            break;
+        case Bearer:
+            BearerAuthConfigurer bearer = new BearerAuthConfigurer();
+            bearer.configure(connection, configuration);
+            break;
         }
-
     }
 
 }

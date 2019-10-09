@@ -53,7 +53,7 @@ public class BasicHeaderValueFormatter {
 
     // non-javadoc, see interface HeaderValueFormatter
     public CharArrayBuffer formatNameValuePair(final CharArrayBuffer charBuffer, final BasicNameValuePair nvp,
-                                               final boolean quote) {
+            final boolean quote) {
         final int len = estimateNameValuePairLen(nvp);
         CharArrayBuffer buffer = charBuffer;
         if (buffer == null) {

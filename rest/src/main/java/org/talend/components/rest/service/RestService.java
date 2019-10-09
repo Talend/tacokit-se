@@ -14,6 +14,8 @@ package org.talend.components.rest.service;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.common.service.http.RedirectContext;
+import org.talend.components.common.service.http.RedirectService;
 import org.talend.components.common.service.http.digest.DigestAuthContext;
 import org.talend.components.common.service.http.digest.DigestAuthService;
 import org.talend.components.common.service.http.UserNamePassword;
@@ -90,38 +92,53 @@ public class RestService {
         final Map<String, String> headers = updateParamsFromRecord(config.headers(), record);
         final Map<String, String> queryParams = updateParamsFromRecord(config.queryParams(), record);
         final Map<String, String> pathParams = updateParamsFromRecord(config.pathParams(), record);
+
+        return this.handleResponse(this.call(config, headers, queryParams, this.buildUrl(config, pathParams), new RedirectContext(config.getDataset().getDatastore().getBase(), config.getDataset().getMaxRedirect())), config);
+    }
+
+    private Response<byte[]> call(final RequestConfig config, final Map<String, String> headers,
+                                  final Map<String, String> queryParams, final String surl, final RedirectContext previousRedirectContext) {
         RequestBody body = config.body();
 
         Response<byte[]> resp = null;
-        String surl = this.buildUrl(config, pathParams);
 
         if (config.getDataset().getAuthentication().getType() == Authorization.AuthorizationType.Digest) {
             try {
                 URL url = new URL(surl);
                 DigestAuthService das = new DigestAuthService();
-                DigestAuthContext context = new DigestAuthContext(url.getPath(), config.getDataset().getMethodType().name(), url.getHost(), url.getPort(), this.getBody(config), new UserNamePassword(config.getDataset().getAuthentication().getBasic().getUsername(),
-                        config.getDataset().getAuthentication().getBasic().getPassword()));
-                resp = das.call(
-                        context,
-                        () -> client.executeWithDigestAuth(context, config, client, config.getDataset().getMethodType().name(),
-                                surl, headers, queryParams, body));
+                DigestAuthContext context = new DigestAuthContext(url.getPath(), config.getDataset().getMethodType().name(),
+                        url.getHost(), url.getPort(), this.getBody(config),
+                        new UserNamePassword(config.getDataset().getAuthentication().getBasic().getUsername(),
+                                config.getDataset().getAuthentication().getBasic().getPassword()));
+                resp = das.call(context, () -> client.executeWithDigestAuth(context, config, client,
+                        config.getDataset().getMethodType().name(), surl, headers, queryParams, body));
             } catch (MalformedURLException e) {
                 log.error("Given url '" + surl + "' is malformed.", e);
             }
         } else if (config.getDataset().getAuthentication().getType() == Authorization.AuthorizationType.Basic) {
-            UserNamePassword credential = new UserNamePassword(config.getDataset().getAuthentication().getBasic().getUsername(), config.getDataset().getAuthentication().getBasic().getPassword());
-            resp = client.executeWithBasicAuth(credential, config, client, config.getDataset().getMethodType().name(),
-                    surl, headers, queryParams, body);
+            UserNamePassword credential = new UserNamePassword(config.getDataset().getAuthentication().getBasic().getUsername(),
+                    config.getDataset().getAuthentication().getBasic().getPassword());
+            resp = client.executeWithBasicAuth(credential, config, client, config.getDataset().getMethodType().name(), surl,
+                    headers, queryParams, body);
         } else if (config.getDataset().getAuthentication().getType() == Authorization.AuthorizationType.Bearer) {
             String token = config.getDataset().getAuthentication().getBearerToken();
-            resp = client.executeWithBearerAuth(token, config, client, config.getDataset().getMethodType().name(),
-                    surl, headers, queryParams, body);
+            resp = client.executeWithBearerAuth(token, config, client, config.getDataset().getMethodType().name(), surl, headers,
+                    queryParams, body);
         } else {
-            resp = client.execute(config, client, config.getDataset().getMethodType().name(), surl,
-                    headers, queryParams, body);
+            resp = client.execute(config, client, config.getDataset().getMethodType().name(), surl, headers, queryParams, body);
         }
 
-        return this.handleResponse(resp, config);
+        if (config.getDataset().getRedirect()) {
+            RedirectContext rctx = new RedirectContext(resp, previousRedirectContext);
+            RedirectService rs = new RedirectService();
+            rctx = rs.call(rctx);
+
+            if (rctx.isRedirect()) {
+                resp = this.call(config, headers, queryParams, rctx.getNextUrl(), rctx);
+            }
+        }
+
+        return resp;
     }
 
     private Record handleResponse(final Response<byte[]> firstResp, final RequestConfig config) {
@@ -160,9 +177,7 @@ public class RestService {
     }
 
     private byte[] getBody(final RequestConfig config) {
-        return Optional.ofNullable(config.body())
-                .map(RequestBody::getRawValue)
-                .map(s -> s.getBytes(StandardCharsets.UTF_8))
+        return Optional.ofNullable(config.body()).map(RequestBody::getRawValue).map(s -> s.getBytes(StandardCharsets.UTF_8))
                 .orElseGet(() -> new byte[0]);
     }
 
