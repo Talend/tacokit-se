@@ -1,3 +1,15 @@
+/*
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.talend.components.workday.input;
 
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +27,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * example : get?page=1 ... page=20 ...
  * This class simplify client interface for this kind of service by exposing simple iterator.
  * while itering on a page, it load the next, and so on.
+ * 
  * @param <T>
  */
 @Slf4j
@@ -22,6 +35,7 @@ public class BufferedProducerIterator<T> {
 
     @FunctionalInterface
     public static interface PageGetter<T> {
+
         Iterator<T> find(int pageNumber);
     }
 
@@ -62,9 +76,8 @@ public class BufferedProducerIterator<T> {
     }
 
     private PageRetriever<T> getCurrent() {
-        return this.retrivers[ this.currentRetriver ];
+        return this.retrivers[this.currentRetriver];
     }
-
 
     private static class PageRetriever<T> {
 
@@ -78,10 +91,11 @@ public class BufferedProducerIterator<T> {
             final Lock wr = this.lock.writeLock();
             this.currentPage = null;
             this.futurePage = CompletableFuture.supplyAsync(() -> {
-                        wr.lock(); return getter.find(pageNumber);
-                    },
-                    exe)
-                    .whenComplete( (input, exception) -> { wr.unlock(); });
+                wr.lock();
+                return getter.find(pageNumber);
+            }, exe).whenComplete((input, exception) -> {
+                wr.unlock();
+            });
         }
 
         public Iterator<T> getPageIterator() {
@@ -91,17 +105,14 @@ public class BufferedProducerIterator<T> {
                     this.currentPage = this.futurePage.get();
                 }
                 return this.currentPage;
-            }
-            catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 log.error("execution exception try to get workday page", e);
                 throw new WorkdayException("Error with workday");
-            }
-            catch (ExecutionException e) {
+            } catch (ExecutionException e) {
                 log.error("execution exception try to get workday page", e);
                 throw new WorkdayException("Error with workday");
-            }
-            finally {
+            } finally {
                 this.lock.readLock().unlock();
             }
         }
