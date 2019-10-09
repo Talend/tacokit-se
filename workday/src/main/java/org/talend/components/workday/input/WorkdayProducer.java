@@ -1,10 +1,25 @@
+/*
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.talend.components.workday.input;
 
 import org.talend.components.workday.dataset.WorkdayDataSet;
 import org.talend.components.workday.service.WorkdayReaderService;
+import org.talend.sdk.component.api.component.Icon;
+import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Emitter;
 import org.talend.sdk.component.api.input.Producer;
+import org.talend.sdk.component.api.meta.Documentation;
 
 import javax.annotation.PostConstruct;
 import javax.json.JsonArray;
@@ -13,28 +28,32 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.function.Supplier;
 
+@Version(1)
+@Icon(value = Icon.IconType.BURGER) // FIXME : find a real icon.
 @Emitter(family = "Workday", name = "Input")
+@Documentation("Component to extract data from workday ERP via REST services")
 public class WorkdayProducer implements Serializable {
+
+    private static final long serialVersionUID = -293252782589800593L;
+
+    private static final int limit = 100;
 
     private final InputConfiguration inputConfig;
 
     private transient final WorkdayReaderService reader;
 
-    private transient final int limit = 100;
-
     private transient int total = -1;
 
     private transient Supplier<JsonObject> supplierObject;
 
-    public WorkdayProducer(@Option("configuration") InputConfiguration inputConfig,
-                           WorkdayReaderService reader) {
+    public WorkdayProducer(@Option("configuration") InputConfiguration inputConfig, WorkdayReaderService reader) {
         this.inputConfig = inputConfig;
         this.reader = reader;
     }
 
     @PostConstruct
     public void init() {
-        BufferedProducerIterator<JsonObject> producerIterator = new BufferedProducerIterator<>(this::nextData);
+        BufferedProducerIterator<JsonObject> producerIterator = new BufferedProducerIterator<>(this::elementsOfPage);
         this.supplierObject = producerIterator::next;
     }
 
@@ -43,9 +62,8 @@ public class WorkdayProducer implements Serializable {
         return supplierObject.get();
     }
 
-    private Iterator<JsonObject> nextData(int page) {
-
-        JsonObject jsonRet = this.callNext(page);
+    private Iterator<JsonObject> elementsOfPage(int pageNumber) {
+        JsonObject jsonRet = this.getPageContent(pageNumber);
         if (jsonRet == null) {
             return null;
         }
@@ -53,12 +71,12 @@ public class WorkdayProducer implements Serializable {
         return data.stream().map(JsonObject.class::cast).iterator();
     }
 
-    private JsonObject callNext(int page) {
-        if (this.total >= 0 && (page * this.limit) >= this.total) {
+    private JsonObject getPageContent(int pageNumber) {
+        if (this.total >= 0 && (pageNumber * this.limit) >= this.total) {
             return null;
         }
         WorkdayDataSet ds = this.inputConfig.getDataSet();
-        JsonObject ret = this.reader.find(ds, (page * this.limit), this.limit);
+        JsonObject ret = this.reader.find(ds, (pageNumber * this.limit), this.limit);
         if (this.total < 0) {
             synchronized (this) {
                 this.total = ret.getInt("total");
@@ -66,6 +84,5 @@ public class WorkdayProducer implements Serializable {
         }
         return ret;
     }
-
 
 }
