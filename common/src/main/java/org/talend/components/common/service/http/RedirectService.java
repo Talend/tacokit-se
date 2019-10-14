@@ -21,6 +21,11 @@ import java.util.Optional;
 
 public class RedirectService {
 
+    // Doesn't exist in java.net.HttpUrlConnection
+    public final static int TEMPORARY_REDIRECT = 307;
+
+    public final static int PERMANENT_REDIRECT = 308;
+
     public final static String LOCATION_HEADER = "Location";
 
     public RedirectContext call(final RedirectContext context) {
@@ -29,7 +34,7 @@ public class RedirectService {
         boolean redirect = false;
         if (status != HttpURLConnection.HTTP_OK) {
             if (status == HttpURLConnection.HTTP_MOVED_TEMP || status == HttpURLConnection.HTTP_MOVED_PERM
-                    || status == HttpURLConnection.HTTP_SEE_OTHER)
+                    || status == HttpURLConnection.HTTP_SEE_OTHER || status == TEMPORARY_REDIRECT || status == PERMANENT_REDIRECT)
                 redirect = true;
         }
 
@@ -41,8 +46,8 @@ public class RedirectService {
         // Retrieve redirection url
         Map<String, List<String>> headers = context.getResponse().headers();
         String location = Optional.ofNullable(headers).map(m -> m.get(LOCATION_HEADER)).filter(l -> !l.isEmpty())
-                .map(l -> l.get(0)).orElseThrow(() -> new IllegalArgumentException(
-                        LOCATION_HEADER + " header is not available after redirection code '" + status + "':\n" + redirectioHistory(context)));
+                .map(l -> l.get(0)).orElseThrow(() -> new IllegalArgumentException(LOCATION_HEADER
+                        + " header is not available after redirection code '" + status + "':\n" + redirectioHistory(context)));
 
         if (location.isEmpty()) {
             throw new IllegalArgumentException(
@@ -57,17 +62,23 @@ public class RedirectService {
         }
 
         if (!isValidUrl(location)) {
-            throw new IllegalArgumentException(
-                    LOCATION_HEADER + " header is not valid after redirection code '" + status + "',  " + rawLocation + "':\n" + redirectioHistory(context));
+            throw new IllegalArgumentException(LOCATION_HEADER + " header is not valid after redirection code '" + status + "',  "
+                    + rawLocation + "':\n" + redirectioHistory(context));
         }
 
         context.setNewUrlAndIncreaseNbRedirection(location);
 
-        // Check max redirection (0 no redirection, -1 no bound redirection)
-        if (context.getMaxRedirect() >= 0 && context.getNbRedirect() >= context.getMaxRedirect()) {
-            throw new IllegalArgumentException("Max redirection reached '" + context.getNbRedirect() + "':\nLast one has not been follwed:\n" + redirectioHistory(context));
+        // Redirect 303 with GET method and 302 with get if optioni is selected
+        if (status == HttpURLConnection.HTTP_SEE_OTHER
+                || (context.isForceGETOn302() && status == HttpURLConnection.HTTP_MOVED_TEMP)) {
+            context.setForceGETMethod();
         }
 
+        // Check max redirection (0 no redirection, -1 no bound redirection)
+        if (context.getMaxRedirect() >= 0 && context.getNbRedirect() >= context.getMaxRedirect()) {
+            throw new IllegalArgumentException("Max redirection reached '" + context.getNbRedirect()
+                    + "':\nLast one has not been follwed:\n" + redirectioHistory(context));
+        }
 
         return context;
     }
@@ -85,11 +96,8 @@ public class RedirectService {
         StringBuilder sb = new StringBuilder();
 
         context.getHistory().stream().forEach(r -> {
-            sb.append("\tLocation[")
-                    .append(r.getNbRedirect())
-                    .append("] : ")
-                    .append(r.getNextUrl())
-                    .append("\n");
+            sb.append("\tLocation[").append(r.getNbRedirect()).append("] : ").append(r.getVerb()).append(" ")
+                    .append(r.getNextUrl()).append("\n");
         });
 
         return sb.toString();

@@ -29,35 +29,47 @@ public class RedirectContext {
 
     private final Integer nbRedirect;
 
+    private final boolean forceGETOn302;
+
+    private String verb;
+
     private Integer nextNbRedirect = 0;
 
     private String nextUrl = null;
 
     private List<RedirectContext> history = new ArrayList<>();
 
-    public RedirectContext(final Response response, final RedirectContext previous){
+    public RedirectContext(final Response response, final RedirectContext previous) {
         this.response = response;
         this.base = previous.getBase();
         this.nbRedirect = previous.getNextNbRedirect();
         this.maxRedirect = previous.getMaxRedirect();
+        this.forceGETOn302 = previous.isForceGETOn302();
+        this.verb = previous.getVerb();
         this.history.addAll(previous.getHistory());
         this.history.add(0, this);
     }
 
-    public RedirectContext(final String base, final Integer maxRedirect){
+    public RedirectContext(final String base, final Integer maxRedirect, final boolean forceGETOn302, final String verb) {
         this.response = null;
         this.maxRedirect = maxRedirect;
         this.nbRedirect = 0;
         this.base = base;
+        this.forceGETOn302 = forceGETOn302;
+        this.verb = verb;
     }
 
     public boolean isRedirect() {
         return nextUrl != null;
     }
 
-    public void setNewUrlAndIncreaseNbRedirection(String url){
+    public void setNewUrlAndIncreaseNbRedirection(String url) {
         this.nextNbRedirect = this.nbRedirect + 1;
         this.nextUrl = url;
+    }
+
+    public void setForceGETMethod() {
+        this.verb = "GET";
     }
 
 }

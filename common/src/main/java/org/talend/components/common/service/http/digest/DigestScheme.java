@@ -231,7 +231,7 @@ public class DigestScheme {
             final HttpEntityDigester entityDigester = new HttpEntityDigester(digester);
             try {
                 if (context.hasPayload()) {
-                    writeTo(context.getPayload(), entityDigester);
+                    writeTo(context.getPayload().getBytes(StandardCharsets.UTF_8), entityDigester);
                 }
                 entityDigester.close();
             } catch (final IOException ex) {
