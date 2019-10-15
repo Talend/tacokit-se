@@ -19,7 +19,6 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalDouble;
@@ -41,9 +40,8 @@ import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import lombok.extern.slf4j.Slf4j;
-
 import static java.util.stream.Collectors.toList;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class AvroConverter implements RecordConverter<GenericRecord>, Serializable {
@@ -286,8 +284,6 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
             case DATETIME:
                 builder = org.apache.avro.Schema.create(org.apache.avro.Schema.Type.LONG);
                 LogicalTypes.timestampMillis().addToSchema(builder);
-                builder.addProp(AVRO_PROP_TALEND_FIELD_PATTERN, ""); // mainly for studio
-                builder.addProp(AVRO_PROP_JAVA_CLASS, Date.class.getCanonicalName()); // mainly for studio
                 break;
             default:
                 throw new FileFormatRuntimeException(String.format(ERROR_UNDEFINED_TYPE, e.getType().name()));
