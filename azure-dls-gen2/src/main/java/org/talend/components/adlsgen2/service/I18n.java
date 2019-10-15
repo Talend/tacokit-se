@@ -19,7 +19,11 @@ public interface I18n {
 
     String healthCheckOk();
 
-    String healthCheckFailed(final String cause);
+    String healthCheckFailed(final String msg, final String cause);
+
+    String healthCheckSAS();
+
+    String healthCheckSharedKey();
 
     String undefinedType(String typeName);
 

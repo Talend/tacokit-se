@@ -60,15 +60,18 @@ public class RedshiftPlatform extends Platform {
         sql.append(identifier(table.getName()));
         sql.append("(");
         List<Column> columns = table.getColumns();
-        sql.append(createColumns(columns));
+        sql.append(createColumns(columns, table.getSortStrategy(), columns.stream().filter(Column::isSortKey).collect(toList())));
         sql.append(createPKs(table.getName(), columns.stream().filter(Column::isPrimaryKey).collect(toList())));
         sql.append(")");
         sql.append(createDistributionKeys(table.getDistributionStrategy(),
                 columns.stream().filter(Column::isDistributionKey).collect(toList())));
-        sql.append(createSortKeys(table.getSortStrategy(), columns.stream().filter(Column::isSortKey).collect(toList())));
+        if (RedshiftSortStrategy.COMPOUND.equals(table.getSortStrategy())
+                || RedshiftSortStrategy.INTERLEAVED.equals(table.getSortStrategy())) {
+            sql.append(createSortKeys(table.getSortStrategy(), columns.stream().filter(Column::isSortKey).collect(toList())));
+        }
 
-        log.debug("### create table query ###");
-        log.debug(sql.toString());
+        log.info("Database - create table query ");
+        log.info(sql.toString());
         return sql.toString();
     }
 
@@ -80,15 +83,15 @@ public class RedshiftPlatform extends Platform {
     private String createDistributionKeys(final DistributionStrategy distributionStrategy, final List<Column> columns) {
         switch (distributionStrategy) {
         case ALL:
-            return "diststyle all ";
+            return " diststyle all ";
         case EVEN:
-            return "diststyle even ";
+            return " diststyle even ";
         case KEYS:
             return columns.isEmpty() ? ""
-                    : "diststyle key distkey" + columns.stream().map(Column::getName).collect(joining(",", "(", ") "));
+                    : " diststyle key distkey" + columns.stream().map(Column::getName).collect(joining(",", "(", ") "));
         default:
         case AUTO:
-            return "diststyle auto ";
+            return " diststyle auto ";
         }
     }
 
@@ -99,15 +102,16 @@ public class RedshiftPlatform extends Platform {
         return e instanceof SQLException && "23505".equals(((SQLException) e).getSQLState());
     }
 
-    private String createColumns(final List<Column> columns) {
-        return columns.stream().map(this::createColumn).collect(Collectors.joining(","));
+    private String createColumns(final List<Column> columns, final RedshiftSortStrategy sortStrategy,
+            final List<Column> sortKeys) {
+        return columns.stream().map(c -> createColumn(c, sortStrategy, sortKeys)).collect(Collectors.joining(","));
     }
 
-    private String createColumn(final Column column) {
+    private String createColumn(final Column column, final RedshiftSortStrategy sortStrategy, final List<Column> sortKeys) {
         return identifier(column.getName())//
                 + " " + toDBType(column)//
                 + " " + isRequired(column)//
-        ;
+                + (RedshiftSortStrategy.SINGLE.equals(sortStrategy) && sortKeys.contains(column) ? " sortkey" : "");
     }
 
     private String toDBType(final Column column) {

@@ -15,6 +15,16 @@ package org.talend.components.jdbc.configuration;
 public enum RedshiftSortStrategy {
 
     /**
+     * Don't apply any sort key
+     */
+    NONE,
+
+    /**
+     * When data is loaded into the table, the data is sorted by one or more columns that are designated as sort keys.
+     * You can use the SORTKEY keyword after a column name to specify a single-column sort key
+     */
+    SINGLE,
+    /**
      * Specifies that the data is sorted using a compound key made up of all of the listed columns, in the order they are listed.
      * A compound sort key is most useful when a query scans rows according to the order of the sort columns.
      * The performance benefits of sorting with a compound key decrease when queries rely on secondary sort columns.

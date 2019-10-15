@@ -161,7 +161,7 @@ public final class SharedKeyUtils {
         canonicalizedResource.append(this.accountName);
         // Note that AbsolutePath starts with a '/'.
         if (requestURL.getPath().length() > 0) {
-            canonicalizedResource.append(requestURL.getPath());
+            canonicalizedResource.append(requestURL.getPath().replaceAll("\\s", "%20"));
         } else {
             canonicalizedResource.append('/');
         }

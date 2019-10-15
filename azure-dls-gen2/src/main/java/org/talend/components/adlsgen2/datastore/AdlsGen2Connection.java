@@ -35,6 +35,7 @@ import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.Fo
 @GridLayout({ //
         @GridLayout.Row("authMethod"), //
         @GridLayout.Row("accountName"), //
+        @GridLayout.Row("endpointSuffix"), //
         @GridLayout.Row("sharedKey"), //
         @GridLayout.Row("sas"), //
 })
@@ -46,6 +47,11 @@ public class AdlsGen2Connection implements Serializable {
     @Required
     @Documentation("Storage Account Name")
     private String accountName;
+
+    @Option
+    @Required
+    @Documentation("Endpoint suffix")
+    private String endpointSuffix = Constants.DFS_DEFAULT_ENDPOINT_SUFFIX;
 
     @Option
     @Required
@@ -69,15 +75,7 @@ public class AdlsGen2Connection implements Serializable {
     private Integer timeout = 600;
 
     public String apiUrl() {
-        return String.format(Constants.DFS_URL, getAccountName());
-    }
-
-    public String apiUrlWithSas() {
-        String url = String.format(Constants.DFS_URL, getAccountName());
-        if (authMethod.equals(AuthMethod.SAS)) {
-            url = url + getSas();
-        }
-        return url;
+        return String.format(Constants.DFS_URL_PATTERN, getAccountName(), getEndpointSuffix());
     }
 
     public enum AuthMethod {
