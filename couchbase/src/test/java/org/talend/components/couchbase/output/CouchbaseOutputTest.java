@@ -58,8 +58,6 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
     @Service
     private RecordBuilderFactory recordBuilderFactory;
 
-    private final String SIMPLE_OUTPUT_TEST_ID = "simpleOutputTest";
-
     private List<JsonDocument> retrieveDataFromDatabase(String prefix, int count) {
         Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
         List<JsonDocument> resultList = new ArrayList<>();
@@ -82,6 +80,7 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
     @DisplayName("Check fields from retrieved data")
     void simpleOutputTest() {
         log.info("Test start: simpleOutputTest");
+        final String SIMPLE_OUTPUT_TEST_ID = "simpleOutputTest";
         List<Record> records = createRecords(new TestData(), SIMPLE_OUTPUT_TEST_ID);
         componentsHandler.setInputData(records);
         executeJob(getOutputConfiguration());
@@ -225,17 +224,17 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
         }
     }
 
-    private List<Record> createPartialUpdateRecords() {
+    private List<Record> createPartialUpdateRecords(String idPrefix) {
         final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
         List<Record> records = new ArrayList<>();
         Record record1 = recordBuilderFactory.newRecordBuilder()
                 .withString(entryBuilder.withName("t_string").withType(Schema.Type.STRING).build(),
-                        generateDocId(SIMPLE_OUTPUT_TEST_ID, 0))
+                        generateDocId(idPrefix, 0))
                 .withInt(entryBuilder.withName("t_int_min").withType(Schema.Type.INT).build(), 1971)
                 .withString(entryBuilder.withName("extra_content").withType(Schema.Type.STRING).build(), "path new").build();
         Record record2 = recordBuilderFactory.newRecordBuilder()
                 .withString(entryBuilder.withName("t_string").withType(Schema.Type.STRING).build(),
-                        generateDocId(SIMPLE_OUTPUT_TEST_ID, 1))
+                        generateDocId(idPrefix, 1))
                 .withBoolean(entryBuilder.withName("t_boolean").withType(Schema.Type.BOOLEAN).build(), Boolean.FALSE)
                 .withString(entryBuilder.withName("extra_content2").withType(Schema.Type.STRING).build(), "path zap").build();
         records.add(record1);
@@ -248,12 +247,22 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
     @DisplayName("Document partial update")
     void partialUpdate() {
         log.info("Test start: partialUpdate");
+        final String PARTIAL_UPDATE_ID_PREFIX = "partialUpdate";
+        // prepare data
+        Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
+        for (int i = 0; i < 2; i++) {
+            JsonObject js = new TestData().createJson(PARTIAL_UPDATE_ID_PREFIX);
+            bucket.insert(JsonDocument.create(generateDocId(PARTIAL_UPDATE_ID_PREFIX, i), js));
+        }
+        bucket.close();
+
+        // update data
         CouchbaseOutputConfiguration config = getOutputConfiguration();
         config.setPartialUpdate(true);
-        componentsHandler.setInputData(createPartialUpdateRecords());
+        componentsHandler.setInputData(createPartialUpdateRecords(PARTIAL_UPDATE_ID_PREFIX));
         executeJob(config);
         //
-        List<JsonDocument> resultList = retrieveDataFromDatabase(SIMPLE_OUTPUT_TEST_ID, 2);
+        List<JsonDocument> resultList = retrieveDataFromDatabase(PARTIAL_UPDATE_ID_PREFIX, 2);
         assertEquals(2, resultList.size());
         TestData testData = new TestData();
         Stream.iterate(0, o -> o + 1).limit(2).forEach(idx -> {
@@ -261,10 +270,10 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
             assertEquals(new Integer(testData.getColIntMax()), resultList.get(idx).content().getInt("t_int_max"));
             assertEquals(new Long(testData.getColLongMin()), resultList.get(idx).content().getLong("t_long_min"));
             assertEquals(new Long(testData.getColLongMax()), resultList.get(idx).content().getLong("t_long_max"));
-            assertEquals(testData.getColFloatMin(), resultList.get(idx).content().getDouble("t_float_min"), 1E35);
-            assertEquals(testData.getColFloatMax(), resultList.get(idx).content().getDouble("t_float_max"), 1E35);
-            assertEquals(testData.getColDoubleMin(), resultList.get(idx).content().getDouble("t_double_min"), 1);
-            assertEquals(testData.getColDoubleMax(), resultList.get(idx).content().getDouble("t_double_max"), 1);
+            assertEquals(testData.getColFloatMin(), resultList.get(idx).content().getNumber("t_float_min").floatValue());
+            assertEquals(testData.getColFloatMax(), resultList.get(idx).content().getNumber("t_float_max").floatValue());
+            assertEquals(testData.getColDoubleMin(), resultList.get(idx).content().getDouble("t_double_min"));
+            assertEquals(testData.getColDoubleMax(), resultList.get(idx).content().getDouble("t_double_max"));
             assertEquals(testData.getColDateTime().toString(), resultList.get(idx).content().getString("t_datetime"));
             assertArrayEquals(testData.getColList().toArray(),
                     resultList.get(idx).content().getArray("t_array").toList().toArray());
