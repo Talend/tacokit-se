@@ -28,7 +28,6 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit5.WithComponents;
 
 import lombok.extern.slf4j.Slf4j;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -83,6 +82,29 @@ public class CsvConverterTest extends AdlsGen2TestBase {
             counted++;
         }
         assertEquals(3, counted);
+        byte[] output = fmt.feedContent(records);
+        assertEquals(result, new String(output));
+    }
+
+    @Test
+    void csvEscaping() throws Exception {
+        InputStream sample = getClass().getResource("/common/format/csv/escaping.csv").openStream();
+        String result = "\"1\";\"transmit\"\r\n" + "\"2\";\"tran\\\"sfer\"\r\n" + "\"3\";\r\n" + ";\"password\"\r\n";
+        csvConfiguration = new CsvConfiguration();
+        csvConfiguration.setEscapeCharacter("\\");
+        csvConfiguration.setTextEnclosureCharacter("\"");
+        CsvIterator it = Builder.of(recordBuilderFactory).withConfiguration(csvConfiguration).parse(sample);
+        outputConfiguration.getDataSet().setCsvConfiguration(csvConfiguration);
+        CsvContentFormatter fmt = new CsvContentFormatter(outputConfiguration, recordBuilderFactory);
+        int counted = 0;
+        List<Record> records = new ArrayList<>();
+        while (it.hasNext()) {
+            Record record = it.next();
+            records.add(record);
+            assertNotNull(record);
+            counted++;
+        }
+        assertEquals(4, counted);
         byte[] output = fmt.feedContent(records);
         assertEquals(result, new String(output));
     }
