@@ -18,7 +18,9 @@ import java.util.Locale;
 
 public class Constants {
 
-    public static final String DFS_URL = "https://%s.dfs.core.windows.net";
+    public static final String DFS_URL_PATTERN = "https://%s.%s";
+
+    public static final String DFS_DEFAULT_ENDPOINT_SUFFIX = "dfs.core.windows.net";
 
     public static final String TOKEN_URL = "https://login.microsoftonline.com";
 
