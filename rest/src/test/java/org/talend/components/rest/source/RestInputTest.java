@@ -77,8 +77,8 @@ class RestInputTest {
         config = RequestConfigBuilder.getEmptyRequestConfig();
 
         config.getDataset().getDatastore().setBase(HTTP_BIN_BASE);
-        config.getDataset().setConnectionTimeout(5000);
-        config.getDataset().setReadTimeout(5000);
+        config.getDataset().getDatastore().setConnectionTimeout(5000);
+        config.getDataset().getDatastore().setReadTimeout(5000);
     }
 
     @Test
@@ -106,8 +106,8 @@ class RestInputTest {
 
         assertEquals(1, records.size());
         assertEquals(
-                "{\"args\":{\"param1\":\"param1_value\",\"param2\":\"param1_value2\"},\"headers\":{\"Accept\":\"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2\",\"Connection\":\"keep-alive\",\"Host\":\"tal-rd22.talend.lan:8084\",\"User-Agent\":\"Java/11.0.2\"},\"origin\":\"192.168.61.179\",\"url\":\"http://tal-rd22.talend.lan:8084/get?param1=param1_value&param2=param1_value2\"}",
-                records.get(0).getString("body"));
+                "{\"args\": {\"param1\": \"param1_value\", \"param2\": \"param1_value2\"}, \"headers\": {\"Accept\": \"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2\", \"Connection\": \"keep-alive\", \"Host\": \"tal-rd22.talend.lan:8084\", \"User-Agent\": \"Java/1.8.0_211\"}, \"origin\": \"192.168.61.179\", \"url\": \"http://tal-rd22.talend.lan:8084/get?param1=param1_value&param2=param1_value2\"}",
+                records.get(0).getString("body").replaceAll("\n\\s*", ""));
     }
 
     /*

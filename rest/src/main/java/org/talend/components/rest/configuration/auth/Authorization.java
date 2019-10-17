@@ -24,7 +24,7 @@ public interface Authorization {
         Basic,
         Digest,
         Bearer,
-        Oauth2,
+        // Oauth2,
     }
 
 }

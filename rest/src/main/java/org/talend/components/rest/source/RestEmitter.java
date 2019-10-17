@@ -38,22 +38,17 @@ public class RestEmitter implements Serializable {
 
     private final RestService client;
 
-    private final Queue<Record> records = new LinkedList<>();
+    private boolean done;
 
     public RestEmitter(@Option("configuration") final RequestConfig config, final RestService client) {
         this.config = config;
         this.client = client;
     }
 
-    @PostConstruct
-    public void init() {
-        Record record = client.execute(config);
-        records.add(record);
-    }
-
     @Producer
     public Record next() {
-        return records.poll();
+        done = true;
+        return done ? null : client.execute(config);
     }
 
 }

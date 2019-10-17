@@ -35,7 +35,7 @@ public class Authentication implements Serializable {
     private Authorization.AuthorizationType type = Authorization.AuthorizationType.NoAuth;
 
     @Option
-    @ActiveIf(target = "type", value = "Basic")
+    @ActiveIf(target = "type", value = { "Basic", "Digest" })
     @Documentation("")
     private Basic basic;
 

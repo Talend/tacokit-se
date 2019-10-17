@@ -15,6 +15,7 @@ package org.talend.components.rest.service;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.talend.components.common.text.Substitutor;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestConfig;
@@ -24,6 +25,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
+import org.talend.sdk.component.runtime.manager.service.RecordPointerFactoryImpl;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -61,8 +63,8 @@ public class RestServiceTest {
     @Test
     void setPathParams() throws Exception {
         config.getDataset().getDatastore().setBase("");
-        config.getDataset().setConnectionTimeout(5000);
-        config.getDataset().setReadTimeout(5000);
+        config.getDataset().getDatastore().setConnectionTimeout(5000);
+        config.getDataset().getDatastore().setReadTimeout(5000);
         config.getDataset().setResource("get/{resource}/{id}/{field}/id/{id}/resource/{resource}/end");
         config.getDataset().setMethodType(HttpMethod.GET);
 
@@ -96,22 +98,34 @@ public class RestServiceTest {
         ZonedDateTime now = ZonedDateTime.now();
 
         Record record = recordBuilderFactory.newRecordBuilder() //
-                .withInt("id", id).withString("name", name) //
+                .withInt("id", id) //
+                .withString("name", name) //
                 .withDateTime("date", now) //
                 .withString("unused", "unused") //
                 .build();
 
         List<Param> queryParams = new ArrayList<>();
-        queryParams.add(new Param("id", "${id}"));
-        queryParams.add(new Param("name", "<name>${name}</name>"));
-        queryParams.add(new Param("complexe", "<name>${name}</name><id>${id}</id><unexists>${unexists}</unexists>"));
+        queryParams.add(new Param("id", "${/id}"));
+        queryParams.add(new Param("name", "<name>${/name}</name>"));
+        queryParams.add(new Param("complexe1", "<name>${/name}</name><id>${/id}</id>"));
+        queryParams.add(new Param("complexe2", "<name>${/name}</name><id>${/id}</id><unexists>${/unexists:-default}</unexists>"));
+        queryParams.add(new Param("complexe3",
+                "<name>${/name}</name><id>${/id}</id><unexists>${/unexists:-default}</unexists><escaped>\\${escaped:-none}<escaped>"));
+
         config.getDataset().setHasQueryParams(true);
         config.getDataset().setQueryParams(queryParams);
 
-        Map<String, String> updatedQueryParams = service.updateParamsFromRecord(config.queryParams(), record);
+        Substitutor substitutor = new RecordSubstitutor("${", "}", record, new RecordPointerFactoryImpl(null));
+
+        Map<String, String> updatedQueryParams = service.updateParamsFromRecord(config.queryParams(), substitutor);
 
         assertEquals("" + id, updatedQueryParams.get("id"));
-
+        assertEquals("<name>" + name + "</name>", updatedQueryParams.get("name"));
+        assertEquals("<name>" + name + "</name><id>" + id + "</id>", updatedQueryParams.get("complexe1"));
+        assertEquals("<name>" + name + "</name><id>" + id + "</id><unexists>default</unexists>",
+                updatedQueryParams.get("complexe2"));
+        assertEquals("<name>" + name + "</name><id>" + id + "</id><unexists>default</unexists><escaped>${escaped:-none}<escaped>",
+                updatedQueryParams.get("complexe3"));
     }
 
 }

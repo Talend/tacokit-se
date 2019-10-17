@@ -28,17 +28,17 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Version(1)
 @Data
 @DataSet("Dataset")
 @GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "resource" }), @GridLayout.Row({ "methodType" }),
-        @GridLayout.Row({ "authentication" }), @GridLayout.Row({ "hasPathParams" }), @GridLayout.Row({ "pathParams" }),
         @GridLayout.Row({ "hasHeaders" }), @GridLayout.Row({ "headers" }), @GridLayout.Row({ "hasQueryParams" }),
-        @GridLayout.Row({ "queryParams" }), @GridLayout.Row({ "body" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "redirect", "maxRedirect", "force_302_redirect" }),
-        @GridLayout.Row({ "connectionTimeout" }), @GridLayout.Row({ "readTimeout" }) })
+        @GridLayout.Row({ "queryParams" }), @GridLayout.Row({ "hasBody" }), @GridLayout.Row({ "body" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "maxRedirect" }),
+        @GridLayout.Row({ "only_same_host" }), @GridLayout.Row({ "force_302_redirect" }) })
 @Documentation("Define the resource and authentication")
 public class Dataset implements Serializable {
 
@@ -55,45 +55,25 @@ public class Dataset implements Serializable {
     @Option
     @Required
     @Documentation("End of url to complete base url of the datastore")
-    // @Suggestable(value = "getPaths", parameters = { "../datastore" })
     private String resource;
 
     @Option
-    @Required
     @Documentation("")
-    private Authentication authentication;
-
-    @Min(0)
-    @Option
-    @Required
-    @Documentation("")
-    @DefaultValue("500")
-    private Integer connectionTimeout;
-
-    @Min(0)
-    @Option
-    @Required
-    @Documentation("")
-    @DefaultValue("500")
-    private Integer readTimeout;
-
-    @Option
-    @Documentation("")
-    @DefaultValue("false")
-    private Boolean redirect = false;
-
-    @Option
-    @Documentation("")
-    @DefaultValue("1")
-    @ActiveIf(target = "redirect", value = "true")
+    @DefaultValue("3")
     @Min(-1)
-    private Integer maxRedirect = 1;
+    private Integer maxRedirect = 3;
 
     @Option
     @Documentation("")
     @DefaultValue("false")
-    @ActiveIf(target = "redirect", value = "true")
-    private Boolean force_302_redirect;
+    @ActiveIf(target = "maxRedirect", value = "0", negate = true)
+    private Boolean only_same_host = false;
+
+    @Option
+    @Documentation("")
+    @DefaultValue("false")
+    @ActiveIf(target = "maxRedirect", value = "0", negate = true)
+    private Boolean force_302_redirect = false;
 
     @Option
     @Documentation("Http request contains path parameters")
@@ -111,7 +91,7 @@ public class Dataset implements Serializable {
     @Option
     @ActiveIf(target = "hasHeaders", value = "true")
     @Documentation("Http request headers")
-    private List<Param> headers = new ArrayList<>();
+    private List<Param> headers = new ArrayList<>(Collections.singleton(new Param("", "")));
 
     @Option
     @Documentation("Http request contains query params")
@@ -120,11 +100,19 @@ public class Dataset implements Serializable {
     @Option
     @ActiveIf(target = "hasQueryParams", value = "true")
     @Documentation("Http request query params")
-    private List<Param> queryParams = new ArrayList<>();
+    private List<Param> queryParams = new ArrayList<>(Collections.singleton(new Param("", "")));
 
     @Option
-    @ActiveIf(target = "methodType", value = { "POST", "PUT", "PATCH", "DELETE", "OPTIONS" })
+    @Documentation("")
+    private boolean hasBody;
+
+    @Option
+    @ActiveIf(target = "hasBody", value = "true")
     @Documentation("")
     private RequestBody body;
+
+    public boolean supportRedirect() {
+        return this.getMaxRedirect() != 0;
+    }
 
 }

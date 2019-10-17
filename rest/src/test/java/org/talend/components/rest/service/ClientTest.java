@@ -12,14 +12,18 @@
  */
 package org.talend.components.rest.service;
 
+import com.sun.net.httpserver.HttpServer;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
+import org.talend.components.rest.configuration.RequestBody;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.configuration.auth.Authentication;
 import org.talend.components.rest.configuration.auth.Authorization;
@@ -35,19 +39,35 @@ import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
 import javax.json.JsonValue;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
+import static java.util.Collections.checkedList;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
@@ -73,43 +93,30 @@ class ClientTest {
 
     private RequestConfig config;
 
+    private boolean followRedirects_backup;
+
     @BeforeEach
-    void buildConfig() {
+    void before() {
+        followRedirects_backup = HttpURLConnection.getFollowRedirects();
+        HttpURLConnection.setFollowRedirects(false);
+
         // Inject needed services
         handler.injectServices(this);
-
-        Client client = service.getClient();
 
         config = RequestConfigBuilder.getEmptyRequestConfig();
 
         config.getDataset().getDatastore().setBase(HTTP_BIN_BASE);
-        config.getDataset().setConnectionTimeout(CONNECT_TIMEOUT);
-        config.getDataset().setReadTimeout(READ_TIMEOUT);
+        config.getDataset().getDatastore().setConnectionTimeout(CONNECT_TIMEOUT);
+        config.getDataset().getDatastore().setReadTimeout(READ_TIMEOUT);
     }
 
-    private String getEncoding(Record rec) {
-        String encoding = "UTF-8";
-
-        Map<String, String> headers = rec.getArray(Record.class, "headers").stream()
-                .collect(Collectors.toMap(r -> r.getString("key"), r -> r.getString("value")));
-        String contentTypeStr = Optional.ofNullable(headers.get(ContentType.HEADER_KEY)).orElse("");
-        if (contentTypeStr.indexOf(';') > 1) {
-            String[] split = contentTypeStr.split(";");
-            contentTypeStr = split[0];
-            encoding = split[1];
-        }
-
-        return encoding;
-    }
-
-    private String getBodyAsString(Record rec) {
-        String enc = getEncoding(rec);
-        byte[] body = rec.getBytes("body");
-        return new String(body, 0, body.length, Charset.forName(enc));
+    @AfterEach
+    void after() {
+        HttpURLConnection.setFollowRedirects(followRedirects_backup);
     }
 
     @Test
-    void httpbinGet() throws Exception {
+    void httpbinGet() {
         config.getDataset().setResource("get");
         config.getDataset().setMethodType(HttpMethod.GET);
 
@@ -139,8 +146,8 @@ class ClientTest {
         });
         assertTrue(headerToCheck.size() > 0); // it may have more header returned by the server
 
-        String bodyS = getBodyAsString(resp);
-        JsonObject bodyJson = jsonReaderFactory.createReader(new ByteArrayInputStream((bodyS == null ? "" : bodyS).getBytes()))
+        String body = resp.getString("body");
+        JsonObject bodyJson = jsonReaderFactory.createReader(new ByteArrayInputStream((body == null ? "" : body).getBytes()))
                 .readObject();
 
         assertEquals(JsonValue.ValueType.OBJECT, bodyJson.getJsonObject("args").getValueType());
@@ -169,7 +176,7 @@ class ClientTest {
      * @throws Exception
      */
     @Test
-    void testParamsDisabled() throws Exception {
+    void testParamsDisabled() {
         HttpMethod[] verbs = { HttpMethod.DELETE, HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT };
         config.getDataset().setResource("get");
         config.getDataset().setMethodType(HttpMethod.GET);
@@ -188,7 +195,7 @@ class ClientTest {
 
         assertEquals(200, resp.getInt("status"));
 
-        JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(getBodyAsString(resp)));
+        JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(resp.getString("body")));
         JsonObject payload = payloadReader.readObject();
 
         assertEquals(0, payload.getJsonObject("args").size());
@@ -197,7 +204,7 @@ class ClientTest {
     }
 
     @Test
-    void testQueryAndHeaderParams() throws Exception {
+    void testQueryAndHeaderParams() {
         HttpMethod[] verbs = { HttpMethod.DELETE, HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT };
         for (HttpMethod m : verbs) {
             config.getDataset().setResource(m.name().toLowerCase());
@@ -219,7 +226,7 @@ class ClientTest {
 
             assertEquals(200, resp.getInt("status"));
 
-            JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(getBodyAsString(resp)));
+            JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(resp.getString("body")));
             JsonObject payload = payloadReader.readObject();
 
             assertEquals("value1", payload.getJsonObject("args").getString("params1"));
@@ -230,7 +237,7 @@ class ClientTest {
     }
 
     @Test
-    void testBasicAuth() throws Exception {
+    void testBasicAuth() {
         String user = "my_user";
         String pwd = "my_password";
 
@@ -242,10 +249,9 @@ class ClientTest {
         auth.setType(Authorization.AuthorizationType.Basic);
         auth.setBasic(basic);
 
-        config.getDataset().setAuthentication(auth);
+        config.getDataset().getDatastore().setAuthentication(auth);
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("/basic-auth/{user}/{pwd}");
-        config.setStopIfNotOk(false);
 
         // httpbin expects login/pwd given in header Basic as path param
         config.getDataset().setResource("/basic-auth/" + user + "/wrong_" + pwd);
@@ -258,15 +264,14 @@ class ClientTest {
     }
 
     @Test
-    void testBearerAuth() throws Exception {
+    void testBearerAuth() {
         Authentication auth = new Authentication();
         auth.setType(Authorization.AuthorizationType.Bearer);
 
         config.getDataset().getDatastore().setBase(HTTP_BIN_BASE);
-        config.getDataset().setAuthentication(auth);
+        config.getDataset().getDatastore().setAuthentication(auth);
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("/bearer");
-        config.setStopIfNotOk(false);
 
         auth.setBearerToken("");
         Record respKo = service.execute(config);
@@ -277,62 +282,168 @@ class ClientTest {
         assertEquals(200, respOk.getInt("status"));
     }
 
-    @Test
-    void testRedirect() throws Exception {
-        boolean followRedirects_backup = HttpURLConnection.getFollowRedirects();
-        HttpURLConnection.setFollowRedirects(false);
+    @ParameterizedTest
+    @CsvSource(value = { "GET", "POST", "PUT" })
+    void testRedirect(final String method) {
 
-        String redirect_url = HTTP_BIN_BASE + "/get?redirect=ok";
+        String redirect_url = HTTP_BIN_BASE + "/" + method.toLowerCase() + "?redirect=ok";
         config.getDataset().setResource("redirect-to?url=" + redirect_url);
-        config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setRedirect(true);
+        config.getDataset().setMethodType(HttpMethod.valueOf(method));
         config.getDataset().setMaxRedirect(1);
-
 
         Record resp = service.execute(config);
         assertEquals(200, resp.getInt("status"));
 
-        JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(getBodyAsString(resp)));
+        JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(resp.getString("body")));
         JsonObject payload = payloadReader.readObject();
 
         assertEquals("ok", payload.getJsonObject("args").getString("redirect"));
-        HttpURLConnection.setFollowRedirects(followRedirects_backup);
     }
 
     @ParameterizedTest
-    @CsvSource(value = { "6,-1", "3,3", "3,5"})
-    void testRedirectNOk(final int nbRedirect, final int maxRedict) throws Exception {
-        boolean followRedirects_backup = HttpURLConnection.getFollowRedirects();
-        HttpURLConnection.setFollowRedirects(false);
-
-        config.getDataset().setResource("redirect/"+nbRedirect);
+    @CsvSource(value = { "6,-1", "3,3", "3,5" })
+    void testRedirectNOk(final int nbRedirect, final int maxRedict) {
+        config.getDataset().setResource("redirect/" + nbRedirect);
         config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setRedirect(true);
         config.getDataset().setMaxRedirect(maxRedict);
-
 
         Record resp = service.execute(config);
         assertEquals(200, resp.getInt("status"));
-
-        HttpURLConnection.setFollowRedirects(followRedirects_backup);
     }
 
     @ParameterizedTest
-    @CsvSource(value = { "3,0", "3,1", "3,2", "5,4"})
-    void testRedirectNko(final int nbRedirect, final int maxRedict) throws Exception {
-        boolean followRedirects_backup = HttpURLConnection.getFollowRedirects();
-        HttpURLConnection.setFollowRedirects(false);
-
-        config.getDataset().setResource("redirect/"+nbRedirect);
+    @CsvSource(value = { "3,0", "3,1", "3,2", "5,4" })
+    void testRedirectNko(final int nbRedirect, final int maxRedict) {
+        config.getDataset().setResource("redirect/" + nbRedirect);
         config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setRedirect(true);
         config.getDataset().setMaxRedirect(maxRedict);
 
+        if(maxRedict == 0){
+            // When maxRedirect == 0 then redirect is disabled
+            // we only return the response
+            Record resp = service.execute(config);
+            assertEquals(302, resp.getInt("status"));
+        }
+        else {
+            Exception e = assertThrows(IllegalArgumentException.class, () -> service.execute(config));
+        }
+    }
 
-        Exception e = assertThrows(IllegalArgumentException.class, () -> service.execute(config));
-        log.info(e.getMessage());
+    @ParameterizedTest
+    @CsvSource(value = { "GET,false,3,302,GET", "POST,false,4,302,POST", "PUT,false,5,302, PUT", "GET,true,6,302,GET",
+            "POST,true,7,302,GET", "PUT,true,8,302,GET", "GET,false,3,303,GET", "POST,false,3,303,GET",
+            "DELETE,false,3,303,GET" })
+    void testForceGetOnRedirect(final String method, final boolean forceGet, final int nbRedirect, final int redirectCode,
+            final String expectedMethod) throws IOException {
+        final List<Request> calls = new ArrayList<>();
+        final AtomicInteger counter = new AtomicInteger(0);
+        final HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+        final int port = server.getAddress().getPort();
 
-        HttpURLConnection.setFollowRedirects(followRedirects_backup);
+        server.createContext("/", httpExchange -> {
+            calls.add(new Request(httpExchange.getRequestMethod(), httpExchange.getRequestURI().toASCIIString()));
+            httpExchange.getResponseHeaders().add("Location",
+                    "http://localhost:" + port + "/redirection/" + counter.getAndIncrement());
+
+            int code = redirectCode;
+            byte[] body = new byte[0];
+
+            if (counter.get() >= nbRedirect) {
+                body = "Done.".getBytes();
+                code = 200;
+            }
+            httpExchange.sendResponseHeaders(code, body.length);
+            OutputStream os = httpExchange.getResponseBody();
+            os.write(body);
+            os.close();
+        });
+
+        server.start();
+
+        try {
+            config.getDataset().getDatastore().setBase("http://localhost:" + port);
+            config.getDataset().setResource("redirection");
+            config.getDataset().setMethodType(HttpMethod.valueOf(method));
+            config.getDataset().setMaxRedirect(-1);
+            config.getDataset().setForce_302_redirect(forceGet);
+
+            Record resp = service.execute(config);
+
+            assertEquals(200, resp.getInt("status"));
+            assertEquals(method, calls.get(0).getMethod());
+
+            assertEquals(nbRedirect, calls.size());
+            assertEquals(expectedMethod, calls.get(calls.size() - 1).getMethod());
+
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = { "POST,src/test/resources/org/talend/components/rest/body/empty.txt",
+            "POST,src/test/resources/org/talend/components/rest/body/Multilines.txt" })
+    void testBody(final String method, final String filename) throws IOException {
+        String body = "to remove";
+
+        Path resourceDirectory = Paths.get(filename);
+        String content = Files.lines(resourceDirectory).collect(Collectors.joining("\n"));
+
+        final HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+        final int port = server.getAddress().getPort();
+
+        server.createContext("/", httpExchange -> {
+            BufferedReader br = new BufferedReader(new InputStreamReader(httpExchange.getRequestBody(), "UTF-8"));
+            byte[] answerBody = br.lines().collect(Collectors.joining("\n")).getBytes();
+            final int code = 200;
+
+            httpExchange.getResponseHeaders().add("Method", httpExchange.getRequestMethod());
+
+            httpExchange.sendResponseHeaders(code, answerBody.length);
+            OutputStream os = httpExchange.getResponseBody();
+            os.write(answerBody);
+            os.close();
+        });
+
+        server.start();
+
+        try {
+            config.getDataset().getDatastore().setBase("http://localhost:" + port);
+            config.getDataset().setResource("post");
+            config.getDataset().setMethodType(HttpMethod.valueOf(method));
+            config.getDataset().setHasBody(true);
+            config.getDataset().getBody().setType(RequestBody.Type.TEXT);
+            config.getDataset().getBody().setTextValue(content);
+
+            Record resp = service.execute(config);
+
+            Collection<Record> headers = resp.getArray(Record.class, "headers");
+            String requestMethod = headers.stream().filter(e -> "Method".equals(e.getString("key"))).findFirst()
+                    .map(h -> h.getString("value")).orElse("");
+            String requestBody = resp.getString("body");
+
+            assertEquals(200, resp.getInt("status"));
+            assertEquals(method, requestMethod);
+            assertEquals(content, requestBody);
+
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @Test
+    void testBody2() {
+        config.getDataset().setResource("post");
+        config.getDataset().setMethodType(HttpMethod.POST);
+        config.getDataset().getBody().setType(RequestBody.Type.TEXT);
+        config.getDataset().getBody().setTextValue("Hello2222");
+        config.getDataset().setHasHeaders(true);
+        config.getDataset().setHeaders(singletonList(new Param("content-type", "text/plain")));
+
+        Record resp = service.execute(config);
+        System.out.println(resp);
+
+        assertEquals(200, resp.getInt("status"));
     }
 
     @ParameterizedTest
@@ -359,7 +470,7 @@ class ClientTest {
 
     private void testDigestAuthWithQop(final int expected, final String user, final String pwd, final Authentication auth,
             final String qop) {
-        config.getDataset().setAuthentication(auth);
+        config.getDataset().getDatastore().setAuthentication(auth);
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("digest-auth/" + qop + "/" + user + "/" + pwd);
 
@@ -369,7 +480,7 @@ class ClientTest {
 
     private void testDigestAuthWithQopAlgo(final int expected, final String user, final String pwd, final Authentication auth,
             final String qop, final String algo) {
-        config.getDataset().setAuthentication(auth);
+        config.getDataset().getDatastore().setAuthentication(auth);
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("digest-auth/" + qop + "/" + user + "/" + pwd + "/" + algo);
 
@@ -388,8 +499,24 @@ class ClientTest {
         assertEquals(200, resp.getInt("status"));
     }
 
-    static IntStream threeSixNine() {
-        return IntStream.range(1, 10).filter(l -> l % 3 == 0);
+    @ParameterizedTest
+    @CsvSource(value = { "text/html; charset=ascii; other=nothing,ascii", "text/html, UTF-8", "charset=ascii, ascii" })
+    void testGetCharsetName(final String header, final String expected) {
+        final Map<String, List<String>> headers = new HashMap<>(singletonMap(ContentType.HEADER_KEY, singletonList(header)));
+        for (int i = 0; i < 3; i++) {
+            headers.put("key" + i, Arrays.asList("valA" + i, "valB" + i));
+        }
+
+        assertEquals(expected, RestService.getCharsetName(headers));
+    }
+
+    @Data
+    @AllArgsConstructor
+    private final static class Request {
+
+        private final String method;
+
+        private final String url;
     }
 
     /*

@@ -96,7 +96,7 @@ public class RedirectService {
         StringBuilder sb = new StringBuilder();
 
         context.getHistory().stream().forEach(r -> {
-            sb.append("\tLocation[").append(r.getNbRedirect()).append("] : ").append(r.getVerb()).append(" ")
+            sb.append("\tLocation[").append(r.getNbRedirect()).append("] : ").append(r.getMethod()).append(" ")
                     .append(r.getNextUrl()).append("\n");
         });
 

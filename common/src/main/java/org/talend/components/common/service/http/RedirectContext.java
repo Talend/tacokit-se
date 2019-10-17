@@ -31,7 +31,7 @@ public class RedirectContext {
 
     private final boolean forceGETOn302;
 
-    private String verb;
+    private String method;
 
     private Integer nextNbRedirect = 0;
 
@@ -45,18 +45,18 @@ public class RedirectContext {
         this.nbRedirect = previous.getNextNbRedirect();
         this.maxRedirect = previous.getMaxRedirect();
         this.forceGETOn302 = previous.isForceGETOn302();
-        this.verb = previous.getVerb();
+        this.method = previous.getMethod();
         this.history.addAll(previous.getHistory());
         this.history.add(0, this);
     }
 
-    public RedirectContext(final String base, final Integer maxRedirect, final boolean forceGETOn302, final String verb) {
+    public RedirectContext(final String base, final Integer maxRedirect, final boolean forceGETOn302, final String method) {
         this.response = null;
         this.maxRedirect = maxRedirect;
         this.nbRedirect = 0;
         this.base = base;
         this.forceGETOn302 = forceGETOn302;
-        this.verb = verb;
+        this.method = method;
     }
 
     public boolean isRedirect() {
@@ -69,7 +69,11 @@ public class RedirectContext {
     }
 
     public void setForceGETMethod() {
-        this.verb = "GET";
+        this.method = "GET";
+    }
+
+    public String getMethod() {
+        return this.method;
     }
 
 }

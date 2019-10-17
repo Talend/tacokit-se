@@ -22,6 +22,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,17 +32,12 @@ import static org.talend.components.rest.configuration.RequestBody.Type.X_WWW_FO
 
 @Data
 @GridLayout({ @GridLayout.Row({ "dataset" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataset" }), @GridLayout.Row({ "stopIfNotOk" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataset" }) })
 public class RequestConfig implements Serializable {
 
     @Option
     @Documentation("Identification of the resource to access")
     private Dataset dataset;
-
-    @Option
-    @Documentation("Raise an error if the HTTP status code is not 200")
-    @DefaultValue("false")
-    private boolean stopIfNotOk;
 
     public Map<String, String> pathParams() {
         if (!getDataset().getHasPathParams()) {
@@ -60,40 +56,11 @@ public class RequestConfig implements Serializable {
     }
 
     public Map<String, String> headers() {
-        final Map<String, String> h = new HashMap<String, String>();
-        if (dataset.getBody() != null && hasPayLoad() && X_WWW_FORM_URLENCODED.equals(dataset.getBody().getType())) {
-            h.put("Content-Type", "application/x-www-form-urlencoded");
-        }
-
         if (!getDataset().getHasHeaders()) {
-            return h;
+            return Collections.emptyMap();
         }
 
-        h.putAll(dataset.getHeaders().stream().collect(toMap(Param::getKey, Param::getValue)));
-        return h;
-    }
-
-    public boolean hasPayLoad() {
-        switch (dataset.getBody().getType()) {
-        case RAW:
-            return dataset.getBody().getRawValue() != null && !dataset.getBody().getRawValue().isEmpty();
-        case BINARY:
-            return dataset.getBody().getBinaryPath() != null && !dataset.getBody().getBinaryPath().isEmpty();
-        case X_WWW_FORM_URLENCODED:
-        case FORM_DATA:
-            return dataset.getBody().getParams() != null && !dataset.getBody().getParams().isEmpty();
-        default:
-            return false;
-        }
-    }
-
-    public RequestBody body() {
-        RequestBody _body = null;
-        if (hasPayLoad()) {
-            _body = this.dataset.getBody();
-        }
-
-        return _body;
+        return Collections.unmodifiableMap(dataset.getHeaders().stream().collect(toMap(Param::getKey, Param::getValue)));
     }
 
 }

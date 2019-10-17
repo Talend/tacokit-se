@@ -1,20 +1,14 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements. See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership. The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
 package org.talend.components.common.text;
 
@@ -32,10 +26,15 @@ import java.util.function.Function;
  *
  */
 public class Substitutor {
+
     private final char escape = '\\';
+
     private final char[] delimiter = ":-".toCharArray();
+
     private char[] prefix;
+
     private char[] suffix;
+
     private final Function<String, String> placeholderProvider;
 
     public Substitutor(final String prefix, final String suffix, Function<String, String> placeholderProvider) {
@@ -48,7 +47,7 @@ public class Substitutor {
         this.prefix = prefix.toCharArray();
     }
 
-    public String getPrefix(){
+    public String getPrefix() {
         return new String(prefix);
     }
 
@@ -64,7 +63,7 @@ public class Substitutor {
         if (substitute(builder, 0, source.length(), null) <= 0) {
             return source;
         }
-        //return replace(builder.toString());
+
         return builder.toString();
     }
 
@@ -95,9 +94,7 @@ public class Substitutor {
                         if (endMatchLen == 0) {
                             pos++;
                         } else {
-                            String varNameExpr = new String(chars, startPos
-                                    + startMatchLen, pos - startPos
-                                    - startMatchLen);
+                            String varNameExpr = new String(chars, startPos + startMatchLen, pos - startPos - startMatchLen);
                             pos += endMatchLen;
                             final int endPos = pos;
 
@@ -119,8 +116,7 @@ public class Substitutor {
 
                             if (priorVariables == null) {
                                 priorVariables = new ArrayList<>();
-                                priorVariables.add(new String(chars,
-                                        offset, length + lengthChange));
+                                priorVariables.add(new String(chars, offset, length + lengthChange));
                             }
 
                             checkCyclicSubstitution(varName, priorVariables);
@@ -156,8 +152,7 @@ public class Substitutor {
         return Optional.ofNullable(placeholderProvider.apply(varName)).orElse(varDefaultValue);
     }
 
-    private int isMatch(final char[] chars, final char[] buffer, int pos,
-                        final int bufferEnd) {
+    private int isMatch(final char[] chars, final char[] buffer, int pos, final int bufferEnd) {
         final int len = chars.length;
         if (pos + len > bufferEnd) {
             return 0;

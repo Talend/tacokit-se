@@ -19,12 +19,14 @@ import org.talend.components.common.service.http.RedirectService;
 import org.talend.components.common.service.http.digest.DigestAuthContext;
 import org.talend.components.common.service.http.digest.DigestAuthService;
 import org.talend.components.common.service.http.UserNamePassword;
+import org.talend.components.common.text.Substitutor;
 import org.talend.components.rest.configuration.Datastore;
 import org.talend.components.rest.configuration.RequestBody;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.configuration.auth.Authorization;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.RecordPointerFactory;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
@@ -37,18 +39,15 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toMap;
 
 @Slf4j
 @Data
@@ -56,14 +55,6 @@ import static java.util.stream.Collectors.toSet;
 public class RestService {
 
     public final static String HEALTHCHECK = "healthcheck";
-
-    /*
-     * private final static int[] REDIRECT_CODES = new int[]{HttpURLConnection.HTTP_MOVED_TEMP, HttpURLConnection.HTTP_MOVED_PERM,
-     * HttpURLConnection.HTTP_SEE_OTHER};
-     * static{
-     * Arrays.sort(REDIRECT_CODES);
-     * }
-     */
 
     @Service
     Client client;
@@ -74,10 +65,8 @@ public class RestService {
     @Service
     JsonProvider jsonProvider;
 
-    // Pattern to retrieve {xxxx} in a non-greddy way
-    private final Pattern pathPattern = Pattern.compile("\\{.+?\\}");
-
-    private final Pattern queryPattern = Pattern.compile("\\$\\{.+?\\}");
+    @Service
+    private RecordPointerFactory recordPointerFactory;
 
     public Record execute(final RequestConfig config, final Record record) {
         return _execute(config, record);
@@ -88,47 +77,57 @@ public class RestService {
     }
 
     private Record _execute(final RequestConfig config, final Record record) {
-        log.info("Execute");
-        final Map<String, String> headers = updateParamsFromRecord(config.headers(), record);
-        final Map<String, String> queryParams = updateParamsFromRecord(config.queryParams(), record);
-        final Map<String, String> pathParams = updateParamsFromRecord(config.pathParams(), record);
+        final Substitutor substitutor = new RecordSubstitutor("${", "}", record, recordPointerFactory);
 
-        return this.handleResponse(this.call(config, headers, queryParams, this.buildUrl(config, pathParams), new RedirectContext(config.getDataset().getDatastore().getBase(), config.getDataset().getMaxRedirect())), config);
+        final Map<String, String> headers = updateParamsFromRecord(config.headers(), substitutor);
+        final Map<String, String> queryParams = updateParamsFromRecord(config.queryParams(), substitutor);
+        substitutor.setPrefix("{");
+        final Map<String, String> pathParams = updateParamsFromRecord(config.pathParams(), substitutor);
+
+        RedirectContext redirectContext = new RedirectContext(config.getDataset().getDatastore().getBase(),
+                config.getDataset().getMaxRedirect(), config.getDataset().getForce_302_redirect(),
+                config.getDataset().getMethodType().name());
+
+        Response<byte[]> resp = this.call(config, headers, queryParams, this.buildUrl(config, pathParams), redirectContext);
+
+        return this.buildRecord(resp);
     }
 
     private Response<byte[]> call(final RequestConfig config, final Map<String, String> headers,
-                                  final Map<String, String> queryParams, final String surl, final RedirectContext previousRedirectContext) {
-        RequestBody body = config.body();
+            final Map<String, String> queryParams, final String surl, final RedirectContext previousRedirectContext) {
 
         Response<byte[]> resp = null;
+        RequestBody body = config.getDataset().isHasBody() ? config.getDataset().getBody() : null;
 
-        if (config.getDataset().getAuthentication().getType() == Authorization.AuthorizationType.Digest) {
+        if (config.getDataset().getDatastore().getAuthentication().getType() == Authorization.AuthorizationType.Digest) {
             try {
                 URL url = new URL(surl);
                 DigestAuthService das = new DigestAuthService();
                 DigestAuthContext context = new DigestAuthContext(url.getPath(), config.getDataset().getMethodType().name(),
                         url.getHost(), url.getPort(), this.getBody(config),
-                        new UserNamePassword(config.getDataset().getAuthentication().getBasic().getUsername(),
-                                config.getDataset().getAuthentication().getBasic().getPassword()));
+                        new UserNamePassword(config.getDataset().getDatastore().getAuthentication().getBasic().getUsername(),
+                                config.getDataset().getDatastore().getAuthentication().getBasic().getPassword()));
                 resp = das.call(context, () -> client.executeWithDigestAuth(context, config, client,
-                        config.getDataset().getMethodType().name(), surl, headers, queryParams, body));
+                        previousRedirectContext.getMethod(), surl, headers, queryParams, body));
             } catch (MalformedURLException e) {
                 log.error("Given url '" + surl + "' is malformed.", e);
             }
-        } else if (config.getDataset().getAuthentication().getType() == Authorization.AuthorizationType.Basic) {
-            UserNamePassword credential = new UserNamePassword(config.getDataset().getAuthentication().getBasic().getUsername(),
-                    config.getDataset().getAuthentication().getBasic().getPassword());
-            resp = client.executeWithBasicAuth(credential, config, client, config.getDataset().getMethodType().name(), surl,
-                    headers, queryParams, body);
-        } else if (config.getDataset().getAuthentication().getType() == Authorization.AuthorizationType.Bearer) {
-            String token = config.getDataset().getAuthentication().getBearerToken();
-            resp = client.executeWithBearerAuth(token, config, client, config.getDataset().getMethodType().name(), surl, headers,
+        } else if (config.getDataset().getDatastore().getAuthentication().getType() == Authorization.AuthorizationType.Basic) {
+            UserNamePassword credential = new UserNamePassword(
+                    config.getDataset().getDatastore().getAuthentication().getBasic().getUsername(),
+                    config.getDataset().getDatastore().getAuthentication().getBasic().getPassword());
+            resp = client.executeWithBasicAuth(credential, config, client, previousRedirectContext.getMethod(), surl, headers,
+                    queryParams, body);
+        } else if (config.getDataset().getDatastore().getAuthentication().getType() == Authorization.AuthorizationType.Bearer) {
+            String token = config.getDataset().getDatastore().getAuthentication().getBearerToken();
+            resp = client.executeWithBearerAuth(token, config, client, previousRedirectContext.getMethod(), surl, headers,
                     queryParams, body);
         } else {
-            resp = client.execute(config, client, config.getDataset().getMethodType().name(), surl, headers, queryParams, body);
+            resp = client.execute(config, client, previousRedirectContext.getMethod(), surl, headers, queryParams, body);
         }
 
-        if (config.getDataset().getRedirect()) {
+        if (config.getDataset().supportRedirect()) {
+            // Redirection is managed by RedirectService only if it is not supported by underlying http client implementation
             RedirectContext rctx = new RedirectContext(resp, previousRedirectContext);
             RedirectService rs = new RedirectService();
             rctx = rs.call(rctx);
@@ -141,44 +140,13 @@ public class RestService {
         return resp;
     }
 
-    private Record handleResponse(final Response<byte[]> firstResp, final RequestConfig config) {
-        Record rec = null;
-
-        Response<byte[]> finalResp = redirect(firstResp, config);
-
-        if (!config.isStopIfNotOk() || (config.isStopIfNotOk() && isSuccess(finalResp.status()))) {
-            rec = buildRecord(finalResp);
-        } else {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Rest response error [").append(finalResp.status()).append("]");
-            String msg = sb.toString();
-            log.debug(msg);
-            throw new RuntimeException(msg);
+    private String getBody(final RequestConfig config) {
+        if (!config.getDataset().isHasBody()) {
+            return null;
         }
 
-        return rec;
-    }
-
-    private Response<byte[]> redirect(final Response<byte[]> previousResp, final RequestConfig config) {
-        // @TODO check https://www.mkyong.com/java/java-httpurlconnection-follow-redirect-example/
-        // https://github.com/Talend/tdi-studio-se/blob/master/main/plugins/org.talend.designer.components.localprovider/components/tFileFetch/tFileFetch_main.javajet#L337
-
-        // HTTP client auto-redirect
-
-        /*
-         * boolean redirect = Arrays.binarySearch(REDIRECT_CODES, previousResp.status()) != -1;
-         *
-         * if(redirect){
-         * String location = previousResp.headers().get("Location").get(0);
-         * }
-         */
-
-        return previousResp;
-    }
-
-    private byte[] getBody(final RequestConfig config) {
-        return Optional.ofNullable(config.body()).map(RequestBody::getRawValue).map(s -> s.getBytes(StandardCharsets.UTF_8))
-                .orElseGet(() -> new byte[0]);
+        return new String(config.getDataset().getBody().getType().getBytes(config.getDataset().getBody()),
+                StandardCharsets.UTF_8);
     }
 
     private String buildUrl(final RequestConfig config, final Map<String, String> params) {
@@ -191,73 +159,17 @@ public class RestService {
             return resource;
         }
 
-        return replaceAll(resource, pathPattern, 1, params);
+        return new Substitutor("{", "}", params::get).replace(resource);
     }
 
-    public Map<String, String> updateParamsFromRecord(final Map<String, String> params, final Record record) {
-        Map<String, String> updated = new HashMap<>();
-        params.forEach((k, v) -> updated.put(k, updateParamFromRecord(v, record)));
-
-        return updated;
-    }
-
-    private String updateParamFromRecord(String param, final Record record) {
-        if (record == null) {
-            return param;
-        }
-
-        return replaceAll(param, queryPattern, 2, RecordToMap(record));
-    }
-
-    private String replaceAll(String input, final Pattern search, final int substrStart, Map<String, String> params) {
-        // Find parameters
-        final List<String> found = new ArrayList<>();
-        Matcher matcher = search.matcher(input);
-
-        while (matcher.find()) {
-            found.add(matcher.group());
-        }
-
-        for (String param : found) {
-            String name = param.substring(substrStart).substring(0, param.length() - substrStart - 1);
-            if (params.containsKey(name)) {
-                // We have to transform {name} to \{name\} and then replace all occurences with desired value
-                input = input.replace(param, params.get(name));
-            }
-        }
-
-        return input;
-    }
-
-    private boolean isSuccess(int code) {
-        return code == HttpURLConnection.HTTP_OK;
+    public Map<String, String> updateParamsFromRecord(final Map<String, String> params, final Substitutor substitutor) {
+        return params.entrySet().stream().collect(toMap(Map.Entry::getKey,
+                e -> !e.getValue().contains(substitutor.getPrefix()) ? e.getValue() : substitutor.replace(e.getValue())));
     }
 
     private Record buildRecord(Response<byte[]> resp) {
         Record.Builder builder = recordBuilderFactory.newRecordBuilder();
         Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
-
-        ContentType.ContentTypeEnum contentType = null;
-        if (resp.headers().containsKey(ContentType.HEADER_KEY)) {
-            String contentTypeStr = resp.headers().get(ContentType.HEADER_KEY).get(0);
-
-            String encoding = "UTF-8";
-            if (contentTypeStr.indexOf(';') > 1) {
-                String[] split = contentTypeStr.split(";");
-                contentTypeStr = split[0];
-                encoding = split[1];
-            }
-
-            log.debug("[buildRecord] Retrieve " + ContentType.HEADER_KEY + " : " + contentTypeStr + ", with encoding : "
-                    + encoding);
-            contentType = ContentType.ContentTypeEnum.get(contentTypeStr);
-            // @TODO better manager content/type
-            if (contentType == null) {
-                log.warn("Unsupported " + ContentType.HEADER_KEY + " : " + contentTypeStr);
-            }
-        } else {
-            log.warn("No header content type " + ContentType.HEADER_KEY);
-        }
 
         builder.withInt("status", resp.status());
 
@@ -280,61 +192,18 @@ public class RestService {
                     .withElementSchema(headerElementSchema).build(), headers);
         }
 
-        builder.withBytes("body", resp.body());
+        String encoding = this.getCharsetName(resp);
+
+        builder.withString("body", new String(Optional.ofNullable(resp.body()).orElse(new byte[0]), Charset.forName(encoding)));
 
         return builder.build();
-    }
-
-    private static Map<String, String> RecordToMap(Record record) {
-        Map<String, String> recordAsMap = new HashMap<>();
-        Set<String> keys = record.getSchema().getEntries().stream().map(Schema.Entry::getName).collect(toSet());
-
-        for (Schema.Entry e : record.getSchema().getEntries()) {
-            String value = "undefined";
-            switch (e.getType()) {
-                case RECORD:
-                    // Maybe convert to json
-                    throw new RuntimeException("Unsuported");
-                case ARRAY:
-                    // Maybe convert to string
-                    throw new RuntimeException("Unsuported");
-                case STRING:
-                    value = record.getString(e.getName());
-                    break;
-                case BYTES:
-                    value = new String(record.getBytes(e.getName()));
-                    break;
-                case INT:
-                    value = "" + record.getInt(e.getName());
-                    break;
-                case LONG:
-                    value = "" + record.getLong(e.getName());
-                    break;
-                case FLOAT:
-                    value = "" + record.getFloat(e.getName());
-                    break;
-                case DOUBLE:
-                    value = "" + record.getDouble(e.getName());
-                    break;
-                case BOOLEAN:
-                    value = "" + record.getBoolean(e.getName());
-                    break;
-                case DATETIME:
-                    break;
-                default:
-                    throw new RuntimeException("Unknown type");
-            }
-            recordAsMap.put(e.getName(), value);
-        }
-
-        return recordAsMap;
     }
 
     @HealthCheck(HEALTHCHECK)
     public HealthCheckStatus healthCheck(@Option final Datastore datastore) {
         try {
             HttpURLConnection conn = (HttpURLConnection) new URL(datastore.getBase()).openConnection();
-            conn.setRequestMethod("HEAD");
+            conn.setRequestMethod("GET");
             if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
                 return new HealthCheckStatus(HealthCheckStatus.Status.OK, "url is accessible");
             }
@@ -344,6 +213,35 @@ public class RestService {
         }
 
         return new HealthCheckStatus(HealthCheckStatus.Status.KO, "Can't access url");
+    }
+
+    public static String getCharsetName(final Response<byte[]> resp) {
+        return getCharsetName(resp.headers());
+    }
+
+    public static String getCharsetName(final Map<String, List<String>> headers) {
+        String contentType = Optional.ofNullable(headers.get(ContentType.HEADER_KEY)).filter(h -> !h.isEmpty()).map(h -> h.get(0))
+                .orElse("UTF-8");
+
+        List<String> values = new ArrayList<>();
+        int split = contentType.indexOf(';');
+        int previous = 0;
+        while (split > 0) {
+            values.add(contentType.substring(previous, split).trim());
+            previous = split + 1;
+            split = contentType.indexOf(';', previous);
+        }
+
+        if (previous == 0) {
+            values.add(contentType);
+        } else {
+            values.add(contentType.substring(previous + 1, contentType.length()));
+        }
+
+        String encoding = values.stream().filter(h -> h.startsWith(ContentType.CHARSET_KEY))
+                .map(h -> h.substring(ContentType.CHARSET_KEY.length())).findFirst().orElse("UTF-8");
+
+        return encoding;
     }
 
 }

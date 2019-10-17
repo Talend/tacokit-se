@@ -13,12 +13,14 @@
 package org.talend.components.rest.configuration;
 
 import lombok.Data;
+import org.talend.components.rest.configuration.auth.Authentication;
 import org.talend.components.rest.service.RestService;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.constraint.Min;
 import org.talend.sdk.component.api.configuration.constraint.Pattern;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataStore;
@@ -34,7 +36,9 @@ import java.io.Serializable;
 @DataStore("Datastore")
 @Checkable(RestService.HEALTHCHECK)
 @Documentation("Define where is the REST API and its description.")
-@OptionsOrder({ "base" })
+@GridLayout({ @GridLayout.Row({ "base" }), @GridLayout.Row({ "authentication" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "connectionTimeout" }),
+        @GridLayout.Row({ "readTimeout" }) })
 public class Datastore implements Serializable {
 
     @Option
@@ -43,5 +47,24 @@ public class Datastore implements Serializable {
     @Documentation("")
     // @Suggestable(value = "getBase", parameters = { ".." })
     private String base;
+
+    @Option
+    @Required
+    @Documentation("")
+    private Authentication authentication;
+
+    @Min(0)
+    @Option
+    @Required
+    @Documentation("")
+    @DefaultValue("30000")
+    private Integer connectionTimeout = 30000;
+
+    @Min(0)
+    @Option
+    @Required
+    @Documentation("")
+    @DefaultValue("120000")
+    private Integer readTimeout = 120000;
 
 }

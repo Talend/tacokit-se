@@ -29,18 +29,18 @@ public class RequestConfigBuilder {
     public static RequestConfig getEmptyRequestConfig() {
         RequestConfig config = new RequestConfig();
 
-        Datastore datastore = new Datastore();
-
         Authentication authent = new Authentication();
         authent.setType(Authorization.AuthorizationType.NoAuth);
 
+        Datastore datastore = new Datastore();
+        datastore.setAuthentication(authent);
+
         RequestBody body = new RequestBody();
-        body.setType(RequestBody.Type.RAW);
-        body.setRawValue("");
+        body.setType(RequestBody.Type.TEXT);
+        body.setTextValue("");
 
         Dataset dataset = new Dataset();
         dataset.setDatastore(datastore);
-        dataset.setAuthentication(authent);
         dataset.setBody(body);
         dataset.setHasQueryParams(false);
         dataset.setQueryParams(Collections.emptyList());

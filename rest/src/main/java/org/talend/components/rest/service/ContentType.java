@@ -20,6 +20,8 @@ public class ContentType {
 
     public final static String HEADER_KEY = "Content-Type";
 
+    public final static String CHARSET_KEY = "charset=";
+
     public enum ContentTypeEnum {
         TEXT_PLAIN("text/plain"),
         APP_JSON("application/json");
