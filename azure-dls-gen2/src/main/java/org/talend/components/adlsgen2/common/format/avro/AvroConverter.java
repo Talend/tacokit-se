@@ -40,23 +40,18 @@ import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import static java.util.stream.Collectors.toList;
 import lombok.extern.slf4j.Slf4j;
+
+import static java.util.stream.Collectors.toList;
 
 @Slf4j
 public class AvroConverter implements RecordConverter<GenericRecord>, Serializable {
-
-    public static final String AVRO_LOGICAL_TYPE = "logicalType";
 
     public static final String AVRO_LOGICAL_TYPE_DATE = "date";
 
     public static final String AVRO_LOGICAL_TYPE_TIME_MILLIS = "time-millis";
 
     public static final String AVRO_LOGICAL_TYPE_TIMESTAMP_MILLIS = "timestamp-millis";
-
-    public static final String AVRO_PROP_JAVA_CLASS = "java-class";
-
-    public static final String AVRO_PROP_TALEND_FIELD_PATTERN = "talend.field.pattern";
 
     public static final String ERROR_UNDEFINED_TYPE = "Undefined type %s.";
 
@@ -328,7 +323,7 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
         Entry.Builder builder = recordBuilderFactory.newEntryBuilder();
         builder.withName(field.name());
         org.apache.avro.Schema.Type type = getFieldType(field);
-        String logicalType = field.schema().getProp(AVRO_LOGICAL_TYPE);
+        String logicalType = getAvroLogicalTypeName(field);
         // handle NULLable field
         builder.withNullable(true);
         switch (type) {
@@ -450,7 +445,7 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
     }
 
     protected void buildField(org.apache.avro.Schema.Field field, Object value, Record.Builder recordBuilder, Entry entry) {
-        String logicalType = field.schema().getProp(AVRO_LOGICAL_TYPE);
+        String logicalType = getAvroLogicalTypeName(field);
         org.apache.avro.Schema.Type fieldType = getFieldType(field);
         switch (fieldType) {
         case RECORD:
@@ -497,6 +492,11 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
         }
     }
 
+    private String getAvroLogicalTypeName(org.apache.avro.Schema.Field field) {
+        return getUnionSchema(field.schema()).getLogicalType() == null ? ""
+                : getUnionSchema(field.schema()).getLogicalType().getName();
+    }
+
     private org.apache.avro.Schema getUnionSchema(org.apache.avro.Schema inputSchema) {
         org.apache.avro.Schema elementType;
         if (inputSchema.getType() == org.apache.avro.Schema.Type.UNION) {
@@ -513,4 +513,5 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
     private org.apache.avro.Schema.Type getFieldType(org.apache.avro.Schema.Field field) {
         return getUnionSchema(field.schema()).getType();
     }
+
 }
