@@ -49,6 +49,7 @@ import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -72,9 +73,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
 @WithComponents(value = "org.talend.components.rest")
-class ClientTest {
+public class ClientTestWithHttpbin {
 
-    private final static String HTTP_BIN_BASE = "http://tal-rd169.talend.lan:8085";
+    public final static String HTTP_BIN_BASE = System.getProperty("httpbin_url", "http://tal-rd169.talend.lan:8085");
 
     private final static String DONT_CHECK = "%DONT_CHECK%";
 
@@ -301,6 +302,29 @@ class ClientTest {
     }
 
     @ParameterizedTest
+    @CsvSource(value = { "GET,", "GET,http://www.google.com" })
+    void testRedirectOnlySameHost(final String method, final String redirect_url) throws MalformedURLException {
+        String mainHost = new URL(HTTP_BIN_BASE).getHost();
+
+        config.getDataset().setResource("redirect-to?url=" + ("".equals(redirect_url) ? mainHost : redirect_url));
+        config.getDataset().setMethodType(HttpMethod.valueOf(method));
+        config.getDataset().setMaxRedirect(1);
+        config.getDataset().setOnly_same_host(true);
+
+        if ("".equals(redirect_url)) {
+            Record resp = service.execute(config);
+            assertEquals(200, resp.getInt("status"));
+
+            JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(resp.getString("body")));
+            JsonObject payload = payloadReader.readObject();
+
+            assertEquals("ok", payload.getJsonObject("args").getString("redirect"));
+        } else {
+            assertThrows(IllegalArgumentException.class, () -> service.execute(config));
+        }
+    }
+
+    @ParameterizedTest
     @CsvSource(value = { "6,-1", "3,3", "3,5" })
     void testRedirectNOk(final int nbRedirect, final int maxRedict) {
         config.getDataset().setResource("redirect/" + nbRedirect);
@@ -318,132 +342,14 @@ class ClientTest {
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setMaxRedirect(maxRedict);
 
-        if(maxRedict == 0){
+        if (maxRedict == 0) {
             // When maxRedirect == 0 then redirect is disabled
             // we only return the response
             Record resp = service.execute(config);
             assertEquals(302, resp.getInt("status"));
-        }
-        else {
+        } else {
             Exception e = assertThrows(IllegalArgumentException.class, () -> service.execute(config));
         }
-    }
-
-    @ParameterizedTest
-    @CsvSource(value = { "GET,false,3,302,GET", "POST,false,4,302,POST", "PUT,false,5,302, PUT", "GET,true,6,302,GET",
-            "POST,true,7,302,GET", "PUT,true,8,302,GET", "GET,false,3,303,GET", "POST,false,3,303,GET",
-            "DELETE,false,3,303,GET" })
-    void testForceGetOnRedirect(final String method, final boolean forceGet, final int nbRedirect, final int redirectCode,
-            final String expectedMethod) throws IOException {
-        final List<Request> calls = new ArrayList<>();
-        final AtomicInteger counter = new AtomicInteger(0);
-        final HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
-        final int port = server.getAddress().getPort();
-
-        server.createContext("/", httpExchange -> {
-            calls.add(new Request(httpExchange.getRequestMethod(), httpExchange.getRequestURI().toASCIIString()));
-            httpExchange.getResponseHeaders().add("Location",
-                    "http://localhost:" + port + "/redirection/" + counter.getAndIncrement());
-
-            int code = redirectCode;
-            byte[] body = new byte[0];
-
-            if (counter.get() >= nbRedirect) {
-                body = "Done.".getBytes();
-                code = 200;
-            }
-            httpExchange.sendResponseHeaders(code, body.length);
-            OutputStream os = httpExchange.getResponseBody();
-            os.write(body);
-            os.close();
-        });
-
-        server.start();
-
-        try {
-            config.getDataset().getDatastore().setBase("http://localhost:" + port);
-            config.getDataset().setResource("redirection");
-            config.getDataset().setMethodType(HttpMethod.valueOf(method));
-            config.getDataset().setMaxRedirect(-1);
-            config.getDataset().setForce_302_redirect(forceGet);
-
-            Record resp = service.execute(config);
-
-            assertEquals(200, resp.getInt("status"));
-            assertEquals(method, calls.get(0).getMethod());
-
-            assertEquals(nbRedirect, calls.size());
-            assertEquals(expectedMethod, calls.get(calls.size() - 1).getMethod());
-
-        } finally {
-            server.stop(0);
-        }
-    }
-
-    @ParameterizedTest
-    @CsvSource(value = { "POST,src/test/resources/org/talend/components/rest/body/empty.txt",
-            "POST,src/test/resources/org/talend/components/rest/body/Multilines.txt" })
-    void testBody(final String method, final String filename) throws IOException {
-        String body = "to remove";
-
-        Path resourceDirectory = Paths.get(filename);
-        String content = Files.lines(resourceDirectory).collect(Collectors.joining("\n"));
-
-        final HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
-        final int port = server.getAddress().getPort();
-
-        server.createContext("/", httpExchange -> {
-            BufferedReader br = new BufferedReader(new InputStreamReader(httpExchange.getRequestBody(), "UTF-8"));
-            byte[] answerBody = br.lines().collect(Collectors.joining("\n")).getBytes();
-            final int code = 200;
-
-            httpExchange.getResponseHeaders().add("Method", httpExchange.getRequestMethod());
-
-            httpExchange.sendResponseHeaders(code, answerBody.length);
-            OutputStream os = httpExchange.getResponseBody();
-            os.write(answerBody);
-            os.close();
-        });
-
-        server.start();
-
-        try {
-            config.getDataset().getDatastore().setBase("http://localhost:" + port);
-            config.getDataset().setResource("post");
-            config.getDataset().setMethodType(HttpMethod.valueOf(method));
-            config.getDataset().setHasBody(true);
-            config.getDataset().getBody().setType(RequestBody.Type.TEXT);
-            config.getDataset().getBody().setTextValue(content);
-
-            Record resp = service.execute(config);
-
-            Collection<Record> headers = resp.getArray(Record.class, "headers");
-            String requestMethod = headers.stream().filter(e -> "Method".equals(e.getString("key"))).findFirst()
-                    .map(h -> h.getString("value")).orElse("");
-            String requestBody = resp.getString("body");
-
-            assertEquals(200, resp.getInt("status"));
-            assertEquals(method, requestMethod);
-            assertEquals(content, requestBody);
-
-        } finally {
-            server.stop(0);
-        }
-    }
-
-    @Test
-    void testBody2() {
-        config.getDataset().setResource("post");
-        config.getDataset().setMethodType(HttpMethod.POST);
-        config.getDataset().getBody().setType(RequestBody.Type.TEXT);
-        config.getDataset().getBody().setTextValue("Hello2222");
-        config.getDataset().setHasHeaders(true);
-        config.getDataset().setHeaders(singletonList(new Param("content-type", "text/plain")));
-
-        Record resp = service.execute(config);
-        System.out.println(resp);
-
-        assertEquals(200, resp.getInt("status"));
     }
 
     @ParameterizedTest
@@ -491,6 +397,7 @@ class ClientTest {
     @ParameterizedTest
     @CsvSource(value = { "json", "xml", "html" })
     void testformats(final String type) {
+        // Currently return body as String
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource(type);
 
@@ -508,15 +415,6 @@ class ClientTest {
         }
 
         assertEquals(expected, RestService.getCharsetName(headers));
-    }
-
-    @Data
-    @AllArgsConstructor
-    private final static class Request {
-
-        private final String method;
-
-        private final String url;
     }
 
     /*

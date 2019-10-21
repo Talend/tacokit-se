@@ -68,6 +68,22 @@ public class RequestBody implements Serializable {
     @Documentation("")
     private List<Param> params = new ArrayList<>();
 
+    public void setTextContent(String content) {
+        switch (this.getType()) {
+        case TEXT:
+            this.setTextValue(content);
+            break;
+        case JSON:
+            this.setJsonValue(content);
+            break;
+        case XML:
+            this.setXmlValue(content);
+            break;
+        default:
+            throw new IllegalArgumentException("You can't set text content for body type " + this.getType());
+        }
+    }
+
     public enum Type {
         TEXT(
                 "text/plain",

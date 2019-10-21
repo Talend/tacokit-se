@@ -31,6 +31,8 @@ public class RedirectContext {
 
     private final boolean forceGETOn302;
 
+    private final boolean onlySameHost;
+
     private String method;
 
     private Integer nextNbRedirect = 0;
@@ -46,17 +48,20 @@ public class RedirectContext {
         this.maxRedirect = previous.getMaxRedirect();
         this.forceGETOn302 = previous.isForceGETOn302();
         this.method = previous.getMethod();
+        this.onlySameHost = previous.isOnlySameHost();
         this.history.addAll(previous.getHistory());
         this.history.add(0, this);
     }
 
-    public RedirectContext(final String base, final Integer maxRedirect, final boolean forceGETOn302, final String method) {
+    public RedirectContext(final String base, final Integer maxRedirect, final boolean forceGETOn302, final String method,
+            final boolean onlySameHost) {
         this.response = null;
         this.maxRedirect = maxRedirect;
         this.nbRedirect = 0;
         this.base = base;
         this.forceGETOn302 = forceGETOn302;
         this.method = method;
+        this.onlySameHost = onlySameHost;
     }
 
     public boolean isRedirect() {

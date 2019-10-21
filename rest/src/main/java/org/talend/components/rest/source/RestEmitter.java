@@ -47,8 +47,12 @@ public class RestEmitter implements Serializable {
 
     @Producer
     public Record next() {
-        done = true;
-        return done ? null : client.execute(config);
+        if (!done) {
+            done = true;
+            return client.execute(config);
+        }
+
+        return null;
     }
 
 }

@@ -37,17 +37,15 @@ public class RestConfigurer implements Configurer {
 
         // Add Content-Type if body and add default encoding if none.
         byte[] body = config.getDataset().getBody().getType().getBytes(config.getDataset().getBody());
-        if (body.length > 0) {
+        if (config.getDataset().isHasBody()) {
             if (config.getDataset().getHasHeaders()) {
                 String contentType = config.getDataset().getHeaders().stream()
                         .filter(h -> "content-type".equals(h.getKey().toLowerCase())).findFirst().map(Param::getKey)
                         .orElse(config.getDataset().getBody().getType().getContentType());
-                if (!contentType.contains("charset")) {
-                    contentType = contentType + "; charset=utf8";
-                }
-
                 config.getDataset().getHeaders().stream().filter(h -> "content-type".equals(h.getKey().toLowerCase())).findFirst()
                         .orElse(new Param("Content-Type", "")).setValue(contentType);
+            } else {
+                connection.withHeader("Content-Type", config.getDataset().getBody().getType().getContentType());
             }
         }
 

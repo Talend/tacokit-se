@@ -86,7 +86,7 @@ public class RestService {
 
         RedirectContext redirectContext = new RedirectContext(config.getDataset().getDatastore().getBase(),
                 config.getDataset().getMaxRedirect(), config.getDataset().getForce_302_redirect(),
-                config.getDataset().getMethodType().name());
+                config.getDataset().getMethodType().name(), config.getDataset().getOnly_same_host());
 
         Response<byte[]> resp = this.call(config, headers, queryParams, this.buildUrl(config, pathParams), redirectContext);
 

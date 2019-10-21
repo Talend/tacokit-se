@@ -12,36 +12,48 @@
  */
 package org.talend.components.rest.source;
 
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Rule;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.service.Client;
+import org.talend.components.rest.service.ClientTestWithHttpbin;
 import org.talend.components.rest.service.RequestConfigBuilder;
 import org.talend.components.rest.service.RestService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit.SimpleComponentRule;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
+import javax.json.JsonBuilderFactory;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.json.JsonReaderFactory;
 
-import java.time.LocalDate;
-import java.time.Month;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -51,13 +63,14 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 @WithComponents(value = "org.talend.components.rest")
 class RestInputTest {
 
-    private final static String HTTP_BIN_BASE = "http://tal-rd22.talend.lan:8084";
-
     @Service
     RestService service;
 
     @Service
     JsonReaderFactory jsonReaderFactory;
+
+    @Service
+    JsonBuilderFactory jsonBuilderFactory;
 
     @Injected
     private BaseComponentsHandler handler;
@@ -67,8 +80,12 @@ class RestInputTest {
     @Rule
     public final SimpleComponentRule components = new SimpleComponentRule("org.talend.sdk.component.mycomponent");
 
+    private HttpServer server;
+
+    private int port;
+
     @BeforeEach
-    void buildConfig() {
+    void buildConfig() throws IOException {
         // Inject needed services
         handler.injectServices(this);
 
@@ -76,15 +93,31 @@ class RestInputTest {
 
         config = RequestConfigBuilder.getEmptyRequestConfig();
 
-        config.getDataset().getDatastore().setBase(HTTP_BIN_BASE);
         config.getDataset().getDatastore().setConnectionTimeout(5000);
         config.getDataset().getDatastore().setReadTimeout(5000);
+
+        // start server
+        server = HttpServer.create(new InetSocketAddress(0), 0);
+        port = server.getAddress().getPort();
+
+        config.getDataset().getDatastore().setBase("http://localhost:" + port);
+    }
+
+    @AfterEach
+    void after() {
+        // stop server
+        server.stop(0);
+    }
+
+    private void setServerContextAndStart(HttpHandler handler) {
+        server.createContext("/", handler);
+        server.start();
     }
 
     @Test
-    void testInput() {
+    void testInput() throws MalformedURLException {
 
-        config.getDataset().setResource("/get");
+        config.getDataset().setResource("get");
         config.getDataset().setMethodType(HttpMethod.GET);
 
         config.getDataset().setHasQueryParams(true);
@@ -92,6 +125,18 @@ class RestInputTest {
                 .setQueryParams(Arrays.asList(new Param("param1", "param1_value"), new Param("param2", "param1_value2")));
 
         final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
+
+        final StringBuilder parameters = new StringBuilder();
+        this.setServerContextAndStart(httpExchange -> {
+            String params = httpExchange.getRequestURI().getQuery();
+
+            parameters.append(params);
+
+            httpExchange.sendResponseHeaders(200, 0);
+            OutputStream os = httpExchange.getResponseBody();
+            os.write(new byte[0]);
+            os.close();
+        });
 
         Job.components() //
                 .component("emitter", "Rest://Input?" + configStr) //
@@ -105,9 +150,7 @@ class RestInputTest {
         final List<Record> records = components.getCollectedData(Record.class);
 
         assertEquals(1, records.size());
-        assertEquals(
-                "{\"args\": {\"param1\": \"param1_value\", \"param2\": \"param1_value2\"}, \"headers\": {\"Accept\": \"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2\", \"Connection\": \"keep-alive\", \"Host\": \"tal-rd22.talend.lan:8084\", \"User-Agent\": \"Java/1.8.0_211\"}, \"origin\": \"192.168.61.179\", \"url\": \"http://tal-rd22.talend.lan:8084/get?param1=param1_value&param2=param1_value2\"}",
-                records.get(0).getString("body").replaceAll("\n\\s*", ""));
+        assertEquals("param1=param1_value&param2=param1_value2", parameters.toString());
     }
 
     /*
