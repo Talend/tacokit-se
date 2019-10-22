@@ -62,8 +62,7 @@ public class JsonConverter implements RecordConverter<JsonObject>, Serializable 
     @Override
     public Schema inferSchema(final JsonObject record) {
         Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Type.RECORD);
-        record.entrySet().stream().filter(e -> e.getValue() != javax.json.JsonValue.NULL)
-                .map(s -> createEntry(s.getKey(), s.getValue())).forEach(builder::withEntry);
+        populateJsonObjectEntries(builder, record);
         return builder.build();
     }
 
