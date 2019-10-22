@@ -36,7 +36,8 @@ import java.util.List;
 @DataSet("Dataset")
 @GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "resource" }), @GridLayout.Row({ "methodType" }),
         @GridLayout.Row({ "hasHeaders" }), @GridLayout.Row({ "headers" }), @GridLayout.Row({ "hasQueryParams" }),
-        @GridLayout.Row({ "queryParams" }), @GridLayout.Row({ "hasBody" }), @GridLayout.Row({ "body" }) })
+        @GridLayout.Row({ "queryParams" }), @GridLayout.Row({ "hasPathParams" }), @GridLayout.Row({ "pathParams" }),
+        @GridLayout.Row({ "hasBody" }), @GridLayout.Row({ "body" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "maxRedirect" }),
         @GridLayout.Row({ "only_same_host" }), @GridLayout.Row({ "force_302_redirect" }) })
 @Documentation("Define the resource and authentication")
@@ -82,7 +83,7 @@ public class Dataset implements Serializable {
     @Option
     @ActiveIf(target = "hasPathParams", value = "true")
     @Documentation("Http path parameters")
-    private List<Param> pathParams = new ArrayList<>();
+    private List<Param> pathParams = new ArrayList<>(Collections.singleton(new Param("", "")));
 
     @Option
     @Documentation("Http request contains headers")

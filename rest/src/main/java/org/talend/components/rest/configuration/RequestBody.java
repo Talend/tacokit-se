@@ -84,44 +84,34 @@ public class RequestBody implements Serializable {
         }
     }
 
+    public String getTextContent() {
+        switch (this.getType()) {
+        case TEXT:
+            return this.getTextValue();
+        case JSON:
+            return this.getJsonValue();
+        case XML:
+            return this.getXmlValue();
+        default:
+            throw new IllegalArgumentException("You can't get text content for body type " + this.getType());
+        }
+    }
+
     public enum Type {
-        TEXT(
-                "text/plain",
-                conf -> Optional.ofNullable(conf.getTextValue()).map(b -> b.getBytes(StandardCharsets.UTF_8))
-                        .orElse(new byte[0])),
-        JSON(
-                "text/json",
-                conf -> Optional.ofNullable(conf.getJsonValue()).map(b -> b.getBytes(StandardCharsets.UTF_8))
-                        .orElse(new byte[0])),
-        XML(
-                "text/xml",
-                conf -> Optional.ofNullable(conf.getXmlValue()).map(b -> b.getBytes(StandardCharsets.UTF_8)).orElse(new byte[0])),
-        FORM_DATA(
-                "multipart/form-data",
-                conf -> Base64.getUrlEncoder()
-                        .encode(conf.getParams().stream().map(param -> param.getKey() + "=" + queryEncode(param.getValue()))
-                                .collect(Collectors.joining("&")).getBytes(StandardCharsets.UTF_8))),
-        X_WWW_FORM_URLENCODED(
-                "application/x-www-form-urlencoded",
-                conf -> Base64.getUrlEncoder()
-                        .encode(conf.getParams().stream().map(param -> param.getKey() + "=" + queryEncode(param.getValue()))
-                                .collect(Collectors.joining("&")).getBytes(StandardCharsets.UTF_8)));
+        TEXT("text/plain"),
+        JSON("text/json"),
+        XML("text/xml"),
+        FORM_DATA("multipart/form-data"),
+        X_WWW_FORM_URLENCODED("application/x-www-form-urlencoded");
 
         private final String contentType;
 
-        private final Function<RequestBody, byte[]> transform;
-
-        Type(final String contentType, final Function<RequestBody, byte[]> transform) {
+        Type(final String contentType) {
             this.contentType = contentType;
-            this.transform = transform;
         }
 
         public String getContentType() {
             return this.contentType;
-        }
-
-        public byte[] getBytes(final RequestBody conf) {
-            return transform.apply(conf);
         }
     }
 

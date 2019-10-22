@@ -79,9 +79,9 @@ public class ClientTestWithHttpbin {
 
     private final static String DONT_CHECK = "%DONT_CHECK%";
 
-    private final static int CONNECT_TIMEOUT = 5000;
+    private final static int CONNECT_TIMEOUT = 30000;
 
-    private final static int READ_TIMEOUT = 5000;
+    private final static int READ_TIMEOUT = 30000;
 
     @Service
     RestService service;

@@ -14,16 +14,18 @@ package org.talend.components.common.text;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Forked from commons-text but no need to bring a dep only for < 200 LOC
- *
+ * <p>
  * Convenient class to replace placeholders in a String giving a Function<String, String>.
- *
  */
 public class Substitutor {
 
@@ -37,10 +39,20 @@ public class Substitutor {
 
     private final Function<String, String> placeholderProvider;
 
+    private final Map<String, Optional<String>> cache = new HashMap<>();
+
     public Substitutor(final String prefix, final String suffix, Function<String, String> placeholderProvider) {
         this.prefix = prefix.toCharArray();
         this.suffix = suffix.toCharArray();
         this.placeholderProvider = placeholderProvider;
+    }
+
+    public Substitutor(final String prefix, final String suffix, final Map<String, Optional<String>> intialCache,
+            Function<String, String> placeholderProvider) {
+        this.prefix = prefix.toCharArray();
+        this.suffix = suffix.toCharArray();
+        this.placeholderProvider = placeholderProvider;
+        this.cache.putAll(intialCache);
     }
 
     public void setPrefix(String prefix) {
@@ -149,7 +161,7 @@ public class Substitutor {
     }
 
     protected String getOrDefault(final String varName, final String varDefaultValue) {
-        return Optional.ofNullable(placeholderProvider.apply(varName)).orElse(varDefaultValue);
+        return cache.computeIfAbsent(varName, k -> Optional.ofNullable(placeholderProvider.apply(k))).orElse(varDefaultValue);
     }
 
     private int isMatch(final char[] chars, final char[] buffer, int pos, final int bufferEnd) {
@@ -188,4 +200,9 @@ public class Substitutor {
             }
         }
     }
+
+    public Map<String, Optional<String>> getCache() {
+        return cache.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
 }

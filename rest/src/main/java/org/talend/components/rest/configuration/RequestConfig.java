@@ -14,21 +14,14 @@ package org.talend.components.rest.configuration;
 
 import lombok.Data;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.action.Updatable;
-import org.talend.sdk.component.api.configuration.condition.ActiveIf;
-import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static java.util.stream.Collectors.toMap;
-import static org.talend.components.rest.configuration.RequestBody.Type.X_WWW_FORM_URLENCODED;
 
 @Data
 @GridLayout({ @GridLayout.Row({ "dataset" }) })
@@ -41,7 +34,7 @@ public class RequestConfig implements Serializable {
 
     public Map<String, String> pathParams() {
         if (!getDataset().getHasPathParams()) {
-            return new HashMap<String, String>();
+            return Collections.emptyMap();
         }
 
         return dataset.getPathParams().stream().collect(toMap(Param::getKey, Param::getValue));
@@ -49,7 +42,7 @@ public class RequestConfig implements Serializable {
 
     public Map<String, String> queryParams() {
         if (!getDataset().getHasQueryParams()) {
-            return new HashMap<String, String>();
+            return Collections.emptyMap();
         }
 
         return dataset.getQueryParams().stream().collect(toMap(Param::getKey, Param::getValue));

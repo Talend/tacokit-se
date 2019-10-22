@@ -22,38 +22,20 @@ import org.junit.jupiter.api.Test;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestConfig;
-import org.talend.components.rest.service.Client;
-import org.talend.components.rest.service.ClientTestWithHttpbin;
 import org.talend.components.rest.service.RequestConfigBuilder;
-import org.talend.components.rest.service.RestService;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit.SimpleComponentRule;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
-import javax.json.JsonBuilderFactory;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
-import javax.json.JsonReaderFactory;
-
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -62,15 +44,6 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 @Slf4j
 @WithComponents(value = "org.talend.components.rest")
 class RestInputTest {
-
-    @Service
-    RestService service;
-
-    @Service
-    JsonReaderFactory jsonReaderFactory;
-
-    @Service
-    JsonBuilderFactory jsonBuilderFactory;
 
     @Injected
     private BaseComponentsHandler handler;
@@ -88,8 +61,6 @@ class RestInputTest {
     void buildConfig() throws IOException {
         // Inject needed services
         handler.injectServices(this);
-
-        Client client = service.getClient();
 
         config = RequestConfigBuilder.getEmptyRequestConfig();
 
@@ -115,7 +86,7 @@ class RestInputTest {
     }
 
     @Test
-    void testInput() throws MalformedURLException {
+    void testInput() {
 
         config.getDataset().setResource("get");
         config.getDataset().setMethodType(HttpMethod.GET);
@@ -152,42 +123,5 @@ class RestInputTest {
         assertEquals(1, records.size());
         assertEquals("param1=param1_value&param2=param1_value2", parameters.toString());
     }
-
-    /*
-     * @Test
-     * void testOutput() {
-     * final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
-     * 
-     * components.setInputData(createData(10));
-     * 
-     * Job.components() //
-     * .component("emitter", "test://emitter") //
-     * .component("out", "Rest://Output?" + configStr) //
-     * .connections() //
-     * .from("emitter") //
-     * .to("out") //
-     * .build() //
-     * .run();
-     * 
-     * }
-     * 
-     * private Collection<Record> createData(int n) {
-     * RecordBuilderFactory factory = components.findService(RecordBuilderFactory.class);
-     * 
-     * Collection<Record> records = new ArrayList<>();
-     * for (int i = 0; i < n; i++) {
-     * records.add(factory.newRecordBuilder().withString("last_name", "last_name_value" + i)
-     * .withString("first_name", "first_name_value" + i)
-     * .withInt("age", 10 + 1)
-     * .withBoolean("male", (i % 2 == 0))
-     * .withDateTime("birthdate", Date.from(LocalDate.of(1980+i, Month.JANUARY, i+1).atStartOfDay().toInstant(ZoneOffset.UTC)))
-     * .withDouble("size", 1.785)
-     * .build());
-     * }
-     * 
-     * return records;
-     * 
-     * }
-     */
 
 }

@@ -77,34 +77,39 @@ public class RestService {
     }
 
     private Record _execute(final RequestConfig config, final Record record) {
-        final Substitutor substitutor = new RecordSubstitutor("${", "}", record, recordPointerFactory);
+        final Substitutor substitutor = new RecordSubstitutor("{", "}", record, recordPointerFactory);
 
         final Map<String, String> headers = updateParamsFromRecord(config.headers(), substitutor);
         final Map<String, String> queryParams = updateParamsFromRecord(config.queryParams(), substitutor);
-        substitutor.setPrefix("{");
         final Map<String, String> pathParams = updateParamsFromRecord(config.pathParams(), substitutor);
+
+        final Substitutor bodySubstitutor = new RecordSubstitutor("${", "}", record, recordPointerFactory,
+                substitutor.getCache());
+
+        // Has body has to be check here to set body = null if needed, the body encoder should not return null
+        Body body = config.getDataset().isHasBody() ? new Body(config.getDataset().getBody(), bodySubstitutor) : null;
 
         RedirectContext redirectContext = new RedirectContext(config.getDataset().getDatastore().getBase(),
                 config.getDataset().getMaxRedirect(), config.getDataset().getForce_302_redirect(),
                 config.getDataset().getMethodType().name(), config.getDataset().getOnly_same_host());
 
-        Response<byte[]> resp = this.call(config, headers, queryParams, this.buildUrl(config, pathParams), redirectContext);
+        Response<byte[]> resp = this.call(config, headers, queryParams, body, this.buildUrl(config, pathParams), redirectContext);
 
         return this.buildRecord(resp);
     }
 
     private Response<byte[]> call(final RequestConfig config, final Map<String, String> headers,
-            final Map<String, String> queryParams, final String surl, final RedirectContext previousRedirectContext) {
+            final Map<String, String> queryParams, final Body body, final String surl,
+            final RedirectContext previousRedirectContext) {
 
         Response<byte[]> resp = null;
-        RequestBody body = config.getDataset().isHasBody() ? config.getDataset().getBody() : null;
 
         if (config.getDataset().getDatastore().getAuthentication().getType() == Authorization.AuthorizationType.Digest) {
             try {
                 URL url = new URL(surl);
                 DigestAuthService das = new DigestAuthService();
                 DigestAuthContext context = new DigestAuthContext(url.getPath(), config.getDataset().getMethodType().name(),
-                        url.getHost(), url.getPort(), this.getBody(config),
+                        url.getHost(), url.getPort(), body == null ? null : body.getContent(),
                         new UserNamePassword(config.getDataset().getDatastore().getAuthentication().getBasic().getUsername(),
                                 config.getDataset().getDatastore().getAuthentication().getBasic().getPassword()));
                 resp = das.call(context, () -> client.executeWithDigestAuth(context, config, client,
@@ -133,20 +138,11 @@ public class RestService {
             rctx = rs.call(rctx);
 
             if (rctx.isRedirect()) {
-                resp = this.call(config, headers, queryParams, rctx.getNextUrl(), rctx);
+                resp = this.call(config, headers, queryParams, body, rctx.getNextUrl(), rctx);
             }
         }
 
         return resp;
-    }
-
-    private String getBody(final RequestConfig config) {
-        if (!config.getDataset().isHasBody()) {
-            return null;
-        }
-
-        return new String(config.getDataset().getBody().getType().getBytes(config.getDataset().getBody()),
-                StandardCharsets.UTF_8);
     }
 
     private String buildUrl(final RequestConfig config, final Map<String, String> params) {
@@ -163,8 +159,7 @@ public class RestService {
     }
 
     public Map<String, String> updateParamsFromRecord(final Map<String, String> params, final Substitutor substitutor) {
-        return params.entrySet().stream().collect(toMap(Map.Entry::getKey,
-                e -> !e.getValue().contains(substitutor.getPrefix()) ? e.getValue() : substitutor.replace(e.getValue())));
+        return params.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> substitute(e.getValue(), substitutor)));
     }
 
     private Record buildRecord(Response<byte[]> resp) {
@@ -197,6 +192,10 @@ public class RestService {
         builder.withString("body", new String(Optional.ofNullable(resp.body()).orElse(new byte[0]), Charset.forName(encoding)));
 
         return builder.build();
+    }
+
+    private String substitute(final String value, final Substitutor substitutor) {
+        return !value.contains(substitutor.getPrefix()) ? value : substitutor.replace(value);
     }
 
     @HealthCheck(HEALTHCHECK)

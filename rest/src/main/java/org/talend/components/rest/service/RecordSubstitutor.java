@@ -28,23 +28,26 @@ public class RecordSubstitutor extends Substitutor {
 
     public RecordSubstitutor(final String prefix, final String suffix, final Record record,
             final RecordPointerFactory recordPointerFactory) {
-        super(prefix, suffix, new Function<String, String>() {
+        this(prefix, suffix, record, recordPointerFactory, new HashMap<>());
+    }
 
-            private final Map<String, Optional<String>> cache = new HashMap<>();
+    public RecordSubstitutor(final String prefix, final String suffix, final Record record,
+            final RecordPointerFactory recordPointerFactory, Map<String, Optional<String>> intialCache) {
+
+        super(prefix, suffix, intialCache, new Function<String, String>() {
 
             @Override
             public String apply(final String key) {
                 String value = null;
 
                 try {
-                    value = cache.computeIfAbsent(key,
-                            k -> ofNullable(recordPointerFactory.apply(key).getValue(record, Object.class)).filter(v -> {
-                                if (Record.class.isInstance(v) || Collection.class.isInstance(v)) {
-                                    throw new IllegalArgumentException("Invalid record pointer: " + v);
-                                }
-                                return true;
-                            }).map(String::valueOf)).orElse(null); // If other than null, then ':-' default syntax in place holder
-                                                                   // is not taken into account
+                    value = ofNullable(recordPointerFactory.apply(key).getValue(record, Object.class)).filter(v -> {
+                        if (Record.class.isInstance(v) || Collection.class.isInstance(v)) {
+                            throw new IllegalArgumentException("Invalid record pointer: " + v);
+                        }
+                        return true;
+                    }).map(String::valueOf).orElse(null); // If other than null, then ':-' default syntax in place holder
+                    // is not taken into account
                 } catch (IllegalArgumentException e) {
                     // If pointer can't retrieve value we prefer return null tso that default value after ':-' can be use.
                     value = null;

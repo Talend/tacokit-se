@@ -40,7 +40,7 @@ public interface Client extends HttpClient {
     Response<byte[]> execute(@ConfigurerOption("configuration") RequestConfig config,
             @ConfigurerOption("httpClient") Client httpClient, // Needed to do intermediate call for example to get oauth token
             @HttpMethod String httpMethod, @Url String url, @Headers Map<String, String> headers,
-            @QueryParams() Map<String, String> queryParams, RequestBody body);
+            @QueryParams() Map<String, String> queryParams, Body body);
 
     @Request
     @UseConfigurer(RestConfigurer.class)
@@ -48,7 +48,7 @@ public interface Client extends HttpClient {
     Response<byte[]> executeWithBasicAuth(@ConfigurerOption(BasicAuthConfigurer.BASIC_CONTEXT_CONF) UserNamePassword context,
             @ConfigurerOption("configuration") RequestConfig config, @ConfigurerOption("httpClient") Client httpClient,
             @HttpMethod String httpMethod, @Url String url, @Headers Map<String, String> headers,
-            @QueryParams() Map<String, String> queryParams, RequestBody body);
+            @QueryParams() Map<String, String> queryParams, Body body);
 
     @Request
     @UseConfigurer(RestConfigurer.class)
@@ -56,7 +56,7 @@ public interface Client extends HttpClient {
     Response<byte[]> executeWithBearerAuth(@ConfigurerOption(BearerAuthConfigurer.BEARER_TOKEN_CONF) String token,
             @ConfigurerOption("configuration") RequestConfig config, @ConfigurerOption("httpClient") Client httpClient,
             @HttpMethod String httpMethod, @Url String url, @Headers Map<String, String> headers,
-            @QueryParams() Map<String, String> queryParams, RequestBody body);
+            @QueryParams() Map<String, String> queryParams, Body body);
 
     @Request
     @UseConfigurer(RestConfigurer.class)
@@ -64,6 +64,6 @@ public interface Client extends HttpClient {
     Response<byte[]> executeWithDigestAuth(@ConfigurerOption(DigestAuthConfigurer.DIGEST_CONTEXT_CONF) DigestAuthContext context,
             @ConfigurerOption("configuration") RequestConfig config, @ConfigurerOption("httpClient") Client httpClient,
             @HttpMethod String httpMethod, @Url String url, @Headers Map<String, String> headers,
-            @QueryParams() Map<String, String> queryParams, RequestBody body);
+            @QueryParams() Map<String, String> queryParams, Body body);
 
 }

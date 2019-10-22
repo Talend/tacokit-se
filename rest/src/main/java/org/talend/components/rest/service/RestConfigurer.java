@@ -28,6 +28,7 @@ public class RestConfigurer implements Configurer {
         final RequestConfig config = configuration.get("configuration", RequestConfig.class);
         final Client client = configuration.get("httpClient", Client.class);
 
+        // Set timeout
         if (config.getDataset().getDatastore().getConnectionTimeout() != null) {
             connection.withConnectionTimeout(config.getDataset().getDatastore().getConnectionTimeout());
         }
@@ -35,8 +36,7 @@ public class RestConfigurer implements Configurer {
             connection.withReadTimeout(config.getDataset().getDatastore().getReadTimeout());
         }
 
-        // Add Content-Type if body and add default encoding if none.
-        byte[] body = config.getDataset().getBody().getType().getBytes(config.getDataset().getBody());
+        // Add Content-Type of body if none.
         if (config.getDataset().isHasBody()) {
             if (config.getDataset().getHasHeaders()) {
                 String contentType = config.getDataset().getHeaders().stream()

@@ -26,13 +26,13 @@ public class DigestAuthContext {
 
     private int port;
 
-    private String payload;
+    private byte[] payload;
 
     private String digestAuthHeader;
 
     private UserNamePassword credentials;
 
-    public DigestAuthContext(final String uri, final String method, final String host, final int port, final String payload,
+    public DigestAuthContext(final String uri, final String method, final String host, final int port, final byte[] payload,
             final UserNamePassword credentials) {
         this.uri = uri;
         this.method = method;
@@ -46,7 +46,7 @@ public class DigestAuthContext {
         if (payload == null) {
             return false;
         }
-        return !payload.isEmpty();
+        return payload.length > 0;
     }
 
 }

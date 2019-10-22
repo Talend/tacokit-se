@@ -15,26 +15,21 @@ package org.talend.components.rest.service;
 import org.talend.components.rest.configuration.RequestBody;
 import org.talend.sdk.component.api.service.http.Encoder;
 
-import static org.talend.components.common.service.http.UrlEncoder.queryEncode;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.stream.Collectors;
-
 public class RequestEncoder implements Encoder {
 
     @Override
     public byte[] encode(final Object value) {
         if (value == null) {
-            return null;
+            // If encoder return null it throws a NPE
+            return new byte[0];
         }
-        if (!RequestBody.class.isInstance(value)) {
-            throw new IllegalStateException("Request body need to be of type " + RequestBody.class.getName());
+        if (!Body.class.isInstance(value)) {
+            throw new IllegalStateException("Request body need to be of type " + Body.class.getName());
         }
 
-        RequestBody body = RequestBody.class.cast(value);
+        Body body = Body.class.cast(value);
 
-        return body.getType().getBytes(body);
+        return body.getContent();
     }
 
 }
