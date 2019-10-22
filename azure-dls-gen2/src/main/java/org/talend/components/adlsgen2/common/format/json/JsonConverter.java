@@ -62,13 +62,14 @@ public class JsonConverter implements RecordConverter<JsonObject>, Serializable 
     @Override
     public Schema inferSchema(final JsonObject record) {
         Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Type.RECORD);
-        record.entrySet().stream().map(s -> createEntry(s.getKey(), s.getValue())).forEach(builder::withEntry);
+        record.entrySet().stream().filter(e -> e.getValue() != javax.json.JsonValue.NULL)
+                .map(s -> createEntry(s.getKey(), s.getValue())).forEach(builder::withEntry);
         return builder.build();
     }
 
     @Override
     public Record toRecord(final JsonObject record) {
-        if (schema == null) {
+        if (schema == null || record.keySet().size() > schema.getEntries().size()) {
             schema = inferSchema(record);
         }
         return convertJsonObjectToRecord(schema, record);
@@ -176,7 +177,8 @@ public class JsonConverter implements RecordConverter<JsonObject>, Serializable 
     }
 
     private void populateJsonObjectEntries(Schema.Builder builder, JsonObject value) {
-        value.entrySet().stream().map(s -> createEntry(s.getKey(), s.getValue())).forEach(builder::withEntry);
+        value.entrySet().stream().filter(e -> e.getValue() != javax.json.JsonValue.NULL)
+                .map(s -> createEntry(s.getKey(), s.getValue())).forEach(builder::withEntry);
     }
 
     public Type translateType(JsonValue value) {
