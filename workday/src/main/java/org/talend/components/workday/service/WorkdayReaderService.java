@@ -15,13 +15,20 @@ package org.talend.components.workday.service;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.workday.WorkdayException;
-import org.talend.components.workday.dataset.WorkdayDataSet;
+import org.talend.components.workday.dataset.QueryHelper;
 import org.talend.components.workday.datastore.Token;
+import org.talend.components.workday.datastore.WorkdayDataStore;
 import org.talend.sdk.component.api.component.Version;
+import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.completion.SuggestionValues;
+import org.talend.sdk.component.api.service.completion.Suggestions;
 import org.talend.sdk.component.api.service.http.Response;
 
 import javax.json.JsonObject;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @Version(1)
@@ -35,20 +42,38 @@ public class WorkdayReaderService {
     @Service
     private AccessTokenService accessToken;
 
-    public JsonObject find(WorkdayDataSet ds, int offset, int limit) {
+    public JsonObject find(QueryHelper ds, Map<String, String> queryParams) {
         final Token token = accessToken.findToken(ds.getDatastore());
         final String authorizeHeader = token.getAuthorizationHeaderValue();
 
         this.reader.base(ds.getDatastore().getEndpoint());
 
-        Response<JsonObject> result = reader.search(authorizeHeader, ds.getService(), offset, limit);
+        final String serviceToCall = ds.getServiceToCall();
+
+        Response<JsonObject> result = reader.search(authorizeHeader, serviceToCall, queryParams);
 
         if (result.status() / 100 != 2) {
             String errorLib = result.error(String.class);
-            log.error("Error while retrieve data {} : HTTP {} : {}", ds.getService(), result.status(), errorLib);
+            log.error("Error while retrieve data {} : HTTP {} : {}", serviceToCall, result.status(), errorLib);
             throw new WorkdayException(errorLib);
         }
         return result.body();
+    }
+
+    public JsonObject findPage(QueryHelper ds, int offset, int limit, Map<String, String> queryParams) {
+        Map<String, String> allQueryParams = new HashMap<>();
+        if (queryParams != null) {
+            allQueryParams.putAll(queryParams);
+        }
+        allQueryParams.put("offset", Integer.toString(offset));
+        allQueryParams.put("limit", Integer.toString(limit));
+        return this.find(ds, allQueryParams);
+    }
+
+    @Suggestions("workdayServices")
+    public SuggestionValues loadServices(@Option WorkdayDataStore datastore) {
+        return new SuggestionValues(true,
+                Arrays.asList(new SuggestionValues.Item("1", "/workers"), new SuggestionValues.Item("2", "/toto")));
     }
 
 }

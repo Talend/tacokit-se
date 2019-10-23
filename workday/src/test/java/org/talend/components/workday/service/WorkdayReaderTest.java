@@ -27,6 +27,7 @@ import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.bind.JsonbBuilder;
 import java.util.HashMap;
+import java.util.Map;
 
 class WorkdayReaderTest {
 
@@ -35,7 +36,7 @@ class WorkdayReaderTest {
         final PropertyEditorRegistry propertyEditorRegistry = new PropertyEditorRegistry();
         HttpClientFactory factory = new HttpClientFactoryImpl("test",
                 new ReflectionService(new ParameterModelService(propertyEditorRegistry), propertyEditorRegistry),
-                JsonbBuilder.create(), new HashMap<Class<?>, Object>());
+                JsonbBuilder.create(), new HashMap<>());
 
         AccessTokenProvider provider = factory.create(AccessTokenProvider.class, "https://auth.api.workday.com");
 
@@ -44,7 +45,10 @@ class WorkdayReaderTest {
 
         WorkdayReader reader = factory.create(WorkdayReader.class, "https://api.workday.com");
         String header = tk.getAuthorizationHeaderValue();
-        Response<JsonObject> rs = reader.search(header, "common/v1/workers", 0, 50);
+        Map<String, String> params = new HashMap<>();
+        params.put("offset", "0");
+        params.put("limit", "50");
+        Response<JsonObject> rs = reader.search(header, "common/v1/workers", params);
 
         Assertions.assertNotNull(rs, "reponse null");
         Assertions.assertEquals(2, rs.status() / 100, () -> "status = " + rs.status());

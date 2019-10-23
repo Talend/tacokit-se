@@ -18,7 +18,7 @@ import org.talend.sdk.component.api.service.http.Configurer;
 @Slf4j
 public class AccessTokenConfigurer implements Configurer {
 
-    protected static final String CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
+    private static final String CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
 
     @Override
     public void configure(Connection connection, ConfigurerConfiguration configuration) {

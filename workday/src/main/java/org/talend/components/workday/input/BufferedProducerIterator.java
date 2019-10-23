@@ -34,7 +34,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class BufferedProducerIterator<T> {
 
     @FunctionalInterface
-    public static interface PageGetter<T> {
+    public interface PageGetter<T> {
 
         Iterator<T> find(int pageNumber);
     }
@@ -42,7 +42,7 @@ public class BufferedProducerIterator<T> {
     private final ExecutorService exe = Executors.newFixedThreadPool(2);
 
     /** result pages */
-    private PageRetriever<T>[] retrivers = new PageRetriever[2];
+    private final PageRetriever<T>[] retrivers = new PageRetriever[2];
 
     /** current page */
     private int currentRetriver = 0;

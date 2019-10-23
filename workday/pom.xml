@@ -18,6 +18,13 @@
     </properties>
 
     <dependencies>
+        <!-- read workday swagger v 2.0 -->
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-parser</artifactId>
+            <version>1.0.47</version>
+        </dependency>
+
         <!-- Testing -->
         <dependency>
             <groupId>org.hamcrest</groupId>

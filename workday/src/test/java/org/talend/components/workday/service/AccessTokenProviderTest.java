@@ -33,7 +33,7 @@ class AccessTokenProviderTest {
         final PropertyEditorRegistry propertyEditorRegistry = new PropertyEditorRegistry();
         HttpClientFactory factory = new HttpClientFactoryImpl("test",
                 new ReflectionService(new ParameterModelService(propertyEditorRegistry), propertyEditorRegistry),
-                JsonbBuilder.create(), new HashMap<Class<?>, Object>());
+                JsonbBuilder.create(), new HashMap<>());
 
         AccessTokenProvider provider = factory.create(AccessTokenProvider.class, "https://auth.api.workday.com");
         WorkdayDataStore wds = ConfigHelper.buildDataStore();
@@ -48,7 +48,7 @@ class AccessTokenProviderTest {
         final PropertyEditorRegistry propertyEditorRegistry = new PropertyEditorRegistry();
         HttpClientFactory factory = new HttpClientFactoryImpl("test",
                 new ReflectionService(new ParameterModelService(propertyEditorRegistry), propertyEditorRegistry),
-                JsonbBuilder.create(), new HashMap<Class<?>, Object>());
+                JsonbBuilder.create(), new HashMap<>());
 
         AccessTokenProvider provider = factory.create(AccessTokenProvider.class, "https://auth.api.workday.com");
 
