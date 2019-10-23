@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @GridLayout({ //
         @GridLayout.Row({ "fieldDelimiter", "customFieldDelimiter" }), //
         @GridLayout.Row({ "recordSeparator", "customRecordSeparator" }), //
-        @GridLayout.Row({ "escapeCharacter", "textEnclosureCharacter" }), //
+        @GridLayout.Row({ "textEnclosureCharacter", "escapeCharacter" }), //
         @GridLayout.Row("header"), //
         @GridLayout.Row("csvSchema"), //
         @GridLayout.Row({ "fileEncoding", "customFileEncoding" }), //
