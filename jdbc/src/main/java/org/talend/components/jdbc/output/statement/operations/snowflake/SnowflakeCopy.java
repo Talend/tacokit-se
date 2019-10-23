@@ -62,15 +62,19 @@ public class SnowflakeCopy {
 
     public static List<Reject> putAndCopy(final Connection connection, final List<Record> records, final String fqStageName,
             final String fqTableName, final String fqTmpTableName) throws SQLException {
-
-        final List<RecordChunk> chunks = splitRecords(createWorkDir(), records);
         try (final Statement statement = connection.createStatement()) {
             statement.execute("create temporary table if not exists " + fqTmpTableName + " like " + fqTableName);
         }
+        return putAndCopy(connection, records, fqStageName, fqTmpTableName);
+    }
+
+    public static List<Reject> putAndCopy(final Connection connection, final List<Record> records, final String fqStageName,
+            final String fqTableName) throws SQLException {
+        final List<RecordChunk> chunks = splitRecords(createWorkDir(), records);
         final List<Reject> rejects = new ArrayList<>();
         final List<RecordChunk> copy = chunks.stream().parallel().map(chunk -> doPUT(fqStageName, connection, chunk, rejects))
                 .filter(Objects::nonNull).collect(toList());
-        rejects.addAll(toReject(chunks, doCopy(fqStageName, fqTmpTableName, connection, copy)));
+        rejects.addAll(toReject(chunks, doCopy(fqStageName, fqTableName, connection, copy)));
         return rejects;
     }
 
