@@ -39,7 +39,6 @@ class BufferedProducerIteratorTest {
             next = buff.next();
         }
         Assertions.assertEquals(liste.size(), 2400, "liste " + liste.size());
-        ;
 
         for (int i = 0; i < liste.size(); i++) {
             Assertions.assertEquals(i, liste.get(i), "indice " + i + " = " + liste.get(i));

@@ -13,7 +13,6 @@
 package org.talend.components.workday.datastore;
 
 import lombok.Data;
-import lombok.ToString;
 import org.talend.components.workday.service.UIActionService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
@@ -25,8 +24,8 @@ import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.util.Base64;
-import java.util.function.BiConsumer;
 
 @Data
 @DataStore(WorkdayDataStore.NAME)
@@ -39,7 +38,6 @@ import java.util.function.BiConsumer;
 })
 @Checkable(UIActionService.HEALTH_CHECK)
 @Documentation(WorkdayDataStore.NAME)
-@ToString
 public class WorkdayDataStore implements Serializable {
 
     private static final long serialVersionUID = -8628647674176772061L;
@@ -72,12 +70,8 @@ public class WorkdayDataStore implements Serializable {
 
     public String getAuthorizationHeader() {
         final String idSecret = this.clientId + ':' + this.clientSecret;
-        final String idForHeader = Base64.getEncoder().encodeToString(idSecret.getBytes());
+        final String idForHeader = Base64.getEncoder().encodeToString(idSecret.getBytes(Charset.defaultCharset()));
         return "Basic " + idForHeader;
-    }
-
-    public void addAuthorizeHeader(BiConsumer<String, String> headerFunction) {
-        headerFunction.accept("Authorization", getAuthorizationHeader());
     }
 
 }

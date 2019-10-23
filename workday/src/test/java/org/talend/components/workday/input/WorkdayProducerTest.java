@@ -20,13 +20,11 @@ import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.junit5.ComponentExtension;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
-import org.talend.sdk.component.spi.component.GenericComponentExtension;
 
 import javax.json.JsonObject;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 @ExtendWith(ComponentExtension.class)
@@ -50,6 +48,8 @@ class WorkdayProducerTest {
 
     @Processor(family = "WorkdayTest", name = "collector")
     public static class TesTOutput implements Serializable {
+
+        private static final long serialVersionUID = -989062340811827429L;
 
         static final List<JsonObject> OBJECTS = new ArrayList<>();
 

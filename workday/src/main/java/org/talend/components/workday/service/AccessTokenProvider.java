@@ -25,7 +25,7 @@ import java.time.temporal.ChronoUnit;
 
 public interface AccessTokenProvider extends HttpClient {
 
-    static final Logger log = LoggerFactory.getLogger(AccessTokenProvider.class);
+    Logger log = LoggerFactory.getLogger(AccessTokenProvider.class);
 
     @UseConfigurer(AccessTokenConfigurer.class)
     @Request(path = "v1/token", method = "POST")

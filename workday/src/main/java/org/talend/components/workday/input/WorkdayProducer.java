@@ -26,6 +26,7 @@ import javax.json.JsonArray;
 import javax.json.JsonObject;
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.function.Supplier;
 
 @Version(1)
@@ -72,11 +73,12 @@ public class WorkdayProducer implements Serializable {
     }
 
     private JsonObject getPageContent(int pageNumber) {
-        if (this.total >= 0 && (pageNumber * this.limit) >= this.total) {
+        if (this.total >= 0 && (pageNumber * WorkdayProducer.limit) >= this.total) {
             return null;
         }
-        WorkdayDataSet ds = this.inputConfig.getDataSet();
-        JsonObject ret = this.reader.find(ds, (pageNumber * this.limit), this.limit);
+        final WorkdayDataSet ds = this.inputConfig.getDataSet();
+        Map<String, String> queryParams = ds.extractQueryParam();
+        JsonObject ret = this.reader.findPage(ds, (pageNumber * WorkdayProducer.limit), WorkdayProducer.limit, queryParams);
         if (this.total < 0) {
             synchronized (this) {
                 this.total = ret.getInt("total");
