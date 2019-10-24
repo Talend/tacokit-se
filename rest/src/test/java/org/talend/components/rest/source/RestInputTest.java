@@ -19,6 +19,8 @@ import org.junit.Rule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestConfig;
@@ -122,6 +124,48 @@ class RestInputTest {
 
         assertEquals(1, records.size());
         assertEquals("param1=param1_value&param2=param1_value2", parameters.toString());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { true, false })
+    void testOptionsPathFlags(final boolean hasOptions) throws IOException {
+        config.getDataset().setMethodType(HttpMethod.POST);
+        config.getDataset().setResource("post/{module}/{id}");
+
+        // Can't be tested the same way has other option since
+        // when path param are not substituted the url contains "{...}"
+        // and a 400 error is returned
+        config.getDataset().setHasPathParams(hasOptions);
+        List<Param> pathParams = Arrays.asList(new Param[] { new Param("module", "myModule"), new Param("id", "myId") });
+        config.getDataset().setPathParams(pathParams);
+
+        this.setServerContextAndStart(httpExchange -> {
+
+            httpExchange.sendResponseHeaders(200, 0);
+            OutputStream os = httpExchange.getResponseBody();
+            os.write(new byte[0]);
+            os.close();
+        });
+
+        final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
+        Job.components() //
+                .component("emitter", "Rest://Input?" + configStr) //
+                .component("out", "test://collector") //
+                .connections() //
+                .from("emitter") //
+                .to("out") //
+                .build() //
+                .run();
+
+        final List<Record> records = components.getCollectedData(Record.class);
+        assertEquals(1, records.size());
+
+        if (hasOptions) {
+            assertEquals(200, records.get(0).getInt("status"));
+        } else {
+            assertEquals(400, records.get(0).getInt("status"));
+        }
+
     }
 
 }

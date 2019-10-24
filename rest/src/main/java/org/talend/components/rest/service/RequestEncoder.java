@@ -20,7 +20,7 @@ public class RequestEncoder implements Encoder {
     @Override
     public byte[] encode(final Object value) {
         if (value == null) {
-            // If encoder return null it throws a NPE
+            // If encoder return null, the TCK http client throws a NPE
             return new byte[0];
         }
         if (!Body.class.isInstance(value)) {

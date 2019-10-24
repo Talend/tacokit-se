@@ -36,15 +36,19 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import javax.json.spi.JsonProvider;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toMap;
@@ -53,6 +57,8 @@ import static java.util.stream.Collectors.toMap;
 @Data
 @Service
 public class RestService {
+
+    final static String DEFAULT_ENCODING = System.getProperty("org.talend.components.rest.default_encoding");
 
     public final static String HEALTHCHECK = "healthcheck";
 
@@ -83,11 +89,13 @@ public class RestService {
         final Map<String, String> queryParams = updateParamsFromRecord(config.queryParams(), substitutor);
         final Map<String, String> pathParams = updateParamsFromRecord(config.pathParams(), substitutor);
 
+        // I set another prefix '${' to have placeholder in a json body without having to
+        // escape all normal '{' of the json
         final Substitutor bodySubstitutor = new RecordSubstitutor("${", "}", record, recordPointerFactory,
                 substitutor.getCache());
 
         // Has body has to be check here to set body = null if needed, the body encoder should not return null
-        Body body = config.getDataset().isHasBody() ? new Body(config.getDataset().getBody(), bodySubstitutor) : null;
+        Body body = config.getDataset().isHasBody() ? new Body(config, bodySubstitutor) : null;
 
         RedirectContext redirectContext = new RedirectContext(config.getDataset().getDatastore().getBase(),
                 config.getDataset().getMaxRedirect(), config.getDataset().getForce_302_redirect(),
@@ -159,7 +167,7 @@ public class RestService {
     }
 
     public Map<String, String> updateParamsFromRecord(final Map<String, String> params, final Substitutor substitutor) {
-        return params.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> substitute(e.getValue(), substitutor)));
+        return params.entrySet().stream().collect(toMap(e -> e.getKey(), e -> substitute(e.getValue(), substitutor)));
     }
 
     private Record buildRecord(Response<byte[]> resp) {
@@ -188,8 +196,10 @@ public class RestService {
         }
 
         String encoding = this.getCharsetName(resp);
-
-        builder.withString("body", new String(Optional.ofNullable(resp.body()).orElse(new byte[0]), Charset.forName(encoding)));
+        String receivedBody = (encoding == null) ? //
+                new String(Optional.ofNullable(resp.body()).orElse(new byte[0])) : //
+                new String(Optional.ofNullable(resp.body()).orElse(new byte[0]), Charset.forName(encoding));
+        builder.withString("body", receivedBody);
 
         return builder.build();
     }
@@ -219,8 +229,17 @@ public class RestService {
     }
 
     public static String getCharsetName(final Map<String, List<String>> headers) {
+        return getCharsetName(headers, DEFAULT_ENCODING);
+    }
+
+    public static String getCharsetName(final Map<String, List<String>> headers, final String defaultCharsetName) {
         String contentType = Optional.ofNullable(headers.get(ContentType.HEADER_KEY)).filter(h -> !h.isEmpty()).map(h -> h.get(0))
-                .orElse("UTF-8");
+                .orElse(defaultCharsetName);
+
+        if (contentType == null) {
+            // can happen if defaultCharsetName == null && ContentType.HEADER_KEY is not present in headers
+            return null;
+        }
 
         List<String> values = new ArrayList<>();
         int split = contentType.indexOf(';');
@@ -238,7 +257,7 @@ public class RestService {
         }
 
         String encoding = values.stream().filter(h -> h.startsWith(ContentType.CHARSET_KEY))
-                .map(h -> h.substring(ContentType.CHARSET_KEY.length())).findFirst().orElse("UTF-8");
+                .map(h -> h.substring(ContentType.CHARSET_KEY.length())).findFirst().orElse(defaultCharsetName);
 
         return encoding;
     }

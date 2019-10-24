@@ -17,10 +17,14 @@ import lombok.Data;
 import org.talend.components.common.text.Substitutor;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestBody;
+import org.talend.components.rest.configuration.RequestConfig;
 
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -34,6 +38,21 @@ public class Body {
 
     private final Substitutor substitutor;
 
+    private final String charsetName;
+
+    public Body(final RequestConfig config, final Substitutor substitutor) {
+        this.conf = config.getDataset().getBody();
+        this.substitutor = substitutor;
+
+        if (config.getDataset().getHasHeaders()) {
+            Map<String, List<String>> headers = config.headers().entrySet().stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey, e -> Collections.singletonList(e.getValue())));
+            charsetName = RestService.getCharsetName(headers);
+        } else {
+            charsetName = null;
+        }
+    }
+
     public byte[] getContent() {
         switch (conf.getType()) {
         case FORM_DATA:
@@ -46,19 +65,31 @@ public class Body {
     }
 
     private byte[] xwwwformStrategy() {
-        return Base64.getUrlEncoder()
-                .encode(conf.getParams().stream().map(param -> param.getKey() + "=" + queryEncode(substitute(param.getValue())))
-                        .collect(Collectors.joining("&")).getBytes(StandardCharsets.UTF_8));
+        return Base64.getUrlEncoder().encode(
+                encode(conf.getParams().stream().map(param -> param.getKey() + "=" + queryEncode(substitute(param.getValue())))
+                        .collect(Collectors.joining("&"))));
     }
 
     private byte[] formDataStrategy() {
-        return conf.getParams().stream().map(param -> param.getKey() + "=" + queryEncode(substitute(param.getValue())))
-                .collect(Collectors.joining("\n")).getBytes(StandardCharsets.UTF_8);
+        return encode(conf.getParams().stream().map(param -> param.getKey() + "=" + queryEncode(substitute(param.getValue())))
+                .collect(Collectors.joining("\n")));
 
     }
 
     private byte[] textStrategy() {
-        return substitute(Optional.ofNullable(conf.getTextContent()).orElse("")).getBytes(StandardCharsets.UTF_8);
+        return encode(substitute(Optional.ofNullable(conf.getTextContent()).orElse("")));
+    }
+
+    private byte[] encode(String s) {
+        if (charsetName == null) {
+            if (RestService.DEFAULT_ENCODING == null) {
+                return s.getBytes();
+            } else {
+                return s.getBytes(Charset.forName(RestService.DEFAULT_ENCODING));
+            }
+        } else {
+            return s.getBytes(Charset.forName(charsetName));
+        }
     }
 
     private String substitute(final String value) {

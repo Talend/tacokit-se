@@ -34,17 +34,22 @@ import org.talend.sdk.component.junit5.WithComponents;
 
 import javax.json.JsonReaderFactory;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -52,6 +57,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
@@ -254,6 +260,65 @@ public class ClientTestWithEmbededServer {
         assertEquals(nbRedirect, calls.size());
         assertEquals(expectedMethod, calls.get(calls.size() - 1).getMethod());
 
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = { "shift_jis,src/test/resources/org/talend/components/rest/body/encoded.shift_jis.txt" })
+    void testEncoding(final String encoding, final String filename) throws IOException {
+        byte[] bytes = Files.readAllBytes(Paths.get(filename));
+        final String contentType = "text/plain; " + ContentType.CHARSET_KEY + encoding;
+        final String requestBody = new String(bytes, Charset.forName(encoding));
+
+        this.setServerContextAndStart(httpExchange -> {
+
+            String charsetName = RestService.getCharsetName(httpExchange.getRequestHeaders());
+
+            InputStream is = httpExchange.getRequestBody();
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            int nRead;
+            byte[] data = new byte[1024];
+            while ((nRead = is.read(data, 0, data.length)) != -1) {
+                buffer.write(data, 0, nRead);
+            }
+            byte[] rawRequestBody = buffer.toByteArray();
+            String receivedBody = new String(rawRequestBody, Charset.forName(charsetName));
+            assertEquals(requestBody, receivedBody);
+
+            httpExchange.getResponseHeaders().add(ContentType.HEADER_KEY, contentType);
+            httpExchange.sendResponseHeaders(200, rawRequestBody.length);
+            OutputStream os = httpExchange.getResponseBody();
+            os.write(rawRequestBody);
+            os.close();
+        });
+
+        config.getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getDataset().setMethodType(HttpMethod.POST);
+
+        config.getDataset().setHasBody(true);
+        config.getDataset().getBody().setType(RequestBody.Type.TEXT);
+
+        config.getDataset().getBody().setTextContent(requestBody);
+
+        config.getDataset().setHasHeaders(true);
+        config.getDataset().setHeaders(Collections.singletonList(new Param(ContentType.HEADER_KEY, contentType)));
+
+        Record resp = service.execute(config);
+        String body = resp.getString("body");
+
+        assertEquals(200, resp.getInt("status"));
+        assertEquals(requestBody, body);
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = { "text/plain; charset=shift_jis,shift_jis", "text/html; charset=ascii; other=nothing,ascii",
+            "text/html, UTF-8", "charset=ascii, ascii" })
+    void testGetCharsetName(final String header, final String expected) {
+        final Map<String, List<String>> headers = new HashMap<>(singletonMap(ContentType.HEADER_KEY, singletonList(header)));
+        for (int i = 0; i < 3; i++) {
+            headers.put("key" + i, Arrays.asList("valA" + i, "valB" + i));
+        }
+
+        assertEquals(expected, RestService.getCharsetName(headers));
     }
 
     @Data

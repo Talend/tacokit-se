@@ -43,14 +43,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.time.Month;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -109,8 +104,8 @@ class RestOutputTest {
     void testOutput() throws IOException {
         config.getDataset().setMethodType(HttpMethod.POST);
         config.getDataset().setResource("post/{module}/{id}");
-        config.getDataset().setHasPathParams(true);
 
+        config.getDataset().setHasPathParams(true);
         List<Param> pathParams = Arrays.asList(new Param[] { new Param("module", "{/module}"), new Param("id", "{/id}") });
         config.getDataset().setPathParams(pathParams);
 
@@ -126,7 +121,7 @@ class RestOutputTest {
 
         config.getDataset().setHasBody(true);
         Path resourceDirectory = Paths.get("src/test/resources/org/talend/components/rest/body/BodyWithParams.json");
-        String content = Files.lines(resourceDirectory).collect(Collectors.joining("\n"));
+        final String content = Files.lines(resourceDirectory).collect(Collectors.joining("\n"));
         config.getDataset().getBody().setType(RequestBody.Type.JSON);
         config.getDataset().getBody().setJsonValue(content);
 
@@ -136,10 +131,12 @@ class RestOutputTest {
         this.setServerContextAndStart(httpExchange -> {
             int i = index.getAndIncrement();
 
+            // Check URL path
             StringBuilder uri = new StringBuilder("/post/");
             uri.append(data.get(i).getString("module")).append("/").append(data.get(i).getInt("id"));
             Assertions.assertEquals(uri.toString(), httpExchange.getRequestURI().getPath());
 
+            // Check query headers
             StringBuilder header_1 = new StringBuilder("header/");
             header_1.append(data.get(i).getInt("id"));
             Assertions.assertEquals(header_1.toString(), Optional.ofNullable(httpExchange.getRequestHeaders().get("head_1"))
@@ -148,19 +145,25 @@ class RestOutputTest {
             StringBuilder header_2 = new StringBuilder("page:");
             header_2.append(data.get(i).getRecord("pagination").getInt("page")).append(" on ")
                     .append(data.get(i).getRecord("pagination").getInt("total"));
-
             Assertions.assertEquals(header_2.toString(), Optional.ofNullable(httpExchange.getRequestHeaders().get("head_2"))
                     .orElse(Collections.emptyList()).stream().findFirst().orElse(""));
 
+            // Check query parameters
             String requestUri = httpExchange.getRequestURI().toASCIIString();
             String[] queryParamsAsArray = requestUri.substring(requestUri.indexOf('?') + 1).split("&");
             Map<String, String> queryParams = Arrays.stream(queryParamsAsArray)
                     .collect(Collectors.toMap(s -> s.split("=")[0], s -> s.split("=")[1]));
-            // Assertions.assertEquals(URLEncoder.encode(data.get(i).getString("user_name"), StandardCharsets.UTF_8.toString()),
-            // queryParams.get("param_2"));
+            Assertions.assertEquals(URLEncoder.encode(data.get(i).getString("user_name"), StandardCharsets.UTF_8.toString()),
+                    queryParams.get("param_2"));
 
+            // Check Body
             BufferedReader br = new BufferedReader(new InputStreamReader(httpExchange.getRequestBody(), "UTF-8"));
             String requestBody = br.lines().collect(Collectors.joining("\n"));
+            String expected = content.replaceAll("\\$\\{/book/title\\}", "Title_" + i)
+                    .replaceAll("\\$\\{/book/market/price\\}", String.valueOf(1.35 * i))
+                    .replaceAll("\\$\\{/book/identification/id\\}", String.valueOf(i))
+                    .replaceAll("\\$\\{/book/identification/isbn\\}", "ISBN_" + i);
+            Assertions.assertEquals(expected, requestBody);
 
             httpExchange.sendResponseHeaders(200, 0);
             OutputStream os = httpExchange.getResponseBody();
@@ -182,31 +185,57 @@ class RestOutputTest {
     }
 
     @Test
-    void testParametersFlags() throws IOException {
+    void testOptionsFlags() throws IOException {
         config.getDataset().setMethodType(HttpMethod.POST);
-        config.getDataset().setResource("post/{module}/{id}");
-        config.getDataset().setHasPathParams(true);
+        config.getDataset().setResource("post/path1/path2");
 
-        List<Param> pathParams = Arrays.asList(new Param[] { new Param("module", "{/module}"), new Param("id", "{/id}") });
-        config.getDataset().setPathParams(pathParams);
+        /*
+         * config.getDataset().setHasPathParams(false);
+         * List<Param> pathParams = Arrays.asList(new Param[]{new Param("module", "{/module}"), new Param("id", "{/id}")});
+         * config.getDataset().setPathParams(pathParams);
+         */
 
-        config.getDataset().setHasHeaders(true);
+        config.getDataset().setHasHeaders(false);
         List<Param> headers = Arrays.asList(new Param[] { new Param("head_1", "header/{/id}"),
                 new Param("head_2", "page:{/pagination/page} on {/pagination/total}") });
         config.getDataset().setHeaders(headers);
 
-        config.getDataset().setHasQueryParams(true);
+        config.getDataset().setHasQueryParams(false);
         List<Param> params = Arrays
                 .asList(new Param[] { new Param("param_1", "param{/id}&/encoded < >"), new Param("param_2", "{/user_name}") });
         config.getDataset().setQueryParams(params);
 
-        config.getDataset().setHasBody(true);
+        config.getDataset().setHasBody(false);
         Path resourceDirectory = Paths.get("src/test/resources/org/talend/components/rest/body/BodyWithParams.json");
         String content = Files.lines(resourceDirectory).collect(Collectors.joining("\n"));
         config.getDataset().getBody().setType(RequestBody.Type.JSON);
         config.getDataset().getBody().setJsonValue(content);
 
         final List<Record> data = createData(NB_RECORDS);
+
+        this.setServerContextAndStart(httpExchange -> {
+
+            // Check Path param : see RestInputTest.testOptionsPathFlags
+            // Can't be tested here since he test is based on the returned http code
+
+            // Check query headers
+            Assertions.assertNull(httpExchange.getRequestHeaders().get("head_1"));
+            Assertions.assertNull(httpExchange.getRequestHeaders().get("head_2"));
+
+            // Check query parameters
+            Assertions.assertTrue(httpExchange.getRequestURI().toASCIIString().indexOf('?') < 0);
+
+            // Check body
+            BufferedReader br = new BufferedReader(new InputStreamReader(httpExchange.getRequestBody(), "UTF-8"));
+            byte[] queryBody = br.lines().collect(Collectors.joining("\n")).getBytes();
+            Assertions.assertEquals(0, queryBody.length);
+
+            httpExchange.sendResponseHeaders(200, 0);
+            OutputStream os = httpExchange.getResponseBody();
+            os.write(new byte[0]);
+            os.close();
+        });
+
         final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
         components.setInputData(data);
         Job.components() //
@@ -230,7 +259,7 @@ class RestOutputTest {
                             factory.newRecordBuilder().withInt("page", 10 + i).withInt("total", 100 + i).build())
                     .withString("module", "module_" + i).withString("user_name", "<user> user_" + i + " /<user>")
                     .withRecord("book", factory.newRecordBuilder().withString("title", "Title_" + i)
-                            .withRecord("market", factory.newRecordBuilder().withDouble("price", 1.12 * i).build())
+                            .withRecord("market", factory.newRecordBuilder().withDouble("price", 1.35 * i).build())
                             .withRecord("identification",
                                     factory.newRecordBuilder().withInt("id", i).withString("isbn", "ISBN_" + i).build())
                             .build())
