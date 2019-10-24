@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -153,8 +154,9 @@ class RestOutputTest {
             String[] queryParamsAsArray = requestUri.substring(requestUri.indexOf('?') + 1).split("&");
             Map<String, String> queryParams = Arrays.stream(queryParamsAsArray)
                     .collect(Collectors.toMap(s -> s.split("=")[0], s -> s.split("=")[1]));
-            Assertions.assertEquals(URLEncoder.encode(data.get(i).getString("user_name"), StandardCharsets.UTF_8.toString()),
-                    queryParams.get("param_2"));
+
+            Assertions.assertEquals("param" + i + "&/encoded < >", URLDecoder.decode(queryParams.get("param_1"), "UTF-8"));
+            Assertions.assertEquals(data.get(i).getString("user_name"), URLDecoder.decode(queryParams.get("param_2"), "UTF-8"));
 
             // Check Body
             BufferedReader br = new BufferedReader(new InputStreamReader(httpExchange.getRequestBody(), "UTF-8"));
