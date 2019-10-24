@@ -66,7 +66,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <component-runtime.version>1.1.9</component-runtime.version>
+        <component-runtime.version>1.1.14</component-runtime.version>
         <slf4j.version>1.7.25</slf4j.version>
 
         <beam.version>2.12.0</beam.version>
@@ -92,7 +92,7 @@
         <node.version>v10.15.3</node.version>
         <yarn.version>v1.15.2</yarn.version>
 
-	<!-- version pour les traductions sur https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceRelease/org/talend/locales/connectors-se -->
+        <!-- version pour les traductions sur https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceRelease/org/talend/locales/connectors-se -->
         <locales.version>1.2.3</locales.version>
 
         <!-- The XTM customer id that manage the translation of this project-->
@@ -203,6 +203,12 @@
                 <artifactId>daikon</artifactId>
                 <version>${daikon.version}</version>
                 <classifier>tests</classifier>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-params</artifactId>
+                <version>${junit5.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
