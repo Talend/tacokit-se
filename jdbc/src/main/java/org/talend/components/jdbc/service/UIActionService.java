@@ -15,6 +15,7 @@ package org.talend.components.jdbc.service;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.JdbcConfiguration;
 import org.talend.components.jdbc.configuration.OutputConfig;
+import org.talend.components.jdbc.configuration.RedshiftSortStrategy;
 import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.sdk.component.api.configuration.Option;
@@ -68,6 +69,8 @@ public class UIActionService {
     public static final String ACTION_SUGGESTION_ACTION_ON_DATA = "ACTION_SUGGESTION_ACTION_ON_DATA";
 
     public static final String ACTION_SUGGESTION_TABLE_COLUMNS_NAMES = "ACTION_SUGGESTION_TABLE_COLUMNS_NAMES";
+
+    public static final String ACTION_VALIDATE_SORT_KEYS = "ACTION_VALIDATE_SORT_KEYS";
 
     @Service
     private JdbcService jdbcService;
@@ -190,6 +193,15 @@ public class UIActionService {
             }
         }
         return result;
+    }
+
+    @AsyncValidation(value = ACTION_VALIDATE_SORT_KEYS)
+    public ValidationResult validateSortKeys(final RedshiftSortStrategy sortStrategy, final List<String> sortKeys) {
+        if (RedshiftSortStrategy.SINGLE.equals(sortStrategy) && sortKeys != null && sortKeys.size() > 1) {
+            return new ValidationResult(ValidationResult.Status.KO, i18n.errorSingleSortKeyInvalid());
+        }
+
+        return new ValidationResult(ValidationResult.Status.OK, "");
     }
 
 }

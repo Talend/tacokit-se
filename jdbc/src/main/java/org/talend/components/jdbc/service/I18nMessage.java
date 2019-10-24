@@ -87,4 +87,10 @@ public interface I18nMessage {
     String actionOnDataDelete();
 
     String actionOnDataBulkLoad();
+
+    String errorSingleSortKeyInvalid();
+
+    String errorVacantAccountKey();
+
+    String errorNoRecordReceived();
 }

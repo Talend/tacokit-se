@@ -9,7 +9,6 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
- *
  */
 package org.talend.components.adlsgen2.output;
 
@@ -49,10 +48,6 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 @Slf4j
 @WithComponents("org.talend.components.adlsgen2")
 public class OuputTestIT extends AdlsGen2TestBase {
-
-    String basePathIn = "TestIT/in/";
-
-    String basePathOut = "TestIT/out/";
 
     CsvConfiguration csvConfig;
 

@@ -1,22 +1,22 @@
-// ============================================================================
-//
-// Copyright (C) 2006-2019 Talend Inc. - www.talend.com
-//
-// This source code is available under agreement available at
-// %InstallDIR%\features\org.talend.rcp.branding.%PRODUCTNAME%\%PRODUCTNAME%license.txt
-//
-// You should have received a copy of the agreement
-// along with this program; if not, write to Talend SA
-// 9 rue Pages 92150 Suresnes, France
-//
-// ============================================================================
+/*
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.talend.components.marketo.dataset;
 
 import java.io.Serializable;
 import java.time.Period;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -70,13 +70,13 @@ public class MarketoDataSet implements Serializable {
     private String listId;
 
     @Option
-    @ActiveIf(target = "leadAction", value = { "getLeadChanges", "getLeadActivity" })
+    @ActiveIf(target = "leadAction", value = { "getLeadActivity" })
     @Documentation("Date Time Mode")
     private DateTimeMode dateTimeMode = DateTimeMode.relative;
 
     @Option
     @ActiveIfs(operator = AND, value = { //
-            @ActiveIf(target = "leadAction", value = { "getLeadChanges", "getLeadActivity" }), //
+            @ActiveIf(target = "leadAction", value = { "getLeadActivity" }), //
             @ActiveIf(target = "dateTimeMode", value = { "relative" }) })
     @Suggestable(value = DATE_RANGES, parameters = { "../dateTimeMode" })
     @Validable(VALIDATION_STRING_PROPERTY)
@@ -85,7 +85,7 @@ public class MarketoDataSet implements Serializable {
 
     @Option
     @ActiveIfs(operator = AND, value = { //
-            @ActiveIf(target = "leadAction", value = { "getLeadChanges", "getLeadActivity" }), //
+            @ActiveIf(target = "leadAction", value = { "getLeadActivity" }), //
             @ActiveIf(target = "dateTimeMode", value = { "absolute" }) })
     @Validable(VALIDATION_DATETIME_PATTERN)
     @Documentation("Since Absolute Date Time")
@@ -102,9 +102,8 @@ public class MarketoDataSet implements Serializable {
     @Option
     @ActiveIf(target = "leadAction", negate = true, value = { "getLeadActivity" })
     @Suggestable(value = FIELD_NAMES, parameters = { "../dataStore" })
-    @Validable(VALIDATION_LIST_PROPERTY)
     @Documentation("Fields")
-    private List<String> fields = Arrays.asList("id", "firstName", "lastName", "email", "createdAt", "updatedAt");
+    private List<String> fields = new ArrayList<>();
 
     public enum LeadAction {
         getLeadActivity,

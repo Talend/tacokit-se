@@ -231,7 +231,7 @@ public final class SharedKeyUtils {
             final String computedBase64Signature = computeHmac256(stringToSign);
             return String.format("SharedKey %s:%s", this.accountName, computedBase64Signature);
         } catch (Exception e) {
-            log.error("[computeHmac256] {}", e);
+            log.error("[computeHmac256] {}", e.getMessage());
             return null;
         }
     }

@@ -10,7 +10,6 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-
 package org.talend.components.azure.common.service;
 
 import java.net.URISyntaxException;
@@ -60,14 +59,24 @@ public class AzureComponentServices {
     private MessageService i18nService;
 
     public CloudStorageAccount createStorageAccount(AzureStorageConnectionAccount azureConnection) throws URISyntaxException {
-        StorageCredentials credentials = new StorageCredentialsAccountAndKey(azureConnection.getAccountName(),
-                azureConnection.getAccountKey());
+        if (azureConnection == null || StringUtils.isEmpty(azureConnection.getAccountName())
+                || StringUtils.isEmpty(azureConnection.getAccountKey())) {
+            throw new IllegalArgumentException(i18nService.connectionIsNull());
+        }
 
-        return new CloudStorageAccount(credentials, azureConnection.getProtocol() == Protocol.HTTPS);
+        try {
+            StorageCredentials credentials = new StorageCredentialsAccountAndKey(azureConnection.getAccountName(),
+                    azureConnection.getAccountKey());
+            return new CloudStorageAccount(credentials, azureConnection.getProtocol() == Protocol.HTTPS);
+        } catch (IndexOutOfBoundsException e) {
+            throw new IllegalArgumentException(i18nService.invalidAccountKeyFormat(e.getMessage()), e);
+        }
     }
 
     public CloudStorageAccount createStorageAccount(AzureStorageConnectionSignature azureConnection) throws URISyntaxException {
-
+        if (azureConnection == null || StringUtils.isEmpty(azureConnection.getAzureSharedAccessSignature())) {
+            throw new IllegalArgumentException(i18nService.connectionIsNull());
+        }
         Matcher matcher = Pattern.compile(SAS_PATTERN).matcher(azureConnection.getAzureSharedAccessSignature());
         if (!matcher.matches()) {
             throw new IllegalArgumentException(i18nService.wrongSASFormat());

@@ -13,28 +13,30 @@
 package org.talend.components.jdbc.configuration;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
-import static org.talend.components.jdbc.service.UIActionService.ACTION_SUGGESTION_ACTION_ON_DATA;
-import static org.talend.components.jdbc.service.UIActionService.ACTION_SUGGESTION_TABLE_COLUMNS_NAMES;
-import static org.talend.sdk.component.api.configuration.condition.ActiveIf.EvaluationStrategy.CONTAINS;
-import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.AND;
-import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.OR;
+import org.talend.components.jdbc.dataset.TableNameDataset;
+import org.talend.components.jdbc.service.I18nMessage;
+import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Suggestable;
+import org.talend.sdk.component.api.configuration.action.Validable;
+import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.condition.ActiveIfs;
+import org.talend.sdk.component.api.configuration.constraint.Required;
+import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-import org.talend.components.jdbc.dataset.TableNameDataset;
-import org.talend.components.jdbc.service.I18nMessage;
-import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.action.Suggestable;
-import org.talend.sdk.component.api.configuration.condition.ActiveIf;
-import org.talend.sdk.component.api.configuration.condition.ActiveIfs;
-import org.talend.sdk.component.api.configuration.constraint.Required;
-import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
-import org.talend.sdk.component.api.meta.Documentation;
+import static org.talend.components.jdbc.service.UIActionService.ACTION_SUGGESTION_ACTION_ON_DATA;
+import static org.talend.components.jdbc.service.UIActionService.ACTION_SUGGESTION_TABLE_COLUMNS_NAMES;
+import static org.talend.components.jdbc.service.UIActionService.ACTION_VALIDATE_SORT_KEYS;
+import static org.talend.sdk.component.api.configuration.condition.ActiveIf.EvaluationStrategy.CONTAINS;
+import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.AND;
+import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.OR;
 
 @Data
 @GridLayout(value = { @GridLayout.Row("dataset"), @GridLayout.Row({ "actionOnData" }), @GridLayout.Row("createTableIfNotExists"),
@@ -84,8 +86,10 @@ public class OutputConfig implements Serializable {
     private RedshiftSortStrategy sortStrategy = RedshiftSortStrategy.COMPOUND;
 
     @Option
+    @Validable(value = ACTION_VALIDATE_SORT_KEYS, parameters = { "../sortStrategy", "../sortKeys" })
     @ActiveIfs(operator = AND, value = { @ActiveIf(target = "../dataset.connection.dbType", value = { "Redshift" }),
-            @ActiveIf(target = "../createTableIfNotExists", value = { "true" }) })
+            @ActiveIf(target = "../createTableIfNotExists", value = { "true" }),
+            @ActiveIf(target = "../sortStrategy", value = { "NONE" }, negate = true), })
     @Suggestable(value = ACTION_SUGGESTION_TABLE_COLUMNS_NAMES, parameters = { "../dataset" })
     @Documentation("List of columns to be used as sort keys for redshift")
     private List<String> sortKeys = new ArrayList<>();
@@ -126,16 +130,23 @@ public class OutputConfig implements Serializable {
 
     @RequiredArgsConstructor
     public enum ActionOnData {
-        BULK_LOAD(I18nMessage::actionOnDataBulkLoad),
-        INSERT(I18nMessage::actionOnDataInsert),
-        UPDATE(I18nMessage::actionOnDataUpdate),
-        DELETE(I18nMessage::actionOnDataDelete),
-        UPSERT(I18nMessage::actionOnDataUpsert);
+        BULK_LOAD(I18nMessage::actionOnDataBulkLoad, true),
+        INSERT(I18nMessage::actionOnDataInsert, true),
+        UPDATE(I18nMessage::actionOnDataUpdate, false),
+        DELETE(I18nMessage::actionOnDataDelete, false),
+        UPSERT(I18nMessage::actionOnDataUpsert, true);
 
         private final Function<I18nMessage, String> labelExtractor;
+
+        @Getter
+        private final boolean allowTableCreation;
 
         public String label(final I18nMessage messages) {
             return labelExtractor.apply(messages);
         }
+    }
+
+    public boolean isCreateTableIfNotExists() {
+        return createTableIfNotExists && getActionOnData().isAllowTableCreation();
     }
 }

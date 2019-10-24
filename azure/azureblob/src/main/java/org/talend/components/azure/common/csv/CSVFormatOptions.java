@@ -10,7 +10,6 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-
 package org.talend.components.azure.common.csv;
 
 import java.io.Serializable;
@@ -35,7 +34,7 @@ public class CSVFormatOptions implements Serializable {
     private RecordDelimiter recordDelimiter = RecordDelimiter.CRLF;
 
     @Option
-    @ActiveIf(target = "recordSeparator", value = "OTHER")
+    @ActiveIf(target = "recordDelimiter", value = "OTHER")
     @Documentation("Your custom record delimiter")
     private String customRecordDelimiter;
 

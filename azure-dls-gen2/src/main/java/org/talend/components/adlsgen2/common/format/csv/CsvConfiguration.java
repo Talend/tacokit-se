@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @GridLayout({ //
         @GridLayout.Row({ "fieldDelimiter", "customFieldDelimiter" }), //
         @GridLayout.Row({ "recordSeparator", "customRecordSeparator" }), //
-        @GridLayout.Row({ "escapeCharacter", "textEnclosureCharacter" }), //
+        @GridLayout.Row({ "textEnclosureCharacter", "escapeCharacter" }), //
         @GridLayout.Row("header"), //
         @GridLayout.Row("csvSchema"), //
         @GridLayout.Row({ "fileEncoding", "customFileEncoding" }), //
@@ -99,7 +99,7 @@ public class CsvConfiguration implements Serializable {
                 return getCustomFileEncoding();
             } catch (Exception e) {
                 String msg = String.format("Encoding not supported %s.", customFileEncoding);
-                log.warn("[effectiveFileEncoding] {}", msg);
+                log.error("[effectiveFileEncoding] {}", msg);
                 throw new AdlsGen2RuntimeException(msg);
             }
         } else {

@@ -137,9 +137,7 @@ public class CsvConverter implements RecordConverter<CSVRecord>, Serializable {
                 builder.withEntry(entryBuilder.withName(finalName).withType(Schema.Type.STRING).withNullable(true).build());
             }
         }
-        Schema inferedSchema = builder.build();
-        log.debug("[inferSchema] {}", inferedSchema);
-        return inferedSchema;
+        return builder.build();
     }
 
     @Override
@@ -151,7 +149,7 @@ public class CsvConverter implements RecordConverter<CSVRecord>, Serializable {
         for (int i = 0; i < schema.getEntries().size(); i++) {
             String value;
             try {
-                value = csvRecord.get(i);
+                value = csvRecord.get(i).isEmpty() ? null : csvRecord.get(i);
             } catch (ArrayIndexOutOfBoundsException e) {
                 value = null;
             }

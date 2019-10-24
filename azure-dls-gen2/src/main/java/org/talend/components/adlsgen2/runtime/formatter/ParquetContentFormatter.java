@@ -9,7 +9,6 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
- *
  */
 package org.talend.components.adlsgen2.runtime.formatter;
 
@@ -64,7 +63,7 @@ public class ParquetContentFormatter extends AbstractContentFormatter {
             writer.close();
             return Files.readAllBytes(tempFilePath.toPath());
         } catch (IOException e) {
-            log.warn("[feedContent] {}", e);
+            log.error("[feedContent] {}", e.getMessage());
             throw new AdlsGen2RuntimeException(e.getMessage());
         } finally {
             if (tempFilePath != null) {

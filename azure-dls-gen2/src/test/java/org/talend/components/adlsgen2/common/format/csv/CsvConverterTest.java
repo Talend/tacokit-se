@@ -9,7 +9,6 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
- *
  */
 package org.talend.components.adlsgen2.common.format.csv;
 
@@ -28,7 +27,6 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit5.WithComponents;
 
 import lombok.extern.slf4j.Slf4j;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -65,8 +63,8 @@ public class CsvConverterTest extends AdlsGen2TestBase {
     @Test
     public void csvWithTextEnclosureAndEscapeCase() throws Exception {
         InputStream sample = getClass().getResource("/common/format/csv/wicked-separated.csv").openStream();
-        String result = "\"1\";\"1000.2\";\"ant\"\"ique\"\n" + "\"2\";\"2000.3\";\"stroll\"\n"
-                + "\"3\";\"3000.3\";\"ant\\ique\"\n";
+        String result = "\"1\";\"1000.2\";\"ant\\\"ique\"\n" + "\"2\";\"2000.3\";\"stroll\"\n"
+                + "\"3\";\"3000.3\";\"ant\\\\ique\"\n";
         csvConfiguration = new CsvConfiguration();
         csvConfiguration.setRecordSeparator(CsvRecordSeparator.LF);
         csvConfiguration.setEscapeCharacter("\\");
@@ -83,6 +81,29 @@ public class CsvConverterTest extends AdlsGen2TestBase {
             counted++;
         }
         assertEquals(3, counted);
+        byte[] output = fmt.feedContent(records);
+        assertEquals(result, new String(output));
+    }
+
+    @Test
+    void csvEscaping() throws Exception {
+        InputStream sample = getClass().getResource("/common/format/csv/escaping.csv").openStream();
+        String result = "\"1\";\"transmit\"\r\n" + "\"2\";\"tran\\\"sfer\"\r\n" + "\"3\";\r\n" + ";\"password\"\r\n";
+        csvConfiguration = new CsvConfiguration();
+        csvConfiguration.setEscapeCharacter("\\");
+        csvConfiguration.setTextEnclosureCharacter("\"");
+        CsvIterator it = Builder.of(recordBuilderFactory).withConfiguration(csvConfiguration).parse(sample);
+        outputConfiguration.getDataSet().setCsvConfiguration(csvConfiguration);
+        CsvContentFormatter fmt = new CsvContentFormatter(outputConfiguration, recordBuilderFactory);
+        int counted = 0;
+        List<Record> records = new ArrayList<>();
+        while (it.hasNext()) {
+            Record record = it.next();
+            records.add(record);
+            assertNotNull(record);
+            counted++;
+        }
+        assertEquals(4, counted);
         byte[] output = fmt.feedContent(records);
         assertEquals(result, new String(output));
     }

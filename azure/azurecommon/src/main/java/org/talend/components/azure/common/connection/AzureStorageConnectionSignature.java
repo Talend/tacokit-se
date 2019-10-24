@@ -10,7 +10,6 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-
 package org.talend.components.azure.common.connection;
 
 import java.io.Serializable;
@@ -26,7 +25,7 @@ import lombok.Data;
 public class AzureStorageConnectionSignature implements Serializable {
 
     @Option
-    @Documentation("Enter your account SAS URL between double quotation marks.\n"
+    @Documentation("Enter your account SAS URL.\n"
             + "You can get the SAS URL for each allowed service on Microsoft Azure portal after generating SAS.\n"
             + "The SAS URL format is https://<$storagename>.<$service>.core.windows.net/<$sastoken>, "
             + "where <$storagename> is the storage account name, "

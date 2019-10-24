@@ -10,7 +10,6 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-
 package org.talend.components.couchbase.source;
 
 import com.couchbase.client.java.Bucket;
@@ -79,8 +78,12 @@ public class CouchbaseInput implements Serializable {
 
         columnsSet = new HashSet<>();
 
-        N1qlQueryResult n1qlQueryRows = bucket.query(N1qlQuery.simple("SELECT * FROM `" + bucket.name() + "`" + getLimit()));
-
+        N1qlQueryResult n1qlQueryRows;
+        if (configuration.isUseN1QLQuery()) {
+            n1qlQueryRows = bucket.query(N1qlQuery.simple(configuration.getQuery()));
+        } else {
+            n1qlQueryRows = bucket.query(N1qlQuery.simple("SELECT * FROM `" + bucket.name() + "`" + getLimit()));
+        }
         checkErrors(n1qlQueryRows);
         index = n1qlQueryRows.rows();
     }
@@ -107,8 +110,10 @@ public class CouchbaseInput implements Serializable {
         } else {
             JsonObject jsonObject = index.next().value();
 
-            // unwrap JSON (because we use SELECT * all values will be wrapped with bucket name)
-            jsonObject = (JsonObject) jsonObject.get(configuration.getDataSet().getBucket());
+            if (!configuration.isUseN1QLQuery()) {
+                // unwrap JSON (we use SELECT * to retrieve all values. Result will be wrapped with bucket name)
+                jsonObject = (JsonObject) jsonObject.get(configuration.getDataSet().getBucket());
+            }
 
             if (columnsSet.isEmpty() && configuration.getDataSet().getSchema() != null
                     && !configuration.getDataSet().getSchema().isEmpty()) {
@@ -126,7 +131,7 @@ public class CouchbaseInput implements Serializable {
     @PreDestroy
     public void release() {
         service.closeBucket(bucket);
-        service.closeConnection();
+        service.closeConnection(configuration.getDataSet().getDatastore());
     }
 
     private Record createRecord(Schema schema, JsonObject jsonObject) {

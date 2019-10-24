@@ -12,11 +12,11 @@
  */
 package org.talend.components.adlsgen2.service;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
+import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
@@ -32,7 +32,7 @@ import static org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus
 
 @Slf4j
 @Service
-public class UIActionService implements Serializable {
+public class UIActionService {
 
     public static final String ACTION_HEALTHCHECK = "ACTION_HEALTHCHECK";
 
@@ -49,7 +49,13 @@ public class UIActionService implements Serializable {
         try {
             service.filesystemList(connection);
         } catch (Exception e) {
-            return new HealthCheckStatus(KO, i18n.healthCheckFailed(e.getMessage()));
+            String msg;
+            if (connection.getAuthMethod() == AuthMethod.SAS) {
+                msg = i18n.healthCheckSAS();
+            } else {
+                msg = i18n.healthCheckSharedKey();
+            }
+            return new HealthCheckStatus(KO, i18n.healthCheckFailed(msg, e.getMessage()));
         }
         return new HealthCheckStatus(OK, i18n.healthCheckOk());
     }
@@ -60,6 +66,6 @@ public class UIActionService implements Serializable {
         for (String s : service.filesystemList(connection)) {
             items.add(new SuggestionValues.Item(s, s));
         }
-        return new SuggestionValues(true, items);
+        return new SuggestionValues(false, items);
     }
 }

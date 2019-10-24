@@ -39,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Version(1)
-@Icon(value = Icon.IconType.FILE_DATABASE_O)
+@Icon(value = Icon.IconType.CUSTOM, custom = "AdlsGen2Output")
 @Processor(name = "AdlsGen2Output")
 @Documentation("Azure Data Lake Storage Gen2 Output")
 public class AdlsGen2Output implements Serializable {
@@ -67,11 +67,11 @@ public class AdlsGen2Output implements Serializable {
 
     @PostConstruct
     public void init() {
-        log.info("[init]");
+        log.debug("[init]");
         try {
             blobWriter = BlobWriterFactory.getWriter(configuration, recordBuilderFactory, jsonBuilderFactory, service);
         } catch (Exception e) {
-            log.error("[init]", e);
+            log.error("[init] {}", e.getMessage());
             throw new AdlsGen2RuntimeException(e.getMessage());
         }
     }
@@ -83,28 +83,35 @@ public class AdlsGen2Output implements Serializable {
 
     @ElementListener
     public void onNext(@Input final Record record) {
+        // skip empty record
+        if (record != null && record.getSchema().getEntries().isEmpty()) {
+            log.info("[onNext] Skipping empty record.");
+            return;
+        }
+
         blobWriter.writeRecord(record);
     }
 
     @AfterGroup
     public void afterGroup() {
-        log.info("[afterGroup] flushing {} records.", blobWriter.getBatch().size());
+        log.debug("[afterGroup] flushing {} records.", blobWriter.getBatch().size());
         try {
             blobWriter.flush();
         } catch (Exception e) {
-            log.error("[afterGroup]", e);
+            log.error("[afterGroup] {}", e.getMessage());
             throw new AdlsGen2RuntimeException(e.getMessage());
         }
     }
 
     @PreDestroy
     public void release() {
-        log.info("[release]");
+        log.debug("[release]");
         try {
             blobWriter.complete();
         } catch (Exception e) {
-            log.error("[release]", e);
+            log.error("[release] {}", e.getMessage());
             throw new AdlsGen2RuntimeException(e.getMessage());
         }
     }
+
 }
