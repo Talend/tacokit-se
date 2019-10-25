@@ -18,10 +18,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
-
-import static java.util.Optional.ofNullable;
 
 class SubstitutorTest {
 

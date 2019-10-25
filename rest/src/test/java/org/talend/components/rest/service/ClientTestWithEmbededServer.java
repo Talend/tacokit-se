@@ -28,6 +28,7 @@ import org.talend.components.rest.configuration.RequestBody;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
@@ -52,6 +53,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -307,6 +309,33 @@ public class ClientTestWithEmbededServer {
 
         assertEquals(200, resp.getInt("status"));
         assertEquals(requestBody, body);
+    }
+
+    @Test
+    void testHealthCheck() throws IOException {
+
+        final AtomicInteger code = new AtomicInteger(200);
+        this.setServerContextAndStart(httpExchange -> {
+            httpExchange.sendResponseHeaders(code.get(), 0);
+            OutputStream os = httpExchange.getResponseBody();
+            os.write(new byte[0]);
+            os.close();
+        });
+
+        config.getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getDataset().setMethodType(HttpMethod.POST);
+
+        HealthCheckStatus healthCheckStatus = service.healthCheck(config.getDataset().getDatastore());
+        assertEquals(HealthCheckStatus.Status.OK, healthCheckStatus.getStatus());
+
+        config.getDataset().getDatastore().setBase("http://nonexistinghost"+ UUID.randomUUID().toString().substring(0, 5)+".com");
+        healthCheckStatus = service.healthCheck(config.getDataset().getDatastore());
+        assertEquals(HealthCheckStatus.Status.KO, healthCheckStatus.getStatus());
+
+        config.getDataset().getDatastore().setBase("http://localhost:" + port);
+        code.set(403);
+        healthCheckStatus = service.healthCheck(config.getDataset().getDatastore());
+        assertEquals(HealthCheckStatus.Status.KO, healthCheckStatus.getStatus());
     }
 
     @ParameterizedTest
