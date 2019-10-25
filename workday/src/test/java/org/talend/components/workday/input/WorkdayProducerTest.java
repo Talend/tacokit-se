@@ -12,6 +12,7 @@
  */
 package org.talend.components.workday.input;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.talend.components.workday.service.ConfigHelper;
@@ -44,6 +45,11 @@ class WorkdayProducerTest {
                                 + "configuration.dataSet.datastore.endpoint=" + props.getProperty("endpoint") + "&"
                                 + "configuration.dataSet.datastore.tenantAlias=" + props.getProperty("tenant"))
                 .component("output", "WorkdayTest://collector").connections().from("source").to("output").build().run();
+
+        Assertions.assertFalse(TesTOutput.OBJECTS.isEmpty());
+
+        JsonObject first = TesTOutput.OBJECTS.get(0);
+        Assertions.assertNotNull(first);
     }
 
     @Processor(family = "WorkdayTest", name = "collector")

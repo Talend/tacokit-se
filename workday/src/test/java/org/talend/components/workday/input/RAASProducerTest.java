@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.talend.components.workday.WorkdayException;
+import org.talend.components.workday.dataset.RAASDataSet;
 import org.talend.components.workday.dataset.WQLDataSet;
 import org.talend.components.workday.service.*;
 import org.talend.sdk.component.api.service.http.HttpClientFactory;
@@ -29,40 +30,44 @@ import javax.json.bind.JsonbBuilder;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 
-class WQLProducerTest {
+class RAASProducerTest {
 
-    private static WQLDataSet dataset;
+    private static RAASDataSet dataset;
 
-    private static WQLConfiguration cfg;
+    private static RAASConfiguration cfg;
 
     private static WorkdayReaderService service;
 
     @BeforeAll
     private static void init() throws NoSuchFieldException, IllegalAccessException {
-        WQLProducerTest.service = ConfigHelper.buildReader();
+        RAASProducerTest.service = ConfigHelper.buildReader();
 
-        WQLProducerTest.cfg = new WQLConfiguration();
-        WQLProducerTest.dataset = new WQLDataSet();
-        WQLProducerTest.dataset.setDatastore(ConfigHelper.buildDataStore());
-        WQLProducerTest.cfg.setDataSet(dataset);
+        RAASProducerTest.cfg = new RAASConfiguration();
+        RAASProducerTest.dataset = new RAASDataSet();
+        RAASProducerTest.dataset.setDatastore(ConfigHelper.buildDataStore());
+        cfg.setDataSet(dataset);
     }
 
     @Test
     void nextOK() {
-        String query = "SELECT accountCurrency, bankAccountSecuritySegment, priorDayAccountBalance " + "FROM financialAccounts";
-        dataset.setQuery(query);
 
-        WQLProducer producer = new WQLProducer(cfg, service);
+        dataset.setUser("lmcneil");
+        dataset.setReport("billingReport");
+
+        RAASProducer producer = new RAASProducer(cfg, service);
         JsonObject o = producer.next();
         Assertions.assertNotNull(o);
+
+        JsonObject o2 = producer.next();
+        Assertions.assertNotNull(o2);
     }
 
     @Test
     void nextError() {
-        String query = "SELECT accountCurrency, bankAccountSecuritySegment, priorDayAccountBalance "
-                + "FROM UnkownfinancialAccounts";
-        dataset.setQuery(query);
-        WQLProducer producer = new WQLProducer(cfg, service);
+        dataset.setUser("omcneil");
+        dataset.setReport("falseReport");
+
+        RAASProducer producer = new RAASProducer(cfg, service);
 
         Assertions.assertThrows(WorkdayException.class, producer::next);
     }

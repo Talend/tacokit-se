@@ -26,19 +26,19 @@ import java.util.Iterator;
 
 @Version(1)
 @Icon(value = Icon.IconType.BURGER) // FIXME : find a real icon.
-@Emitter(family = "Workday", name = "WQL")
-@Documentation("Component to extract data from workday ERP via Workday Query Language")
-public class WQLProducer implements Serializable {
+@Emitter(family = "Workday", name = "RAAS")
+@Documentation("Component to extract data from workday ERP via Report As A Service")
+public class RAASProducer implements Serializable {
 
-    private static final long serialVersionUID = 2693235150546844805L;
+    private static final long serialVersionUID = -4024179298011054882L;
 
-    private final WQLConfiguration config;
+    private final RAASConfiguration config;
 
     private transient final WorkdayReaderService reader;
 
     private transient Iterator<JsonObject> jsonIterator = null;
 
-    public WQLProducer(@Option("configuration") WQLConfiguration config, WorkdayReaderService reader) {
+    public RAASProducer(@Option("configuration") RAASConfiguration config, WorkdayReaderService reader) {
         this.config = config;
         this.reader = reader;
     }
@@ -47,7 +47,7 @@ public class WQLProducer implements Serializable {
     public JsonObject next() {
         if (this.jsonIterator == null) {
             JsonObject obj = reader.find(this.config.getDataSet(), this.config.getDataSet().extractQueryParam());
-            this.jsonIterator = reader.extractIterator(obj, "data");
+            this.jsonIterator = reader.extractIterator(obj, "Report_Entry");
         }
         if (this.jsonIterator == null || !this.jsonIterator.hasNext()) {
             return null;
