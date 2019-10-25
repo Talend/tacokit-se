@@ -47,7 +47,7 @@ public class RequestBody implements Serializable {
 
     @Option
     @TextArea
-    @ActiveIf(target = "type", value = "RAW")
+    @ActiveIf(target = "type", value = "TEXT")
     @Documentation("")
     private String textValue;
 
