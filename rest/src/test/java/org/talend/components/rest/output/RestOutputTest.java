@@ -19,7 +19,6 @@ import org.junit.Rule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestBody;
@@ -29,8 +28,12 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit.SimpleComponentRule;
+import org.talend.sdk.component.junit.environment.Environment;
+import org.talend.sdk.component.junit.environment.builtin.ContextualEnvironment;
+import org.talend.sdk.component.junit.environment.builtin.beam.SparkRunnerEnvironment;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
+import org.talend.sdk.component.junit5.environment.EnvironmentalTest;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
 import java.io.BufferedReader;
@@ -39,8 +42,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -56,6 +57,8 @@ import java.util.stream.Collectors;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @Slf4j
+@Environment(ContextualEnvironment.class)
+@Environment(SparkRunnerEnvironment.class)
 @WithComponents(value = "org.talend.components.rest")
 class RestOutputTest {
 
@@ -101,7 +104,7 @@ class RestOutputTest {
         server.start();
     }
 
-    @Test
+    @EnvironmentalTest
     void testOutput() throws IOException {
         config.getDataset().setMethodType(HttpMethod.POST);
         config.getDataset().setResource("post/{module}/{id}");
@@ -186,7 +189,7 @@ class RestOutputTest {
 
     }
 
-    @Test
+    @EnvironmentalTest
     void testOptionsFlags() throws IOException {
         config.getDataset().setMethodType(HttpMethod.POST);
         config.getDataset().setResource("post/path1/path2");

@@ -18,9 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Rule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestConfig;
@@ -28,22 +25,26 @@ import org.talend.components.rest.service.RequestConfigBuilder;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit.SimpleComponentRule;
+import org.talend.sdk.component.junit.environment.Environment;
+import org.talend.sdk.component.junit.environment.builtin.ContextualEnvironment;
+import org.talend.sdk.component.junit.environment.builtin.beam.SparkRunnerEnvironment;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
+import org.talend.sdk.component.junit5.environment.EnvironmentalTest;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @Slf4j
+@Environment(ContextualEnvironment.class)
+@Environment(SparkRunnerEnvironment.class)
 @WithComponents(value = "org.talend.components.rest")
 class RestInputTest {
 
@@ -87,7 +88,7 @@ class RestInputTest {
         server.start();
     }
 
-    @Test
+    @EnvironmentalTest
     void testInput() {
 
         config.getDataset().setResource("get");
@@ -126,9 +127,17 @@ class RestInputTest {
         assertEquals("param1=param1_value&param2=param1_value2", parameters.toString());
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = { true, false })
-    void testOptionsPathFlags(final boolean hasOptions) throws IOException {
+    @EnvironmentalTest
+    void testOptionsPathFlagsActivated() throws IOException {
+        testOptionsPathFlags(true);
+    }
+
+    @EnvironmentalTest
+    void testOptionsPathFlagsDeactivated() throws IOException {
+        testOptionsPathFlags(false);
+    }
+
+    private void testOptionsPathFlags(final boolean hasOptions) throws IOException {
         config.getDataset().setMethodType(HttpMethod.POST);
         config.getDataset().setResource("post/{module}/{id}");
 

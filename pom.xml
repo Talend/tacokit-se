@@ -44,6 +44,7 @@
         <module>azure-dls-gen2</module>
         <module>marketo</module>
         <module>common</module>
+        <module>test</module>
     </modules>
 
     <scm>
@@ -210,11 +211,12 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter-params</artifactId>
-                <version>${junit5.version}</version>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-simple</artifactId>
+                <version>1.7.25</version>
                 <scope>test</scope>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
     <dependencies>
@@ -245,20 +247,8 @@
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
+            <artifactId>junit-jupiter</artifactId>
             <version>${junit5.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit5.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.7.25</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -498,11 +488,11 @@
                 <version>${spotless.version}</version>
                 <executions>
                     <execution>
-                    <id>apply</id>
-                    <phase>process-classes</phase>
-                    <goals>
-                    <goal>apply</goal>
-                    </goals>
+                        <id>apply</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>apply</goal>
+                        </goals>
                     </execution>
                 </executions>
                 <configuration>
@@ -523,7 +513,7 @@
 */]]></content>
                         </licenseHeader>
                         <eclipse>
-			    <file>talend_java_eclipse_formatter.xml</file>
+                            <file>talend_java_eclipse_formatter.xml</file>
                         </eclipse>
                     </java>
                 </configuration>
@@ -633,7 +623,9 @@
                 <executions>
                     <execution>
                         <phase>compile</phase>
-                        <goals><goal>check</goal></goals>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
                         <configuration>
                             <effort>Max</effort>
                             <failOnError>false</failOnError>
@@ -893,8 +885,8 @@
                                             ${maven.multiModuleProjectDirectory}/target/documentation_resources/resources/html
                                         </stylesdir>
                                         <stylesheet>talend.css</stylesheet>
-                                        <data-uri />
-                                        <toc />
+                                        <data-uri/>
+                                        <toc/>
                                     </attributes>
                                 </configuration>
                             </execution>
