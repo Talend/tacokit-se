@@ -39,7 +39,7 @@ public class JdbcConfiguration implements Serializable {
 
     @Option
     @Documentation("list of driver meta data")
-    private final List<Driver> drivers = new ArrayList<>();
+    private List<Driver> drivers = new ArrayList<>();
 
     @Data
     @NoArgsConstructor
