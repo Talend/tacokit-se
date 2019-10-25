@@ -18,7 +18,7 @@
         Used to inject service from the azurecommon module into the azureblob services
         -->
         <talend.scan.scannedDependencies>org.talend.components:azurecommon</talend.scan.scannedDependencies>
-        
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!--
@@ -35,7 +35,7 @@
 
         TIP: it is recommended to set this property into your settings.xml in an active by default profile.
         -->
-        <talend.component.studioHome />
+        <talend.component.studioHome/>
 
         <apache.poi.version>4.0.1</apache.poi.version>
         <jsoup.version>1.11.3</jsoup.version>
@@ -122,6 +122,12 @@
             <artifactId>mockito-junit-jupiter</artifactId>
             <version>${mockito.version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion><!-- mockito retrieve jupiter-api 5.1.1 or we need 5.5.1 -->
+                    <groupId>org.junit.jupiter</groupId>
+                    <artifactId>junit-jupiter-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
