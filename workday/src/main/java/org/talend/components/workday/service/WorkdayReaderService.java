@@ -25,10 +25,9 @@ import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.completion.Suggestions;
 import org.talend.sdk.component.api.service.http.Response;
 
+import javax.json.JsonArray;
 import javax.json.JsonObject;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Version(1)
@@ -61,13 +60,29 @@ public class WorkdayReaderService {
     }
 
     public JsonObject findPage(QueryHelper ds, int offset, int limit, Map<String, String> queryParams) {
-        Map<String, String> allQueryParams = new HashMap<>();
+        final Map<String, String> allQueryParams = new HashMap<>();
         if (queryParams != null) {
             allQueryParams.putAll(queryParams);
         }
         allQueryParams.put("offset", Integer.toString(offset));
         allQueryParams.put("limit", Integer.toString(limit));
         return this.find(ds, allQueryParams);
+    }
+
+    public Iterator<JsonObject> extractIterator(JsonObject result, String arrayName) {
+        if (result == null) {
+            return Collections.emptyIterator();
+        }
+        final String error = result.getString("error", null);
+        if (error != null) {
+            final JsonArray errors = result.getJsonArray("errors");
+            throw new WorkdayException(error + " : " + errors.toString());
+        }
+        final JsonArray data = result.getJsonArray(arrayName);
+        if (data == null || data.isEmpty()) {
+            return Collections.emptyIterator();
+        }
+        return data.stream().map(JsonObject.class::cast).iterator();
     }
 
     @Suggestions("workdayServices")
