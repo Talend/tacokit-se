@@ -12,42 +12,57 @@
  */
 package org.talend.components.rest.service;
 
-import java.util.Collections;
+import org.talend.sdk.component.api.service.http.Response;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Optional;
 
 public class ContentType {
+
+    final static String DEFAULT_ENCODING = System.getProperty("org.talend.components.rest.default_encoding");
 
     public final static String HEADER_KEY = "Content-Type";
 
     public final static String CHARSET_KEY = "charset=";
 
-    public enum ContentTypeEnum {
-        TEXT_PLAIN("text/plain"),
-        APP_JSON("application/json");
+    public static String getCharsetName(final Response<byte[]> resp) {
+        return getCharsetName(resp.headers());
+    }
 
-        private final String value;
+    public static String getCharsetName(final Map<String, List<String>> headers) {
+        return getCharsetName(headers, DEFAULT_ENCODING);
+    }
 
-        ContentTypeEnum(String value) {
-            this.value = value;
+    public static String getCharsetName(final Map<String, List<String>> headers, final String defaultCharsetName) {
+        String contentType = Optional.ofNullable(headers.get(ContentType.HEADER_KEY)).filter(h -> !h.isEmpty()).map(h -> h.get(0))
+                .orElse(defaultCharsetName);
+
+        if (contentType == null) {
+            // can happen if defaultCharsetName == null && ContentType.HEADER_KEY is not present in headers
+            return null;
         }
 
-        public String getValue() {
-            return value;
+        List<String> values = new ArrayList<>();
+        int split = contentType.indexOf(';');
+        int previous = 0;
+        while (split > 0) {
+            values.add(contentType.substring(previous, split).trim());
+            previous = split + 1;
+            split = contentType.indexOf(';', previous);
         }
 
-        private static final Map<String, ContentTypeEnum> revert;
-        static {
-            Map<String, ContentTypeEnum> map = new ConcurrentHashMap<>();
-            for (ContentTypeEnum e : ContentTypeEnum.values()) {
-                map.put(e.getValue(), e);
-            }
-            revert = Collections.unmodifiableMap(map);
+        if (previous == 0) {
+            values.add(contentType);
+        } else {
+            values.add(contentType.substring(previous + 1, contentType.length()));
         }
 
-        public static ContentTypeEnum get(String name) {
-            return revert.get(name);
-        }
+        String encoding = values.stream().filter(h -> h.startsWith(ContentType.CHARSET_KEY))
+                .map(h -> h.substring(ContentType.CHARSET_KEY.length())).findFirst().orElse(defaultCharsetName);
+
+        return encoding;
     }
 
 }

@@ -12,9 +12,6 @@
  */
 package org.talend.components.rest.service;
 
-import com.sun.net.httpserver.HttpServer;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +20,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
-import org.talend.components.rest.configuration.RequestBody;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.configuration.auth.Authentication;
 import org.talend.components.rest.configuration.auth.Authorization;
@@ -38,38 +34,20 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
 import javax.json.JsonValue;
-
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
-import static java.util.Collections.checkedList;
-import static java.util.Collections.singletonList;
-import static java.util.Collections.singletonMap;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @WithComponents(value = "org.talend.components.rest")
@@ -405,34 +383,5 @@ public class ClientTestWithHttpbin {
 
         assertEquals(200, resp.getInt("status"));
     }
-
-    /*
-     * @Test
-     * void testReadStreaming() throws Exception {
-     * config.getDataset().setMethodType(HttpMethod.GET);
-     * config.getDataset().setResource("/stream/10");
-     *
-     * Record resp = service.execute(config);
-     * assertEquals(200, resp.getInt("status"));
-     * }
-     *
-     * @Test
-     * void testReadBytes() throws Exception {
-     * config.getDataset().setMethodType(HttpMethod.GET);
-     * config.getDataset().setResource("/bytes/100");
-     *
-     * Record resp = service.execute(config);
-     * assertEquals(200, resp.getInt("status"));
-     * }
-     *
-     * @Test
-     * void testReadHml() throws Exception {
-     * config.getDataset().setMethodType(HttpMethod.GET);
-     * config.getDataset().setResource("links/10/0");
-     *
-     * Record resp = service.execute(config);
-     * assertEquals(200, resp.getInt("status"));
-     * }
-     */
 
 }

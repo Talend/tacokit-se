@@ -33,7 +33,6 @@ import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 
-import javax.json.JsonReaderFactory;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -68,9 +67,6 @@ public class ClientTestWithEmbededServer {
 
     @Service
     RestService service;
-
-    @Service
-    JsonReaderFactory jsonReaderFactory;
 
     @Injected
     private BaseComponentsHandler handler;
@@ -114,10 +110,10 @@ public class ClientTestWithEmbededServer {
     }
 
     @ParameterizedTest
-    @CsvSource(value = { "POST,TEXT,src/test/resources/org/talend/components/rest/body/empty.txt",
+    @CsvSource(value = {"POST,TEXT,src/test/resources/org/talend/components/rest/body/empty.txt",
             "POST,TEXT,src/test/resources/org/talend/components/rest/body/Multilines.txt",
             "POST,JSON,src/test/resources/org/talend/components/rest/body/Example.json",
-            "POST,XML,src/test/resources/org/talend/components/rest/body/Example.xml" })
+            "POST,XML,src/test/resources/org/talend/components/rest/body/Example.xml"})
     void testBody(final String method, final String type, final String filename) throws IOException {
         Path resourceDirectory = Paths.get(filename);
         String content = Files.lines(resourceDirectory).collect(Collectors.joining("\n"));
@@ -165,10 +161,10 @@ public class ClientTestWithEmbededServer {
     }
 
     @ParameterizedTest
-    @CsvSource(value = { "POST,TEXT,src/test/resources/org/talend/components/rest/body/empty.txt",
+    @CsvSource(value = {"POST,TEXT,src/test/resources/org/talend/components/rest/body/empty.txt",
             "POST,TEXT,src/test/resources/org/talend/components/rest/body/Multilines.txt",
             "POST,JSON,src/test/resources/org/talend/components/rest/body/Example.json",
-            "POST,XML,src/test/resources/org/talend/components/rest/body/Example.xml" })
+            "POST,XML,src/test/resources/org/talend/components/rest/body/Example.xml"})
     void testBodyForceContentType(final String method, final String type, final String filename) throws IOException {
         Path resourceDirectory = Paths.get(filename);
         String content = Files.lines(resourceDirectory).collect(Collectors.joining("\n"));
@@ -221,11 +217,11 @@ public class ClientTestWithEmbededServer {
     }
 
     @ParameterizedTest
-    @CsvSource(value = { "GET,false,3,302,GET", "POST,false,4,302,POST", "PUT,false,5,302, PUT", "GET,true,6,302,GET",
+    @CsvSource(value = {"GET,false,3,302,GET", "POST,false,4,302,POST", "PUT,false,5,302, PUT", "GET,true,6,302,GET",
             "POST,true,7,302,GET", "PUT,true,8,302,GET", "GET,false,3,303,GET", "POST,false,3,303,GET",
-            "DELETE,false,3,303,GET" })
+            "DELETE,false,3,303,GET"})
     void testForceGetOnRedirect(final String method, final boolean forceGet, final int nbRedirect, final int redirectCode,
-            final String expectedMethod) throws IOException {
+                                final String expectedMethod) throws IOException {
         final List<ClientTestWithEmbededServer.Request> calls = new ArrayList<>();
         final AtomicInteger counter = new AtomicInteger(0);
 
@@ -265,7 +261,7 @@ public class ClientTestWithEmbededServer {
     }
 
     @ParameterizedTest
-    @CsvSource(value = { "shift_jis,src/test/resources/org/talend/components/rest/body/encoded.shift_jis.txt" })
+    @CsvSource(value = {"shift_jis,src/test/resources/org/talend/components/rest/body/encoded.shift_jis.txt"})
     void testEncoding(final String encoding, final String filename) throws IOException {
         byte[] bytes = Files.readAllBytes(Paths.get(filename));
         final String contentType = "text/plain; " + ContentType.CHARSET_KEY + encoding;
@@ -273,7 +269,7 @@ public class ClientTestWithEmbededServer {
 
         this.setServerContextAndStart(httpExchange -> {
 
-            String charsetName = RestService.getCharsetName(httpExchange.getRequestHeaders());
+            String charsetName = ContentType.getCharsetName(httpExchange.getRequestHeaders());
 
             InputStream is = httpExchange.getRequestBody();
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -312,7 +308,7 @@ public class ClientTestWithEmbededServer {
     }
 
     @Test
-    void testHealthCheck() throws IOException {
+    void testHealthCheck() {
 
         final AtomicInteger code = new AtomicInteger(200);
         this.setServerContextAndStart(httpExchange -> {
@@ -328,7 +324,7 @@ public class ClientTestWithEmbededServer {
         HealthCheckStatus healthCheckStatus = service.healthCheck(config.getDataset().getDatastore());
         assertEquals(HealthCheckStatus.Status.OK, healthCheckStatus.getStatus());
 
-        config.getDataset().getDatastore().setBase("http://nonexistinghost"+ UUID.randomUUID().toString().substring(0, 5)+".com");
+        config.getDataset().getDatastore().setBase("http://nonexistinghost" + UUID.randomUUID().toString().substring(0, 5) + ".com");
         healthCheckStatus = service.healthCheck(config.getDataset().getDatastore());
         assertEquals(HealthCheckStatus.Status.KO, healthCheckStatus.getStatus());
 
@@ -339,15 +335,15 @@ public class ClientTestWithEmbededServer {
     }
 
     @ParameterizedTest
-    @CsvSource(value = { "text/plain; charset=shift_jis,shift_jis", "text/html; charset=ascii; other=nothing,ascii",
-            "text/html, UTF-8", "charset=ascii, ascii" })
+    @CsvSource(value = {"text/plain; charset=shift_jis,shift_jis", "text/html; charset=ascii; other=nothing,ascii",
+            "text/html, UTF-8", "charset=ascii, ascii"})
     void testGetCharsetName(final String header, final String expected) {
         final Map<String, List<String>> headers = new HashMap<>(singletonMap(ContentType.HEADER_KEY, singletonList(header)));
         for (int i = 0; i < 3; i++) {
             headers.put("key" + i, Arrays.asList("valA" + i, "valB" + i));
         }
 
-        assertEquals(expected, RestService.getCharsetName(headers));
+        assertEquals(expected, ContentType.getCharsetName(headers));
     }
 
     @Data

@@ -110,17 +110,17 @@ class RestOutputTest {
         config.getDataset().setResource("post/{module}/{id}");
 
         config.getDataset().setHasPathParams(true);
-        List<Param> pathParams = Arrays.asList(new Param[] { new Param("module", "{/module}"), new Param("id", "{/id}") });
+        List<Param> pathParams = Arrays.asList(new Param[]{new Param("module", "{/module}"), new Param("id", "{/id}")});
         config.getDataset().setPathParams(pathParams);
 
         config.getDataset().setHasHeaders(true);
-        List<Param> headers = Arrays.asList(new Param[] { new Param("head_1", "header/{/id}"),
-                new Param("head_2", "page:{/pagination/page} on {/pagination/total}") });
+        List<Param> headers = Arrays.asList(new Param[]{new Param("head_1", "header/{/id}"),
+                new Param("head_2", "page:{/pagination/page} on {/pagination/total}")});
         config.getDataset().setHeaders(headers);
 
         config.getDataset().setHasQueryParams(true);
         List<Param> params = Arrays
-                .asList(new Param[] { new Param("param_1", "param{/id}&/encoded < >"), new Param("param_2", "{/user_name}") });
+                .asList(new Param[]{new Param("param_1", "param{/id}&/encoded < >"), new Param("param_2", "{/user_name}")});
         config.getDataset().setQueryParams(params);
 
         config.getDataset().setHasBody(true);
@@ -194,20 +194,14 @@ class RestOutputTest {
         config.getDataset().setMethodType(HttpMethod.POST);
         config.getDataset().setResource("post/path1/path2");
 
-        /*
-         * config.getDataset().setHasPathParams(false);
-         * List<Param> pathParams = Arrays.asList(new Param[]{new Param("module", "{/module}"), new Param("id", "{/id}")});
-         * config.getDataset().setPathParams(pathParams);
-         */
-
         config.getDataset().setHasHeaders(false);
-        List<Param> headers = Arrays.asList(new Param[] { new Param("head_1", "header/{/id}"),
-                new Param("head_2", "page:{/pagination/page} on {/pagination/total}") });
+        List<Param> headers = Arrays.asList(new Param[]{new Param("head_1", "header/{/id}"),
+                new Param("head_2", "page:{/pagination/page} on {/pagination/total}")});
         config.getDataset().setHeaders(headers);
 
         config.getDataset().setHasQueryParams(false);
         List<Param> params = Arrays
-                .asList(new Param[] { new Param("param_1", "param{/id}&/encoded < >"), new Param("param_2", "{/user_name}") });
+                .asList(new Param[]{new Param("param_1", "param{/id}&/encoded < >"), new Param("param_2", "{/user_name}")});
         config.getDataset().setQueryParams(params);
 
         config.getDataset().setHasBody(false);

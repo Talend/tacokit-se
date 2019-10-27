@@ -12,10 +12,13 @@
  */
 package org.talend.components.rest.service;
 
-import org.talend.components.rest.configuration.RequestBody;
+import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.http.Encoder;
 
 public class RequestEncoder implements Encoder {
+
+    @Service
+    private I18n i18n;
 
     @Override
     public byte[] encode(final Object value) {
@@ -24,7 +27,7 @@ public class RequestEncoder implements Encoder {
             return new byte[0];
         }
         if (!Body.class.isInstance(value)) {
-            throw new IllegalStateException("Request body need to be of type " + Body.class.getName());
+            throw new IllegalArgumentException(i18n.badRequestBody(value.getClass().getName()));
         }
 
         Body body = Body.class.cast(value);

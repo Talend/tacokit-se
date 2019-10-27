@@ -22,11 +22,7 @@ import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;
 
-import javax.annotation.PostConstruct;
 import java.io.Serializable;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
 
 @Version(1)
 @Icon(value = Icon.IconType.CUSTOM, custom = "talend-rest")

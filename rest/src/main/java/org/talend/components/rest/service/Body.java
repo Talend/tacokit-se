@@ -15,12 +15,10 @@ package org.talend.components.rest.service;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.talend.components.common.text.Substitutor;
-import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestBody;
 import org.talend.components.rest.configuration.RequestConfig;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
@@ -47,7 +45,7 @@ public class Body {
         if (config.getDataset().getHasHeaders()) {
             Map<String, List<String>> headers = config.headers().entrySet().stream()
                     .collect(Collectors.toMap(Map.Entry::getKey, e -> Collections.singletonList(e.getValue())));
-            charsetName = RestService.getCharsetName(headers);
+            charsetName = ContentType.getCharsetName(headers);
         } else {
             charsetName = null;
         }
@@ -82,10 +80,10 @@ public class Body {
 
     private byte[] encode(String s) {
         if (charsetName == null) {
-            if (RestService.DEFAULT_ENCODING == null) {
+            if (ContentType.DEFAULT_ENCODING == null) {
                 return s.getBytes();
             } else {
-                return s.getBytes(Charset.forName(RestService.DEFAULT_ENCODING));
+                return s.getBytes(Charset.forName(ContentType.DEFAULT_ENCODING));
             }
         } else {
             return s.getBytes(Charset.forName(charsetName));

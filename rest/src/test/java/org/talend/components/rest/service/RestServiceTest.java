@@ -32,16 +32,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
 @WithComponents(value = "org.talend.components.rest")
 public class RestServiceTest {
 
-    /*
-     * @Service
-     * Client client;
-     */
     @Service
     RestService service;
 
@@ -61,7 +57,7 @@ public class RestServiceTest {
     }
 
     @Test
-    void setPathParams() throws Exception {
+    void setPathParams() {
         config.getDataset().getDatastore().setBase("");
         config.getDataset().getDatastore().setConnectionTimeout(5000);
         config.getDataset().getDatastore().setReadTimeout(5000);
@@ -72,8 +68,8 @@ public class RestServiceTest {
         config.getDataset().setHasHeaders(false);
 
         List<String[]> paramList = new ArrayList<>();
-        paramList.add(new String[] { "leads", "124", "name" });
-        paramList.add(new String[] { "{leads}", "{124}", "{name}" });
+        paramList.add(new String[]{"leads", "124", "name"});
+        paramList.add(new String[]{"{leads}", "{124}", "{name}"});
 
         for (String[] params : paramList) {
             List<Param> pathParams = new ArrayList<>();
@@ -92,7 +88,7 @@ public class RestServiceTest {
     }
 
     @Test
-    void setParamsFromRecords() throws Exception {
+    void setParamsFromRecords() {
         int id = 150;
         String name = "paco";
         ZonedDateTime now = ZonedDateTime.now();
