@@ -336,14 +336,14 @@ public class ClientTestWithEmbededServer {
 
     @ParameterizedTest
     @CsvSource(value = {"text/plain; charset=shift_jis,shift_jis", "text/html; charset=ascii; other=nothing,ascii",
-            "text/html, UTF-8", "charset=ascii, ascii"})
+            "text/html, null", "charset=ascii, ascii"})
     void testGetCharsetName(final String header, final String expected) {
         final Map<String, List<String>> headers = new HashMap<>(singletonMap(ContentType.HEADER_KEY, singletonList(header)));
         for (int i = 0; i < 3; i++) {
             headers.put("key" + i, Arrays.asList("valA" + i, "valB" + i));
         }
 
-        assertEquals(expected, ContentType.getCharsetName(headers));
+        assertEquals(expected, ""+ContentType.getCharsetName(headers));
     }
 
     @Data
