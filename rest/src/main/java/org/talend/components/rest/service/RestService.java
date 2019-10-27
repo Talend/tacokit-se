@@ -51,7 +51,11 @@ import static java.util.stream.Collectors.toMap;
 @Service
 public class RestService {
 
+    private final static String PARAMETERS_SUBSTITUTOR_PREFIX = System.getProperty("org.talend.components.rest.parameters_substitutor_prefix", "{");
+    private final static String PARAMETERS_SUBSTITUTOR_SUFFIX = System.getProperty("org.talend.components.rest.parameters_substitutor_suffix", "}");
 
+    private final static String BODY_SUBSTITUTOR_PREFIX = System.getProperty("org.talend.components.rest.body_substitutor_prefix", "${");
+    private final static String BODY_SUBSTITUTOR_SUFFIX = System.getProperty("org.talend.components.rest.body_substitutor_suffix", "}");
 
     public final static String HEALTHCHECK = "healthcheck";
 
@@ -65,9 +69,6 @@ public class RestService {
     RecordBuilderFactory recordBuilderFactory;
 
     @Service
-    JsonProvider jsonProvider;
-
-    @Service
     private RecordPointerFactory recordPointerFactory;
 
     public Record execute(final RequestConfig config, final Record record) {
@@ -79,7 +80,7 @@ public class RestService {
     }
 
     private Record _execute(final RequestConfig config, final Record record) {
-        final Substitutor substitutor = new RecordSubstitutor("{", "}", record, recordPointerFactory);
+        final Substitutor substitutor = new RecordSubstitutor(PARAMETERS_SUBSTITUTOR_PREFIX, PARAMETERS_SUBSTITUTOR_SUFFIX, record, recordPointerFactory);
 
         final Map<String, String> headers = updateParamsFromRecord(config.headers(), substitutor);
         final Map<String, String> queryParams = updateParamsFromRecord(config.queryParams(), substitutor);
@@ -87,7 +88,7 @@ public class RestService {
 
         // I set another prefix '${' to have placeholder in a json body without having to
         // escape all normal '{' of the json
-        final Substitutor bodySubstitutor = new RecordSubstitutor("${", "}", record, recordPointerFactory,
+        final Substitutor bodySubstitutor = new RecordSubstitutor(BODY_SUBSTITUTOR_PREFIX, BODY_SUBSTITUTOR_SUFFIX, record, recordPointerFactory,
                 substitutor.getCache());
 
         // Has body has to be check here to set body = null if needed, the body encoder should not return null

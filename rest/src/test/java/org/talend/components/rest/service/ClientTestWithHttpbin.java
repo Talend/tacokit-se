@@ -53,7 +53,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @WithComponents(value = "org.talend.components.rest")
 public class ClientTestWithHttpbin {
 
-    public final static String HTTP_BIN_BASE = System.getProperty("httpbin_url", "http://tal-rd169.talend.lan:8085");
+    public final static String HTTPBIN_BASE = System.getProperty("org.talend.components.rest.httpbin_base", "http://tal-rd169.talend.lan:8085");
 
     private final static String DONT_CHECK = "%DONT_CHECK%";
 
@@ -84,7 +84,7 @@ public class ClientTestWithHttpbin {
 
         config = RequestConfigBuilder.getEmptyRequestConfig();
 
-        config.getDataset().getDatastore().setBase(HTTP_BIN_BASE);
+        config.getDataset().getDatastore().setBase(HTTPBIN_BASE);
         config.getDataset().getDatastore().setConnectionTimeout(CONNECT_TIMEOUT);
         config.getDataset().getDatastore().setReadTimeout(READ_TIMEOUT);
     }
@@ -134,7 +134,7 @@ public class ClientTestWithHttpbin {
         Map<String, String> headersValid = new HashMap<>();
         headersValid.put("Accept", "text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2");
         headersValid.put("Connection", "keep-alive");
-        headersValid.put("Host", HTTP_BIN_BASE.substring(7));
+        headersValid.put("Host", HTTPBIN_BASE.substring(7));
         headersValid.put("User-Agent", DONT_CHECK);
 
         JsonObject headersJson = bodyJson.getJsonObject("headers");
@@ -146,7 +146,7 @@ public class ClientTestWithHttpbin {
         });
         assertTrue(headersValid.isEmpty());
 
-        assertEquals(HTTP_BIN_BASE + "/get", bodyJson.getString("url"));
+        assertEquals(HTTPBIN_BASE + "/get", bodyJson.getString("url"));
     }
 
     /**
@@ -247,7 +247,7 @@ public class ClientTestWithHttpbin {
         Authentication auth = new Authentication();
         auth.setType(Authorization.AuthorizationType.Bearer);
 
-        config.getDataset().getDatastore().setBase(HTTP_BIN_BASE);
+        config.getDataset().getDatastore().setBase(HTTPBIN_BASE);
         config.getDataset().getDatastore().setAuthentication(auth);
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("/bearer");
@@ -265,7 +265,7 @@ public class ClientTestWithHttpbin {
     @CsvSource(value = { "GET", "POST", "PUT" })
     void testRedirect(final String method) {
 
-        String redirect_url = HTTP_BIN_BASE + "/" + method.toLowerCase() + "?redirect=ok";
+        String redirect_url = HTTPBIN_BASE + "/" + method.toLowerCase() + "?redirect=ok";
         config.getDataset().setResource("redirect-to?url=" + redirect_url);
         config.getDataset().setMethodType(HttpMethod.valueOf(method));
         config.getDataset().setMaxRedirect(1);
@@ -282,7 +282,7 @@ public class ClientTestWithHttpbin {
     @ParameterizedTest
     @CsvSource(value = { "GET,", "GET,http://www.google.com" })
     void testRedirectOnlySameHost(final String method, final String redirect_url) throws MalformedURLException {
-        String mainHost = new URL(HTTP_BIN_BASE).getHost();
+        String mainHost = new URL(HTTPBIN_BASE).getHost();
 
         config.getDataset().setResource("redirect-to?url=" + ("".equals(redirect_url) ? mainHost : redirect_url));
         config.getDataset().setMethodType(HttpMethod.valueOf(method));
