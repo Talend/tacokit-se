@@ -113,7 +113,7 @@ class RestInputTest {
         });
 
         Job.components() //
-                .component("emitter", "Rest://Input?" + configStr) //
+                .component("emitter", "REST://Input?" + configStr) //
                 .component("out", "test://collector") //
                 .connections() //
                 .from("emitter") //
@@ -158,7 +158,7 @@ class RestInputTest {
 
         final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
         Job.components() //
-                .component("emitter", "Rest://Input?" + configStr) //
+                .component("emitter", "REST://Input?" + configStr) //
                 .component("out", "test://collector") //
                 .connections() //
                 .from("emitter") //

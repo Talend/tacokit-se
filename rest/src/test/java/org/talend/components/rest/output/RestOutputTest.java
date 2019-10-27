@@ -180,7 +180,7 @@ class RestOutputTest {
         components.setInputData(data);
         Job.components() //
                 .component("emitter", "test://emitter") //
-                .component("out", "Rest://Output?" + configStr) //
+                .component("out", "REST://Output?" + configStr) //
                 .connections() //
                 .from("emitter") //
                 .to("out") //
@@ -239,7 +239,7 @@ class RestOutputTest {
         components.setInputData(data);
         Job.components() //
                 .component("emitter", "test://emitter") //
-                .component("out", "Rest://Output?" + configStr) //
+                .component("out", "REST://Output?" + configStr) //
                 .connections() //
                 .from("emitter") //
                 .to("out") //
