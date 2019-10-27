@@ -174,7 +174,7 @@ public class RestService {
         Record.Builder builder = recordBuilderFactory.newRecordBuilder();
 
         final int status = resp.status();
-        log.debug("Request status {}", status);
+        log.info("Request status {}", status);
         builder.withInt("status", status);
 
         if (resp.headers() == null) {

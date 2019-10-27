@@ -24,6 +24,7 @@ public class DigestAuthConfigurer implements Configurer {
 
     @Override
     public void configure(Connection connection, ConfigurerConfiguration configuration) {
+        log.debug("Configure digest authentication");
         DigestAuthContext context = configuration.get(DIGEST_CONTEXT_CONF, DigestAuthContext.class);
 
         Optional<String> digestAuthHeader = Optional.ofNullable(context.getDigestAuthHeader());

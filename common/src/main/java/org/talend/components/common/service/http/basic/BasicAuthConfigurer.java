@@ -26,6 +26,7 @@ public class BasicAuthConfigurer implements Configurer {
 
     @Override
     public void configure(Connection connection, ConfigurerConfiguration configuration) {
+        log.debug("Configure basic authentication");
         UserNamePassword context = configuration.get(BASIC_CONTEXT_CONF, UserNamePassword.class);
         connection.withHeader("Authorization", "Basic " + Base64.getEncoder()
                 .encodeToString((context.getUser() + ":" + context.getPassword()).getBytes(StandardCharsets.UTF_8)));
