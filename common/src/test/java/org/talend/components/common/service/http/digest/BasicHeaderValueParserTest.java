@@ -13,9 +13,9 @@
 package org.talend.components.common.service.http.digest;
 
 import org.junit.jupiter.api.Test;
-import org.talend.components.common.service.http.BasicHeader;
-import org.talend.components.common.service.http.BasicHeaderValueParser;
-import org.talend.components.common.service.http.BasicNameValuePair;
+import org.talend.components.common.service.http.common.BasicHeader;
+import org.talend.components.common.service.http.common.BasicHeaderValueParser;
+import org.talend.components.common.service.http.common.BasicNameValuePair;
 
 import java.util.Arrays;
 import java.util.HashMap;

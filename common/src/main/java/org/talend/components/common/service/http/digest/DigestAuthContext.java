@@ -13,7 +13,7 @@
 package org.talend.components.common.service.http.digest;
 
 import lombok.Data;
-import org.talend.components.common.service.http.UserNamePassword;
+import org.talend.components.common.service.http.common.UserNamePassword;
 
 @Data
 public class DigestAuthContext {

@@ -13,13 +13,11 @@
 package org.talend.components.common.service.http.basic;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.common.service.http.UserNamePassword;
-import org.talend.components.common.service.http.digest.DigestAuthContext;
+import org.talend.components.common.service.http.common.UserNamePassword;
 import org.talend.sdk.component.api.service.http.Configurer;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.Optional;
 
 @Slf4j
 public class BasicAuthConfigurer implements Configurer {

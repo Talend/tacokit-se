@@ -12,7 +12,7 @@
  */
 package org.talend.components.common.service.http.digest;
 
-import org.talend.components.common.service.http.BasicHeader;
+import org.talend.components.common.service.http.common.BasicHeader;
 import org.talend.sdk.component.api.service.http.HttpException;
 
 import java.util.Collections;

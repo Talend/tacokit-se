@@ -10,15 +10,15 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.common.service.http;
+package org.talend.components.common.service.http.common;
 
 import lombok.Data;
 
 @Data
-public class UserNamePassword {
+public class BasicHeader {
 
-    final String user;
+    private final String name;
 
-    final String password;
+    private final String value;
 
 }

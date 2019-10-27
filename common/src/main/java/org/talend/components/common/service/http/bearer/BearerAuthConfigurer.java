@@ -13,11 +13,7 @@
 package org.talend.components.common.service.http.bearer;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.common.service.http.UserNamePassword;
 import org.talend.sdk.component.api.service.http.Configurer;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 
 @Slf4j
 public class BearerAuthConfigurer implements Configurer {

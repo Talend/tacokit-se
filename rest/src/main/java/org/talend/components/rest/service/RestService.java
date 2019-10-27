@@ -16,7 +16,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.common.service.http.RedirectContext;
 import org.talend.components.common.service.http.RedirectService;
-import org.talend.components.common.service.http.UserNamePassword;
+import org.talend.components.common.service.http.common.UserNamePassword;
 import org.talend.components.common.service.http.digest.DigestAuthContext;
 import org.talend.components.common.service.http.digest.DigestAuthService;
 import org.talend.components.common.text.Substitutor;
@@ -33,7 +33,6 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import javax.json.spi.JsonProvider;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;

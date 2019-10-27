@@ -12,7 +12,7 @@
  */
 package org.talend.components.rest.service;
 
-import org.talend.components.common.service.http.UserNamePassword;
+import org.talend.components.common.service.http.common.UserNamePassword;
 import org.talend.components.common.service.http.basic.BasicAuthConfigurer;
 import org.talend.components.common.service.http.bearer.BearerAuthConfigurer;
 import org.talend.components.common.service.http.digest.DigestAuthConfigurer;

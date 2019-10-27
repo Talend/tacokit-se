@@ -81,18 +81,18 @@ public class RedirectService {
                 String redirectDomain = new URL(context.getNextUrl()).getHost();
                 if (!currentHost.equals(redirectDomain)) {
                     throw new IllegalArgumentException("Redirect to another domain is forbidden from '" + currentHost + "' to '"
-                            + redirectDomain + "':\nLast one has not been follwed:\n" + redirectioHistory(context));
+                            + redirectDomain + "':\nLast one has not been followed:\n" + redirectioHistory(context));
                 }
             } catch (MalformedURLException e) {
                 throw new IllegalArgumentException("Can't check if redirect to another domain : " + e.getMessage()
-                        + "\nLast one has not been follwed:\n" + redirectioHistory(context));
+                        + "\nLast one has not been followed:\n" + redirectioHistory(context));
             }
         }
 
         // Check max redirection (0 no redirection, -1 no bound redirection)
         if (context.getMaxRedirect() >= 0 && context.getNbRedirect() >= context.getMaxRedirect()) {
             throw new IllegalArgumentException("Max redirection reached '" + context.getNbRedirect()
-                    + "':\nLast one has not been follwed:\n" + redirectioHistory(context));
+                    + "':\nLast one has not been followed:\n" + redirectioHistory(context));
         }
 
         return context;

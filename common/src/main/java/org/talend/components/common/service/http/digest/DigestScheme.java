@@ -12,12 +12,12 @@
  */
 package org.talend.components.common.service.http.digest;
 
-import org.talend.components.common.service.http.BasicHeader;
-import org.talend.components.common.service.http.BasicHeaderValueFormatter;
-import org.talend.components.common.service.http.BasicHeaderValueParser;
-import org.talend.components.common.service.http.BasicNameValuePair;
-import org.talend.components.common.service.http.ByteArrayBuilder;
-import org.talend.components.common.service.http.CharArrayBuffer;
+import org.talend.components.common.service.http.common.BasicHeader;
+import org.talend.components.common.service.http.common.BasicHeaderValueFormatter;
+import org.talend.components.common.service.http.common.BasicHeaderValueParser;
+import org.talend.components.common.service.http.common.BasicNameValuePair;
+import org.talend.components.common.service.http.common.ByteArrayBuilder;
+import org.talend.components.common.service.http.common.CharArrayBuffer;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
