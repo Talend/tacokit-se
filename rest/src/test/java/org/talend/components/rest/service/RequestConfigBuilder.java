@@ -34,6 +34,8 @@ public class RequestConfigBuilder {
 
         Datastore datastore = new Datastore();
         datastore.setAuthentication(authent);
+        datastore.setConnectionTimeout(5000);
+        datastore.setReadTimeout(5000);
 
         RequestBody body = new RequestBody();
         body.setType(RequestBody.Type.TEXT);

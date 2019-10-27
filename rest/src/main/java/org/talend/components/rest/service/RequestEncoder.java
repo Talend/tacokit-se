@@ -12,9 +12,11 @@
  */
 package org.talend.components.rest.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.http.Encoder;
 
+@Slf4j
 public class RequestEncoder implements Encoder {
 
     @Service
@@ -32,7 +34,10 @@ public class RequestEncoder implements Encoder {
 
         Body body = Body.class.cast(value);
 
-        return body.getContent();
+        byte[] content = body.getContent();
+        log.debug("Body content length: " + content.length);
+
+        return content;
     }
 
 }

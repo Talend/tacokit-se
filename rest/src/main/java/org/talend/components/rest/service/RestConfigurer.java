@@ -30,22 +30,27 @@ public class RestConfigurer implements Configurer {
 
         // Set timeout
         if (config.getDataset().getDatastore().getConnectionTimeout() != null) {
+            log.debug("Connection timeout set to {}", config.getDataset().getDatastore().getConnectionTimeout());
             connection.withConnectionTimeout(config.getDataset().getDatastore().getConnectionTimeout());
         }
         if (config.getDataset().getDatastore().getReadTimeout() != null) {
+            log.debug("Read timeout set to {}", config.getDataset().getDatastore().getReadTimeout());
             connection.withReadTimeout(config.getDataset().getDatastore().getReadTimeout());
         }
 
         // Add Content-Type of body if none.
         if (config.getDataset().isHasBody()) {
             if (config.getDataset().getHasHeaders()) {
-                String contentType = config.getDataset().getHeaders().stream()
-                        .filter(h -> "content-type".equals(h.getKey().toLowerCase())).findFirst().map(Param::getKey)
-                        .orElse(config.getDataset().getBody().getType().getContentType());
-                config.getDataset().getHeaders().stream().filter(h -> "content-type".equals(h.getKey().toLowerCase())).findFirst()
-                        .orElse(new Param("Content-Type", "")).setValue(contentType);
+                final boolean contentTypeAlreadySet = config.headers().entrySet().stream().filter(h -> ContentType.HEADER_KEY.toLowerCase().equals(h.getKey().toLowerCase())).findFirst().orElse(null) != null;
+                if(!contentTypeAlreadySet) {
+                    final String value = config.getDataset().getBody().getType().getContentType();
+                    log.info("Set header {} with {}.", ContentType.HEADER_KEY, value);
+                    connection.withHeader(ContentType.HEADER_KEY, value);
+                }
             } else {
-                connection.withHeader("Content-Type", config.getDataset().getBody().getType().getContentType());
+                String contentType = config.getDataset().getBody().getType().getContentType();
+                log.info("Add header {} with {}.", ContentType.HEADER_KEY, contentType);
+                connection.withHeader(ContentType.HEADER_KEY, contentType);
             }
         }
 

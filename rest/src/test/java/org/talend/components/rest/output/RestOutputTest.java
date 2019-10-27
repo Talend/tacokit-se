@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
@@ -132,43 +133,62 @@ class RestOutputTest {
         final List<Record> data = createData(NB_RECORDS);
         final AtomicInteger index = new AtomicInteger(0);
 
+
+        final AtomicReference<String> receivedURI = new AtomicReference<>();
+        final AtomicReference<String> receivedHeader1 = new AtomicReference<>();
+        final AtomicReference<String> receivedHeader2 = new AtomicReference<>();
+        final AtomicReference<String> receivedQueryParam1 = new AtomicReference<>();
+        final AtomicReference<String> receivedQueryParam2 = new AtomicReference<>();
+        final AtomicReference<String> receivedBody = new AtomicReference<>();
         this.setServerContextAndStart(httpExchange -> {
             int i = index.getAndIncrement();
 
-            // Check URL path
-            StringBuilder uri = new StringBuilder("/post/");
-            uri.append(data.get(i).getString("module")).append("/").append(data.get(i).getInt("id"));
-            Assertions.assertEquals(uri.toString(), httpExchange.getRequestURI().getPath());
-
-            // Check query headers
-            StringBuilder header_1 = new StringBuilder("header/");
-            header_1.append(data.get(i).getInt("id"));
-            Assertions.assertEquals(header_1.toString(), Optional.ofNullable(httpExchange.getRequestHeaders().get("head_1"))
+            receivedURI.set(httpExchange.getRequestURI().getPath());
+            receivedHeader1.set(Optional.ofNullable(httpExchange.getRequestHeaders().get("head_1"))
+                    .orElse(Collections.emptyList()).stream().findFirst().orElse(""));
+            receivedHeader2.set(Optional.ofNullable(httpExchange.getRequestHeaders().get("head_2"))
                     .orElse(Collections.emptyList()).stream().findFirst().orElse(""));
 
-            StringBuilder header_2 = new StringBuilder("page:");
-            header_2.append(data.get(i).getRecord("pagination").getInt("page")).append(" on ")
-                    .append(data.get(i).getRecord("pagination").getInt("total"));
-            Assertions.assertEquals(header_2.toString(), Optional.ofNullable(httpExchange.getRequestHeaders().get("head_2"))
-                    .orElse(Collections.emptyList()).stream().findFirst().orElse(""));
-
-            // Check query parameters
             String requestUri = httpExchange.getRequestURI().toASCIIString();
             String[] queryParamsAsArray = requestUri.substring(requestUri.indexOf('?') + 1).split("&");
             Map<String, String> queryParams = Arrays.stream(queryParamsAsArray)
                     .collect(Collectors.toMap(s -> s.split("=")[0], s -> s.split("=")[1]));
 
-            Assertions.assertEquals("param" + i + "&/encoded < >", URLDecoder.decode(queryParams.get("param_1"), "UTF-8"));
-            Assertions.assertEquals(data.get(i).getString("user_name"), URLDecoder.decode(queryParams.get("param_2"), "UTF-8"));
+            receivedQueryParam1.set(URLDecoder.decode(queryParams.get("param_1"), "UTF-8"));
+            receivedQueryParam2.set(URLDecoder.decode(queryParams.get("param_2"), "UTF-8"));
 
-            // Check Body
+
             BufferedReader br = new BufferedReader(new InputStreamReader(httpExchange.getRequestBody(), "UTF-8"));
             String requestBody = br.lines().collect(Collectors.joining("\n"));
+            receivedBody.set(requestBody);
+
+            // TODO : assert should be done outside of the server handler
+
+            // Check path params
+            StringBuilder uri = new StringBuilder("/post/");
+            uri.append(data.get(i).getString("module")).append("/").append(data.get(i).getInt("id"));
+            Assertions.assertEquals(uri.toString(), receivedURI.get());
+
+            // Check query headers
+            StringBuilder header_1 = new StringBuilder("header/");
+            header_1.append(data.get(i).getInt("id"));
+            Assertions.assertEquals(header_1.toString(), receivedHeader1.get());
+
+            StringBuilder header_2 = new StringBuilder("page:");
+            header_2.append(data.get(i).getRecord("pagination").getInt("page")).append(" on ")
+                    .append(data.get(i).getRecord("pagination").getInt("total"));
+            Assertions.assertEquals(header_2.toString(), receivedHeader2.get());
+
+            // Check query params
+            Assertions.assertEquals("param" + i + "&/encoded < >", receivedQueryParam1.get());
+            Assertions.assertEquals(data.get(i).getString("user_name"), receivedQueryParam2.get());
+
+            // Check Body
             String expected = content.replaceAll("\\$\\{/book/title\\}", "Title_" + i)
                     .replaceAll("\\$\\{/book/market/price\\}", String.valueOf(1.35 * i))
                     .replaceAll("\\$\\{/book/identification/id\\}", String.valueOf(i))
                     .replaceAll("\\$\\{/book/identification/isbn\\}", "ISBN_" + i);
-            Assertions.assertEquals(expected, requestBody);
+            Assertions.assertEquals(expected, receivedBody.get());
 
             httpExchange.sendResponseHeaders(200, 0);
             OutputStream os = httpExchange.getResponseBody();

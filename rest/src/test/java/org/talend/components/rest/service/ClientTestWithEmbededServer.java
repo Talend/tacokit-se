@@ -12,6 +12,7 @@
  */
 package org.talend.components.rest.service;
 
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import lombok.AllArgsConstructor;
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestBody;
@@ -32,6 +34,7 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
+import scala.xml.Atom;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -52,7 +55,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -60,6 +65,7 @@ import java.util.stream.Collectors;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @WithComponents(value = "org.talend.components.rest")
@@ -267,6 +273,7 @@ public class ClientTestWithEmbededServer {
         final String contentType = "text/plain; " + ContentType.CHARSET_KEY + encoding;
         final String requestBody = new String(bytes, Charset.forName(encoding));
 
+        AtomicReference<String> receivedBody = new AtomicReference<>();
         this.setServerContextAndStart(httpExchange -> {
 
             String charsetName = ContentType.getCharsetName(httpExchange.getRequestHeaders());
@@ -279,8 +286,7 @@ public class ClientTestWithEmbededServer {
                 buffer.write(data, 0, nRead);
             }
             byte[] rawRequestBody = buffer.toByteArray();
-            String receivedBody = new String(rawRequestBody, Charset.forName(charsetName));
-            assertEquals(requestBody, receivedBody);
+            receivedBody.set(new String(rawRequestBody, Charset.forName(charsetName)));
 
             httpExchange.getResponseHeaders().add(ContentType.HEADER_KEY, contentType);
             httpExchange.sendResponseHeaders(200, rawRequestBody.length);
@@ -304,7 +310,106 @@ public class ClientTestWithEmbededServer {
         String body = resp.getString("body");
 
         assertEquals(200, resp.getInt("status"));
+        assertEquals(requestBody, receivedBody.get());
         assertEquals(requestBody, body);
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"TEXT,src/test/resources/org/talend/components/rest/body/Multilines.txt,text/plain",
+            "JSON,src/test/resources/org/talend/components/rest/body/Example.json,text/json",
+            "XML,src/test/resources/org/talend/components/rest/body/Example.xml,text/xml"})
+    void testForceContentType(final String type, final String filename, final String expected) throws IOException {
+        Path resourceDirectory = Paths.get(filename);
+        String content = Files.lines(resourceDirectory).collect(Collectors.joining("\n"));
+
+        AtomicReference<String> contentType = new AtomicReference<>();
+        this.setServerContextAndStart(httpExchange -> {
+
+            contentType.set(Optional.ofNullable(httpExchange.getRequestHeaders().get(ContentType.HEADER_KEY))
+                    .orElse(Collections.emptyList()).stream().findFirst().orElse(""));
+
+            httpExchange.sendResponseHeaders(200, 0);
+            OutputStream os = httpExchange.getResponseBody();
+            os.write(new byte[0]);
+            os.close();
+        });
+
+        config.getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getDataset().setMethodType(HttpMethod.POST);
+        config.getDataset().setHasBody(true);
+        config.getDataset().getBody().setType(RequestBody.Type.valueOf(type));
+        config.getDataset().getBody().setTextContent(content);
+
+        Record resp = service.execute(config);
+        assertEquals(200, resp.getInt("status"));
+        assertEquals(expected, contentType.get());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void testForceContentType(final boolean parametersActivated) {
+
+        final AtomicBoolean hasContentType = new AtomicBoolean();
+        this.setServerContextAndStart(httpExchange -> {
+
+            hasContentType.set(httpExchange.getRequestHeaders().containsKey(ContentType.HEADER_KEY));
+
+            httpExchange.sendResponseHeaders(200, 0);
+            OutputStream os = httpExchange.getResponseBody();
+            os.write(new byte[0]);
+            os.close();
+        });
+
+        config.getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getDataset().setMethodType(HttpMethod.POST);
+        config.getDataset().getBody().setType(RequestBody.Type.TEXT);
+        config.getDataset().getBody().setTextContent("Not empty");
+        config.getDataset().setHasBody(parametersActivated);
+        config.getDataset().setHeaders(Collections.singletonList(new Param(ContentType.HEADER_KEY, "text/plain")));
+        config.getDataset().setHasHeaders(parametersActivated);
+
+        Record resp = service.execute(config);
+        assertEquals(200, resp.getInt("status"));
+        assertEquals(parametersActivated, hasContentType.get());
+    }
+
+    /**
+     * If body and headers are activated, but no Content-Type set, we force the body content-Type.
+     */
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void testForceContentTypeWhenHasBodyAndHeaders(final boolean alreadyHasContentTypeHeader) {
+
+        final AtomicReference<String> receivedContentType = new AtomicReference<>();
+        this.setServerContextAndStart(httpExchange -> {
+
+            receivedContentType.set(Optional.ofNullable(httpExchange.getRequestHeaders().get(ContentType.HEADER_KEY))
+                    .orElse(Collections.emptyList()).stream().findFirst().orElse(""));
+
+            httpExchange.sendResponseHeaders(200, 0);
+            OutputStream os = httpExchange.getResponseBody();
+            os.write(new byte[0]);
+            os.close();
+        });
+
+        config.getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getDataset().setMethodType(HttpMethod.POST);
+        config.getDataset().getBody().setType(RequestBody.Type.TEXT);
+        config.getDataset().getBody().setTextContent("Not empty");
+        config.getDataset().setHasBody(true);
+
+        List<Param> headers = new ArrayList<>();
+        headers.add(new Param("header1", "value1"));
+        if(alreadyHasContentTypeHeader){
+            headers.add(new Param(ContentType.HEADER_KEY, "text/forced_type"));
+        }
+        config.getDataset().setHeaders(headers);
+        config.getDataset().setHasHeaders(true);
+
+        Record resp = service.execute(config);
+        assertEquals(200, resp.getInt("status"));
+
+        assertEquals(alreadyHasContentTypeHeader ? "text/forced_type" : RequestBody.Type.TEXT.getContentType(), receivedContentType.get());
     }
 
     @Test
@@ -324,12 +429,13 @@ public class ClientTestWithEmbededServer {
         HealthCheckStatus healthCheckStatus = service.healthCheck(config.getDataset().getDatastore());
         assertEquals(HealthCheckStatus.Status.OK, healthCheckStatus.getStatus());
 
-        config.getDataset().getDatastore().setBase("http://nonexistinghost" + UUID.randomUUID().toString().substring(0, 5) + ".com");
+        config.getDataset().getDatastore().setBase("http://localhost:" + port);
+        code.set(403); // Force server to return 403
         healthCheckStatus = service.healthCheck(config.getDataset().getDatastore());
         assertEquals(HealthCheckStatus.Status.KO, healthCheckStatus.getStatus());
 
-        config.getDataset().getDatastore().setBase("http://localhost:" + port);
-        code.set(403);
+        config.getDataset().getDatastore().setBase("http://<>{}   localhost:");
+        code.set(200); // Force server to return 403
         healthCheckStatus = service.healthCheck(config.getDataset().getDatastore());
         assertEquals(HealthCheckStatus.Status.KO, healthCheckStatus.getStatus());
     }

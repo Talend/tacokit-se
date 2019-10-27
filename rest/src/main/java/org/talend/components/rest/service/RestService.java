@@ -34,6 +34,8 @@ import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -108,6 +110,7 @@ public class RestService {
 
         Response<byte[]> resp = null;
 
+        log.info("Request to {} with authentication type {}", surl, config.getDataset().getDatastore().getAuthentication().getType().toString());
         if (config.getDataset().getDatastore().getAuthentication().getType() == Authorization.AuthorizationType.Digest) {
             try {
                 URL url = new URL(surl);
@@ -142,6 +145,7 @@ public class RestService {
             rctx = rs.call(rctx);
 
             if (rctx.isRedirect()) {
+                log.debug("{} redirection(s) already followed, redirect to {}.", rctx.getNbRedirect(), rctx.getNextUrl());
                 resp = this.call(config, headers, queryParams, body, rctx.getNextUrl(), rctx);
             }
         }
@@ -168,9 +172,10 @@ public class RestService {
 
     private Record buildRecord(Response<byte[]> resp) {
         Record.Builder builder = recordBuilderFactory.newRecordBuilder();
-        Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
 
-        builder.withInt("status", resp.status());
+        final int status = resp.status();
+        log.debug("Request status {}", status);
+        builder.withInt("status", status);
 
         if (resp.headers() == null) {
             builder.withString("headers", "{}");
@@ -201,7 +206,8 @@ public class RestService {
     }
 
     private String substitute(final String value, final Substitutor substitutor) {
-        return !value.contains(substitutor.getPrefix()) ? value : substitutor.replace(value);
+        String substitute =  !value.contains(substitutor.getPrefix()) ? value : substitutor.replace(value);
+        return substitute;
     }
 
     @HealthCheck(HEALTHCHECK)
@@ -209,12 +215,17 @@ public class RestService {
         try {
             HttpURLConnection conn = (HttpURLConnection) new URL(datastore.getBase()).openConnection();
             conn.setRequestMethod("GET");
-            if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+            final int status = conn.getResponseCode();
+            log.info("Health check status to {} : {}", datastore.getBase(), status);
+            if (status == HttpURLConnection.HTTP_OK) {
                 return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18n.healthCheckOk());
             }
 
         } catch (IOException e) {
-            // do nothing
+            final StringWriter sw = new StringWriter();
+            final PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            log.debug("Health check has generated an exception: {}", sw.toString());
         }
 
         return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.healthCheckFailed(datastore.getBase()));
