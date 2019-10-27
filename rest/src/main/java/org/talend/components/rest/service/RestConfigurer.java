@@ -44,7 +44,7 @@ public class RestConfigurer implements Configurer {
                 final boolean contentTypeAlreadySet = config.headers().entrySet().stream().filter(h -> ContentType.HEADER_KEY.toLowerCase().equals(h.getKey().toLowerCase())).findFirst().orElse(null) != null;
                 if(!contentTypeAlreadySet) {
                     final String value = config.getDataset().getBody().getType().getContentType();
-                    log.info("Set header {} with {}.", ContentType.HEADER_KEY, value);
+                    log.info("Add header {} with {}.", ContentType.HEADER_KEY, value);
                     connection.withHeader(ContentType.HEADER_KEY, value);
                 }
             } else {
