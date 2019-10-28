@@ -23,7 +23,7 @@ import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestBody;
 import org.talend.components.rest.configuration.RequestConfig;
-import org.talend.components.rest.service.RequestConfigBuilder;
+import org.talend.components.rest.service.RequestConfigBuilderTest;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
@@ -82,7 +82,7 @@ class RestOutputTest {
         // Inject needed services
         handler.injectServices(this);
 
-        config = RequestConfigBuilder.getEmptyRequestConfig();
+        config = RequestConfigBuilderTest.getEmptyRequestConfig();
 
         config.getDataset().getDatastore().setConnectionTimeout(5000);
         config.getDataset().getDatastore().setReadTimeout(5000);

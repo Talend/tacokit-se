@@ -51,7 +51,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @WithComponents(value = "org.talend.components.rest")
-public class ClientTestWithHttpbin {
+public class ClientTestWithHttpbinTest {
 
     public final static String HTTPBIN_BASE = System.getProperty("org.talend.components.rest.httpbin_base", "http://tal-rd169.talend.lan:8085");
 
@@ -82,7 +82,7 @@ public class ClientTestWithHttpbin {
         // Inject needed services
         handler.injectServices(this);
 
-        config = RequestConfigBuilder.getEmptyRequestConfig();
+        config = RequestConfigBuilderTest.getEmptyRequestConfig();
 
         config.getDataset().getDatastore().setBase(HTTPBIN_BASE);
         config.getDataset().getDatastore().setConnectionTimeout(CONNECT_TIMEOUT);

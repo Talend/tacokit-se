@@ -53,7 +53,7 @@ public class RestServiceTest {
     void buildConfig() {
         // Inject needed services
         handler.injectServices(this);
-        config = RequestConfigBuilder.getEmptyRequestConfig();
+        config = RequestConfigBuilderTest.getEmptyRequestConfig();
     }
 
     @Test

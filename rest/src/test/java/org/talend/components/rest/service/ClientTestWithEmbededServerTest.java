@@ -12,7 +12,6 @@
  */
 package org.talend.components.rest.service;
 
-import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import lombok.AllArgsConstructor;
@@ -34,7 +33,6 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
-import scala.xml.Atom;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -56,7 +54,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -65,11 +62,10 @@ import java.util.stream.Collectors;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @WithComponents(value = "org.talend.components.rest")
-public class ClientTestWithEmbededServer {
+public class ClientTestWithEmbededServerTest {
 
     @Service
     RestService service;
@@ -93,7 +89,7 @@ public class ClientTestWithEmbededServer {
         // Inject needed services
         handler.injectServices(this);
 
-        config = RequestConfigBuilder.getEmptyRequestConfig();
+        config = RequestConfigBuilderTest.getEmptyRequestConfig();
         config.getDataset().getDatastore().setBase("http://localhost");
 
         // start server
@@ -228,11 +224,11 @@ public class ClientTestWithEmbededServer {
             "DELETE,false,3,303,GET"})
     void testForceGetOnRedirect(final String method, final boolean forceGet, final int nbRedirect, final int redirectCode,
                                 final String expectedMethod) throws IOException {
-        final List<ClientTestWithEmbededServer.Request> calls = new ArrayList<>();
+        final List<ClientTestWithEmbededServerTest.Request> calls = new ArrayList<>();
         final AtomicInteger counter = new AtomicInteger(0);
 
         this.setServerContextAndStart(httpExchange -> {
-            calls.add(new ClientTestWithEmbededServer.Request(httpExchange.getRequestMethod(),
+            calls.add(new ClientTestWithEmbededServerTest.Request(httpExchange.getRequestMethod(),
                     httpExchange.getRequestURI().toASCIIString()));
             httpExchange.getResponseHeaders().add("Location",
                     "http://localhost:" + port + "/redirection/" + counter.getAndIncrement());

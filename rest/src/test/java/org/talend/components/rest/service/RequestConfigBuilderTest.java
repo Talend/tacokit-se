@@ -21,9 +21,9 @@ import org.talend.components.rest.configuration.auth.Authorization;
 
 import java.util.Collections;
 
-public class RequestConfigBuilder {
+public class RequestConfigBuilderTest {
 
-    private RequestConfigBuilder() {
+    private RequestConfigBuilderTest() {
     }
 
     public static RequestConfig getEmptyRequestConfig() {
