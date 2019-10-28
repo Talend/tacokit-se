@@ -22,13 +22,10 @@ import org.talend.sdk.component.api.record.Record;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.stream.Collectors.joining;
 import static org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeCopy.putAndCopy;
-import static org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeCopy.tmpTableName;
 
 public class SnowflakeInsert extends Insert {
 
