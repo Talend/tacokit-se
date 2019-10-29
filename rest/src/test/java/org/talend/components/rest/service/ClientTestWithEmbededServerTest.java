@@ -112,10 +112,10 @@ public class ClientTestWithEmbededServerTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {"POST,TEXT,src/test/resources/org/talend/components/rest/body/empty.txt",
+    @CsvSource(value = { "POST,TEXT,src/test/resources/org/talend/components/rest/body/empty.txt",
             "POST,TEXT,src/test/resources/org/talend/components/rest/body/Multilines.txt",
             "POST,JSON,src/test/resources/org/talend/components/rest/body/Example.json",
-            "POST,XML,src/test/resources/org/talend/components/rest/body/Example.xml"})
+            "POST,XML,src/test/resources/org/talend/components/rest/body/Example.xml" })
     void testBody(final String method, final String type, final String filename) throws IOException {
         Path resourceDirectory = Paths.get(filename);
         String content = Files.lines(resourceDirectory).collect(Collectors.joining("\n"));
@@ -163,10 +163,10 @@ public class ClientTestWithEmbededServerTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {"POST,TEXT,src/test/resources/org/talend/components/rest/body/empty.txt",
+    @CsvSource(value = { "POST,TEXT,src/test/resources/org/talend/components/rest/body/empty.txt",
             "POST,TEXT,src/test/resources/org/talend/components/rest/body/Multilines.txt",
             "POST,JSON,src/test/resources/org/talend/components/rest/body/Example.json",
-            "POST,XML,src/test/resources/org/talend/components/rest/body/Example.xml"})
+            "POST,XML,src/test/resources/org/talend/components/rest/body/Example.xml" })
     void testBodyForceContentType(final String method, final String type, final String filename) throws IOException {
         Path resourceDirectory = Paths.get(filename);
         String content = Files.lines(resourceDirectory).collect(Collectors.joining("\n"));
@@ -219,11 +219,11 @@ public class ClientTestWithEmbededServerTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {"GET,false,3,302,GET", "POST,false,4,302,POST", "PUT,false,5,302, PUT", "GET,true,6,302,GET",
+    @CsvSource(value = { "GET,false,3,302,GET", "POST,false,4,302,POST", "PUT,false,5,302, PUT", "GET,true,6,302,GET",
             "POST,true,7,302,GET", "PUT,true,8,302,GET", "GET,false,3,303,GET", "POST,false,3,303,GET",
-            "DELETE,false,3,303,GET"})
+            "DELETE,false,3,303,GET" })
     void testForceGetOnRedirect(final String method, final boolean forceGet, final int nbRedirect, final int redirectCode,
-                                final String expectedMethod) throws IOException {
+            final String expectedMethod) throws IOException {
         final List<ClientTestWithEmbededServerTest.Request> calls = new ArrayList<>();
         final AtomicInteger counter = new AtomicInteger(0);
 
@@ -263,7 +263,7 @@ public class ClientTestWithEmbededServerTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {"shift_jis,src/test/resources/org/talend/components/rest/body/encoded.shift_jis.txt"})
+    @CsvSource(value = { "shift_jis,src/test/resources/org/talend/components/rest/body/encoded.shift_jis.txt" })
     void testEncoding(final String encoding, final String filename) throws IOException {
         byte[] bytes = Files.readAllBytes(Paths.get(filename));
         final String contentType = "text/plain; " + ContentType.CHARSET_KEY + encoding;
@@ -311,9 +311,9 @@ public class ClientTestWithEmbededServerTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {"TEXT,src/test/resources/org/talend/components/rest/body/Multilines.txt,text/plain",
+    @CsvSource(value = { "TEXT,src/test/resources/org/talend/components/rest/body/Multilines.txt,text/plain",
             "JSON,src/test/resources/org/talend/components/rest/body/Example.json,text/json",
-            "XML,src/test/resources/org/talend/components/rest/body/Example.xml,text/xml"})
+            "XML,src/test/resources/org/talend/components/rest/body/Example.xml,text/xml" })
     void testForceContentType(final String type, final String filename, final String expected) throws IOException {
         Path resourceDirectory = Paths.get(filename);
         String content = Files.lines(resourceDirectory).collect(Collectors.joining("\n"));
@@ -342,7 +342,7 @@ public class ClientTestWithEmbededServerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {true, false})
+    @ValueSource(booleans = { true, false })
     void testForceContentType(final boolean parametersActivated) {
 
         final AtomicBoolean hasContentType = new AtomicBoolean();
@@ -373,7 +373,7 @@ public class ClientTestWithEmbededServerTest {
      * If body and headers are activated, but no Content-Type set, we force the body content-Type.
      */
     @ParameterizedTest
-    @ValueSource(booleans = {true, false})
+    @ValueSource(booleans = { true, false })
     void testForceContentTypeWhenHasBodyAndHeaders(final boolean alreadyHasContentTypeHeader) {
 
         final AtomicReference<String> receivedContentType = new AtomicReference<>();
@@ -396,7 +396,7 @@ public class ClientTestWithEmbededServerTest {
 
         List<Param> headers = new ArrayList<>();
         headers.add(new Param("header1", "value1"));
-        if(alreadyHasContentTypeHeader){
+        if (alreadyHasContentTypeHeader) {
             headers.add(new Param(ContentType.HEADER_KEY, "text/forced_type"));
         }
         config.getDataset().setHeaders(headers);
@@ -405,7 +405,8 @@ public class ClientTestWithEmbededServerTest {
         Record resp = service.execute(config);
         assertEquals(200, resp.getInt("status"));
 
-        assertEquals(alreadyHasContentTypeHeader ? "text/forced_type" : RequestBody.Type.TEXT.getContentType(), receivedContentType.get());
+        assertEquals(alreadyHasContentTypeHeader ? "text/forced_type" : RequestBody.Type.TEXT.getContentType(),
+                receivedContentType.get());
     }
 
     @Test
@@ -437,15 +438,15 @@ public class ClientTestWithEmbededServerTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {"text/plain; charset=shift_jis,shift_jis", "text/html; charset=ascii; other=nothing,ascii",
-            "text/html, null", "charset=ascii, ascii"})
+    @CsvSource(value = { "text/plain; charset=shift_jis,shift_jis", "text/html; charset=ascii; other=nothing,ascii",
+            "text/html, null", "charset=ascii, ascii" })
     void testGetCharsetName(final String header, final String expected) {
         final Map<String, List<String>> headers = new HashMap<>(singletonMap(ContentType.HEADER_KEY, singletonList(header)));
         for (int i = 0; i < 3; i++) {
             headers.put("key" + i, Arrays.asList("valA" + i, "valB" + i));
         }
 
-        assertEquals(expected, ""+ContentType.getCharsetName(headers));
+        assertEquals(expected, "" + ContentType.getCharsetName(headers));
     }
 
     @Data

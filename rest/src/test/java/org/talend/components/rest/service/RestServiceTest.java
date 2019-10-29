@@ -68,8 +68,8 @@ public class RestServiceTest {
         config.getDataset().setHasHeaders(false);
 
         List<String[]> paramList = new ArrayList<>();
-        paramList.add(new String[]{"leads", "124", "name"});
-        paramList.add(new String[]{"{leads}", "{124}", "{name}"});
+        paramList.add(new String[] { "leads", "124", "name" });
+        paramList.add(new String[] { "{leads}", "{124}", "{name}" });
 
         for (String[] params : paramList) {
             List<Param> pathParams = new ArrayList<>();

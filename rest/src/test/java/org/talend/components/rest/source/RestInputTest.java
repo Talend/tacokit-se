@@ -15,7 +15,6 @@ package org.talend.components.rest.source;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Rule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.talend.components.rest.configuration.HttpMethod;
@@ -24,8 +23,9 @@ import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.service.RequestConfigBuilderTest;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
-import org.talend.sdk.component.junit.SimpleComponentRule;
 import org.talend.sdk.component.junit.environment.Environment;
+import org.talend.sdk.component.junit.environment.EnvironmentConfiguration;
+import org.talend.sdk.component.junit.environment.EnvironmentConfiguration.Property;
 import org.talend.sdk.component.junit.environment.builtin.ContextualEnvironment;
 import org.talend.sdk.component.junit.environment.builtin.beam.SparkRunnerEnvironment;
 import org.talend.sdk.component.junit5.Injected;
@@ -44,7 +44,20 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 
 @Slf4j
 @Environment(ContextualEnvironment.class)
+@EnvironmentConfiguration(environment = "Contextual", systemProperties = {}) // EnvironmentConfiguration is necessary for each @Environment
+
+/* @Environment(DirectRunnerEnvironment.class) // Direct runner not necessary since already SparkRunner
+@EnvironmentConfiguration(environment = "Direct", systemProperties = {
+        @EnvironmentConfiguration.Property(key = "talend.beam.job.runner", value = "org.apache.beam.runners.direct.DirectRunner")
+})*/
+
 @Environment(SparkRunnerEnvironment.class)
+@EnvironmentConfiguration(environment = "Spark", systemProperties = {
+        @Property(key = "talend.beam.job.runner", value = "org.apache.beam.runners.spark.SparkRunner"),
+        @Property(key = "talend.beam.job.filesToStage", value = ""),
+        @Property(key = "spark.ui.enabled", value = "false")
+})
+
 @WithComponents(value = "org.talend.components.rest")
 class RestInputTest {
 
@@ -52,9 +65,6 @@ class RestInputTest {
     private BaseComponentsHandler handler;
 
     private RequestConfig config;
-
-    @Rule
-    public final SimpleComponentRule components = new SimpleComponentRule("org.talend.sdk.component.mycomponent");
 
     private HttpServer server;
 
@@ -121,7 +131,7 @@ class RestInputTest {
                 .build() //
                 .run();
 
-        final List<Record> records = components.getCollectedData(Record.class);
+        final List<Record> records = handler.getCollectedData(Record.class);
 
         assertEquals(1, records.size());
         assertEquals("param1=param1_value&param2=param1_value2", parameters.toString());
@@ -145,7 +155,7 @@ class RestInputTest {
         // when path param are not substituted the url contains "{...}"
         // and a 400 error is returned
         config.getDataset().setHasPathParams(hasOptions);
-        List<Param> pathParams = Arrays.asList(new Param[] { new Param("module", "myModule"), new Param("id", "myId") });
+        List<Param> pathParams = Arrays.asList(new Param[]{new Param("module", "myModule"), new Param("id", "myId")});
         config.getDataset().setPathParams(pathParams);
 
         this.setServerContextAndStart(httpExchange -> {
@@ -166,7 +176,7 @@ class RestInputTest {
                 .build() //
                 .run();
 
-        final List<Record> records = components.getCollectedData(Record.class);
+        final List<Record> records = handler.getCollectedData(Record.class);
         assertEquals(1, records.size());
 
         if (hasOptions) {

@@ -44,7 +44,7 @@
         <module>azure-dls-gen2</module>
         <module>marketo</module>
         <module>common</module>
-        <module>test</module>
+        <module>connectors-test-bom</module>
     </modules>
 
     <scm>
@@ -82,7 +82,6 @@
         <daikon.version>0.31.0</daikon.version>
 
         <junit5.version>5.5.1</junit5.version>
-
         <surefire.version>3.0.0-M3</surefire.version>
         <jacoco.version>0.8.2</jacoco.version>
 
@@ -184,24 +183,6 @@
                 <artifactId>xz</artifactId>
                 <version>1.5</version>
                 <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.beam</groupId>
-                <artifactId>beam-runners-direct-java</artifactId>
-                <version>${beam.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.talend.sdk.component</groupId>
-                <artifactId>component-runtime-beam</artifactId>
-                <version>${component-runtime.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.talend.sdk.component</groupId>
-                <artifactId>component-runtime-beam-junit</artifactId>
-                <version>${component-runtime.version}</version>
-                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.talend.daikon</groupId>
@@ -530,7 +511,6 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire.version}</version>
                 <configuration>
-                    <forkCount>1</forkCount>
                     <reuseForks>true</reuseForks>
                     <trimStackTrace>false</trimStackTrace>
                     <runOrder>alphabetical</runOrder>

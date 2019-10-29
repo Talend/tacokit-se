@@ -206,7 +206,7 @@ public class RestService {
     }
 
     private String substitute(final String value, final Substitutor substitutor) {
-        String substitute =  !value.contains(substitutor.getPrefix()) ? value : substitutor.replace(value);
+        String substitute = !value.contains(substitutor.getPrefix()) ? value : substitutor.replace(value);
         return substitute;
     }
 

@@ -26,8 +26,9 @@
         <!-- Testing -->
         <dependency>
             <groupId>org.talend.components</groupId>
-            <artifactId>test</artifactId>
+            <artifactId>connectors-test</artifactId>
             <version>1.3.0-SNAPSHOT</version>
+            <type>pom</type>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -47,8 +48,8 @@
                 <version>${surefire.version}</version>
                 <configuration>
                     <systemPropertyVariables>
-                        <talend.beam.job.runner>SparkRunner</talend.beam.job.runner>
                         <talend.component.junit.handler.state>static</talend.component.junit.handler.state>
+                        <talend.junit.beam.version>${beam.version}</talend.junit.beam.version>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
