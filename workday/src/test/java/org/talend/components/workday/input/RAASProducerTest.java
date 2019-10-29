@@ -12,23 +12,15 @@
  */
 package org.talend.components.workday.input;
 
-import org.apache.xbean.propertyeditor.PropertyEditorRegistry;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.talend.components.workday.WorkdayException;
 import org.talend.components.workday.dataset.RAASDataSet;
-import org.talend.components.workday.dataset.WQLDataSet;
-import org.talend.components.workday.service.*;
-import org.talend.sdk.component.api.service.http.HttpClientFactory;
-import org.talend.sdk.component.runtime.manager.reflect.ParameterModelService;
-import org.talend.sdk.component.runtime.manager.reflect.ReflectionService;
-import org.talend.sdk.component.runtime.manager.service.http.HttpClientFactoryImpl;
+import org.talend.components.workday.service.ConfigHelper;
+import org.talend.components.workday.service.WorkdayReaderService;
 
 import javax.json.JsonObject;
-import javax.json.bind.JsonbBuilder;
-import java.lang.reflect.Field;
-import java.util.HashMap;
 
 class RAASProducerTest {
 

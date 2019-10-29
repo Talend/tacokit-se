@@ -14,7 +14,10 @@ package org.talend.components.workday.dataset;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.talend.sdk.component.api.service.completion.Values;
 
+import java.net.URL;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -22,15 +25,40 @@ class SwaggerLoaderTest {
 
     @Test
     void findGetServices() {
-        final Map<String, List<WorkdayDataSet.Parameter>> services = new SwaggerLoader().findGetServices();
 
+        final URL swaggersDirectory = Thread.currentThread().getContextClassLoader().getResource("swaggers/");
+        SwaggerLoader loader = new SwaggerLoader(swaggersDirectory.getPath());
+        final Collection<Values.Item> modules = loader.getModules();
+        Assertions.assertNotNull(modules);
+        Assertions.assertFalse(modules.isEmpty());
+
+        Values.Item item = modules.iterator().next();
+        Assertions.assertNotNull(item, "item null");
+        Assertions.assertNotNull(item.getId(), "item id null");
+        Assertions.assertNotNull(item.getLabel(), "item label null");
+
+        final Map<String, List<WorkdayDataSet.Parameter>> services = loader.findGetServices(item.getId());
         Assertions.assertNotNull(services);
-
-        Assertions.assertFalse(services.isEmpty());
-
-        final Map.Entry<String, List<WorkdayDataSet.Parameter>> service = services.entrySet().iterator().next();
-
-        Assertions.assertFalse(service.getValue().isEmpty());
-
     }
+
+    @Test
+    void loaderByJar() {
+        final URL swaggersInJars = Thread.currentThread().getContextClassLoader().getResource("test.jar");
+
+        String path = swaggersInJars.getPath() + "!/swaggers/";
+        SwaggerLoader loader = new SwaggerLoader(path);
+
+        final Collection<Values.Item> modules = loader.getModules();
+        Assertions.assertNotNull(modules);
+        Assertions.assertFalse(modules.isEmpty());
+
+        Values.Item item = modules.iterator().next();
+        Assertions.assertNotNull(item);
+        Assertions.assertEquals("swaggers/student-swagger.json", item.getId());
+        Assertions.assertEquals("Student", item.getLabel());
+
+        final Map<String, List<WorkdayDataSet.Parameter>> services = loader.findGetServices(item.getId());
+        Assertions.assertNotNull(services);
+    }
+
 }
