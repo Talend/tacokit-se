@@ -88,15 +88,8 @@ public class SnowflakeCopy {
     private static Path createWorkDir() {
         try {
             final Path tmp = createTempDirectory("talend-jdbc-snowflake-");
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                try {
-                    if (tmp != null && tmp.toFile().exists()) {
-                        Files.walk(tmp).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
-                    }
-                } catch (final IOException e) {
-                    log.error("can't clean tmp files for snowflake put", e);
-                }
-            }));
+            log.debug("Temp folder {} created.", tmp);
+            tmp.toFile().deleteOnExit();
             return tmp;
         } catch (final IOException e) {
             throw new IllegalStateException(e);
@@ -248,6 +241,8 @@ public class SnowflakeCopy {
                 final String suffix = now(ZoneOffset.UTC).format(ofPattern("yyyyMMddHHmmss"));
                 try {
                     chunk = createTempFile(tmpDir, "part_" + part + "_", "_" + suffix + ".csv");
+                    log.debug("Temp file {} created", chunk);
+                    chunk.toFile().deleteOnExit();
                     writer = newBufferedWriter(chunk, StandardCharsets.UTF_8);
                 } catch (IOException e) {
                     throw new IllegalStateException(e);
