@@ -16,20 +16,24 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.talend.components.workday.datastore.WorkdayDataStore;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Proposable;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
+import org.talend.sdk.component.api.configuration.action.Updatable;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Data
 @DataSet("WorkdayDataset")
-@GridLayout({ @GridLayout.Row("datastore"), @GridLayout.Row("service"), @GridLayout.Row("parameters") })
+@GridLayout({ @GridLayout.Row("datastore"), @GridLayout.Row({ "module", "service" }), @GridLayout.Row("parameters") })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("datastore") })
 @Documentation("")
 public class WorkdayDataSet implements QueryHelper, Serializable {
 
@@ -40,8 +44,13 @@ public class WorkdayDataSet implements QueryHelper, Serializable {
     private WorkdayDataStore datastore;
 
     @Option
-    @Suggestable(value = "workdayServices", parameters = { "datastore" })
-    @Documentation("A valid read only query is the source type is Query")
+    @Proposable(value = "workdayModules")
+    @Documentation("module of workday")
+    private String module;
+
+    @Option
+    @Suggestable(value = "workdayServices", parameters = { "module" })
+    @Documentation("service of workday")
     private String service;
 
     @Data
@@ -87,23 +96,20 @@ public class WorkdayDataSet implements QueryHelper, Serializable {
 
     @Option
     @Documentation("service parameters")
-    private final List<Parameter> parameters = new ArrayList<>();
+    @Updatable(value = "workdayServicesParams", parameters = { "module", "service" })
+    // @SuggestableParameter(value = "workdayServicesParams", parameters = { "module", "service" })
+    private Parameters parameters;
 
     @Override
     public String getServiceToCall() {
         final StringBuilder toCall = new StringBuilder(service);
-        this.parameters.forEach((Parameter p) -> p.substitute(toCall));
+        this.parameters.getParameters().forEach((Parameter p) -> p.substitute(toCall));
         return toCall.toString();
-    }
-
-    public WorkdayDataSet() {
-        Parameter p1 = new Parameter(Parameter.Type.Query, "param1");
-        this.parameters.add(p1);
     }
 
     @Override
     public Map<String, String> extractQueryParam() {
-        return parameters.stream()
+        return parameters.getParameters().stream()
                 .filter((Parameter x) -> x.type == Parameter.Type.Query && x.value != null && !x.value.isEmpty())
                 .collect(Collectors.toMap(Parameter::getName, Parameter::getValue));
     }

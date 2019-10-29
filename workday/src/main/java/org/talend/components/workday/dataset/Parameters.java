@@ -10,27 +10,28 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.workday.input;
+package org.talend.components.workday.dataset;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.talend.components.workday.dataset.WorkdayDataSet;
-import org.talend.sdk.component.api.component.Version;
+import lombok.Getter;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
-@Version(1)
-@GridLayout(value = { @GridLayout.Row({ "dataSet" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("dataSet") })
-@Documentation("ADLS input configuration")
-public class InputConfiguration implements Serializable {
+@GridLayout({ //
+        @GridLayout.Row("parameters") })
+public class Parameters implements Serializable {
 
-    private static final long serialVersionUID = -3049022957498779768L;
+    private static final long serialVersionUID = -8064443311021065570L;
 
     @Option
-    @Documentation("Dataset")
-    private WorkdayDataSet dataSet;
+    @Documentation("kind (path or query)")
+    private List<WorkdayDataSet.Parameter> parameters = new ArrayList<>();
+
 }

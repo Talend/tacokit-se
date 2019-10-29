@@ -31,6 +31,7 @@ import java.util.Map;
 @Data
 @DataSet("WorkdayQueryLanguageDataset")
 @GridLayout({ @GridLayout.Row("datastore"), @GridLayout.Row("query") })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("datastore") })
 @Documentation("WQL dataset for workday (Workday Query Language)")
 public class WQLDataSet implements Serializable, QueryHelper {
 

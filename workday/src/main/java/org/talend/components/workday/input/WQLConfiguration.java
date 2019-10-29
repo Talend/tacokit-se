@@ -24,6 +24,7 @@ import java.io.Serializable;
 @Data
 @Version(1)
 @GridLayout(value = { @GridLayout.Row({ "dataSet" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("dataSet") })
 @Documentation("WQL configuration")
 public class WQLConfiguration implements Serializable {
 

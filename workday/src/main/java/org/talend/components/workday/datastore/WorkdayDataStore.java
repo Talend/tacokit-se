@@ -19,7 +19,6 @@ import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.action.Validable;
 import org.talend.sdk.component.api.configuration.type.DataStore;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
-import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
 
@@ -29,13 +28,11 @@ import java.util.Base64;
 
 @Data
 @DataStore(WorkdayDataStore.NAME)
-@GridLayouts({ //
-        @GridLayout({ //
-                @GridLayout.Row({ "authEndpoint" }), //
-                @GridLayout.Row({ "clientId", "clientSecret" }), //
-                @GridLayout.Row({ "endpoint", "tenantAlias" }) //
-        }) //
+@GridLayout({ //
+        @GridLayout.Row({ "clientId", "clientSecret" }), //
+        @GridLayout.Row({ "tenantAlias" }) //
 })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("authEndpoint"), @GridLayout.Row("endpoint") })
 @Checkable(UIActionService.HEALTH_CHECK)
 @Documentation(WorkdayDataStore.NAME)
 public class WorkdayDataStore implements Serializable {
@@ -47,7 +44,7 @@ public class WorkdayDataStore implements Serializable {
     @Option
     @Validable(UIActionService.VALIDATION_URL_PROPERTY)
     @Documentation("Workday token Auth Endpoint (host only, ie: https://auth.api.workday.com/v1/token)")
-    private String authEndpoint;
+    private String authEndpoint = "https://auth.api.workday.com";
 
     @Option
     @Documentation("Workday Client Id")
@@ -60,7 +57,7 @@ public class WorkdayDataStore implements Serializable {
 
     @Option
     @Documentation("Workday endpoint for REST services")
-    private String endpoint;
+    private String endpoint = "https://api.workday.com";
 
     @Option
     @Documentation("Workday tenant alias")

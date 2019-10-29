@@ -26,6 +26,7 @@ import java.util.Map;
 @Data
 @DataSet("ReportAsAServiceDataset")
 @GridLayout({ @GridLayout.Row("datastore"), @GridLayout.Row({ "user", "report" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("datastore") })
 @Documentation("RAAS dataset for workday (Report As A Service)")
 public class RAASDataSet implements Serializable, QueryHelper {
 

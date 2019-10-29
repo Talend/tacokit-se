@@ -18,47 +18,63 @@ import io.swagger.models.parameters.Parameter;
 import io.swagger.models.parameters.PathParameter;
 import io.swagger.models.parameters.QueryParameter;
 import io.swagger.parser.SwaggerParser;
+import lombok.Data;
+import org.talend.sdk.component.api.service.completion.Values;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.function.Function;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Load swagger files from a folder.
+ * TODO : see https://jira.talendforge.org/browse/TDI-42102 to add specific conf
+ */
 public class SwaggerLoader {
 
-    public Map<String, List<WorkdayDataSet.Parameter>> findGetServices() {
-        Map<String, List<WorkdayDataSet.Parameter>> resultMap = new TreeMap<>();
+    /** all availables swaggers */
+    private final Map<String, Swagger> swaggers = new HashMap<>();
 
-        this.files().map(this::fromFiles).forEach(x -> this.addAll(resultMap, x));
-
-        return resultMap;
+    /**
+     * Constructor
+     * 
+     * @param swaggersPath : path for swaggers (cab be inside jar file).
+     */
+    public SwaggerLoader(String swaggersPath) {
+        this.init(swaggersPath);
     }
 
     /**
-     * integrate element of addMap to result.
+     * All module name (that contains get services).
      * 
-     * @param result
-     * @param addMap
+     * @return
      */
-    private void addAll(Map<String, List<WorkdayDataSet.Parameter>> result, Map<String, List<WorkdayDataSet.Parameter>> addMap) {
-
-        addMap.entrySet().forEach(x -> result.merge(x.getKey(), x.getValue(), (l1, l2) -> {
-            l1.addAll(l2);
-            return l1;
-        }));
-
+    public Collection<Values.Item> getModules() {
+        return this.swaggers.entrySet().stream().filter((Map.Entry<String, Swagger> e) -> this.isSwaggerOK(e.getValue()))
+                .map((Map.Entry<String, Swagger> e) -> new Values.Item(e.getKey(), e.getValue().getInfo().getTitle()))
+                .collect(Collectors.toList());
     }
 
-    private Map<String, List<WorkdayDataSet.Parameter>> fromFiles(Path swaggerFile) {
-        final Swagger sw = new SwaggerParser().read(swaggerFile.toFile().getPath());
+    public Map<String, List<WorkdayDataSet.Parameter>> findGetServices(String id) {
+        final Swagger sw = swaggers.get(id);
+        return this.fromSwagger(sw);
+    }
+
+    private boolean isSwaggerOK(Swagger sw) {
+        return sw != null && sw.getInfo() != null && sw.getInfo().getTitle() != null
+                && sw.getPaths().values().stream().anyMatch((io.swagger.models.Path p) -> p.getGet() != null);
+    }
+
+    private Map<String, List<WorkdayDataSet.Parameter>> fromSwagger(Swagger sw) {
         if (sw == null) {
             return Collections.emptyMap();
         }
@@ -70,7 +86,6 @@ public class SwaggerLoader {
     private List<WorkdayDataSet.Parameter> extractParameter(Swagger sw, io.swagger.models.Path servicePath) {
         Operation opGet = servicePath.getGet();
         if (opGet != null) {
-
             return opGet.getParameters().stream().map(this::mapParameter).collect(Collectors.toList());
         }
         return null;
@@ -86,16 +101,86 @@ public class SwaggerLoader {
         return null;
     }
 
-    private Stream<Path> files() {
-        final URL swaggersDirectory = Thread.currentThread().getContextClassLoader().getResource("swaggers");
-
+    private void init(String swaggersPath) {
         try {
-            File swaggerRep = new File(swaggersDirectory.getPath());
-            return Files.walk(swaggerRep.toPath(), 1).filter((Path p) -> p.toFile().getPath().endsWith(".json"));
+            SwaggerParser parser = new SwaggerParser();
+
+            this.findSwaggers(swaggersPath).map((TUple<String, InputStream> e) -> e.secondMap(this::inputStreamToString))
+                    .map((TUple<String, String> sw) -> sw.secondMap(parser::parse))
+                    .forEach((TUple<String, Swagger> sw) -> this.swaggers.put(sw.getU(), sw.getV()));
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException("Unable to load workday swaggers files", e);
+        }
+    }
+
+    private String inputStreamToString(InputStream content) {
+        try (Scanner scanner = new Scanner(content, StandardCharsets.UTF_8.name())) {
+            return scanner.useDelimiter("\\A").next();
+        }
+    }
+
+    private Stream<TUple<String, InputStream>> findSwaggers(String path) throws IOException {
+        if (path.contains(".jar!/")) {
+            return this.entries(path);
+        } else {
+            File swaggerRep = new File(path);
+            return Files.walk(swaggerRep.toPath(), 1).filter((Path p) -> p.toFile().getPath().endsWith(".json"))
+                    .map((Path p) -> TUple.of(p.toFile().getName(), getInputStream(p)));
+
+        }
+    }
+
+    private InputStream getInputStream(Path p) {
+        try {
+            return Files.newInputStream(p);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Can't read file " + p.toFile().getPath(), e);
+        }
+    }
+
+    private Stream<TUple<String, InputStream>> entries(String pathJar) throws IOException {
+        String realpath = pathJar;
+        int pos = pathJar.indexOf(".jar!/");
+        if (pos >= 0) {
+            realpath = realpath.substring(0, pos + 4);
+            if (realpath.startsWith("file:")) {
+                realpath = realpath.substring(5);
+            }
+        }
+        String repo = pathJar.substring(pos + 6);
+        JarFile jar = new JarFile(realpath);
+        Enumeration<JarEntry> entries = jar.entries();
+        return Commons.enumerationAsStream(entries)
+                .filter((JarEntry e) -> e.getName().startsWith(repo) && e.getName().endsWith(".json"))
+                .map((JarEntry e) -> TUple.of(e.getName(), this.getInputStream(jar, e)));
+    }
+
+    private InputStream getInputStream(JarFile jar, JarEntry entry) {
+        try {
+            return jar.getInputStream(entry);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Can't extract " + entry.getName() + " from " + jar.getName(), e);
+        }
+    }
+
+    @Data
+    private static class TUple<U, V> {
+
+        private final U u;
+
+        private final V v;
+
+        public <U1> TUple<U1, V> firstMap(Function<U, U1> f) {
+            return new TUple<>(f.apply(u), v);
+        }
+
+        public <V1> TUple<U, V1> secondMap(Function<V, V1> f) {
+            return new TUple<>(u, f.apply(v));
+        }
+
+        public static <A, B> TUple<A, B> of(A a, B b) {
+            return new TUple<A, B>(a, b);
         }
 
     }
-
 }

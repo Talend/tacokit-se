@@ -24,6 +24,7 @@ import java.io.Serializable;
 @Data
 @Version
 @GridLayout(value = { @GridLayout.Row({ "dataSet" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("dataSet") })
 @Documentation("RAAS configuration")
 public class RAASConfiguration implements Serializable {
 

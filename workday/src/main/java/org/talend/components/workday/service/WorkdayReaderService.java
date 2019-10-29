@@ -15,19 +15,25 @@ package org.talend.components.workday.service;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.workday.WorkdayException;
+import org.talend.components.workday.dataset.Parameters;
 import org.talend.components.workday.dataset.QueryHelper;
+import org.talend.components.workday.dataset.SwaggerLoader;
+import org.talend.components.workday.dataset.WorkdayDataSet;
 import org.talend.components.workday.datastore.Token;
-import org.talend.components.workday.datastore.WorkdayDataStore;
 import org.talend.sdk.component.api.component.Version;
-import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.completion.DynamicValues;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.completion.Suggestions;
+import org.talend.sdk.component.api.service.completion.Values;
 import org.talend.sdk.component.api.service.http.Response;
+import org.talend.sdk.component.api.service.update.Update;
 
 import javax.json.JsonArray;
 import javax.json.JsonObject;
+import java.net.URL;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Version(1)
@@ -40,6 +46,13 @@ public class WorkdayReaderService {
 
     @Service
     private AccessTokenService accessToken;
+
+    private final transient SwaggerLoader loader;
+
+    public WorkdayReaderService() {
+        final URL swaggersDirectory = WorkdayReaderService.class.getClassLoader().getResource("swaggers/");
+        this.loader = new SwaggerLoader(swaggersDirectory.getPath());
+    }
 
     public JsonObject find(QueryHelper ds, Map<String, String> queryParams) {
         final Token token = accessToken.findToken(ds.getDatastore());
@@ -85,10 +98,36 @@ public class WorkdayReaderService {
         return data.stream().map(JsonObject.class::cast).iterator();
     }
 
-    @Suggestions("workdayServices")
-    public SuggestionValues loadServices(@Option WorkdayDataStore datastore) {
-        return new SuggestionValues(true,
-                Arrays.asList(new SuggestionValues.Item("1", "/workers"), new SuggestionValues.Item("2", "/toto")));
+    @DynamicValues("workdayModules")
+    public Values loadModules() {
+        log.info("loadModules");
+        return new Values(loader.getModules());
     }
 
+    @Suggestions("workdayServices")
+    public SuggestionValues loadServices(String module) {
+        log.info("loadServices for module {}", module);
+        final List<SuggestionValues.Item> services = loader.findGetServices(module).keySet().stream()
+                .map((String service) -> new SuggestionValues.Item(service, service)).collect(Collectors.toList());
+
+        return new SuggestionValues(false, services);
+    }
+
+    @Update("workdayServicesParams")
+    public Parameters loadServiceParameter(String module, String service) {
+        log.info("workdayServicesParams suggestion for {} {}", module, service);
+        final Parameters parameters = new Parameters();
+        parameters.setParameters(Collections.emptyList());
+        final Map<String, List<WorkdayDataSet.Parameter>> moduleServices = this.loader.findGetServices(module);
+        if (moduleServices == null) {
+            return parameters;
+        }
+        final List<WorkdayDataSet.Parameter> serviceParameters = moduleServices.get(service);
+        if (parameters == null) {
+            return parameters;
+        }
+        log.info("workdayServicesParams : nombre params {}", parameters.getParameters().size());
+        parameters.setParameters(serviceParameters);
+        return parameters;
+    }
 }
