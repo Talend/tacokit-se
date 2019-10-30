@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -146,7 +147,11 @@ public class CouchbaseOutput implements Serializable {
         case LONG:
             return record.getLong(entryName);
         case BYTES:
-            return com.couchbase.client.core.utils.Base64.encode(record.getBytes(entryName));
+            byte[] bytes = record.getBytes(entryName);
+            Integer[] intArray = IntStream.range(0, bytes.length).map(i -> bytes[i]).boxed()
+                    .collect(Collectors.toList())
+                    .toArray(new Integer[bytes.length]);
+            return JsonArray.from(intArray);
         case FLOAT:
             return Double.parseDouble(String.valueOf(record.getFloat(entryName)));
         case DOUBLE:
