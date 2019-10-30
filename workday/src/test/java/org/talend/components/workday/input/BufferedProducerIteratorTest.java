@@ -45,7 +45,7 @@ class BufferedProducerIteratorTest {
         }
     }
 
-    private Random rdm = new Random(System.currentTimeMillis());
+    private final Random rdm = new Random(System.currentTimeMillis());
 
     public Iterator<Integer> nextIter(int page) {
 

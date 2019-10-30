@@ -10,27 +10,38 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.workday.input;
+package org.talend.components.workday.dataset;
 
 import lombok.Data;
-import org.talend.components.workday.dataset.RAASDataSet;
-import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.Map;
 
 @Data
-@Version
-@GridLayout(value = { @GridLayout.Row({ "dataSet" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("dataSet") })
-@Documentation("RAAS configuration")
-public class RAASConfiguration implements Serializable {
+@GridLayout(@GridLayout.Row({ "user", "report" }))
+public class RAASLayout implements Serializable, QueryHelper {
 
-    private static final long serialVersionUID = -1265637396500368872L;
+    private static final long serialVersionUID = 4748412283124079266L;
 
     @Option
-    @Documentation("Dataset")
-    private RAASDataSet dataSet;
+    @Documentation("The user who made the report")
+    private String user;
+
+    @Option
+    @Documentation("report name")
+    private String report;
+
+    @Override
+    public String getServiceToCall() {
+        return "raas/" + this.user + '/' + this.report;
+    }
+
+    @Override
+    public Map<String, String> extractQueryParam() {
+        return Collections.emptyMap();
+    }
 }

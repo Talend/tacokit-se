@@ -19,4 +19,8 @@ public class WorkdayException extends RuntimeException {
     public WorkdayException(String message) {
         super(message);
     }
+
+    public WorkdayException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
