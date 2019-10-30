@@ -312,7 +312,7 @@ public class ClientTestWithEmbededServerTest {
 
     @ParameterizedTest
     @CsvSource(value = { "TEXT,src/test/resources/org/talend/components/rest/body/Multilines.txt,text/plain",
-            "JSON,src/test/resources/org/talend/components/rest/body/Example.json,text/json",
+            "JSON,src/test/resources/org/talend/components/rest/body/Example.json,application/json",
             "XML,src/test/resources/org/talend/components/rest/body/Example.xml,text/xml" })
     void testForceContentType(final String type, final String filename, final String expected) throws IOException {
         Path resourceDirectory = Paths.get(filename);

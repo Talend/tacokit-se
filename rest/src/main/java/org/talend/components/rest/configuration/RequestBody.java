@@ -99,7 +99,7 @@ public class RequestBody implements Serializable {
 
     public enum Type {
         TEXT("text/plain"),
-        JSON("text/json"),
+        JSON("application/json"),
         XML("text/xml"),
         FORM_DATA("multipart/form-data"),
         X_WWW_FORM_URLENCODED("application/x-www-form-urlencoded");
