@@ -12,14 +12,10 @@
  */
 package org.talend.components.couchbase.output;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
@@ -320,15 +316,7 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
         JsonObject jsonObject = jsonDoc.content();
         assertEquals(101, jsonObject.getInt("id"));
         assertEquals("kamikaze", jsonObject.getString("name"));
-        byte[] rbytes = jsonObject.getArray("byties").toList().stream().map(o1 -> (int) o1)
-                .collect(Collector.of(ByteArrayOutputStream::new, ByteArrayOutputStream::write, (baos1, baos2) -> {
-                    try {
-                        baos2.writeTo(baos1);
-                        return baos1;
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-                }, ByteArrayOutputStream::toByteArray));
+        byte[] rbytes = com.couchbase.client.core.utils.Base64.decode(jsonObject.getString("byties"));
         assertEquals(bytes.length, rbytes.length);
         assertEquals("aloha", new String(rbytes, Charset.defaultCharset()));
     }
