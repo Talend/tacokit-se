@@ -147,7 +147,11 @@ public class CouchbaseOutput implements Serializable {
         case LONG:
             return record.getLong(entryName);
         case BYTES:
-            throw new IllegalArgumentException("BYTES is unsupported");
+            byte[] bytes = record.getBytes(entryName);
+            Integer[] intArray = IntStream.range(0, bytes.length).map(i -> bytes[i]).boxed()
+                    .collect(Collectors.toList())
+                    .toArray(new Integer[bytes.length]);
+            return JsonArray.from(intArray);
         case FLOAT:
             return Double.parseDouble(String.valueOf(record.getFloat(entryName)));
         case DOUBLE:
@@ -187,7 +191,7 @@ public class CouchbaseOutput implements Serializable {
         return buildJsonObject(record, Collections.emptyMap()).removeKey(idFieldName);
     }
 
-    private JsonDocument toJsonDocument(String idFieldName, Record record) {
+    public JsonDocument toJsonDocument(String idFieldName, Record record) {
         return JsonDocument.create(record.getString(idFieldName), buildJsonObjectWithoutId(record));
     }
 
