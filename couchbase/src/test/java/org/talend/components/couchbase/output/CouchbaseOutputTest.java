@@ -12,14 +12,9 @@
  */
 package org.talend.components.couchbase.output;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
@@ -235,11 +230,13 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
         final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
         List<Record> records = new ArrayList<>();
         Record record1 = recordBuilderFactory.newRecordBuilder()
-                .withString(entryBuilder.withName("t_string").withType(Schema.Type.STRING).build(), generateDocId(idPrefix, 0))
+                .withString(entryBuilder.withName("t_string").withType(Schema.Type.STRING).build(),
+                        generateDocId(idPrefix, 0))
                 .withInt(entryBuilder.withName("t_int_min").withType(Schema.Type.INT).build(), 1971)
                 .withString(entryBuilder.withName("extra_content").withType(Schema.Type.STRING).build(), "path new").build();
         Record record2 = recordBuilderFactory.newRecordBuilder()
-                .withString(entryBuilder.withName("t_string").withType(Schema.Type.STRING).build(), generateDocId(idPrefix, 1))
+                .withString(entryBuilder.withName("t_string").withType(Schema.Type.STRING).build(),
+                        generateDocId(idPrefix, 1))
                 .withBoolean(entryBuilder.withName("t_boolean").withType(Schema.Type.BOOLEAN).build(), Boolean.FALSE)
                 .withString(entryBuilder.withName("extra_content2").withType(Schema.Type.STRING).build(), "path zap").build();
         records.add(record1);
@@ -306,31 +303,6 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
         configuration.setIdFieldName("t_string");
         configuration.setDataSet(couchbaseDataSet);
         return configuration;
-    }
-
-    @Test
-    void toJsonDocumentWithBytesType() {
-        byte[] bytes = "aloha".getBytes(Charset.defaultCharset());
-        String idValue = "fixBytes";
-        Record test = recordBuilderFactory.newRecordBuilder().withString("ID", idValue).withInt("id", 101)
-                .withString("name", "kamikaze").withBytes("byties", bytes).build();
-        CouchbaseOutput couch = new CouchbaseOutput(getOutputConfiguration(), null, null);
-        JsonDocument jsonDoc = couch.toJsonDocument("ID", test);
-        assertEquals(idValue, jsonDoc.id());
-        JsonObject jsonObject = jsonDoc.content();
-        assertEquals(101, jsonObject.getInt("id"));
-        assertEquals("kamikaze", jsonObject.getString("name"));
-        byte[] rbytes = jsonObject.getArray("byties").toList().stream().map(o1 -> (int) o1)
-                .collect(Collector.of(ByteArrayOutputStream::new, ByteArrayOutputStream::write, (baos1, baos2) -> {
-                    try {
-                        baos2.writeTo(baos1);
-                        return baos1;
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-                }, ByteArrayOutputStream::toByteArray));
-        assertEquals(bytes.length, rbytes.length);
-        assertEquals("aloha", new String(rbytes, Charset.defaultCharset()));
     }
 
 }
