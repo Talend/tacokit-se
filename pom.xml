@@ -191,13 +191,6 @@
                 <classifier>tests</classifier>
                 <scope>test</scope>
             </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-simple</artifactId>
-                <version>1.7.25</version>
-                <scope>test</scope>
-            </dependency>
-
         </dependencies>
     </dependencyManagement>
     <dependencies>
@@ -219,7 +212,12 @@
             <version>${slf4j.version}</version>
             <scope>provided</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.25</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.talend.sdk.component</groupId>
             <artifactId>component-runtime-junit</artifactId>
@@ -405,6 +403,7 @@
                         </goals>
                         <configuration>
                             <validateModel>${validation.model}</validateModel>
+                            <validatePlaceholder>false</validatePlaceholder>
                         </configuration>
                     </execution>
                     <execution>
