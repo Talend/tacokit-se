@@ -14,7 +14,7 @@ package org.talend.components.workday.input;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.talend.components.workday.dataset.WorkdayDataSet;
+import org.talend.components.workday.dataset.WorkdayServiceDataSet;
 import org.talend.components.workday.datastore.Token;
 import org.talend.components.workday.datastore.WorkdayDataStore;
 import org.talend.components.workday.service.WorkdayReaderService;
@@ -26,14 +26,14 @@ import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
 import java.time.Instant;
 
-class WorkdayProducerSerializerTest {
+class WorkdayServiceProducerSerializerTest {
 
     @Test
     public void serialProducer() throws Exception {
         InputConfiguration cfg = new InputConfiguration();
         WorkdayReaderService service = new WorkdayReaderService();
 
-        WorkdayDataSet ds = new WorkdayDataSet();
+        WorkdayServiceDataSet ds = new WorkdayServiceDataSet();
         cfg.setDataSet(ds);
         ds.setService("hello/v1/xx");
         WorkdayDataStore store = new WorkdayDataStore();
@@ -45,7 +45,7 @@ class WorkdayProducerSerializerTest {
         store.setAuthEndpoint("http://myauthendpoint");
         store.setToken(new Token("123", "auth", Instant.now()));
 
-        WorkdayProducer producer = new WorkdayProducer(cfg, service);
+        WorkdayServiceProducer producer = new WorkdayServiceProducer(cfg, service);
         producer.init();
 
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
@@ -57,11 +57,11 @@ class WorkdayProducerSerializerTest {
         Object o = input.readObject();
 
         Assertions.assertNotNull(o);
-        Assertions.assertEquals(WorkdayProducer.class, o.getClass());
+        Assertions.assertEquals(WorkdayServiceProducer.class, o.getClass());
 
-        WorkdayProducer producer1 = (WorkdayProducer) o;
+        WorkdayServiceProducer producer1 = (WorkdayServiceProducer) o;
 
-        Field cfgField = WorkdayProducer.class.getDeclaredField("inputConfig");
+        Field cfgField = WorkdayServiceProducer.class.getDeclaredField("inputConfig");
         cfgField.setAccessible(true);
         Object objCfg = cfgField.get(producer1);
         Assertions.assertNotNull(objCfg);

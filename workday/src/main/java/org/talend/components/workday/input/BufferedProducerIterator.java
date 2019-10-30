@@ -50,6 +50,7 @@ public class BufferedProducerIterator<T> {
     /** next page to retrieve */
     private final AtomicInteger nextPage;
 
+    /** page getter of called service */
     private final PageGetter<T> getter;
 
     public BufferedProducerIterator(PageGetter<T> getter) {
@@ -88,12 +89,13 @@ public class BufferedProducerIterator<T> {
         private CompletableFuture<Iterator<T>> futurePage = null;
 
         public void buildNext(Executor exe, PageGetter<T> getter, int pageNumber) {
+            log.debug("build page {}", pageNumber);
             final Lock wr = this.lock.writeLock();
             this.currentPage = null;
             this.futurePage = CompletableFuture.supplyAsync(() -> {
                 wr.lock();
                 return getter.find(pageNumber);
-            }, exe).whenComplete((input, exception) -> {
+            }, exe).whenComplete((Iterator<T> input, Throwable exception) -> {
                 wr.unlock();
             });
         }
@@ -107,16 +109,15 @@ public class BufferedProducerIterator<T> {
                 return this.currentPage;
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                log.error("execution exception try to get workday page", e);
-                throw new WorkdayException("Error with workday");
+                log.error("interrupt exception try to get workday page", e);
+                throw new WorkdayException("Error with workday", e);
             } catch (ExecutionException e) {
                 log.error("execution exception try to get workday page", e);
-                throw new WorkdayException("Error with workday");
+                throw new WorkdayException("Error with workday", e);
             } finally {
                 this.lock.readLock().unlock();
             }
         }
-
     }
 
 }

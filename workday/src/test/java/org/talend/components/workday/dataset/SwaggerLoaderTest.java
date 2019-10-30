@@ -37,7 +37,7 @@ class SwaggerLoaderTest {
         Assertions.assertNotNull(item.getId(), "item id null");
         Assertions.assertNotNull(item.getLabel(), "item label null");
 
-        final Map<String, List<WorkdayDataSet.Parameter>> services = loader.findGetServices(item.getId());
+        final Map<String, List<WorkdayServiceDataSet.Parameter>> services = loader.findGetServices(item.getId());
         Assertions.assertNotNull(services);
     }
 
@@ -57,7 +57,7 @@ class SwaggerLoaderTest {
         Assertions.assertEquals("swaggers/student-swagger.json", item.getId());
         Assertions.assertEquals("Student", item.getLabel());
 
-        final Map<String, List<WorkdayDataSet.Parameter>> services = loader.findGetServices(item.getId());
+        final Map<String, List<WorkdayServiceDataSet.Parameter>> services = loader.findGetServices(item.getId());
         Assertions.assertNotNull(services);
     }
 

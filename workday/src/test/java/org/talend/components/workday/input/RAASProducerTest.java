@@ -16,7 +16,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.talend.components.workday.WorkdayException;
-import org.talend.components.workday.dataset.RAASDataSet;
+import org.talend.components.workday.dataset.RAASLayout;
+import org.talend.components.workday.dataset.WorkdayDataSet;
 import org.talend.components.workday.service.ConfigHelper;
 import org.talend.components.workday.service.WorkdayReaderService;
 
@@ -24,9 +25,9 @@ import javax.json.JsonObject;
 
 class RAASProducerTest {
 
-    private static RAASDataSet dataset;
+    private static WorkdayDataSet dataset;
 
-    private static RAASConfiguration cfg;
+    private static WorkdayConfiguration cfg;
 
     private static WorkdayReaderService service;
 
@@ -34,19 +35,21 @@ class RAASProducerTest {
     private static void init() throws NoSuchFieldException, IllegalAccessException {
         RAASProducerTest.service = ConfigHelper.buildReader();
 
-        RAASProducerTest.cfg = new RAASConfiguration();
-        RAASProducerTest.dataset = new RAASDataSet();
+        RAASProducerTest.cfg = new WorkdayConfiguration();
+        RAASProducerTest.dataset = new WorkdayDataSet();
         RAASProducerTest.dataset.setDatastore(ConfigHelper.buildDataStore());
+        RAASProducerTest.dataset.setMode(WorkdayDataSet.WorkdayMode.RAAS);
+        RAASProducerTest.dataset.setRaas(new RAASLayout());
         cfg.setDataSet(dataset);
     }
 
     @Test
     void nextOK() {
 
-        dataset.setUser("lmcneil");
-        dataset.setReport("billingReport");
+        RAASProducerTest.dataset.getRaas().setUser("lmcneil");
+        RAASProducerTest.dataset.getRaas().setReport("billingReport");
 
-        RAASProducer producer = new RAASProducer(cfg, service);
+        WorkdayProducer producer = new WorkdayProducer(cfg, service);
         JsonObject o = producer.next();
         Assertions.assertNotNull(o);
 
@@ -56,10 +59,10 @@ class RAASProducerTest {
 
     @Test
     void nextError() {
-        dataset.setUser("omcneil");
-        dataset.setReport("falseReport");
+        RAASProducerTest.dataset.getRaas().setUser("omcneil");
+        RAASProducerTest.dataset.getRaas().setReport("falseReport");
 
-        RAASProducer producer = new RAASProducer(cfg, service);
+        WorkdayProducer producer = new WorkdayProducer(cfg, service);
 
         Assertions.assertThrows(WorkdayException.class, producer::next);
     }

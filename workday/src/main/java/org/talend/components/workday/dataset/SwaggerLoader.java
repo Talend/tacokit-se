@@ -56,7 +56,7 @@ public class SwaggerLoader {
     /**
      * All module name (that contains get services).
      * 
-     * @return
+     * @return workday modules from swagger files.
      */
     public Collection<Values.Item> getModules() {
         return this.swaggers.entrySet().stream().filter((Map.Entry<String, Swagger> e) -> this.isSwaggerOK(e.getValue()))
@@ -64,7 +64,7 @@ public class SwaggerLoader {
                 .collect(Collectors.toList());
     }
 
-    public Map<String, List<WorkdayDataSet.Parameter>> findGetServices(String id) {
+    public Map<String, List<WorkdayServiceDataSet.Parameter>> findGetServices(String id) {
         final Swagger sw = swaggers.get(id);
         return this.fromSwagger(sw);
     }
@@ -74,31 +74,32 @@ public class SwaggerLoader {
                 && sw.getPaths().values().stream().anyMatch((io.swagger.models.Path p) -> p.getGet() != null);
     }
 
-    private Map<String, List<WorkdayDataSet.Parameter>> fromSwagger(Swagger sw) {
+    private Map<String, List<WorkdayServiceDataSet.Parameter>> fromSwagger(Swagger sw) {
         if (sw == null) {
             return Collections.emptyMap();
         }
 
         return sw.getPaths().entrySet().stream().filter(e -> e.getValue().getGet() != null)
-                .collect(Collectors.toMap(e -> sw.getBasePath() + e.getKey(), e -> this.extractParameter(sw, e.getValue())));
+                .collect(Collectors.toMap(e -> sw.getBasePath() + e.getKey(), e -> this.extractParameter(e.getValue())));
     }
 
-    private List<WorkdayDataSet.Parameter> extractParameter(Swagger sw, io.swagger.models.Path servicePath) {
+    private List<WorkdayServiceDataSet.Parameter> extractParameter(io.swagger.models.Path servicePath) {
         Operation opGet = servicePath.getGet();
         if (opGet != null) {
             return opGet.getParameters().stream().map(this::mapParameter).collect(Collectors.toList());
         }
-        return null;
+        return Collections.emptyList();
     }
 
-    private WorkdayDataSet.Parameter mapParameter(Parameter swaggerParam) {
+    private WorkdayServiceDataSet.Parameter mapParameter(Parameter swaggerParam) {
+        final WorkdayServiceDataSet.Parameter parameter = new WorkdayServiceDataSet.Parameter();
         if (swaggerParam instanceof QueryParameter) {
-            return new WorkdayDataSet.Parameter(WorkdayDataSet.Parameter.Type.Query, swaggerParam.getName());
+            parameter.setType(WorkdayServiceDataSet.Parameter.Type.Query);
+        } else if (swaggerParam instanceof PathParameter) {
+            parameter.setType(WorkdayServiceDataSet.Parameter.Type.Path);
         }
-        if (swaggerParam instanceof PathParameter) {
-            return new WorkdayDataSet.Parameter(WorkdayDataSet.Parameter.Type.Path, swaggerParam.getName());
-        }
-        return null;
+        parameter.setName(swaggerParam.getName());
+        return parameter;
     }
 
     private void init(String swaggersPath) {
@@ -179,7 +180,7 @@ public class SwaggerLoader {
         }
 
         public static <A, B> TUple<A, B> of(A a, B b) {
-            return new TUple<A, B>(a, b);
+            return new TUple<>(a, b);
         }
 
     }

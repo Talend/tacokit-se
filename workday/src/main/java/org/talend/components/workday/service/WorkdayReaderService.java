@@ -15,11 +15,11 @@ package org.talend.components.workday.service;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.workday.WorkdayException;
-import org.talend.components.workday.dataset.Parameters;
 import org.talend.components.workday.dataset.QueryHelper;
 import org.talend.components.workday.dataset.SwaggerLoader;
-import org.talend.components.workday.dataset.WorkdayDataSet;
+import org.talend.components.workday.dataset.WorkdayServiceDataSet;
 import org.talend.components.workday.datastore.Token;
+import org.talend.components.workday.datastore.WorkdayDataStore;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.DynamicValues;
@@ -54,13 +54,14 @@ public class WorkdayReaderService {
         this.loader = new SwaggerLoader(swaggersDirectory.getPath());
     }
 
-    public JsonObject find(QueryHelper ds, Map<String, String> queryParams) {
-        final Token token = accessToken.findToken(ds.getDatastore());
+    public JsonObject find(WorkdayDataStore datastore, QueryHelper helper, Map<String, String> queryParams) {
+        final Token token = accessToken.findToken(datastore);
         final String authorizeHeader = token.getAuthorizationHeaderValue();
 
-        this.reader.base(ds.getDatastore().getEndpoint());
+        this.reader.base(datastore.getEndpoint());
 
-        final String serviceToCall = ds.getServiceToCall();
+        final String serviceToCall = helper.getServiceToCall();
+        log.debug("calling service {}", serviceToCall);
 
         Response<JsonObject> result = reader.search(authorizeHeader, serviceToCall, queryParams);
 
@@ -72,14 +73,15 @@ public class WorkdayReaderService {
         return result.body();
     }
 
-    public JsonObject findPage(QueryHelper ds, int offset, int limit, Map<String, String> queryParams) {
+    public JsonObject findPage(WorkdayDataStore datastore, QueryHelper helper, int offset, int limit,
+            Map<String, String> queryParams) {
         final Map<String, String> allQueryParams = new HashMap<>();
         if (queryParams != null) {
             allQueryParams.putAll(queryParams);
         }
         allQueryParams.put("offset", Integer.toString(offset));
         allQueryParams.put("limit", Integer.toString(limit));
-        return this.find(ds, allQueryParams);
+        return this.find(datastore, helper, allQueryParams);
     }
 
     public Iterator<JsonObject> extractIterator(JsonObject result, String arrayName) {
@@ -114,19 +116,19 @@ public class WorkdayReaderService {
     }
 
     @Update("workdayServicesParams")
-    public Parameters loadServiceParameter(String module, String service) {
+    public WorkdayServiceDataSet.Parameters loadServiceParameter(String module, String service) {
         log.info("workdayServicesParams suggestion for {} {}", module, service);
-        final Parameters parameters = new Parameters();
+        final WorkdayServiceDataSet.Parameters parameters = new WorkdayServiceDataSet.Parameters();
         parameters.setParameters(Collections.emptyList());
-        final Map<String, List<WorkdayDataSet.Parameter>> moduleServices = this.loader.findGetServices(module);
+        final Map<String, List<WorkdayServiceDataSet.Parameter>> moduleServices = this.loader.findGetServices(module);
         if (moduleServices == null) {
             return parameters;
         }
-        final List<WorkdayDataSet.Parameter> serviceParameters = moduleServices.get(service);
-        if (parameters == null) {
+        final List<WorkdayServiceDataSet.Parameter> serviceParameters = moduleServices.get(service);
+        if (serviceParameters == null) {
             return parameters;
         }
-        log.info("workdayServicesParams : nombre params {}", parameters.getParameters().size());
+        log.info("workdayServicesParams : nombre params {}", serviceParameters.size());
         parameters.setParameters(serviceParameters);
         return parameters;
     }

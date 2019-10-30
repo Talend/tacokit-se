@@ -16,11 +16,13 @@ import org.talend.components.workday.datastore.WorkdayDataStore;
 
 import java.util.Map;
 
+/**
+ * Help to build queries.
+ */
 public interface QueryHelper {
 
     String getServiceToCall();
 
     Map<String, String> extractQueryParam();
 
-    WorkdayDataStore getDatastore();
 }

@@ -13,7 +13,7 @@
 package org.talend.components.workday.input;
 
 import lombok.Data;
-import org.talend.components.workday.dataset.WorkdayDataSet;
+import org.talend.components.workday.dataset.WorkdayServiceDataSet;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -32,5 +32,5 @@ public class InputConfiguration implements Serializable {
 
     @Option
     @Documentation("Dataset")
-    private WorkdayDataSet dataSet;
+    private WorkdayServiceDataSet dataSet;
 }

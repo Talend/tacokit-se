@@ -12,7 +12,6 @@
  */
 package org.talend.components.workday.input;
 
-import org.talend.components.workday.dataset.WorkdayDataSet;
 import org.talend.components.workday.service.WorkdayReaderService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -21,70 +20,39 @@ import org.talend.sdk.component.api.input.Emitter;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import javax.annotation.PostConstruct;
-import javax.json.JsonArray;
 import javax.json.JsonObject;
 import java.io.Serializable;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.function.Supplier;
 
 @Version(1)
 @Icon(value = Icon.IconType.BURGER) // FIXME : find a real icon.
-@Emitter(family = "Workday", name = "Input")
-@Documentation("Component to extract data from workday ERP via REST services")
+@Emitter(family = "Workday", name = "queries")
+@Documentation("Component to extract data from workday ERP via Workday Query Language")
 public class WorkdayProducer implements Serializable {
 
-    private static final long serialVersionUID = -293252782589800593L;
+    private static final long serialVersionUID = 2693235150546844805L;
 
-    private static final int limit = 100;
-
-    private final InputConfiguration inputConfig;
+    private final WorkdayConfiguration config;
 
     private transient final WorkdayReaderService reader;
 
-    private transient int total = -1;
+    private transient Iterator<JsonObject> jsonIterator = null;
 
-    private transient Supplier<JsonObject> supplierObject;
-
-    public WorkdayProducer(@Option("configuration") InputConfiguration inputConfig, WorkdayReaderService reader) {
-        this.inputConfig = inputConfig;
+    public WorkdayProducer(@Option("configuration") WorkdayConfiguration config, WorkdayReaderService reader) {
+        this.config = config;
         this.reader = reader;
-    }
-
-    @PostConstruct
-    public void init() {
-        BufferedProducerIterator<JsonObject> producerIterator = new BufferedProducerIterator<>(this::elementsOfPage);
-        this.supplierObject = producerIterator::next;
     }
 
     @Producer
     public JsonObject next() {
-        return supplierObject.get();
-    }
-
-    private Iterator<JsonObject> elementsOfPage(int pageNumber) {
-        JsonObject jsonRet = this.getPageContent(pageNumber);
-        if (jsonRet == null) {
+        if (this.jsonIterator == null) {
+            JsonObject obj = reader.find(this.config.getDataSet().getDatastore(), this.config.getDataSet(),
+                    this.config.getDataSet().extractQueryParam());
+            this.jsonIterator = reader.extractIterator(obj, config.getDataSet().getMode().arrayName);
+        }
+        if (this.jsonIterator == null || !this.jsonIterator.hasNext()) {
             return null;
         }
-        JsonArray data = jsonRet.getJsonArray("data");
-        return data.stream().map(JsonObject.class::cast).iterator();
+        return this.jsonIterator.next();
     }
-
-    private JsonObject getPageContent(int pageNumber) {
-        if (this.total >= 0 && (pageNumber * WorkdayProducer.limit) >= this.total) {
-            return null;
-        }
-        final WorkdayDataSet ds = this.inputConfig.getDataSet();
-        Map<String, String> queryParams = ds.extractQueryParam();
-        JsonObject ret = this.reader.findPage(ds, (pageNumber * WorkdayProducer.limit), WorkdayProducer.limit, queryParams);
-        if (this.total < 0) {
-            synchronized (this) {
-                this.total = ret.getInt("total");
-            }
-        }
-        return ret;
-    }
-
 }

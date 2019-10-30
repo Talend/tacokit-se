@@ -13,57 +13,53 @@
 package org.talend.components.workday.input;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.talend.components.workday.WorkdayException;
+import org.talend.components.workday.dataset.WQLLayout;
+import org.talend.components.workday.dataset.WorkdayDataSet;
 import org.talend.components.workday.service.ConfigHelper;
-import org.talend.sdk.component.api.processor.ElementListener;
-import org.talend.sdk.component.api.processor.Processor;
-import org.talend.sdk.component.junit5.ComponentExtension;
-import org.talend.sdk.component.junit5.WithComponents;
-import org.talend.sdk.component.runtime.manager.chain.Job;
+import org.talend.components.workday.service.WorkdayReaderService;
 
 import javax.json.JsonObject;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
 
-@ExtendWith(ComponentExtension.class)
-@WithComponents("org.talend.components.workday")
 class WorkdayProducerTest {
 
-    @Test
-    public void producer() {
-        Properties props = ConfigHelper.workdayProps();
-        System.setProperty("talend.beam.job.targetParallelism", "1"); // our code creates one hz lite instance per thread
-        Job.components()
-                .component("source",
-                        "Workday://Input?" + "configuration.dataSet.service=common/v1/workers&"
-                                + "configuration.dataSet.datastore.authEndpoint=" + props.getProperty("authendpoint") + "&"
-                                + "configuration.dataSet.datastore.clientId=" + props.getProperty("clientId") + "&"
-                                + "configuration.dataSet.datastore.clientSecret=" + props.getProperty("clientSecret") + "&"
-                                + "configuration.dataSet.datastore.endpoint=" + props.getProperty("endpoint") + "&"
-                                + "configuration.dataSet.datastore.tenantAlias=" + props.getProperty("tenant"))
-                .component("output", "WorkdayTest://collector").connections().from("source").to("output").build().run();
+    private static WorkdayDataSet dataset;
 
-        Assertions.assertFalse(TesTOutput.OBJECTS.isEmpty());
+    private static WorkdayConfiguration cfg;
 
-        JsonObject first = TesTOutput.OBJECTS.get(0);
-        Assertions.assertNotNull(first);
+    private static WorkdayReaderService service;
+
+    @BeforeAll
+    private static void init() throws NoSuchFieldException, IllegalAccessException {
+        WorkdayProducerTest.service = ConfigHelper.buildReader();
+
+        WorkdayProducerTest.cfg = new WorkdayConfiguration();
+        WorkdayProducerTest.dataset = new WorkdayDataSet();
+        WorkdayProducerTest.dataset.setDatastore(ConfigHelper.buildDataStore());
+        WorkdayProducerTest.dataset.setMode(WorkdayDataSet.WorkdayMode.WQL);
+        WorkdayProducerTest.dataset.setWql(new WQLLayout());
+        WorkdayProducerTest.cfg.setDataSet(dataset);
     }
 
-    @Processor(family = "WorkdayTest", name = "collector")
-    public static class TesTOutput implements Serializable {
+    @Test
+    void nextOK() {
+        String query = "SELECT accountCurrency, bankAccountSecuritySegment, priorDayAccountBalance " + "FROM financialAccounts";
+        WorkdayProducerTest.dataset.getWql().setQuery(query);
 
-        private static final long serialVersionUID = -989062340811827429L;
+        WorkdayProducer producer = new WorkdayProducer(cfg, service);
+        JsonObject o = producer.next();
+        Assertions.assertNotNull(o);
+    }
 
-        static final List<JsonObject> OBJECTS = new ArrayList<>();
+    @Test
+    void nextError() {
+        String query = "SELECT accountCurrency, bankAccountSecuritySegment, priorDayAccountBalance "
+                + "FROM UnkownfinancialAccounts";
+        WorkdayProducerTest.dataset.getWql().setQuery(query);
+        WorkdayProducer producer = new WorkdayProducer(cfg, service);
 
-        @ElementListener
-        public void onNext(final JsonObject object) {
-            synchronized (OBJECTS) {
-                OBJECTS.add(object);
-            }
-        }
+        Assertions.assertThrows(WorkdayException.class, producer::next);
     }
 }

@@ -13,45 +13,44 @@
 package org.talend.components.workday.dataset;
 
 import lombok.Data;
-import org.talend.components.workday.datastore.WorkdayDataStore;
+import org.talend.components.workday.WorkdayException;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.widget.Code;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 
 @Data
-@DataSet("ReportAsAServiceDataset")
-@GridLayout({ @GridLayout.Row("datastore"), @GridLayout.Row({ "user", "report" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("datastore") })
-@Documentation("RAAS dataset for workday (Report As A Service)")
-public class RAASDataSet implements Serializable, QueryHelper {
+@GridLayout(@GridLayout.Row("query"))
+@Documentation("WQL layout for workday (Workday Query Language)")
+public class WQLLayout implements Serializable, QueryHelper {
 
-    private static final long serialVersionUID = 5305679660126846088L;
+    private static final long serialVersionUID = 898158661235915308L;
 
     @Option
-    @Documentation("The connection to workday datastore")
-    private WorkdayDataStore datastore;
-
-    @Option
-    @Documentation("The user who made the report")
-    private String user;
-
-    @Option
-    @Documentation("report name")
-    private String report;
+    @Code("wql")
+    @Documentation("A valid read only query is the source type is Query")
+    private String query;
 
     @Override
     public String getServiceToCall() {
-        return "raas/" + this.user + '/' + this.report;
+        return "wql/v1/data";
     }
 
     @Override
     public Map<String, String> extractQueryParam() {
-        return Collections.emptyMap();
+        try {
+            final String encodedQuery = URLEncoder.encode(this.query, StandardCharsets.UTF_8.toString());
+            return Collections.singletonMap("query", encodedQuery);
+        } catch (UnsupportedEncodingException e) {
+            throw new WorkdayException("Error with query '" + this.query + "'");
+        }
     }
 
 }
