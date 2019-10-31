@@ -10,7 +10,6 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-
 package org.talend.components.azure.runtime.input;
 
 import java.util.Set;
@@ -55,16 +54,10 @@ public class SchemaUtils {
     }
 
     private static String getUniqueName(String name, Set<String> previousNames) {
-        boolean allIsDifferent = false;
         int index = 0;
         String currentName = name;
-        while (!allIsDifferent) {
-
-            allIsDifferent = !previousNames.contains(currentName);
-
-            if (!allIsDifferent) {
-                currentName = currentName + (++index);
-            }
+        while (previousNames.contains(currentName)) {
+            currentName = name + (++index);
         }
         return currentName;
     }

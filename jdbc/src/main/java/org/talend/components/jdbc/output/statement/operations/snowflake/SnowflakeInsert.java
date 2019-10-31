@@ -22,13 +22,10 @@ import org.talend.sdk.component.api.record.Record;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.stream.Collectors.joining;
 import static org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeCopy.putAndCopy;
-import static org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeCopy.tmpTableName;
 
 public class SnowflakeInsert extends Insert {
 
@@ -42,19 +39,9 @@ public class SnowflakeInsert extends Insert {
         final List<Reject> rejects = new ArrayList<>();
         try (final Connection connection = dataSource.getConnection()) {
             final String tableName = getConfiguration().getDataset().getTableName();
-            final String tmpTableName = tmpTableName(tableName);
             final String fqTableName = namespace(connection) + "." + getPlatform().identifier(tableName);
-            final String fqTmpTableName = namespace(connection) + "." + getPlatform().identifier(tmpTableName);
-            final String fqStageName = namespace(connection) + ".%" + getPlatform().identifier(tmpTableName);
-            rejects.addAll(putAndCopy(connection, records, fqStageName, fqTableName, fqTmpTableName));
-            if (rejects.isEmpty()) {
-                try (final Statement statement = connection.createStatement()) {
-                    final String fields = getQueryParams().values().stream().map(e -> getPlatform().identifier(e.getName()))
-                            .collect(joining(","));
-                    statement.execute(
-                            "insert into " + fqTableName + "(" + fields + ") select " + fields + " from " + fqTmpTableName);
-                }
-            }
+            final String fqStageName = namespace(connection) + ".%" + getPlatform().identifier(tableName);
+            rejects.addAll(putAndCopy(connection, records, fqStageName, fqTableName));
             connection.commit();
         }
         return rejects;

@@ -10,9 +10,9 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-
 package org.talend.components.couchbase.dataset;
 
+import lombok.Data;
 import org.talend.components.couchbase.datastore.CouchbaseDataStore;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -25,12 +25,11 @@ import org.talend.sdk.component.api.meta.Documentation;
 import java.io.Serializable;
 import java.util.List;
 
-import lombok.Data;
-
 @Version(1)
 @Data
 @DataSet("CouchbaseDataSet")
-@GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "schema" }), @GridLayout.Row({ "bucket" }) })
+@GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "schema" }), @GridLayout.Row({ "bucket" }),
+        @GridLayout.Row({ "documentType" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "datastore" }) })
 
 @Documentation("Couchbase DataSet")
@@ -49,4 +48,9 @@ public class CouchbaseDataSet implements Serializable {
     @Required
     @Documentation("Bucket name")
     private String bucket;
+
+    @Option
+    @Required
+    @Documentation("Document type")
+    private DocumentType documentType = DocumentType.JSON;
 }

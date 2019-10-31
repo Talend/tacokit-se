@@ -10,7 +10,6 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-
 package org.talend.components.couchbase.testutils;
 
 import org.junit.jupiter.api.DisplayName;
@@ -36,12 +35,6 @@ public class CouchbaseServiceTest extends CouchbaseUtilTest {
     @Test
     @DisplayName("Test successful connection")
     void couchbaseSuccessfulConnectionTest() {
-        CouchbaseDataStore couchbaseDataStore = new CouchbaseDataStore();
-        couchbaseDataStore.setBootstrapNodes(COUCHBASE_CONTAINER.getContainerIpAddress());
-        couchbaseDataStore.setUsername(CLUSTER_USERNAME);
-        couchbaseDataStore.setPassword(CLUSTER_PASSWORD);
-        couchbaseDataStore.setConnectTimeout(DEFAULT_TIMEOUT_IN_SEC);
-
         assertEquals(HealthCheckStatus.Status.OK, couchbaseService.healthCheck(couchbaseDataStore).getStatus());
     }
 
@@ -50,13 +43,13 @@ public class CouchbaseServiceTest extends CouchbaseUtilTest {
     void couchbaseNotSuccessfulConnectionTest() {
         String wrongPassword = "wrongpass";
 
-        CouchbaseDataStore couchbaseDataStore = new CouchbaseDataStore();
-        couchbaseDataStore.setBootstrapNodes(COUCHBASE_CONTAINER.getContainerIpAddress());
-        couchbaseDataStore.setUsername(CLUSTER_USERNAME);
-        couchbaseDataStore.setPassword(wrongPassword);
-        couchbaseDataStore.setConnectTimeout(DEFAULT_TIMEOUT_IN_SEC);
+        CouchbaseDataStore couchbaseDataStoreWrongPass = new CouchbaseDataStore();
+        couchbaseDataStoreWrongPass.setBootstrapNodes(couchbaseDataStore.getBootstrapNodes());
+        couchbaseDataStoreWrongPass.setUsername(couchbaseDataStore.getUsername());
+        couchbaseDataStoreWrongPass.setPassword(wrongPassword);
+        couchbaseDataStoreWrongPass.setConnectTimeout(couchbaseDataStore.getConnectTimeout());
 
-        assertEquals(HealthCheckStatus.Status.KO, couchbaseService.healthCheck(couchbaseDataStore).getStatus());
+        assertEquals(HealthCheckStatus.Status.KO, couchbaseService.healthCheck(couchbaseDataStoreWrongPass).getStatus());
     }
 
     @Test

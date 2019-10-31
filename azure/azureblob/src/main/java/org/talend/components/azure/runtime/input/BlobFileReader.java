@@ -10,7 +10,6 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-
 package org.talend.components.azure.runtime.input;
 
 import java.net.URISyntaxException;
@@ -65,7 +64,9 @@ public abstract class BlobFileReader {
 
         Iterable<ListBlobItem> blobItems = container.listBlobs(directoryName, false, EnumSet.noneOf(BlobListingDetails.class),
                 null, AzureComponentServices.getTalendOperationContext());
-
+        if (!blobItems.iterator().hasNext()) {
+            throw new BlobRuntimeException("Folder doesn't exist/is empty");
+        }
         this.iterator = initItemRecordIterator(blobItems);
     }
 
