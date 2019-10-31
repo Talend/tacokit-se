@@ -230,13 +230,11 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
         final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
         List<Record> records = new ArrayList<>();
         Record record1 = recordBuilderFactory.newRecordBuilder()
-                .withString(entryBuilder.withName("t_string").withType(Schema.Type.STRING).build(),
-                        generateDocId(idPrefix, 0))
+                .withString(entryBuilder.withName("t_string").withType(Schema.Type.STRING).build(), generateDocId(idPrefix, 0))
                 .withInt(entryBuilder.withName("t_int_min").withType(Schema.Type.INT).build(), 1971)
                 .withString(entryBuilder.withName("extra_content").withType(Schema.Type.STRING).build(), "path new").build();
         Record record2 = recordBuilderFactory.newRecordBuilder()
-                .withString(entryBuilder.withName("t_string").withType(Schema.Type.STRING).build(),
-                        generateDocId(idPrefix, 1))
+                .withString(entryBuilder.withName("t_string").withType(Schema.Type.STRING).build(), generateDocId(idPrefix, 1))
                 .withBoolean(entryBuilder.withName("t_boolean").withType(Schema.Type.BOOLEAN).build(), Boolean.FALSE)
                 .withString(entryBuilder.withName("extra_content2").withType(Schema.Type.STRING).build(), "path zap").build();
         records.add(record1);

@@ -17,7 +17,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -147,11 +146,7 @@ public class CouchbaseOutput implements Serializable {
         case LONG:
             return record.getLong(entryName);
         case BYTES:
-            byte[] bytes = record.getBytes(entryName);
-            Integer[] intArray = IntStream.range(0, bytes.length).map(i -> bytes[i]).boxed()
-                    .collect(Collectors.toList())
-                    .toArray(new Integer[bytes.length]);
-            return JsonArray.from(intArray);
+            throw new IllegalArgumentException("BYTES is unsupported");
         case FLOAT:
             return Double.parseDouble(String.valueOf(record.getFloat(entryName)));
         case DOUBLE:
@@ -191,7 +186,7 @@ public class CouchbaseOutput implements Serializable {
         return buildJsonObject(record, Collections.emptyMap()).removeKey(idFieldName);
     }
 
-    public JsonDocument toJsonDocument(String idFieldName, Record record) {
+    private JsonDocument toJsonDocument(String idFieldName, Record record) {
         return JsonDocument.create(record.getString(idFieldName), buildJsonObjectWithoutId(record));
     }
 
