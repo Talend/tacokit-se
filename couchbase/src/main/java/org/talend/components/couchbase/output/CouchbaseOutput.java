@@ -136,6 +136,10 @@ public class CouchbaseOutput implements Serializable {
 
     private Object jsonValueFromRecordValue(Schema.Entry entry, Record record) {
         String entryName = entry.getName();
+        Object value = record.get(Object.class, entryName);
+        if (null == value) {
+            return JsonObject.NULL;
+        }
         switch (entry.getType()) {
         case INT:
             return record.getInt(entryName);
