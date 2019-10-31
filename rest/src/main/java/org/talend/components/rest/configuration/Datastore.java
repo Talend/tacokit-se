@@ -46,7 +46,7 @@ public class Datastore implements Serializable {
     @Pattern("^https?://.+$")
     @Documentation("")
     // @Suggestable(value = "getBase", parameters = { ".." })
-    private String base;
+    private String base = "";
 
     @Option
     @Required

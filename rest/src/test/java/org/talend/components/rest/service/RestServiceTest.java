@@ -15,6 +15,8 @@ package org.talend.components.rest.service;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.talend.components.common.text.Substitutor;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
@@ -27,8 +29,10 @@ import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.service.RecordPointerFactoryImpl;
 
+import java.net.MalformedURLException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -68,8 +72,8 @@ public class RestServiceTest {
         config.getDataset().setHasHeaders(false);
 
         List<String[]> paramList = new ArrayList<>();
-        paramList.add(new String[] { "leads", "124", "name" });
-        paramList.add(new String[] { "{leads}", "{124}", "{name}" });
+        paramList.add(new String[]{"leads", "124", "name"});
+        paramList.add(new String[]{"{leads}", "{124}", "{name}"});
 
         for (String[] params : paramList) {
             List<Param> pathParams = new ArrayList<>();
@@ -122,6 +126,22 @@ public class RestServiceTest {
                 updatedQueryParams.get("complexe2"));
         assertEquals("<name>" + name + "</name><id>" + id + "</id><unexists>default</unexists><escaped>${escaped:-none}<escaped>",
                 updatedQueryParams.get("complexe3"));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+            "http://www.domain.com,,http://www.domain.com",
+            "http://www.domain.com/,,http://www.domain.com/",
+            "http://www.domain.com,get,http://www.domain.com/get",
+            "http://www.domain.com/,get,http://www.domain.com/get",
+            "http://www.domain.com,/get,http://www.domain.com/get",
+            "   http://www.domain.com/ ,  /get ,http://www.domain.com//get",
+           })
+    void buildUrl(final String base, final String resource,final String expected) {
+        config.getDataset().getDatastore().setBase(base);
+        config.getDataset().setResource(resource == null ? "   " : resource );
+        config.getDataset().setHasPathParams(false);
+        assertEquals(expected, service.buildUrl(config, Collections.emptyMap()));
     }
 
 }

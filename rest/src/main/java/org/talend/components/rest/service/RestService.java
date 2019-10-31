@@ -111,6 +111,7 @@ public class RestService {
         Response<byte[]> resp = null;
 
         log.info("Request to {} with authentication type {}", surl, config.getDataset().getDatastore().getAuthentication().getType().toString());
+
         if (config.getDataset().getDatastore().getAuthentication().getType() == Authorization.AuthorizationType.Digest) {
             try {
                 URL url = new URL(surl);
@@ -153,9 +154,19 @@ public class RestService {
         return resp;
     }
 
-    private String buildUrl(final RequestConfig config, final Map<String, String> params) {
-        return config.getDataset().getDatastore().getBase() + '/'
-                + this.setPathParams(config.getDataset().getResource(), config.getDataset().getHasPathParams(), params);
+    String buildUrl(final RequestConfig config, final Map<String, String> params) {
+        String base = config.getDataset().getDatastore().getBase().trim();
+        String segments = this.setPathParams(config.getDataset().getResource().trim(), config.getDataset().getHasPathParams(), params);
+
+        if(segments.isEmpty()){
+            return base;
+        }
+
+        if(base.charAt(base.length() - 1) != '/' && segments.charAt(0) != '/'){
+            return base + '/' + segments;
+        }
+
+        return base + segments;
     }
 
     public String setPathParams(String resource, boolean hasPathParams, Map<String, String> params) {
