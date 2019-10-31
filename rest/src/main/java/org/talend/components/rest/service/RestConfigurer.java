@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.talend.components.common.service.http.basic.BasicAuthConfigurer;
 import org.talend.components.common.service.http.bearer.BearerAuthConfigurer;
 import org.talend.components.common.service.http.digest.DigestAuthConfigurer;
-import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.sdk.component.api.service.http.Configurer;
 

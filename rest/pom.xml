@@ -14,31 +14,20 @@
     <description>Rest client connector</description>
 
     <properties>
-        <hamcrest.version>1.3</hamcrest.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.talend.components</groupId>
             <artifactId>common</artifactId>
-            <version>1.3.0-SNAPSHOT</version>
         </dependency>
         <!-- Testing -->
         <dependency>
             <groupId>org.talend.components</groupId>
-            <artifactId>connectors-test</artifactId>
-            <version>1.3.0-SNAPSHOT</version>
+            <artifactId>connectors-test-bom</artifactId>
             <type>pom</type>
-            <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <repositories>
-        <repository>
-            <id>talend.releases</id>
-            <url>https://artifacts-zl.talend.com/nexus/content/repositories/releases/</url>
-        </repository>
-    </repositories>
 
     <build>
         <plugins>

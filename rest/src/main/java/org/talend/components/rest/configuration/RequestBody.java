@@ -12,28 +12,17 @@
  */
 package org.talend.components.rest.configuration;
 
-import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
+import lombok.Data;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
-import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Code;
 import org.talend.sdk.component.api.configuration.ui.widget.TextArea;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import lombok.Data;
-
-import static org.talend.components.common.service.http.UrlEncoder.queryEncode;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @GridLayout({ @GridLayout.Row({ "type" }), @GridLayout.Row({ "textValue" }), @GridLayout.Row({ "jsonValue" }),

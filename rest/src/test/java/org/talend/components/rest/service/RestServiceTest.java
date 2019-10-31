@@ -29,7 +29,6 @@ import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.service.RecordPointerFactoryImpl;
 
-import java.net.MalformedURLException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;

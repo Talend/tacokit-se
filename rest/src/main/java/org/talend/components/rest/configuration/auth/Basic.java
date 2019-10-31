@@ -12,19 +12,16 @@
  */
 package org.talend.components.rest.configuration.auth;
 
-import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-
+import lombok.Data;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import lombok.Data;
+import java.io.Serializable;
 
 @Data
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "username", "password" }) })
+@GridLayout(value = { @GridLayout.Row({ "username", "password" }) })
 @Documentation("Basic authentication configuration")
 public class Basic implements Authorization, Serializable {
 

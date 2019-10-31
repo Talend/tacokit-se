@@ -128,13 +128,7 @@ class BasicHeaderValueParserTest {
     }
 
     private BasicNameValuePair getByName(BasicNameValuePair[] pairs, String name) {
-        List<BasicNameValuePair> list = Arrays.asList(pairs).stream().filter(p -> name.equals(p.getName()))
-                .collect(Collectors.toList());
-        if (list.size() <= 0) {
-            return new BasicNameValuePair("", "");
-        }
-
-        return list.get(0);
+        return Arrays.stream(pairs).filter(p -> name.equals(p.getName())).findFirst().orElse(new BasicNameValuePair("", ""));
     }
 
 }

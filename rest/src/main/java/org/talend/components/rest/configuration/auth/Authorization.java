@@ -23,8 +23,7 @@ public interface Authorization {
         NoAuth,
         Basic,
         Digest,
-        Bearer,
-        // Oauth2,
+        Bearer
     }
 
 }

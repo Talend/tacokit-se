@@ -8,7 +8,7 @@
         <version>1.3.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>connectors-test</artifactId>
+    <artifactId>connectors-test-bom</artifactId>
     <packaging>pom</packaging>
 
     <name>Components :: Testing Dependencies</name>
