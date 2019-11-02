@@ -18,9 +18,30 @@ At this time, the httpbin docker image in dockerhub doesn't provide authenticati
 
 == Configure the query from incoming records
 REST connectors let you configure:
+
 * Resource segments
 * Headers
 * Query parameters
 * Body
+
 In all of them, you can define some placeholders that will be replaced by values from incoming record.
+
 Placeholders start with '{' and terminate with '}', except for body since thay start with '${' to be easily distinguish from json.
+
+In placeholders you will set a record pointer to reference a value from the incoming record. Here are some example:
+
+[subs="quotes"]
+++++++++++++++++++++++++++++++++++++++
+{
+    "q": 12345,
+    "val_head1": "head1",
+    "entity":{
+        "type": "book",
+        "book": {
+            "id": "A321A32A13A2",
+            "title": "Twenty Thousand Leagues Under the Sea",
+            "price": 5.60
+        }
+    }
+}
+++++++++++++++++++++++++++++++++++++++
