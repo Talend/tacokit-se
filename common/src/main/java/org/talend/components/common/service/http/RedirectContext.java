@@ -77,8 +77,4 @@ public class RedirectContext {
         this.method = "GET";
     }
 
-    public String getMethod() {
-        return this.method;
-    }
-
 }

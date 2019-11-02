@@ -74,9 +74,6 @@ public class DigestScheme {
 
     private final Map<String, String> paramMap;
 
-    private boolean complete;
-
-    // private transient ByteArrayBuilder buffer;
     private transient ByteArrayBuilder buffer;
 
     private String lastNonce;
@@ -89,13 +86,8 @@ public class DigestScheme {
 
     private byte[] a2;
 
-    private String username;
-
-    private char[] password;
-
     public DigestScheme() {
         this.paramMap = new HashMap<>();
-        this.complete = false;
     }
 
     public String getName() {
@@ -126,11 +118,7 @@ public class DigestScheme {
         final String opaque = Optional.ofNullable(pairs.get("opaque").getValue())
                 .orElse("No opaque value in digest authentication challenge.");
         String algorithm = Optional.ofNullable(pairs.get("algorithm").getValue())
-                .orElse("No algorithm value in digest authentication challenge.");
-        // If an algorithm is not specified, default to MD5.
-        if (algorithm == null) {
-            algorithm = "MD5";
-        }
+                .orElse("MD5");
 
         final Set<String> qopset = new HashSet<>(8);
         int qop = QOP_UNKNOWN;
@@ -239,7 +227,6 @@ public class DigestScheme {
             }
             a2 = buffer.append(method).append(":").append(uri).append(":").append(formatHex(entityDigester.getDigest()))
                     .toByteArray();
-            // }
         } else {
             a2 = buffer.append(method).append(":").append(uri).toByteArray();
         }
@@ -262,8 +249,8 @@ public class DigestScheme {
 
         final String digest = formatHex(digester.digest(digestInput));
 
-        final CharArrayBuffer buffer = new CharArrayBuffer(128);
-        buffer.append("Digest ");
+        final CharArrayBuffer digestBuffer = new CharArrayBuffer(128);
+        digestBuffer.append("Digest ");
 
         final List<BasicNameValuePair> params = new ArrayList<>(20);
         params.add(new BasicNameValuePair("username", username));
@@ -286,13 +273,13 @@ public class DigestScheme {
         for (int i = 0; i < params.size(); i++) {
             final BasicNameValuePair param = params.get(i);
             if (i > 0) {
-                buffer.append(", ");
+                digestBuffer.append(", ");
             }
             final String name = param.getName();
             final boolean noQuotes = ("nc".equals(name) || "qop".equals(name) || "algorithm".equals(name));
-            BasicHeaderValueFormatter.INSTANCE.formatNameValuePair(buffer, param, !noQuotes);
+            BasicHeaderValueFormatter.INSTANCE.formatNameValuePair(digestBuffer, param, !noQuotes);
         }
-        return buffer.toString();
+        return digestBuffer.toString();
     }
 
     /**

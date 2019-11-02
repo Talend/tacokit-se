@@ -38,8 +38,11 @@ import java.util.List;
         @GridLayout.Row({ "hasHeaders" }), @GridLayout.Row({ "headers" }), @GridLayout.Row({ "hasQueryParams" }),
         @GridLayout.Row({ "queryParams" }), @GridLayout.Row({ "hasPathParams" }), @GridLayout.Row({ "pathParams" }),
         @GridLayout.Row({ "hasBody" }), @GridLayout.Row({ "body" }) })
-/*@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "maxRedirect" }),
-        @GridLayout.Row({ "only_same_host" }), @GridLayout.Row({ "force_302_redirect" }) })*/
+/*
+ * @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "maxRedirect" }),
+ * 
+ * @GridLayout.Row({ "only_same_host" }), @GridLayout.Row({ "force_302_redirect" }) })
+ */
 @Documentation("Define the resource and authentication")
 public class Dataset implements Serializable {
 
@@ -58,19 +61,19 @@ public class Dataset implements Serializable {
     @Documentation("End of url to complete base url of the datastore")
     private String resource = "";
 
-    //@Option
+    // @Option
     @Documentation("")
     @DefaultValue("3")
     @Min(-1)
     private Integer maxRedirect = 3;
 
-    //@Option
+    // @Option
     @Documentation("")
     @DefaultValue("false")
     @ActiveIf(target = "maxRedirect", value = "0", negate = true)
     private Boolean only_same_host = false;
 
-    //@Option
+    // @Option
     @Documentation("")
     @DefaultValue("false")
     @ActiveIf(target = "maxRedirect", value = "0", negate = true)

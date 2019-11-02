@@ -44,19 +44,22 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 
 @Slf4j
 @Environment(ContextualEnvironment.class)
-@EnvironmentConfiguration(environment = "Contextual", systemProperties = {}) // EnvironmentConfiguration is necessary for each @Environment
+@EnvironmentConfiguration(environment = "Contextual", systemProperties = {}) // EnvironmentConfiguration is necessary for each
+                                                                             // @Environment
 
-/* @Environment(DirectRunnerEnvironment.class) // Direct runner not necessary since already SparkRunner
-@EnvironmentConfiguration(environment = "Direct", systemProperties = {
-        @EnvironmentConfiguration.Property(key = "talend.beam.job.runner", value = "org.apache.beam.runners.direct.DirectRunner")
-})*/
+/*
+ * @Environment(DirectRunnerEnvironment.class) // Direct runner not necessary since already SparkRunner
+ * 
+ * @EnvironmentConfiguration(environment = "Direct", systemProperties = {
+ * 
+ * @EnvironmentConfiguration.Property(key = "talend.beam.job.runner", value = "org.apache.beam.runners.direct.DirectRunner")
+ * })
+ */
 
 @Environment(SparkRunnerEnvironment.class)
 @EnvironmentConfiguration(environment = "Spark", systemProperties = {
         @Property(key = "talend.beam.job.runner", value = "org.apache.beam.runners.spark.SparkRunner"),
-        @Property(key = "talend.beam.job.filesToStage", value = ""),
-        @Property(key = "spark.ui.enabled", value = "false")
-})
+        @Property(key = "talend.beam.job.filesToStage", value = ""), @Property(key = "spark.ui.enabled", value = "false") })
 
 @WithComponents(value = "org.talend.components.rest")
 class RestInputTest {
@@ -155,7 +158,7 @@ class RestInputTest {
         // when path param are not substituted the url contains "{...}"
         // and a 400 error is returned
         config.getDataset().setHasPathParams(hasOptions);
-        List<Param> pathParams = Arrays.asList(new Param[]{new Param("module", "myModule"), new Param("id", "myId")});
+        List<Param> pathParams = Arrays.asList(new Param[] { new Param("module", "myModule"), new Param("id", "myId") });
         config.getDataset().setPathParams(pathParams);
 
         this.setServerContextAndStart(httpExchange -> {

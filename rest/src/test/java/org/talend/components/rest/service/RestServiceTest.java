@@ -71,8 +71,8 @@ public class RestServiceTest {
         config.getDataset().setHasHeaders(false);
 
         List<String[]> paramList = new ArrayList<>();
-        paramList.add(new String[]{"leads", "124", "name"});
-        paramList.add(new String[]{"{leads}", "{124}", "{name}"});
+        paramList.add(new String[] { "leads", "124", "name" });
+        paramList.add(new String[] { "{leads}", "{124}", "{name}" });
 
         for (String[] params : paramList) {
             List<Param> pathParams = new ArrayList<>();
@@ -128,17 +128,13 @@ public class RestServiceTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {
-            "http://www.domain.com,,http://www.domain.com",
-            "http://www.domain.com/,,http://www.domain.com/",
-            "http://www.domain.com,get,http://www.domain.com/get",
-            "http://www.domain.com/,get,http://www.domain.com/get",
+    @CsvSource(value = { "http://www.domain.com,,http://www.domain.com", "http://www.domain.com/,,http://www.domain.com/",
+            "http://www.domain.com,get,http://www.domain.com/get", "http://www.domain.com/,get,http://www.domain.com/get",
             "http://www.domain.com,/get,http://www.domain.com/get",
-            "   http://www.domain.com/ ,  /get ,http://www.domain.com//get",
-           })
-    void buildUrl(final String base, final String resource,final String expected) {
+            "   http://www.domain.com/ ,  /get ,http://www.domain.com//get", })
+    void buildUrl(final String base, final String resource, final String expected) {
         config.getDataset().getDatastore().setBase(base);
-        config.getDataset().setResource(resource == null ? "   " : resource );
+        config.getDataset().setResource(resource == null ? "   " : resource);
         config.getDataset().setHasPathParams(false);
         assertEquals(expected, service.buildUrl(config, Collections.emptyMap()));
     }

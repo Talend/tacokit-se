@@ -42,7 +42,6 @@ public final class CharArrayBuffer implements Serializable {
      * @param capacity the capacity
      */
     public CharArrayBuffer(int capacity) {
-        super();
         if (capacity < 0) {
             throw new IllegalArgumentException("Buffer capacity may not be negative");
         }

@@ -33,7 +33,6 @@ import org.talend.sdk.component.junit5.WithComponents;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
-import javax.json.JsonValue;
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
@@ -41,21 +40,17 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @WithComponents(value = "org.talend.components.rest")
 public class ClientTestWithHttpbinTest {
 
-    public final static String HTTPBIN_BASE = System.getProperty("org.talend.components.rest.httpbin_base", "http://tal-rd169.talend.lan:8085");
-
-    private final static String DONT_CHECK = "%DONT_CHECK%";
+    public final static String HTTPBIN_BASE = System.getProperty("org.talend.components.rest.httpbin_base",
+            "http://tal-rd169.talend.lan:8085");
 
     private final static int CONNECT_TIMEOUT = 30000;
 
@@ -95,7 +90,7 @@ public class ClientTestWithHttpbinTest {
     }
 
     @Test
-    void httpbinGet() {
+    void httpbinGet() throws MalformedURLException {
         config.getDataset().setResource("get");
         config.getDataset().setMethodType(HttpMethod.GET);
 
@@ -103,50 +98,14 @@ public class ClientTestWithHttpbinTest {
 
         assertEquals(200, resp.getInt("status"));
 
-        List<Record> headers = Collections.unmodifiableList(new ArrayList<>(resp.getArray(Record.class, "headers")));
-
-        Map<String, String> headerToCheck = new HashMap<>();
-        headerToCheck.put("Server", DONT_CHECK);
-        headerToCheck.put("Access-Control-Allow-Origin", "*");
-        headerToCheck.put("Access-Control-Allow-Credentials", "true");
-        headerToCheck.put("Connection", "keep-alive");
-        headerToCheck.put("Content-Length", DONT_CHECK);
-        headerToCheck.put("X-Powered-By", "Flask");
-        headerToCheck.put("Content-Type", "application/json");
-        headerToCheck.put("Date", DONT_CHECK);
-        headerToCheck.put("X-Processed-Time", DONT_CHECK);
-
-        headers.forEach(e -> {
-            String expected = headerToCheck.get(e.getString("key"));
-            if (!DONT_CHECK.equals(expected)) {
-                assertEquals(expected, e.getString("value"));
-            }
-            headerToCheck.remove(e.getString("key"));
-        });
-        assertTrue(headerToCheck.size() > 0); // it may have more header returned by the server
-
         String body = resp.getString("body");
         JsonObject bodyJson = jsonReaderFactory.createReader(new ByteArrayInputStream((body == null ? "" : body).getBytes()))
                 .readObject();
 
-        assertEquals(JsonValue.ValueType.OBJECT, bodyJson.getJsonObject("args").getValueType());
-
-        Map<String, String> headersValid = new HashMap<>();
-        headersValid.put("Accept", "text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2");
-        headersValid.put("Connection", "keep-alive");
-        headersValid.put("Host", HTTPBIN_BASE.substring(7));
-        headersValid.put("User-Agent", DONT_CHECK);
+        assertEquals(service.buildUrl(config, Collections.emptyMap()), bodyJson.getString("url"));
 
         JsonObject headersJson = bodyJson.getJsonObject("headers");
-        headersJson.keySet().stream().forEach(k -> {
-            if (!DONT_CHECK.equals(headersValid.get(k))) {
-                assertEquals(headersValid.get(k), headersJson.getString(k));
-            }
-            headersValid.remove(k);
-        });
-        assertTrue(headersValid.isEmpty());
-
-        assertEquals(HTTPBIN_BASE + "/get", bodyJson.getString("url"));
+        assertEquals((new URL(HTTPBIN_BASE)).getHost(), headersJson.getString("Host"));
     }
 
     /**
@@ -155,7 +114,7 @@ public class ClientTestWithHttpbinTest {
      * @throws Exception
      */
     @Test
-    void testParamsDisabled() {
+    void testParamsDisabled() throws MalformedURLException {
         HttpMethod[] verbs = { HttpMethod.DELETE, HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT };
         config.getDataset().setResource("get");
         config.getDataset().setMethodType(HttpMethod.GET);
@@ -178,7 +137,7 @@ public class ClientTestWithHttpbinTest {
         JsonObject payload = payloadReader.readObject();
 
         assertEquals(0, payload.getJsonObject("args").size());
-        assertEquals(4, payload.getJsonObject("headers").size());
+        assertEquals((new URL(HTTPBIN_BASE)).getHost(), payload.getJsonObject("headers").getString("Host"));
 
     }
 

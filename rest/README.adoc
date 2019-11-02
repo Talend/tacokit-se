@@ -1,0 +1,26 @@
+= Talend REST Connectors
+This project contains Talend HTTP REST connectors builded with TCK framework.
+
+== How to build the project
+The project locally use maven as build tool.
+
+```
+mvn clean install
+```
+
+Tests use some facilities proposed by http://httpbin.org/ so you may need to define you own instance with +org.talend.components.rest.httpbin_base+
+
+```
+mvn clean install  -Dorg.talend.components.rest.httpbin_base=<you local httpbin instance or https://httpbin.org>
+```
+
+At this time, the httpbin docker image in dockerhub doesn't provide authentication endpoints. you have to build your own from https://github.com/postmanlabs/httpbin.
+
+== Configure the query from incoming records
+REST connectors let you configure:
+- Resource segments
+- Headers
+- Query parameters
+- Body
+In all of them, you can define some placeholders that will be replaced by values from incoming record.
+Placeholders start with '{' and terminate with '}', except for body since thay start with '${' to be easily distinguish from json.

@@ -34,7 +34,6 @@ public final class ByteArrayBuffer implements Serializable {
      * @param capacity the capacity
      */
     public ByteArrayBuffer(int capacity) {
-        super();
         if (capacity < 0) {
             throw new IllegalArgumentException("Buffer capacity may not be negative");
         }

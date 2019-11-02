@@ -14,14 +14,13 @@ package org.talend.components.common.service.http.digest;
 
 import org.talend.components.common.service.http.common.BasicHeader;
 import org.talend.sdk.component.api.service.http.HttpException;
+import org.talend.sdk.component.api.service.http.Response;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
-
-import org.talend.sdk.component.api.service.http.Response;
 
 public class DigestAuthService {
 
@@ -33,12 +32,10 @@ public class DigestAuthService {
         try {
             try {
                 response = supplier.get();
-                if (Response.class.isInstance(response)) {
-                    final Response resp = Response.class.cast(response);
-                    status = resp.status();
-                    headers = resp.headers();
+                if (response != null) {
+                    status = response.status();
+                    headers = response.headers();
                 }
-                // return response;
             } catch (final HttpException he) {
                 response = he.getResponse();
                 status = response.status();
@@ -48,7 +45,7 @@ public class DigestAuthService {
             if (status == 401) {
                 // If status == 401 try to achieve the challenge
                 List<String> lwa = Optional.ofNullable(headers.get("WWW-Authenticate")).orElse(Collections.emptyList());
-                if (lwa.size() >= 0) {
+                if (lwa.size() > 0) {
                     // if WWW-Authenticate exists
                     BasicHeader authChallenge = new BasicHeader("WWW-Authenticate", lwa.get(0));
                     DigestScheme scheme = new DigestScheme();

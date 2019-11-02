@@ -34,7 +34,6 @@ public class BasicHeaderElement implements Cloneable {
      * Parameters are copied by reference, not by value
      */
     public BasicHeaderElement(final String name, final String value, final BasicNameValuePair[] parameters) {
-        super();
         this.name = name;
         this.value = value;
         this.parameters = parameters;

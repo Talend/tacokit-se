@@ -227,7 +227,6 @@ public class BasicHeaderValueParser {
         while (!cursor.atEnd()) {
             BasicNameValuePair param = parseNameValuePair(buffer, cursor);
             params.add(param);
-            char ch = buffer.charAt(cursor.getPos() - 1);
         }
 
         return (BasicNameValuePair[]) params.toArray(new BasicNameValuePair[params.size()]);

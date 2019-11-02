@@ -52,11 +52,17 @@ import static java.util.stream.Collectors.toMap;
 @Service
 public class RestService {
 
-    private final static String PARAMETERS_SUBSTITUTOR_PREFIX = System.getProperty("org.talend.components.rest.parameters_substitutor_prefix", "{");
-    private final static String PARAMETERS_SUBSTITUTOR_SUFFIX = System.getProperty("org.talend.components.rest.parameters_substitutor_suffix", "}");
+    private final static String PARAMETERS_SUBSTITUTOR_PREFIX = System
+            .getProperty("org.talend.components.rest.parameters_substitutor_prefix", "{");
 
-    private final static String BODY_SUBSTITUTOR_PREFIX = System.getProperty("org.talend.components.rest.body_substitutor_prefix", "${");
-    private final static String BODY_SUBSTITUTOR_SUFFIX = System.getProperty("org.talend.components.rest.body_substitutor_suffix", "}");
+    private final static String PARAMETERS_SUBSTITUTOR_SUFFIX = System
+            .getProperty("org.talend.components.rest.parameters_substitutor_suffix", "}");
+
+    private final static String BODY_SUBSTITUTOR_PREFIX = System.getProperty("org.talend.components.rest.body_substitutor_prefix",
+            "${");
+
+    private final static String BODY_SUBSTITUTOR_SUFFIX = System.getProperty("org.talend.components.rest.body_substitutor_suffix",
+            "}");
 
     public final static String HEALTHCHECK = "healthcheck";
 
@@ -81,7 +87,8 @@ public class RestService {
     }
 
     private Record _execute(final RequestConfig config, final Record record) {
-        final Substitutor substitutor = new RecordSubstitutor(PARAMETERS_SUBSTITUTOR_PREFIX, PARAMETERS_SUBSTITUTOR_SUFFIX, record, recordPointerFactory);
+        final Substitutor substitutor = new RecordSubstitutor(PARAMETERS_SUBSTITUTOR_PREFIX, PARAMETERS_SUBSTITUTOR_SUFFIX,
+                record, recordPointerFactory);
 
         final Map<String, String> headers = updateParamsFromRecord(config.headers(), substitutor);
         final Map<String, String> queryParams = updateParamsFromRecord(config.queryParams(), substitutor);
@@ -89,8 +96,8 @@ public class RestService {
 
         // I set another prefix '${' to have placeholder in a json body without having to
         // escape all normal '{' of the json
-        final Substitutor bodySubstitutor = new RecordSubstitutor(BODY_SUBSTITUTOR_PREFIX, BODY_SUBSTITUTOR_SUFFIX, record, recordPointerFactory,
-                substitutor.getCache());
+        final Substitutor bodySubstitutor = new RecordSubstitutor(BODY_SUBSTITUTOR_PREFIX, BODY_SUBSTITUTOR_SUFFIX, record,
+                recordPointerFactory, substitutor.getCache());
 
         // Has body has to be check here to set body = null if needed, the body encoder should not return null
         Body body = config.getDataset().isHasBody() ? new Body(config, bodySubstitutor) : null;
@@ -110,7 +117,8 @@ public class RestService {
 
         Response<byte[]> resp = null;
 
-        log.info("Request to {} with authentication type {}", surl, config.getDataset().getDatastore().getAuthentication().getType().toString());
+        log.info("Request to {} with authentication type {}", surl,
+                config.getDataset().getDatastore().getAuthentication().getType().toString());
 
         if (config.getDataset().getDatastore().getAuthentication().getType() == Authorization.AuthorizationType.Digest) {
             try {
@@ -156,13 +164,14 @@ public class RestService {
 
     String buildUrl(final RequestConfig config, final Map<String, String> params) {
         String base = config.getDataset().getDatastore().getBase().trim();
-        String segments = this.setPathParams(config.getDataset().getResource().trim(), config.getDataset().getHasPathParams(), params);
+        String segments = this.setPathParams(config.getDataset().getResource().trim(), config.getDataset().getHasPathParams(),
+                params);
 
-        if(segments.isEmpty()){
+        if (segments.isEmpty()) {
             return base;
         }
 
-        if(base.charAt(base.length() - 1) != '/' && segments.charAt(0) != '/'){
+        if (base.charAt(base.length() - 1) != '/' && segments.charAt(0) != '/') {
             return base + '/' + segments;
         }
 

@@ -23,7 +23,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 import java.io.Serializable;
 
 @Data
-@GridLayout({@GridLayout.Row({"type"}), @GridLayout.Row({"basic"}), @GridLayout.Row({"bearerToken"})})
+@GridLayout({ @GridLayout.Row({ "type" }), @GridLayout.Row({ "basic" }), @GridLayout.Row({ "bearerToken" }) })
 @Documentation("Http authentication data store")
 public class Authentication implements Serializable {
 
@@ -32,7 +32,7 @@ public class Authentication implements Serializable {
     private Authorization.AuthorizationType type = Authorization.AuthorizationType.NoAuth;
 
     @Option
-    @ActiveIf(target = "type", value = {"Basic", "Digest"})
+    @ActiveIf(target = "type", value = { "Basic", "Digest" })
     @Documentation("")
     private Basic basic;
 

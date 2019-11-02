@@ -32,10 +32,10 @@ public class RedirectService {
         final int status = context.getResponse().status();
 
         boolean redirect = false;
-        if (status != HttpURLConnection.HTTP_OK) {
-            if (status == HttpURLConnection.HTTP_MOVED_TEMP || status == HttpURLConnection.HTTP_MOVED_PERM
-                    || status == HttpURLConnection.HTTP_SEE_OTHER || status == TEMPORARY_REDIRECT || status == PERMANENT_REDIRECT)
-                redirect = true;
+        if (status != HttpURLConnection.HTTP_OK && ((status == HttpURLConnection.HTTP_MOVED_TEMP
+                || status == HttpURLConnection.HTTP_MOVED_PERM || status == HttpURLConnection.HTTP_SEE_OTHER
+                || status == TEMPORARY_REDIRECT || status == PERMANENT_REDIRECT))) {
+            redirect = true;
         }
 
         if (!redirect) {
@@ -68,7 +68,7 @@ public class RedirectService {
 
         context.setNewUrlAndIncreaseNbRedirection(location);
 
-        // Redirect 303 with GET method and 302 with get if optioni is selected
+        // Force redirect of 303 & 302 with GET method if option is selected
         if (status == HttpURLConnection.HTTP_SEE_OTHER
                 || (context.isForceGETOn302() && status == HttpURLConnection.HTTP_MOVED_TEMP)) {
             context.setForceGETMethod();

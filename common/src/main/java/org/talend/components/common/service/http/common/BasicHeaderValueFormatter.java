@@ -47,10 +47,6 @@ public class BasicHeaderValueFormatter {
      */
     public final static String UNSAFE_CHARS = "\"\\";
 
-    public BasicHeaderValueFormatter() {
-        super();
-    }
-
     // non-javadoc, see interface HeaderValueFormatter
     public CharArrayBuffer formatNameValuePair(final CharArrayBuffer charBuffer, final BasicNameValuePair nvp,
             final boolean quote) {
