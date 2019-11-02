@@ -28,9 +28,9 @@ In all of them, you can define some placeholders that will be replaced by values
 
 Placeholders start with '{' and terminate with '}', except for body since thay start with '${' to be easily distinguish from json.
 
-In placeholders you will set a record pointer to reference a value from the incoming record. Here are some example.
+In placeholders you will set a record pointer to reference a value from the incoming record. A placeholder can have a default value after ':-' _{/path/to/value:-defaultValue}_
 
-The incoming record has been built from this json. So it has the same hierarchical schema:
+For example, if the incoming record has been built from this json. So it has the same hierarchical schema:
 ----
 {
     "q": 12345,
@@ -87,3 +87,10 @@ It will be replaced by:
     }
 }
 ----
+
+You can configure placeholder prefix and suffix with options:
+
+* org.talend.components.rest.parameters_substitutor_prefix
+* org.talend.components.rest.parameters_substitutor_suffix
+* org.talend.components.rest.body_substitutor_prefix
+* org.talend.components.rest.body_substitutor_suffix
