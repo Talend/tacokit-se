@@ -13,11 +13,8 @@
 package org.talend.components.rest.configuration;
 
 import lombok.Data;
-import org.talend.components.rest.configuration.auth.Authentication;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.action.Suggestable;
-import org.talend.sdk.component.api.configuration.action.Updatable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Min;
 import org.talend.sdk.component.api.configuration.constraint.Required;
@@ -38,6 +35,7 @@ import java.util.List;
         @GridLayout.Row({ "hasHeaders" }), @GridLayout.Row({ "headers" }), @GridLayout.Row({ "hasQueryParams" }),
         @GridLayout.Row({ "queryParams" }), @GridLayout.Row({ "hasPathParams" }), @GridLayout.Row({ "pathParams" }),
         @GridLayout.Row({ "hasBody" }), @GridLayout.Row({ "body" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "datastore" })})
 /*
  * @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "maxRedirect" }),
  * 

@@ -50,7 +50,7 @@ public class RestOutput implements Serializable {
 
     @ElementListener
     public void process(final Record input) {
-        Record result = client.execute(config, input);
+        client.execute(config, input);
     }
 
 }
