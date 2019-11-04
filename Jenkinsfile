@@ -1,5 +1,19 @@
 def slackChannel = 'components-ci'
 
+def nexusCredentials = usernamePassword(
+	credentialsId: 'nexus-artifact-zl-credentials',
+    usernameVariable: 'NEXUS_USER',
+    passwordVariable: 'NEXUS_PASSWORD')
+def gitCredentials = usernamePassword(
+	credentialsId: 'github-credentials',
+    usernameVariable: 'GITHUB_LOGIN',
+    passwordVariable: 'GITHUB_TOKEN')
+def dockerCredentials = usernamePassword(
+	credentialsId: 'docker-registry-credentials',
+    passwordVariable: 'DOCKER_PASSWORD',
+    usernameVariable: 'DOCKER_LOGIN')
+
+
 def PRODUCTION_DEPLOYMENT_REPOSITORY = "TalendOpenSourceSnapshot"
 
 def branchName = env.BRANCH_NAME
@@ -57,26 +71,22 @@ spec:
     }
 
     parameters {
-        booleanParam(name: 'PUSH_TO_XTM', defaultValue: false, description: 'Export the project i18n resources to Xtm to be translated. This action can be performed from master or maintenance branches only.')
-        booleanParam(name: 'DEPLOY_FROM_XTM', defaultValue: false, description: 'Download and deploy i18n resources from Xtm to nexus for this branch.')
+        choice(name: 'Action',
+               choices: [ 'STANDARD', 'PUSH_TO_XTM', 'DEPLOY_FROM_XTM', 'RELEASE' ],
+               description: 'Kind of running : \nSTANDARD (default), normal building\n PUSH_TO_XTM : Export the project i18n resources to Xtm to be translated. This action can be performed from master or maintenance branches only. \nDEPLOY_FROM_XTM: Download and deploy i18n resources from Xtm to nexus for this branch.\nRELEASE : build release')
     }
 
     stages {
         stage('Run maven') {
             when {
-                expression { params.PUSH_TO_XTM == false && params.DEPLOY_FROM_XTM == false }
+                expression { params.Action == 'STANDARD' }
             }
             steps {
                 container('main') {
                     // for next concurrent builds
                     sh 'for i in ci_documentation ci_nexus ci_site; do rm -Rf $i; rsync -av . $i; done'
                     // real task
-                    withCredentials([
-                            usernamePassword(
-                                    credentialsId: 'nexus-artifact-zl-credentials',
-                                    usernameVariable: 'NEXUS_USER',
-                                    passwordVariable: 'NEXUS_PASSWORD')
-                    ]) {
+                    withCredentials([nexusCredentials]) {
                         sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -e ${talendOssRepositoryArg}"
                     }
                 }
@@ -97,18 +107,13 @@ spec:
         }
         stage('Post Build Steps') {
             when {
-                expression { params.PUSH_TO_XTM == false && params.DEPLOY_FROM_XTM == false }
+                expression { params.Action == 'STANDARD' }
             }
             parallel {
                 stage('Documentation') {
                     steps {
                         container('main') {
-                            withCredentials([
-                                    usernamePassword(
-                                            credentialsId: 'docker-registry-credentials',
-                                            passwordVariable: 'DOCKER_PASSWORD',
-                                            usernameVariable: 'DOCKER_LOGIN')
-                            ]) {
+                            withCredentials([dockerCredentials]) {
                                 sh """
                      |cd ci_documentation
                      |mvn -U -B -s .jenkins/settings.xml clean install -DskipTests
@@ -144,12 +149,7 @@ spec:
                 stage('Nexus') {
                     steps {
                         container('main') {
-                            withCredentials([
-                                    usernamePassword(
-                                            credentialsId: 'nexus-artifact-zl-credentials',
-                                            usernameVariable: 'NEXUS_USER',
-                                            passwordVariable: 'NEXUS_PASSWORD')
-                            ]) {
+                            withCredentials([nexusCredentials]) {
                                 sh "cd ci_nexus && mvn -U -B -s .jenkins/settings.xml clean deploy -e -Pdocker -DskipTests ${talendOssRepositoryArg}"
                             }
                         }
@@ -160,7 +160,7 @@ spec:
         stage('Push to Xtm') {
             when {
                 anyOf {
-                    expression { params.PUSH_TO_XTM == true }
+                    expression { params.Action == 'PUSH_TO_XTM' }
 //                    allOf{
 //                        triggeredBy 'TimerTrigger'
 //                        expression {
@@ -175,11 +175,7 @@ spec:
             }
             steps {
                 container('main') {
-                    withCredentials([
-                            usernamePassword(
-                                    credentialsId: 'nexus-artifact-zl-credentials',
-                                    usernameVariable: 'NEXUS_USER',
-                                    passwordVariable: 'NEXUS_PASSWORD'),
+                    withCredentials([nexusCredentials,
                             string(
                                     credentialsId: 'xtm-token',
                                     variable: 'XTM_TOKEN')
@@ -193,7 +189,7 @@ spec:
         }
         stage('Deploy from Xtm') {
             when {
-                expression { params.DEPLOY_FROM_XTM == true }
+                expression { params.Action == 'DEPLOY_FROM_XTM' }
                 anyOf {
                     branch 'master'
                     expression { BRANCH_NAME.startsWith('maintenance/') }
@@ -201,19 +197,11 @@ spec:
             }
             steps {
                 container('main') {
-                    withCredentials([
-                            usernamePassword(
-                                    credentialsId: 'nexus-artifact-zl-credentials',
-                                    usernameVariable: 'NEXUS_USER',
-                                    passwordVariable: 'NEXUS_PASSWORD'),
+                    withCredentials([nexusCredentials,
                             string(
                                     credentialsId: 'xtm-token',
                                     variable: 'XTM_TOKEN'),
-                            usernamePassword(
-                                    credentialsId: 'github-credentials',
-                                    usernameVariable: 'GITHUB_LOGIN',
-                                    passwordVariable: 'GITHUB_TOKEN')
-                    ]) {
+                            gitCredentials ]) {
                         script {
                             sh "mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-deploy"
                             sh "cd tmp/repository && mvn -s ../../.jenkins/settings.xml clean deploy"
@@ -221,6 +209,34 @@ spec:
                     }
                 }
             }
+        }
+        stage('Release') {
+			when {
+				expression { params.Action == 'RELEASE' }
+                anyOf {
+                    branch 'master'
+                    expression { BRANCH_NAME.startsWith('maintenance/') }
+                }
+            }
+            steps {
+            	withCredentials([gitCredentials, nexusCredentials]) {
+					container('main') {
+
+						sh """
+						    mvn -B -s .jenkins/settings.xml release:clean release:prepare
+						    if [[ \$? -eq 0 ]] ; then
+						        PROJECT_VERSION=\$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
+						    	mvn -B -s .jenkins/settings.xml -Darguments='-Dmaven.javadoc.skip=true' release:perform
+						    	git push origin release/\${PROJECT_VERSION}
+						    	git push
+						    fi
+						"""
+
+              		}
+            	}
+            }
+
+
         }
     }
     post {
