@@ -12,12 +12,17 @@
  */
 package org.talend.components.couchbase.output;
 
-import com.couchbase.client.deps.io.netty.util.ReferenceCountUtil;
-import com.couchbase.client.java.Bucket;
-import com.couchbase.client.java.document.BinaryDocument;
-import com.couchbase.client.java.document.JsonDocument;
-import com.couchbase.client.java.document.json.JsonObject;
-import lombok.extern.slf4j.Slf4j;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,10 +40,13 @@ import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
+import com.couchbase.client.deps.io.netty.util.ReferenceCountUtil;
+import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.document.BinaryDocument;
+import com.couchbase.client.java.document.JsonDocument;
+import com.couchbase.client.java.document.json.JsonObject;
+
+import lombok.extern.slf4j.Slf4j;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -228,13 +236,11 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
         final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
         List<Record> records = new ArrayList<>();
         Record record1 = recordBuilderFactory.newRecordBuilder()
-                .withString(entryBuilder.withName("t_string").withType(Schema.Type.STRING).build(),
-                        generateDocId(idPrefix, 0))
+                .withString(entryBuilder.withName("t_string").withType(Schema.Type.STRING).build(), generateDocId(idPrefix, 0))
                 .withInt(entryBuilder.withName("t_int_min").withType(Schema.Type.INT).build(), 1971)
                 .withString(entryBuilder.withName("extra_content").withType(Schema.Type.STRING).build(), "path new").build();
         Record record2 = recordBuilderFactory.newRecordBuilder()
-                .withString(entryBuilder.withName("t_string").withType(Schema.Type.STRING).build(),
-                        generateDocId(idPrefix, 1))
+                .withString(entryBuilder.withName("t_string").withType(Schema.Type.STRING).build(), generateDocId(idPrefix, 1))
                 .withBoolean(entryBuilder.withName("t_boolean").withType(Schema.Type.BOOLEAN).build(), Boolean.FALSE)
                 .withString(entryBuilder.withName("extra_content2").withType(Schema.Type.STRING).build(), "path zap").build();
         records.add(record1);
@@ -302,4 +308,22 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
         configuration.setDataSet(couchbaseDataSet);
         return configuration;
     }
+
+    @Test
+    void toJsonDocumentWithBytesType() {
+        byte[] bytes = "aloha".getBytes(Charset.defaultCharset());
+        String idValue = "fixBytes";
+        Record test = recordBuilderFactory.newRecordBuilder().withString("ID", idValue).withInt("id", 101)
+                .withString("name", "kamikaze").withBytes("byties", bytes).build();
+        CouchbaseOutput couch = new CouchbaseOutput(getOutputConfiguration(), null, null);
+        JsonDocument jsonDoc = couch.toJsonDocument("ID", test);
+        assertEquals(idValue, jsonDoc.id());
+        JsonObject jsonObject = jsonDoc.content();
+        assertEquals(101, jsonObject.getInt("id"));
+        assertEquals("kamikaze", jsonObject.getString("name"));
+        byte[] rbytes = com.couchbase.client.core.utils.Base64.decode(jsonObject.getString("byties"));
+        assertEquals(bytes.length, rbytes.length);
+        assertEquals("aloha", new String(rbytes, Charset.defaultCharset()));
+    }
+
 }
