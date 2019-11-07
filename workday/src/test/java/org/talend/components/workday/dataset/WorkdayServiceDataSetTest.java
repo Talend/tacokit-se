@@ -33,8 +33,8 @@ class WorkdayServiceDataSetTest {
         p1.setName("p1");
         p1.setValue("v1");
         ds.setParameters(new WorkdayServiceDataSet.Parameters());
-        ds.getParameters().setParameters(new ArrayList<>());
-        ds.getParameters().getParameters().add(p1);
+        ds.getParameters().setParametersList(new ArrayList<>());
+        ds.getParameters().getParametersList().add(p1);
 
         Assertions.assertEquals("w1", ds.getServiceToCall());
 
@@ -84,11 +84,11 @@ class WorkdayServiceDataSetTest {
         param.setName(name);
         param.setValue(value);
 
-        if (params.getParameters() == null) {
-            params.setParameters(new ArrayList<>());
+        if (params.getParametersList() == null) {
+            params.setParametersList(new ArrayList<>());
         }
 
-        params.getParameters().add(param);
+        params.getParametersList().add(param);
     }
 
 }

@@ -64,6 +64,12 @@ class UIActionServiceTest {
 
         final HealthCheckStatus healthCheckStatus = service.validateConnection(wds);
         Assertions.assertNotNull(healthCheckStatus);
+        Assertions.assertEquals(HealthCheckStatus.Status.OK, healthCheckStatus.getStatus());
+
+        wds.setClientSecret("FAUX");
+        final HealthCheckStatus healthCheckStatusKO = service.validateConnection(wds);
+        Assertions.assertNotNull(healthCheckStatusKO);
+        Assertions.assertEquals(HealthCheckStatus.Status.KO, healthCheckStatusKO.getStatus());
     }
 
     @Test

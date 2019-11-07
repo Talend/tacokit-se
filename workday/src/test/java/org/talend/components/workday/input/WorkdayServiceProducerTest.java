@@ -34,10 +34,37 @@ class WorkdayServiceProducerTest {
 
     @Test
     public void producer() {
+        TesTOutput.OBJECTS.clear();
+        Properties props = ConfigHelper.workdayProps();
+        System.setProperty("talend.beam.job.targetParallelism", "1"); // our code creates one hz lite instance per thread
+        final Job.ExecutorBuilder jobBuilder = Job.components()
+                .component("source",
+                        "Workday://Input?" + "configuration.dataSet.service=common/v1/workers&"
+                                + "configuration.dataSet.parameters.paginable=true&" + "configuration.dataSet.module=common&"
+                                + "configuration.dataSet.datastore.authEndpoint=" + props.getProperty("authendpoint") + "&"
+                                + "configuration.dataSet.datastore.clientId=" + props.getProperty("clientId") + "&"
+                                + "configuration.dataSet.datastore.clientSecret=" + props.getProperty("clientSecret") + "&"
+                                + "configuration.dataSet.datastore.endpoint=" + props.getProperty("endpoint") + "&"
+                                + "configuration.dataSet.datastore.tenantAlias=" + props.getProperty("tenant"))
+                .component("output", "WorkdayTest://collector").connections().from("source").to("output").build();
+
+        jobBuilder.run();
+
+        Assertions.assertFalse(TesTOutput.OBJECTS.isEmpty());
+        Assertions.assertTrue(TesTOutput.OBJECTS.size() > 110); // plus d'une page
+
+        JsonObject first = TesTOutput.OBJECTS.get(0);
+        Assertions.assertNotNull(first);
+    }
+
+    @Test
+    void producerWithoutPage() {
+
+        TesTOutput.OBJECTS.clear();
         Properties props = ConfigHelper.workdayProps();
         System.setProperty("talend.beam.job.targetParallelism", "1"); // our code creates one hz lite instance per thread
         final Job.ExecutorBuilder jobBuilder = Job.components().component("source",
-                "Workday://Input?" + "configuration.dataSet.service=common/v1/workers&" + "configuration.dataSet.module=common&"
+                "Workday://Input?" + "configuration.dataSet.service=common/v1/userInfo&" + "configuration.dataSet.module=common&"
                         + "configuration.dataSet.datastore.authEndpoint=" + props.getProperty("authendpoint") + "&"
                         + "configuration.dataSet.datastore.clientId=" + props.getProperty("clientId") + "&"
                         + "configuration.dataSet.datastore.clientSecret=" + props.getProperty("clientSecret") + "&"

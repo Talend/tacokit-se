@@ -18,6 +18,7 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Proposable;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.action.Updatable;
+import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -28,6 +29,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static org.talend.sdk.component.api.configuration.condition.ActiveIf.EvaluationStrategy.LENGTH;
 
 @Data
 @DataSet("WorkdayServiceDataSet")
@@ -50,6 +53,7 @@ public class WorkdayServiceDataSet implements QueryHelper, Serializable {
     @Option
     @Suggestable(value = "workdayServices", parameters = { "module" })
     @Documentation("service of workday")
+    @ActiveIf(target = "module", value = "0", evaluationStrategy = LENGTH, negate = true)
     private String service;
 
     @Data
@@ -82,33 +86,58 @@ public class WorkdayServiceDataSet implements QueryHelper, Serializable {
                 brut.replace(start, start + pattern.length(), value);
             }
         }
+
+        public boolean isView() {
+            return "view".equals(this.getName()) && this.getType() == Parameter.Type.Query;
+        }
+
+        public boolean isPagination() {
+            return this.getType() == Parameter.Type.Query && ("limit".equals(this.getName()) || "offset".equals(this.getName()));
+        }
     }
 
     @Data
-    @GridLayout({ @GridLayout.Row("parameters") })
+    @GridLayout({ @GridLayout.Row("parametersList") })
     public static class Parameters implements Serializable {
 
         private static final long serialVersionUID = -8064443311021065570L;
 
         @Option
         @Documentation("kind (path or query)")
-        private List<WorkdayServiceDataSet.Parameter> parameters = new ArrayList<>();
+        private List<WorkdayServiceDataSet.Parameter> parametersList = new ArrayList<>();
+
+        private boolean paginable = false;
 
         public String substitute(StringBuilder brut) {
             if (brut == null) {
                 return null;
             }
-            if (this.parameters != null) {
-                this.parameters.forEach((WorkdayServiceDataSet.Parameter p) -> p.substitute(brut));
+            if (this.parametersList != null) {
+                this.parametersList.forEach((WorkdayServiceDataSet.Parameter p) -> p.substitute(brut));
             }
             return brut.toString();
+        }
+
+        public void setParametersList(List<Parameter> parametersList) {
+            if (parametersList == null) {
+                this.parametersList = Collections.emptyList();
+                return;
+            }
+
+            this.parametersList = parametersList.stream().filter((Parameter p) -> !p.isView()) // view parameter too complex.
+                    .peek((Parameter p) -> {
+                        if (p.isPagination())
+                            this.paginable = true;
+                    }).filter((Parameter p) -> !p.isPagination()) // automatic pagination.
+                    .collect(Collectors.toList());
         }
     }
 
     @Option
     @Documentation("service parameters")
     @Updatable(value = "workdayServicesParams", parameters = { "module", "service" })
-    private Parameters parameters;
+    @ActiveIf(target = "service", value = "0", evaluationStrategy = LENGTH, negate = true)
+    private Parameters parameters = new Parameters();
 
     @Override
     public String getServiceToCall() {
@@ -124,10 +153,10 @@ public class WorkdayServiceDataSet implements QueryHelper, Serializable {
 
     @Override
     public Map<String, String> extractQueryParam() {
-        if (parameters == null || parameters.getParameters() == null) {
+        if (parameters == null || parameters.getParametersList() == null) {
             return Collections.emptyMap();
         }
-        return parameters.getParameters().stream()
+        return parameters.getParametersList().stream()
                 .filter((Parameter x) -> x.type == Parameter.Type.Query && x.value != null && !x.value.isEmpty())
                 .collect(Collectors.toMap(Parameter::getName, Parameter::getValue));
     }
