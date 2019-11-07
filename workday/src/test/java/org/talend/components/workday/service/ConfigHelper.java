@@ -57,14 +57,19 @@ public class ConfigHelper {
                 JsonbBuilder.create(), new HashMap<>());
         final WorkdayReader reader = factory.create(WorkdayReader.class, "https://api.workday.com");
         final WorkdayReaderService service = new WorkdayReaderService();
-        service.setReader(reader);
+        Field readerField = WorkdayReaderService.class.getDeclaredField("reader");
+        readerField.setAccessible(true);
+        readerField.set(service, reader);
 
         final AccessTokenProvider provider = factory.create(AccessTokenProvider.class, "https://auth.api.workday.com");
         AccessTokenService providerService = new AccessTokenService();
         final Field serviceField = AccessTokenService.class.getDeclaredField("service");
         serviceField.setAccessible(true);
         serviceField.set(providerService, provider);
-        service.setAccessToken(providerService);
+
+        Field tokenField = WorkdayReaderService.class.getDeclaredField("accessToken");
+        tokenField.setAccessible(true);
+        tokenField.set(service, providerService);
 
         return service;
     }

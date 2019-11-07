@@ -85,12 +85,19 @@ public class WorkdayServiceProducer implements Serializable {
         }
         final WorkdayServiceDataSet ds = this.inputConfig.getDataSet();
         Map<String, String> queryParams = ds.extractQueryParam();
-        JsonObject ret = this.reader.findPage(ds.getDatastore(), ds, (pageNumber * WorkdayServiceProducer.limit),
-                WorkdayServiceProducer.limit, queryParams);
-        if (this.total < 0) {
-            synchronized (this) {
-                this.total = ret.getInt("total");
+
+        JsonObject ret = null;
+        if (ds.getParameters() != null && ds.getParameters().isPaginable()) {
+            ret = this.reader.findPage(ds.getDatastore(), ds, (pageNumber * WorkdayServiceProducer.limit),
+                    WorkdayServiceProducer.limit, queryParams);
+            if (this.total < 0) {
+                synchronized (this) {
+                    this.total = ret.getInt("total");
+                }
             }
+        } else {
+            ret = this.reader.find(ds.getDatastore(), ds, queryParams);
+            this.total = 0;
         }
         return ret;
     }

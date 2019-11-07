@@ -12,7 +12,6 @@
  */
 package org.talend.components.workday.service;
 
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.workday.WorkdayException;
 import org.talend.components.workday.dataset.QueryHelper;
@@ -38,7 +37,6 @@ import java.util.stream.Collectors;
 @Service
 @Version(1)
 @Slf4j
-@Data
 public class WorkdayReaderService {
 
     @Service
@@ -119,7 +117,7 @@ public class WorkdayReaderService {
     public WorkdayServiceDataSet.Parameters loadServiceParameter(String module, String service) {
         log.info("workdayServicesParams suggestion for {} {}", module, service);
         final WorkdayServiceDataSet.Parameters parameters = new WorkdayServiceDataSet.Parameters();
-        parameters.setParameters(Collections.emptyList());
+        parameters.setParametersList(Collections.emptyList());
         final Map<String, List<WorkdayServiceDataSet.Parameter>> moduleServices = this.loader.findGetServices(module);
         if (moduleServices == null) {
             return parameters;
@@ -129,7 +127,7 @@ public class WorkdayReaderService {
             return parameters;
         }
         log.info("workdayServicesParams : nombre params {}", serviceParameters.size());
-        parameters.setParameters(serviceParameters);
+        parameters.setParametersList(serviceParameters);
         return parameters;
     }
 }

@@ -12,8 +12,6 @@
  */
 package org.talend.components.workday.dataset;
 
-import org.talend.components.workday.datastore.WorkdayDataStore;
-
 import java.util.Map;
 
 /**
