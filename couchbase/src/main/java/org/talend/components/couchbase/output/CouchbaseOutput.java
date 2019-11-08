@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.talend.components.couchbase.dataset.DocumentType;
 import org.talend.components.couchbase.service.CouchbaseService;
 import org.talend.components.couchbase.service.I18nMessage;
 import org.talend.sdk.component.api.component.Icon;
@@ -33,9 +34,13 @@ import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
+import com.couchbase.client.deps.io.netty.buffer.ByteBuf;
+import com.couchbase.client.deps.io.netty.buffer.Unpooled;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
+import com.couchbase.client.java.document.BinaryDocument;
 import com.couchbase.client.java.document.JsonDocument;
+import com.couchbase.client.java.document.StringDocument;
 import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.query.N1qlQuery;
@@ -60,6 +65,8 @@ public class CouchbaseOutput implements Serializable {
     private final CouchbaseOutputConfiguration configuration;
 
     private final CouchbaseService service;
+
+    private static final String CONTENT_FIELD_NAME = "content";
 
     public CouchbaseOutput(@Option("configuration") final CouchbaseOutputConfiguration configuration,
             final CouchbaseService service, final I18nMessage i18n) {
@@ -93,7 +100,13 @@ public class CouchbaseOutput implements Serializable {
             if (configuration.isPartialUpdate()) {
                 updatePartiallyDocument(record);
             } else {
-                bucket.upsert(toJsonDocument(idFieldName, record));
+                if (configuration.getDataSet().getDocumentType() == DocumentType.BINARY) {
+                    bucket.upsert(toBinaryDocument(idFieldName, record));
+                } else if (configuration.getDataSet().getDocumentType() == DocumentType.STRING) {
+                    bucket.upsert(toStringDocument(idFieldName, record));
+                } else {
+                    bucket.upsert(toJsonDocument(idFieldName, record));
+                }
             }
         }
     }
@@ -102,6 +115,16 @@ public class CouchbaseOutput implements Serializable {
     public void release() {
         service.closeBucket(bucket);
         service.closeConnection(configuration.getDataSet().getDatastore());
+    }
+
+    private BinaryDocument toBinaryDocument(String idFieldName, Record record) {
+        ByteBuf toWrite = Unpooled.copiedBuffer(record.getBytes(CONTENT_FIELD_NAME));
+        return BinaryDocument.create(record.getString(idFieldName), toWrite);
+    }
+
+    private StringDocument toStringDocument(String idFieldName, Record record) {
+        String content = record.getString(CONTENT_FIELD_NAME);
+        return StringDocument.create(record.getString(idFieldName), content);
     }
 
     private void updatePartiallyDocument(Record record) {
@@ -113,13 +136,17 @@ public class CouchbaseOutput implements Serializable {
 
     private Object jsonValueFromRecordValue(Schema.Entry entry, Record record) {
         String entryName = entry.getName();
+        Object value = record.get(Object.class, entryName);
+        if (null == value) {
+            return JsonObject.NULL;
+        }
         switch (entry.getType()) {
         case INT:
             return record.getInt(entryName);
         case LONG:
             return record.getLong(entryName);
         case BYTES:
-            throw new IllegalArgumentException("BYTES is unsupported");
+            return com.couchbase.client.core.utils.Base64.encode(record.getBytes(entryName));
         case FLOAT:
             return Double.parseDouble(String.valueOf(record.getFloat(entryName)));
         case DOUBLE:
@@ -159,7 +186,7 @@ public class CouchbaseOutput implements Serializable {
         return buildJsonObject(record, Collections.emptyMap()).removeKey(idFieldName);
     }
 
-    private JsonDocument toJsonDocument(String idFieldName, Record record) {
+    public JsonDocument toJsonDocument(String idFieldName, Record record) {
         return JsonDocument.create(record.getString(idFieldName), buildJsonObjectWithoutId(record));
     }
 
@@ -181,4 +208,5 @@ public class CouchbaseOutput implements Serializable {
         }
         return value;
     }
+
 }

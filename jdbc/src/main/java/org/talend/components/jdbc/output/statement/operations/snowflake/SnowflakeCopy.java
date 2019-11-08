@@ -62,15 +62,19 @@ public class SnowflakeCopy {
 
     public static List<Reject> putAndCopy(final Connection connection, final List<Record> records, final String fqStageName,
             final String fqTableName, final String fqTmpTableName) throws SQLException {
-
-        final List<RecordChunk> chunks = splitRecords(createWorkDir(), records);
         try (final Statement statement = connection.createStatement()) {
             statement.execute("create temporary table if not exists " + fqTmpTableName + " like " + fqTableName);
         }
+        return putAndCopy(connection, records, fqStageName, fqTmpTableName);
+    }
+
+    public static List<Reject> putAndCopy(final Connection connection, final List<Record> records, final String fqStageName,
+            final String fqTableName) throws SQLException {
+        final List<RecordChunk> chunks = splitRecords(createWorkDir(), records);
         final List<Reject> rejects = new ArrayList<>();
         final List<RecordChunk> copy = chunks.stream().parallel().map(chunk -> doPUT(fqStageName, connection, chunk, rejects))
                 .filter(Objects::nonNull).collect(toList());
-        rejects.addAll(toReject(chunks, doCopy(fqStageName, fqTmpTableName, connection, copy)));
+        rejects.addAll(toReject(chunks, doCopy(fqStageName, fqTableName, connection, copy)));
         return rejects;
     }
 
@@ -88,15 +92,8 @@ public class SnowflakeCopy {
     private static Path createWorkDir() {
         try {
             final Path tmp = createTempDirectory("talend-jdbc-snowflake-");
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                try {
-                    if (tmp != null && tmp.toFile().exists()) {
-                        Files.walk(tmp).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
-                    }
-                } catch (final IOException e) {
-                    log.error("can't clean tmp files for snowflake put", e);
-                }
-            }));
+            log.debug("Temp folder {} created.", tmp);
+            tmp.toFile().deleteOnExit();
             return tmp;
         } catch (final IOException e) {
             throw new IllegalStateException(e);
@@ -248,6 +245,8 @@ public class SnowflakeCopy {
                 final String suffix = now(ZoneOffset.UTC).format(ofPattern("yyyyMMddHHmmss"));
                 try {
                     chunk = createTempFile(tmpDir, "part_" + part + "_", "_" + suffix + ".csv");
+                    log.debug("Temp file {} created", chunk);
+                    chunk.toFile().deleteOnExit();
                     writer = newBufferedWriter(chunk, StandardCharsets.UTF_8);
                 } catch (IOException e) {
                     throw new IllegalStateException(e);

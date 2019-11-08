@@ -63,7 +63,9 @@ public abstract class BlobFileReader {
 
         Iterable<ListBlobItem> blobItems = container.listBlobs(directoryName, false, EnumSet.noneOf(BlobListingDetails.class),
                 null, AzureComponentServices.getTalendOperationContext());
-
+        if (!blobItems.iterator().hasNext()) {
+            throw new BlobRuntimeException("Folder doesn't exist/is empty");
+        }
         this.iterator = initItemRecordIterator(blobItems);
     }
 

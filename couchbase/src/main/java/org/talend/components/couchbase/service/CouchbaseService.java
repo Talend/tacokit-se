@@ -21,6 +21,8 @@ import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.env.CouchbaseEnvironment;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import com.couchbase.client.java.error.InvalidPasswordException;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.couchbase.dataset.CouchbaseDataSet;
@@ -43,10 +45,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import lombok.Data;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 import static org.talend.sdk.component.api.record.Schema.Type.*;
 
