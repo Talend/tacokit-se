@@ -25,11 +25,10 @@ import static java.util.stream.Collectors.toMap;
 
 @Data
 @GridLayout({ @GridLayout.Row({ "dataset" }) })
-// @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataset" }) })
 public class RequestConfig implements Serializable {
 
     @Option
-    @Documentation("Identification of the resource to access")
+    @Documentation("Dataset configuration.")
     private Dataset dataset;
 
     public Map<String, String> pathParams() {

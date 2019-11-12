@@ -35,82 +35,77 @@ import java.util.List;
         @GridLayout.Row({ "hasHeaders" }), @GridLayout.Row({ "headers" }), @GridLayout.Row({ "hasQueryParams" }),
         @GridLayout.Row({ "queryParams" }), @GridLayout.Row({ "hasPathParams" }), @GridLayout.Row({ "pathParams" }),
         @GridLayout.Row({ "hasBody" }), @GridLayout.Row({ "body" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "datastore" })})
-/*
- * @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "maxRedirect" }),
- * 
- * @GridLayout.Row({ "only_same_host" }), @GridLayout.Row({ "force_302_redirect" }) })
- */
-@Documentation("Define the resource and authentication")
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "datastore" }) })
+@Documentation("Dataset configuration.")
 public class Dataset implements Serializable {
 
     @Option
-    @Documentation("Identification of the REST API")
+    @Documentation("Identification of the REST API.")
     private Datastore datastore;
 
     @Option
     @Required
     @DefaultValue("GET")
-    @Documentation("Action on the resource")
+    @Documentation("The HTTP verb to use.")
     private HttpMethod methodType;
 
     @Option
     @Required
-    @Documentation("End of url to complete base url of the datastore")
+    @Documentation("End of url to complete base url of the datastore.")
     private String resource = "";
 
     // @Option
-    @Documentation("")
+    @Documentation("How many redirection are supported ? (-1 for infinite)")
     @DefaultValue("3")
     @Min(-1)
     private Integer maxRedirect = 3;
 
     // @Option
-    @Documentation("")
+    @Documentation("Redirect only if same host.")
     @DefaultValue("false")
     @ActiveIf(target = "maxRedirect", value = "0", negate = true)
     private Boolean only_same_host = false;
 
     // @Option
-    @Documentation("")
+    @Documentation("Force a GET on a 302 redirection.")
     @DefaultValue("false")
     @ActiveIf(target = "maxRedirect", value = "0", negate = true)
     private Boolean force_302_redirect = false;
 
     @Option
-    @Documentation("Http request contains path parameters")
+    @Documentation("Does the request have parameters in URL ?")
     private Boolean hasPathParams = false;
 
     @Option
     @ActiveIf(target = "hasPathParams", value = "true")
-    @Documentation("Http path parameters")
+    @Documentation("URL parameters.")
     private List<Param> pathParams = new ArrayList<>(Collections.singleton(new Param("", "")));
 
     @Option
-    @Documentation("Http request contains headers")
+    @Documentation("Does the request have headers ?")
     private Boolean hasHeaders = false;
 
     @Option
     @ActiveIf(target = "hasHeaders", value = "true")
-    @Documentation("Http request headers")
+    @Documentation("Query headers.")
     private List<Param> headers = new ArrayList<>(Collections.singleton(new Param("", "")));
 
     @Option
-    @Documentation("Http request contains query params")
+    @Documentation("Does the request have query paramters ?")
     private Boolean hasQueryParams = false;
 
     @Option
     @ActiveIf(target = "hasQueryParams", value = "true")
-    @Documentation("Http request query params")
+    @Documentation("Query parameters.")
     private List<Param> queryParams = new ArrayList<>(Collections.singleton(new Param("", "")));
 
     @Option
-    @Documentation("")
+    @Documentation("Does the request have a body ?")
     private boolean hasBody;
 
     @Option
     @ActiveIf(target = "hasBody", value = "true")
-    @Documentation("")
+    @Documentation("Request body")
     private RequestBody body;
 
     public boolean supportRedirect() {

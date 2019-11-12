@@ -117,8 +117,7 @@ public class DigestScheme {
                 .orElse("No nonce value in digest authentication challenge.");
         final String opaque = Optional.ofNullable(pairs.get("opaque").getValue())
                 .orElse("No opaque value in digest authentication challenge.");
-        String algorithm = Optional.ofNullable(pairs.get("algorithm").getValue())
-                .orElse("MD5");
+        String algorithm = Optional.ofNullable(pairs.get("algorithm").getValue()).orElse("MD5");
 
         final Set<String> qopset = new HashSet<>(8);
         int qop = QOP_UNKNOWN;

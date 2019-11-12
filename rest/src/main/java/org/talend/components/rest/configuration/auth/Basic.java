@@ -22,16 +22,16 @@ import java.io.Serializable;
 
 @Data
 @GridLayout(value = { @GridLayout.Row({ "username", "password" }) })
-@Documentation("Basic authentication configuration")
+@Documentation("Login/password authentication")
 public class Basic implements Authorization, Serializable {
 
     @Option
-    @Documentation("Username for the basic authentication")
+    @Documentation("Username for authentication")
     private String username;
 
     @Option
     @Credential
-    @Documentation("password for the basic authentication")
+    @Documentation("password for authentication")
     private String password;
 
 }

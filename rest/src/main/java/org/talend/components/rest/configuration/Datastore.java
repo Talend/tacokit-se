@@ -41,26 +41,25 @@ public class Datastore implements Serializable {
     @Option
     @Required
     @Pattern("^https?://.+$")
-    @Documentation("")
-    // @Suggestable(value = "getBase", parameters = { ".." })
+    @Documentation("URL base of the request")
     private String base = "";
 
     @Option
     @Required
-    @Documentation("")
+    @Documentation("Authentication configuration")
     private Authentication authentication;
 
     @Min(0)
     @Option
     @Required
-    @Documentation("")
+    @Documentation("Connection timeout (ms)")
     @DefaultValue("30000")
     private Integer connectionTimeout = 30000;
 
     @Min(0)
     @Option
     @Required
-    @Documentation("")
+    @Documentation("Read timeout (ms)")
     @DefaultValue("120000")
     private Integer readTimeout = 120000;
 

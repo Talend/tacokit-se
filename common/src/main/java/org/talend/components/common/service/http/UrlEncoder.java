@@ -21,7 +21,8 @@ public class UrlEncoder {
     private static final String QUERY_RESERVED_CHARACTERS = "?/,";
 
     // Utility class should not have public constructor
-    private UrlEncoder() {}
+    private UrlEncoder() {
+    }
 
     public static String queryEncode(final String value) {
         return componentEncode(value);

@@ -28,19 +28,19 @@ import java.io.Serializable;
 public class Authentication implements Serializable {
 
     @Option
-    @Documentation("")
+    @Documentation("Request authentication type.")
     private Authorization.AuthorizationType type = Authorization.AuthorizationType.NoAuth;
 
     @Option
     @ActiveIf(target = "type", value = { "Basic", "Digest" })
-    @Documentation("")
+    @Documentation("Login/password authentication")
     private Basic basic;
 
     @Option
     @Credential
     @ActiveIf(target = "type", value = "Bearer")
     @DefaultValue("")
-    @Documentation("")
+    @Documentation("Bearer token.")
     private String bearerToken;
 
 }

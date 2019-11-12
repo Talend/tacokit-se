@@ -12,32 +12,31 @@
  */
 package org.talend.components.rest.configuration;
 
-import java.io.Serializable;
-
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import lombok.Data;
+import java.io.Serializable;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @GridLayout({ @GridLayout.Row({ "key", "value" }) })
-@Documentation("")
+@Documentation("Parameters configuration.")
 public class Param implements Serializable {
 
     @Option
     @Required
-    @Documentation("")
+    @Documentation("Name of the parameter.")
     private String key;
 
     @Option
     @Required
-    @Documentation("")
+    @Documentation("Value of the parameter.")
     private String value;
 
 }
