@@ -36,7 +36,7 @@ public interface Client extends HttpClient {
     @Request
     @UseConfigurer(RestConfigurer.class)
     @Codec(encoder = { RequestEncoder.class })
-    Response<byte[]> execute(@ConfigurerOption("configuration") RequestConfig config,
+    Response<byte[]> execute(@ConfigurerOption("i18n") I18n i18n, @ConfigurerOption("configuration") RequestConfig config,
             @ConfigurerOption("httpClient") Client httpClient, // Needed to do intermediate call for example to get oauth token
             @HttpMethod String httpMethod, @Url String url, @Headers Map<String, String> headers,
             @QueryParams(/* default encode = true */) Map<String, String> queryParams, Body body);
@@ -44,7 +44,8 @@ public interface Client extends HttpClient {
     @Request
     @UseConfigurer(RestConfigurer.class)
     @Codec(encoder = { RequestEncoder.class })
-    Response<byte[]> executeWithBasicAuth(@ConfigurerOption(BasicAuthConfigurer.BASIC_CONTEXT_CONF) UserNamePassword context,
+    Response<byte[]> executeWithBasicAuth(@ConfigurerOption("i18n") I18n i18n,
+            @ConfigurerOption(BasicAuthConfigurer.BASIC_CONTEXT_CONF) UserNamePassword context,
             @ConfigurerOption("configuration") RequestConfig config, @ConfigurerOption("httpClient") Client httpClient,
             @HttpMethod String httpMethod, @Url String url, @Headers Map<String, String> headers,
             @QueryParams(/* default encode = true */) Map<String, String> queryParams, Body body);
@@ -52,7 +53,8 @@ public interface Client extends HttpClient {
     @Request
     @UseConfigurer(RestConfigurer.class)
     @Codec(encoder = { RequestEncoder.class })
-    Response<byte[]> executeWithBearerAuth(@ConfigurerOption(BearerAuthConfigurer.BEARER_TOKEN_CONF) String token,
+    Response<byte[]> executeWithBearerAuth(@ConfigurerOption("i18n") I18n i18n,
+            @ConfigurerOption(BearerAuthConfigurer.BEARER_TOKEN_CONF) String token,
             @ConfigurerOption("configuration") RequestConfig config, @ConfigurerOption("httpClient") Client httpClient,
             @HttpMethod String httpMethod, @Url String url, @Headers Map<String, String> headers,
             @QueryParams(/* default encode = true */) Map<String, String> queryParams, Body body);
@@ -60,7 +62,8 @@ public interface Client extends HttpClient {
     @Request
     @UseConfigurer(RestConfigurer.class)
     @Codec(encoder = { RequestEncoder.class })
-    Response<byte[]> executeWithDigestAuth(@ConfigurerOption(DigestAuthConfigurer.DIGEST_CONTEXT_CONF) DigestAuthContext context,
+    Response<byte[]> executeWithDigestAuth(@ConfigurerOption("i18n") I18n i18n,
+            @ConfigurerOption(DigestAuthConfigurer.DIGEST_CONTEXT_CONF) DigestAuthContext context,
             @ConfigurerOption("configuration") RequestConfig config, @ConfigurerOption("httpClient") Client httpClient,
             @HttpMethod String httpMethod, @Url String url, @Headers Map<String, String> headers,
             @QueryParams(/* default encode = true */) Map<String, String> queryParams, Body body);

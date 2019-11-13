@@ -105,7 +105,8 @@ public class ClientTestWithHttpbinTest {
         assertEquals(service.buildUrl(config, Collections.emptyMap()), bodyJson.getString("url"));
 
         JsonObject headersJson = bodyJson.getJsonObject("headers");
-        assertEquals((new URL(HTTPBIN_BASE)).getHost(), headersJson.getString("Host"));
+        URL base = new URL(HTTPBIN_BASE);
+        assertEquals(base.getHost()+":"+base.getPort(), headersJson.getString("Host"));
     }
 
     /**
@@ -137,7 +138,8 @@ public class ClientTestWithHttpbinTest {
         JsonObject payload = payloadReader.readObject();
 
         assertEquals(0, payload.getJsonObject("args").size());
-        assertEquals((new URL(HTTPBIN_BASE)).getHost(), payload.getJsonObject("headers").getString("Host"));
+        URL base = new URL(HTTPBIN_BASE);
+        assertEquals(base.getHost()+":"+base.getPort(), payload.getJsonObject("headers").getString("Host"));
 
     }
 

@@ -67,6 +67,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @WithComponents(value = "org.talend.components.rest")
 public class ClientTestWithEmbededServerTest {
 
+    private final static int CONNECTION_TIMEOUT = Integer.valueOf(System.getProperty(
+            "org.talend.components.rest.service.ClientTestWithEmbededServerTest.connection_timeout", String.valueOf(30000)));
+
+    private final static int READ_TIMEOUT = Integer.valueOf(System.getProperty(
+            "org.talend.components.rest.service.ClientTestWithEmbededServerTest.read_timeout", String.valueOf(120000)));
+
     @Service
     RestService service;
 
@@ -91,6 +97,9 @@ public class ClientTestWithEmbededServerTest {
 
         config = RequestConfigBuilderTest.getEmptyRequestConfig();
         config.getDataset().getDatastore().setBase("http://localhost");
+
+        config.getDataset().getDatastore().setReadTimeout(CONNECTION_TIMEOUT);
+        config.getDataset().getDatastore().setReadTimeout(READ_TIMEOUT);
 
         // start server
         server = HttpServer.create(new InetSocketAddress(0), 0);
@@ -223,13 +232,15 @@ public class ClientTestWithEmbededServerTest {
             "POST,true,7,302,GET", "PUT,true,8,302,GET", "GET,false,3,303,GET", "POST,false,3,303,GET",
             "DELETE,false,3,303,GET" })
     void testForceGetOnRedirect(final String method, final boolean forceGet, final int nbRedirect, final int redirectCode,
-            final String expectedMethod) throws IOException {
+            final String expectedMethod) {
         final List<ClientTestWithEmbededServerTest.Request> calls = new ArrayList<>();
         final AtomicInteger counter = new AtomicInteger(0);
 
         this.setServerContextAndStart(httpExchange -> {
+
             calls.add(new ClientTestWithEmbededServerTest.Request(httpExchange.getRequestMethod(),
                     httpExchange.getRequestURI().toASCIIString()));
+
             httpExchange.getResponseHeaders().add("Location",
                     "http://localhost:" + port + "/redirection/" + counter.getAndIncrement());
 
@@ -240,6 +251,7 @@ public class ClientTestWithEmbededServerTest {
                 body = "Done.".getBytes();
                 code = 200;
             }
+
             httpExchange.sendResponseHeaders(code, body.length);
             OutputStream os = httpExchange.getResponseBody();
             os.write(body);

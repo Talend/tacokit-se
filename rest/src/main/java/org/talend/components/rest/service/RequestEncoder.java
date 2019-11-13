@@ -13,14 +13,16 @@
 package org.talend.components.rest.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.http.Encoder;
 
 @Slf4j
 public class RequestEncoder implements Encoder {
 
-    @Service
-    private I18n i18n;
+    private final I18n i18n;
+
+    public RequestEncoder(final I18n i18n) {
+        this.i18n = i18n;
+    }
 
     @Override
     public byte[] encode(final Object value) {
@@ -35,7 +37,8 @@ public class RequestEncoder implements Encoder {
         Body body = Body.class.cast(value);
 
         byte[] content = body.getContent();
-        log.debug("Body content length: " + content.length);
+
+        log.debug(i18n.bodyContentLength(content.length));
 
         return content;
     }

@@ -117,8 +117,7 @@ public class RestService {
 
         Response<byte[]> resp = null;
 
-        log.info("Request to {} with authentication type {}", surl,
-                config.getDataset().getDatastore().getAuthentication().getType().toString());
+        log.info(i18n.request(surl, config.getDataset().getDatastore().getAuthentication().getType().toString()));
 
         if (config.getDataset().getDatastore().getAuthentication().getType() == Authorization.AuthorizationType.Digest) {
             try {
@@ -128,7 +127,7 @@ public class RestService {
                         url.getHost(), url.getPort(), body == null ? null : body.getContent(),
                         new UserNamePassword(config.getDataset().getDatastore().getAuthentication().getBasic().getUsername(),
                                 config.getDataset().getDatastore().getAuthentication().getBasic().getPassword()));
-                resp = das.call(context, () -> client.executeWithDigestAuth(context, config, client,
+                resp = das.call(context, () -> client.executeWithDigestAuth(i18n, context, config, client,
                         previousRedirectContext.getMethod(), surl, headers, queryParams, body));
             } catch (MalformedURLException e) {
                 throw new IllegalArgumentException(i18n.malformedURL(surl, e.getMessage()));
@@ -137,14 +136,14 @@ public class RestService {
             UserNamePassword credential = new UserNamePassword(
                     config.getDataset().getDatastore().getAuthentication().getBasic().getUsername(),
                     config.getDataset().getDatastore().getAuthentication().getBasic().getPassword());
-            resp = client.executeWithBasicAuth(credential, config, client, previousRedirectContext.getMethod(), surl, headers,
-                    queryParams, body);
+            resp = client.executeWithBasicAuth(i18n, credential, config, client, previousRedirectContext.getMethod(), surl,
+                    headers, queryParams, body);
         } else if (config.getDataset().getDatastore().getAuthentication().getType() == Authorization.AuthorizationType.Bearer) {
             String token = config.getDataset().getDatastore().getAuthentication().getBearerToken();
-            resp = client.executeWithBearerAuth(token, config, client, previousRedirectContext.getMethod(), surl, headers,
+            resp = client.executeWithBearerAuth(i18n, token, config, client, previousRedirectContext.getMethod(), surl, headers,
                     queryParams, body);
         } else {
-            resp = client.execute(config, client, previousRedirectContext.getMethod(), surl, headers, queryParams, body);
+            resp = client.execute(i18n, config, client, previousRedirectContext.getMethod(), surl, headers, queryParams, body);
         }
 
         if (config.getDataset().supportRedirect()) {
@@ -154,7 +153,7 @@ public class RestService {
             rctx = rs.call(rctx);
 
             if (rctx.isRedirect()) {
-                log.debug("{} redirection(s) already followed, redirect to {}.", rctx.getNbRedirect(), rctx.getNextUrl());
+                log.debug(i18n.redirect(rctx.getNbRedirect(), rctx.getNextUrl()));
                 resp = this.call(config, headers, queryParams, body, rctx.getNextUrl(), rctx);
             }
         }
@@ -194,7 +193,7 @@ public class RestService {
         Record.Builder builder = recordBuilderFactory.newRecordBuilder();
 
         final int status = resp.status();
-        log.info("Request status {}", status);
+        log.info(i18n.requestStatus(status));
         builder.withInt("status", status);
 
         if (resp.headers() == null) {
@@ -236,7 +235,7 @@ public class RestService {
             HttpURLConnection conn = (HttpURLConnection) new URL(datastore.getBase()).openConnection();
             conn.setRequestMethod("GET");
             final int status = conn.getResponseCode();
-            log.info("Health check status to {} : {}", datastore.getBase(), status);
+            log.info(i18n.healthCheckStatus(datastore.getBase(), status));
             if (status == HttpURLConnection.HTTP_OK) {
                 return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18n.healthCheckOk());
             }
@@ -245,7 +244,7 @@ public class RestService {
             final StringWriter sw = new StringWriter();
             final PrintWriter pw = new PrintWriter(sw);
             e.printStackTrace(pw);
-            log.debug("Health check has generated an exception: {}", sw.toString());
+            log.debug(i18n.healthChecException(sw.toString()));
         }
 
         return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.healthCheckFailed(datastore.getBase()));

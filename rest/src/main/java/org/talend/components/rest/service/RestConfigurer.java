@@ -25,15 +25,18 @@ public class RestConfigurer implements Configurer {
     @Override
     public void configure(final Connection connection, final ConfigurerConfiguration configuration) {
         final RequestConfig config = configuration.get("configuration", RequestConfig.class);
-        final Client client = configuration.get("httpClient", Client.class);
+        final I18n i18n = configuration.get("i18n", I18n.class);
+
+        // we use our own redirection implmementation
+        connection.withoutFollowRedirects();
 
         // Set timeout
         if (config.getDataset().getDatastore().getConnectionTimeout() != null) {
-            log.debug("Connection timeout set to {}", config.getDataset().getDatastore().getConnectionTimeout());
+            log.debug(i18n.setConnectionTimeout(config.getDataset().getDatastore().getConnectionTimeout()));
             connection.withConnectionTimeout(config.getDataset().getDatastore().getConnectionTimeout());
         }
         if (config.getDataset().getDatastore().getReadTimeout() != null) {
-            log.debug("Read timeout set to {}", config.getDataset().getDatastore().getReadTimeout());
+            log.debug(i18n.setReadTimeout(config.getDataset().getDatastore().getReadTimeout()));
             connection.withReadTimeout(config.getDataset().getDatastore().getReadTimeout());
         }
 
@@ -45,12 +48,12 @@ public class RestConfigurer implements Configurer {
                         .orElse(null) != null;
                 if (!contentTypeAlreadySet) {
                     final String value = config.getDataset().getBody().getType().getContentType();
-                    log.info("Add header {} with {}.", ContentType.HEADER_KEY, value);
+                    log.info(i18n.addContentTypeHeader(ContentType.HEADER_KEY, value));
                     connection.withHeader(ContentType.HEADER_KEY, value);
                 }
             } else {
                 String contentType = config.getDataset().getBody().getType().getContentType();
-                log.info("Add header {} with {}.", ContentType.HEADER_KEY, contentType);
+                log.info(i18n.addContentTypeHeader(ContentType.HEADER_KEY, contentType));
                 connection.withHeader(ContentType.HEADER_KEY, contentType);
             }
         }

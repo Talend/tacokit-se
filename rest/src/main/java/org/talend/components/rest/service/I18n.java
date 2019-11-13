@@ -17,6 +17,10 @@ import org.talend.sdk.component.api.internationalization.Internationalized;
 @Internationalized
 public interface I18n {
 
+    String healthCheckStatus(final String url, final int code);
+
+    String healthChecException(final String trace);
+
     String healthCheckOk();
 
     String healthCheckFailed(final String URL);
@@ -25,4 +29,17 @@ public interface I18n {
 
     String badRequestBody(final String type);
 
+    String requestStatus(final int status);
+
+    String redirect(final int nbRedirect, final String url);
+
+    String request(final String url, final String authentication);
+
+    String bodyContentLength(final int length);
+
+    String setConnectionTimeout(final int timeout);
+
+    String setReadTimeout(final int timeout);
+
+    String addContentTypeHeader(final String name, final String value);
 }
