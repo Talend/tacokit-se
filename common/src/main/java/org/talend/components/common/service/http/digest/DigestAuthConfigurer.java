@@ -20,6 +20,9 @@ import java.util.Optional;
 @Slf4j
 public class DigestAuthConfigurer implements Configurer {
 
+    private final static String AUTHORIZATION_HEADER = System
+            .getProperty("org.talend.components.common.service.http.digest.authorization_header", "Authorization");
+
     public final static String DIGEST_CONTEXT_CONF = "digestContext";
 
     @Override
@@ -30,7 +33,7 @@ public class DigestAuthConfigurer implements Configurer {
         Optional<String> digestAuthHeader = Optional.ofNullable(context.getDigestAuthHeader());
         digestAuthHeader.ifPresent(v -> {
             log.debug("Set Authorization header with digest");
-            connection.withHeader("Authorization", v);
+            connection.withHeader(AUTHORIZATION_HEADER, v);
         });
     }
 

@@ -111,13 +111,14 @@ public class DigestScheme {
 
         final String uri = context.getUri();
         final String method = context.getMethod();
-        final String realm = Optional.ofNullable(pairs.get("realm").getValue())
+        final String realm = Optional.ofNullable(pairs.get("realm")).map(m -> m.getValue())
                 .orElseThrow(() -> new AuthenticationException("No realm value in digest authentication challenge."));
-        final String nonce = Optional.ofNullable(pairs.get("nonce").getValue())
-                .orElse("No nonce value in digest authentication challenge.");
-        final String opaque = Optional.ofNullable(pairs.get("opaque").getValue())
-                .orElse("No opaque value in digest authentication challenge.");
-        String algorithm = Optional.ofNullable(pairs.get("algorithm").getValue()).orElse("MD5");
+
+        final String nonce = Optional.ofNullable(pairs.get("nonce")).map(m -> m.getValue())
+                .orElseThrow(() -> new AuthenticationException("No nonce value in digest authentication challenge."));
+
+        final String opaque = Optional.ofNullable(pairs.get("opaque")).map(m -> m.getValue()).orElse(null);
+        String algorithm = Optional.ofNullable(pairs.get("algorithm")).map(m -> m.getValue()).orElse("MD5");
 
         final Set<String> qopset = new HashSet<>(8);
         int qop = QOP_UNKNOWN;
