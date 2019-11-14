@@ -42,7 +42,11 @@ public class SnowflakeInsert extends Insert {
             final String fqTableName = namespace(connection) + "." + getPlatform().identifier(tableName);
             final String fqStageName = namespace(connection) + ".%" + getPlatform().identifier(tableName);
             rejects.addAll(putAndCopy(connection, records, fqStageName, fqTableName));
-            connection.commit();
+            if (rejects.isEmpty()) {
+                connection.commit();
+            } else {
+                connection.rollback();
+            }
         }
         return rejects;
     }
