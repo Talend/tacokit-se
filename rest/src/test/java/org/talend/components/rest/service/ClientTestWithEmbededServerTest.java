@@ -23,10 +23,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.talend.components.rest.configuration.Dataset;
+import org.talend.components.rest.configuration.Datastore;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestBody;
 import org.talend.components.rest.configuration.RequestConfig;
+import org.talend.sdk.component.api.configuration.type.DataSet;
+import org.talend.sdk.component.api.configuration.type.DataStore;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
@@ -432,20 +436,25 @@ public class ClientTestWithEmbededServerTest {
             os.close();
         });
 
-        config.getDataset().getDatastore().setBase("http://localhost:" + port);
-        config.getDataset().setMethodType(HttpMethod.POST);
+        final RequestConfig minimalConfig = new RequestConfig();
+        final Dataset dse = new Dataset();
+        final Datastore dso = new Datastore();
+        dse.setDatastore(dso);
+        minimalConfig.setDataset(dse);
 
-        HealthCheckStatus healthCheckStatus = service.healthCheck(config.getDataset().getDatastore());
+        minimalConfig.getDataset().getDatastore().setBase("http://localhost:" + port);
+
+        HealthCheckStatus healthCheckStatus = service.healthCheck(minimalConfig.getDataset().getDatastore());
         assertEquals(HealthCheckStatus.Status.OK, healthCheckStatus.getStatus());
 
-        config.getDataset().getDatastore().setBase("http://localhost:" + port);
+        minimalConfig.getDataset().getDatastore().setBase("http://localhost:" + port);
         code.set(403); // Force server to return 403
-        healthCheckStatus = service.healthCheck(config.getDataset().getDatastore());
+        healthCheckStatus = service.healthCheck(minimalConfig.getDataset().getDatastore());
         assertEquals(HealthCheckStatus.Status.KO, healthCheckStatus.getStatus());
 
-        config.getDataset().getDatastore().setBase("http://<>{}   localhost:");
+        minimalConfig.getDataset().getDatastore().setBase("http://<>{}   localhost:");
         code.set(200); // Force server to return 403
-        healthCheckStatus = service.healthCheck(config.getDataset().getDatastore());
+        healthCheckStatus = service.healthCheck(minimalConfig.getDataset().getDatastore());
         assertEquals(HealthCheckStatus.Status.KO, healthCheckStatus.getStatus());
     }
 

@@ -234,6 +234,9 @@ public class RestService {
         try {
             HttpURLConnection conn = (HttpURLConnection) new URL(datastore.getBase()).openConnection();
             conn.setRequestMethod("GET");
+            conn.setConnectTimeout(datastore.getConnectionTimeout());
+            conn.setReadTimeout(datastore.getReadTimeout());
+            conn.connect();
             final int status = conn.getResponseCode();
             log.info(i18n.healthCheckStatus(datastore.getBase(), status));
             if (status == HttpURLConnection.HTTP_OK) {
