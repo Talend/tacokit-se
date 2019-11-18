@@ -65,9 +65,8 @@ public class Body {
     }
 
     private byte[] xwwwformStrategy() {
-        return Base64.getUrlEncoder().encode(
-                encode(conf.getParams().stream().map(param -> param.getKey() + "=" + queryEncode(substitute(param.getValue())))
-                        .collect(Collectors.joining("&"))));
+        return encode(conf.getParams().stream().map(param -> param.getKey() + "=" + queryEncode(substitute(param.getValue())))
+                                .collect(Collectors.joining("&")));
     }
 
     private byte[] formDataStrategy() {

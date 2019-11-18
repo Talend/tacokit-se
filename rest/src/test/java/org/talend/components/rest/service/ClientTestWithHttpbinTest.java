@@ -371,4 +371,24 @@ public class ClientTestWithHttpbinTest {
         assertEquals(form.getString("form_data_2"), "<000 002");
     }
 
+    @Test
+    void testBodyXwwwformURLEncoded(){
+        config.getDataset().setHasBody(true);
+
+        RequestBody body = new RequestBody();
+        body.setType(RequestBody.Type.X_WWW_FORM_URLENCODED);
+        body.setParams(Arrays.asList(new Param("form_data_1", "<000 001"), new Param("form_data_2", "<000 002")));
+        config.getDataset().setBody(body);
+        config.getDataset().setMethodType(HttpMethod.POST);
+        config.getDataset().setResource("post");
+
+        Record resp = service.execute(config);
+        JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(resp.getString("body")));
+        JsonObject payload = payloadReader.readObject();
+        JsonObject form = payload.getJsonObject("form");
+
+        assertEquals(form.getString("form_data_1"), "<000 001");
+        assertEquals(form.getString("form_data_2"), "<000 002");
+    }
+
 }
