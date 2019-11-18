@@ -128,10 +128,12 @@ public class RestServiceTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = { "http://www.domain.com,,http://www.domain.com", "http://www.domain.com/,,http://www.domain.com/",
-            "http://www.domain.com,get,http://www.domain.com/get", "http://www.domain.com/,get,http://www.domain.com/get",
-            "http://www.domain.com,/get,http://www.domain.com/get",
-            "   http://www.domain.com/ ,  /get ,http://www.domain.com//get", })
+    @CsvSource(value = { "http://www.domain.com,,http://www.domain.com",
+                        "http://www.domain.com/,,http://www.domain.com/",
+                        "http://www.domain.com,get,http://www.domain.com/get",
+                        "http://www.domain.com/,get,http://www.domain.com/get",
+                        "http://www.domain.com,/get,http://www.domain.com/get",
+                        "   http://www.domain.com/ ,  /get ,http://www.domain.com//get", })
     void buildUrl(final String base, final String resource, final String expected) {
         config.getDataset().getDatastore().setBase(base);
         config.getDataset().setResource(resource == null ? "   " : resource);

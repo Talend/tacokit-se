@@ -29,8 +29,6 @@ import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestBody;
 import org.talend.components.rest.configuration.RequestConfig;
-import org.talend.sdk.component.api.configuration.type.DataSet;
-import org.talend.sdk.component.api.configuration.type.DataStore;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;

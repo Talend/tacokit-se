@@ -13,6 +13,7 @@
 package org.talend.components.rest.configuration;
 
 import lombok.Data;
+import org.talend.components.rest.service.Body;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -90,7 +91,7 @@ public class RequestBody implements Serializable {
         TEXT("text/plain"),
         JSON("application/json"),
         XML("text/xml"),
-        FORM_DATA("multipart/form-data"),
+        FORM_DATA("multipart/form-data; boundary="+ Body.BODY_FORMADATA_BOUNDARY),
         X_WWW_FORM_URLENCODED("application/x-www-form-urlencoded");
 
         private final String contentType;

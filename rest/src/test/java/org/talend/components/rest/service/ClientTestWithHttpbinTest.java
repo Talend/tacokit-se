@@ -20,6 +20,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
+import org.talend.components.rest.configuration.RequestBody;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.configuration.auth.Authentication;
 import org.talend.components.rest.configuration.auth.Authorization;
@@ -34,14 +35,19 @@ import org.talend.sdk.component.junit5.WithComponents;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -343,6 +349,26 @@ public class ClientTestWithHttpbinTest {
         Record resp = service.execute(config);
 
         assertEquals(200, resp.getInt("status"));
+    }
+
+    @Test
+    void testBodyFormData(){
+        config.getDataset().setHasBody(true);
+
+        RequestBody body = new RequestBody();
+        body.setType(RequestBody.Type.FORM_DATA);
+        body.setParams(Arrays.asList(new Param("form_data_1", "<000 001"), new Param("form_data_2", "<000 002")));
+        config.getDataset().setBody(body);
+        config.getDataset().setMethodType(HttpMethod.POST);
+        config.getDataset().setResource("post");
+
+        Record resp = service.execute(config);
+        JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(resp.getString("body")));
+        JsonObject payload = payloadReader.readObject();
+        JsonObject form = payload.getJsonObject("form");
+
+        assertEquals(form.getString("form_data_1"), "<000 001");
+        assertEquals(form.getString("form_data_2"), "<000 002");
     }
 
 }
