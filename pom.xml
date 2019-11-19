@@ -411,6 +411,13 @@
                 <version>${component-runtime.version}</version>
                 <executions>
                     <execution>
+                        <id>talend-dita-documentation</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>dita</goal>
+                        </goals>
+                    </execution>
+                    <execution>
                         <id>talend-dependencies</id>
                         <phase>process-classes</phase>
                         <goals>
