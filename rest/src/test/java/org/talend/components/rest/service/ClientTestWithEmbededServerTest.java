@@ -17,6 +17,7 @@ import com.sun.net.httpserver.HttpServer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.beam.vendor.grpc.v1p13p1.com.google.api.Http;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -468,7 +469,29 @@ public class ClientTestWithEmbededServerTest {
         assertEquals(expected, "" + ContentType.getCharsetName(headers));
     }
 
-    @Data
+    @Test
+    void testGetWithBody() {
+
+        AtomicReference<String> verb = new AtomicReference<>();
+        this.setServerContextAndStart(httpExchange -> {
+            verb.set(httpExchange.getRequestMethod());
+            httpExchange.sendResponseHeaders(200, 0);
+            OutputStream os = httpExchange.getResponseBody();
+            os.write(new byte[0]);
+            os.close();
+        });
+
+        config.getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().getBody().setType(RequestBody.Type.TEXT);
+        config.getDataset().getBody().setTextContent("Not empty");
+        config.getDataset().setHasBody(true);
+
+        Record resp = service.execute(config);
+        assertEquals(HttpMethod.GET.toString(), verb.get());
+    }
+
+        @Data
     @AllArgsConstructor
     private final static class Request {
 
