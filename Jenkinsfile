@@ -229,20 +229,20 @@ spec:
 						    echo Trying to release \${release_version} from \${pre_release_version}
 						    # check for snapshot
 						    if [[ \$pre_release_version != *'-SNAPSHOT' ]]; then
-                                echo Cannot release from a non SNAPSHOT, exiting.
-                                exit
+                                                       echo Cannot release from a non SNAPSHOT, exiting.
+                                                       exit
 						    fi
 						    # prepare release
 						    mvn -B -s .jenkins/settings.xml release:clean release:prepare
 						    if [[ ! \$? -eq 0 ]] ; then
-                                echo Last process did not finished correctly, exiting.
-                                exit
+                                                       echo Last process did not finished correctly, exiting.
+                                                       exit
 						    fi
 						    # perform release
 						    mvn -B -s .jenkins/settings.xml -Darguments='-Dmaven.javadoc.skip=true' release:perform
 						    if [[ ! \$? -eq 0 ]] ; then
-                                echo Last process did not finished correctly, exiting.
-                                exit
+                                                       echo Last process did not finished correctly, exiting.
+                                                       exit
 						    fi
 						    # push changes and tag
 						    git push origin release/\${release_version}
