@@ -16,6 +16,13 @@
   <description>Suite of Azure Event Hubs</description>
 
   <dependencies>
+    <!-- traductions -->
+    <dependency>
+      <groupId>org.talend.locales.connectors-se</groupId>
+      <artifactId>azure-eventhubs</artifactId>
+      <version>${locales.version}</version>
+    </dependency>
+
   <dependency>
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-eventhubs</artifactId>

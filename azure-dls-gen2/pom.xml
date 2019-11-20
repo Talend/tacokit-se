@@ -21,6 +21,13 @@
     </properties>
 
     <dependencies>
+        <!-- traductions -->
+        <dependency>
+            <groupId>org.talend.locales.connectors-se</groupId>
+            <artifactId>azure-dls-gen2</artifactId>
+            <version>${locales.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
