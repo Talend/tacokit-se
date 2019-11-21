@@ -32,27 +32,27 @@ public class RequestConfig implements Serializable {
     private Dataset dataset;
 
     public Map<String, String> pathParams() {
-        if (!getDataset().getHasPathParams()) {
+        if (!getDataset().getHasPathParams() || getDataset().getPathParams() == null) {
             return Collections.emptyMap();
         }
 
-        return dataset.getPathParams().stream().collect(toMap(Param::getKey, Param::getValue));
+        return dataset.getPathParams().stream().filter(p -> p.getKey() != null && p.getValue() != null).filter(p -> !p.getKey().isEmpty() || !p.getValue().isEmpty()).collect(toMap(Param::getKey, Param::getValue));
     }
 
     public Map<String, String> queryParams() {
-        if (!getDataset().getHasQueryParams()) {
+        if (!getDataset().getHasQueryParams() || getDataset().getQueryParams() == null) {
             return Collections.emptyMap();
         }
 
-        return dataset.getQueryParams().stream().collect(toMap(Param::getKey, Param::getValue));
+        return dataset.getQueryParams().stream().filter(p -> p.getKey() != null && p.getValue() != null).filter(p -> !p.getKey().isEmpty() || !p.getValue().isEmpty()).collect(toMap(Param::getKey, Param::getValue));
     }
 
     public Map<String, String> headers() {
-        if (!getDataset().getHasHeaders()) {
+        if (!getDataset().getHasHeaders() || getDataset().getHeaders() == null) {
             return Collections.emptyMap();
         }
 
-        return Collections.unmodifiableMap(dataset.getHeaders().stream().collect(toMap(Param::getKey, Param::getValue)));
+        return Collections.unmodifiableMap(dataset.getHeaders().stream().filter(p -> p.getKey() != null && p.getValue() != null).filter(p -> !p.getKey().isEmpty() || !p.getValue().isEmpty()).collect(toMap(Param::getKey, Param::getValue)));
     }
 
 }

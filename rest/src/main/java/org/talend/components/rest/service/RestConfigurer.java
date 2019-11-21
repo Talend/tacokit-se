@@ -27,9 +27,6 @@ public class RestConfigurer implements Configurer {
         final RequestConfig config = configuration.get("configuration", RequestConfig.class);
         final I18n i18n = configuration.get("i18n", I18n.class);
 
-        // we use our own redirection implmementation
-        //connection.withoutFollowRedirects();
-
         // Set timeout
         if (config.getDataset().getDatastore().getConnectionTimeout() != null) {
             log.debug(i18n.setConnectionTimeout(config.getDataset().getDatastore().getConnectionTimeout()));

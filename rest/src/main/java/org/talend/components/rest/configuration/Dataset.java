@@ -78,7 +78,7 @@ public class Dataset implements Serializable {
 
     @Option
     @ActiveIf(target = "hasPathParams", value = "true")
-    @Documentation("URL parameters.")
+    @Documentation("Path parameters.")
     private List<Param> pathParams = new ArrayList<>(Collections.singleton(new Param("", "")));
 
     @Option

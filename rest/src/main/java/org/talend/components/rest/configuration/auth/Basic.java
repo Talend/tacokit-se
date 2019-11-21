@@ -31,7 +31,7 @@ public class Basic implements Authorization, Serializable {
 
     @Option
     @Credential
-    @Documentation("password for authentication")
+    @Documentation("Password for authentication")
     private String password;
 
 }

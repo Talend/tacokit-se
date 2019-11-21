@@ -2,7 +2,6 @@ package org.talend.components.rest.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.configuration.auth.Authentication;
@@ -11,10 +10,12 @@ import org.talend.components.rest.configuration.auth.Basic;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
-import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 
+import java.util.Collections;
+
+import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /*
@@ -24,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 @Slf4j
 @WithComponents(value = "org.talend.components.rest")
-@HttpApi(useSsl = true)
+//@HttpApi(useSsl = true)
 public class ClientTestWithMockProxy {
 
     @Injected
@@ -37,9 +38,6 @@ public class ClientTestWithMockProxy {
 
     @BeforeEach
     void before() {
-        // Inject needed services
-        handler.injectServices(this);
-
         config = RequestConfigBuilderTest.getEmptyRequestConfig();
     }
 
@@ -66,6 +64,5 @@ public class ClientTestWithMockProxy {
         Record resp = service.execute(config);
         assertEquals(200, resp.getInt("status"));
     }
-
 
 }

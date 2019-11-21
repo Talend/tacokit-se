@@ -21,6 +21,7 @@ import org.talend.components.common.service.http.digest.DigestAuthContext;
 import org.talend.components.common.service.http.digest.DigestAuthService;
 import org.talend.components.common.text.Substitutor;
 import org.talend.components.rest.configuration.Datastore;
+import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.configuration.auth.Authorization;
 import org.talend.sdk.component.api.configuration.Option;
@@ -38,6 +39,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -90,6 +92,20 @@ public class RestService {
         final Substitutor substitutor = new RecordSubstitutor(PARAMETERS_SUBSTITUTOR_PREFIX, PARAMETERS_SUBSTITUTOR_SUFFIX,
                 record, recordPointerFactory);
 
+        // Check if there are some duplicate keys in given parameters
+        if(!checkDuplicates(config.getDataset().getHeaders())){
+            throw new IllegalStateException(i18n.duplicateKeys(i18n.headers()));
+        }
+        if(!checkDuplicates(config.getDataset().getQueryParams())){
+            throw new IllegalStateException(i18n.duplicateKeys(i18n.queryParameters()));
+        }
+        if(!checkDuplicates(config.getDataset().getPathParams())){
+            throw new IllegalStateException(i18n.duplicateKeys(i18n.pathParameters()));
+        }
+        if(config.getDataset().getBody() != null && !checkDuplicates(config.getDataset().getBody().getParams())){
+            throw new IllegalStateException(i18n.duplicateKeys(i18n.bodyParameters()));
+        }
+
         final Map<String, String> headers = updateParamsFromRecord(config.headers(), substitutor);
         final Map<String, String> queryParams = updateParamsFromRecord(config.queryParams(), substitutor);
         final Map<String, String> pathParams = updateParamsFromRecord(config.pathParams(), substitutor);
@@ -119,42 +135,53 @@ public class RestService {
 
         log.info(i18n.request(surl, config.getDataset().getDatastore().getAuthentication().getType().toString()));
 
-        if (config.getDataset().getDatastore().getAuthentication().getType() == Authorization.AuthorizationType.Digest) {
-            try {
-                URL url = new URL(surl);
-                DigestAuthService das = new DigestAuthService();
-                DigestAuthContext context = new DigestAuthContext(url.getPath(), config.getDataset().getMethodType().name(),
-                        url.getHost(), url.getPort(), body == null ? null : body.getContent(),
-                        new UserNamePassword(config.getDataset().getDatastore().getAuthentication().getBasic().getUsername(),
-                                config.getDataset().getDatastore().getAuthentication().getBasic().getPassword()));
-                resp = das.call(context, () -> client.executeWithDigestAuth(i18n, context, config, client,
-                        previousRedirectContext.getMethod(), surl, headers, queryParams, body));
-            } catch (MalformedURLException e) {
-                throw new IllegalArgumentException(i18n.malformedURL(surl, e.getMessage()));
+        try {
+            if (config.getDataset().getDatastore().getAuthentication().getType() == Authorization.AuthorizationType.Digest) {
+                try {
+                    URL url = new URL(surl);
+                    DigestAuthService das = new DigestAuthService();
+                    DigestAuthContext context = new DigestAuthContext(url.getPath(), config.getDataset().getMethodType().name(),
+                            url.getHost(), url.getPort(), body == null ? null : body.getContent(),
+                            new UserNamePassword(config.getDataset().getDatastore().getAuthentication().getBasic().getUsername(),
+                                    config.getDataset().getDatastore().getAuthentication().getBasic().getPassword()));
+                    resp = das.call(context, () -> client.executeWithDigestAuth(i18n, context, config, client,
+                            previousRedirectContext.getMethod(), surl, headers, queryParams, body));
+                } catch (MalformedURLException e) {
+                    throw new IllegalArgumentException(i18n.malformedURL(surl, e.getMessage()));
+                }
+            } else if (config.getDataset().getDatastore().getAuthentication().getType() == Authorization.AuthorizationType.Basic) {
+                UserNamePassword credential = new UserNamePassword(
+                        config.getDataset().getDatastore().getAuthentication().getBasic().getUsername(),
+                        config.getDataset().getDatastore().getAuthentication().getBasic().getPassword());
+                resp = client.executeWithBasicAuth(i18n, credential, config, client, previousRedirectContext.getMethod(), surl,
+                        headers, queryParams, body);
+            } else if (config.getDataset().getDatastore().getAuthentication().getType() == Authorization.AuthorizationType.Bearer) {
+                String token = config.getDataset().getDatastore().getAuthentication().getBearerToken();
+                resp = client.executeWithBearerAuth(i18n, token, config, client, previousRedirectContext.getMethod(), surl, headers,
+                        queryParams, body);
+            } else {
+                resp = client.execute(i18n, config, client, previousRedirectContext.getMethod(), surl, headers, queryParams, body);
             }
-        } else if (config.getDataset().getDatastore().getAuthentication().getType() == Authorization.AuthorizationType.Basic) {
-            UserNamePassword credential = new UserNamePassword(
-                    config.getDataset().getDatastore().getAuthentication().getBasic().getUsername(),
-                    config.getDataset().getDatastore().getAuthentication().getBasic().getPassword());
-            resp = client.executeWithBasicAuth(i18n, credential, config, client, previousRedirectContext.getMethod(), surl,
-                    headers, queryParams, body);
-        } else if (config.getDataset().getDatastore().getAuthentication().getType() == Authorization.AuthorizationType.Bearer) {
-            String token = config.getDataset().getDatastore().getAuthentication().getBearerToken();
-            resp = client.executeWithBearerAuth(i18n, token, config, client, previousRedirectContext.getMethod(), surl, headers,
-                    queryParams, body);
-        } else {
-            resp = client.execute(i18n, config, client, previousRedirectContext.getMethod(), surl, headers, queryParams, body);
+
+            if (config.getDataset().supportRedirect()) {
+                // Redirection is managed by RedirectService only if it is not supported by underlying http client implementation
+                RedirectContext rctx = new RedirectContext(resp, previousRedirectContext);
+                RedirectService rs = new RedirectService();
+                rctx = rs.call(rctx);
+
+                if (rctx.isRedirect()) {
+                    log.debug(i18n.redirect(rctx.getNbRedirect(), rctx.getNextUrl()));
+                    resp = this.call(config, headers, queryParams, body, rctx.getNextUrl(), rctx);
+                }
+            }
         }
-
-        if (config.getDataset().supportRedirect()) {
-            // Redirection is managed by RedirectService only if it is not supported by underlying http client implementation
-            RedirectContext rctx = new RedirectContext(resp, previousRedirectContext);
-            RedirectService rs = new RedirectService();
-            rctx = rs.call(rctx);
-
-            if (rctx.isRedirect()) {
-                log.debug(i18n.redirect(rctx.getNbRedirect(), rctx.getNextUrl()));
-                resp = this.call(config, headers, queryParams, body, rctx.getNextUrl(), rctx);
+        catch (IllegalStateException e){
+            if(SocketTimeoutException.class.isInstance(e.getCause())){
+                log.error(i18n.timeout(surl, e.getCause().getMessage()));
+                throw new IllegalStateException(i18n.timeout(surl, e.getCause().getMessage()), e.getCause());
+            }
+            else{
+                throw e;
             }
         }
 
@@ -251,6 +278,19 @@ public class RestService {
         }
 
         return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.healthCheckFailed(datastore.getBase()));
+    }
+
+
+    private boolean checkDuplicates(List<Param> params){
+        if(params == null){
+            return true;
+        }
+
+        if(params.stream().map(Param::getKey).distinct().count() < params.size()){
+            return false;
+        }
+
+        return true;
     }
 
 }

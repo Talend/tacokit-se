@@ -31,11 +31,14 @@ import org.talend.sdk.component.runtime.manager.service.RecordPointerFactoryImpl
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @WithComponents(value = "org.talend.components.rest")
@@ -139,6 +142,34 @@ public class RestServiceTest {
         config.getDataset().setResource(resource == null ? "   " : resource);
         config.getDataset().setHasPathParams(false);
         assertEquals(expected, service.buildUrl(config, Collections.emptyMap()));
+    }
+
+    @Test
+    void paramsFilterEmpty(){
+        config.getDataset().setHasPathParams(true);
+        config.getDataset().setPathParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getDataset().setHasQueryParams(true);
+        config.getDataset().setQueryParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getDataset().setHasHeaders(true);
+        config.getDataset().setHeaders(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+
+        config.pathParams().forEach((k, v) -> {
+            assertTrue(k != null);
+            assertFalse(k.isEmpty() && v.isEmpty());
+        });
+        assertEquals(3, config.pathParams().size());
+
+        config.queryParams().forEach((k, v) -> {
+            assertTrue(k != null);
+            assertFalse(k.isEmpty() && v.isEmpty());
+        });
+        assertEquals(3, config.queryParams().size());
+
+        config.headers().forEach((k, v) -> {
+            assertTrue(k != null);
+            assertFalse(k.isEmpty() && v.isEmpty());
+        });
+        assertEquals(3, config.headers().size());
     }
 
 }

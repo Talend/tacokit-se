@@ -42,4 +42,17 @@ public interface I18n {
     String setReadTimeout(final int timeout);
 
     String addContentTypeHeader(final String name, final String value);
+
+    String timeout(final String url, final String message);
+
+    String duplicateKeys(final String entity);
+
+    String headers();
+
+    String queryParameters();
+
+    String pathParameters();
+
+    String bodyParameters();
+
 }
