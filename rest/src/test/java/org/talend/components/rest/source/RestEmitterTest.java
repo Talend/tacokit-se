@@ -62,7 +62,7 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
         @Property(key = "talend.beam.job.filesToStage", value = ""), @Property(key = "spark.ui.enabled", value = "false") })
 
 @WithComponents(value = "org.talend.components.rest")
-class RestInputTest {
+class RestEmitterTest {
 
     @Injected
     private BaseComponentsHandler handler;
