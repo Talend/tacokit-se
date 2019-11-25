@@ -19,7 +19,9 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -36,7 +38,7 @@ public class RequestConfig implements Serializable {
             return Collections.emptyMap();
         }
 
-        return dataset.getPathParams().stream().filter(p -> p.getKey() != null && p.getValue() != null).filter(p -> !p.getKey().isEmpty() || !p.getValue().isEmpty()).collect(toMap(Param::getKey, Param::getValue));
+        return transformAndFilterParamList(dataset.getPathParams()).collect(toMap(Param::getKey, Param::getValue));
     }
 
     public Map<String, String> queryParams() {
@@ -44,7 +46,7 @@ public class RequestConfig implements Serializable {
             return Collections.emptyMap();
         }
 
-        return dataset.getQueryParams().stream().filter(p -> p.getKey() != null && p.getValue() != null).filter(p -> !p.getKey().isEmpty() || !p.getValue().isEmpty()).collect(toMap(Param::getKey, Param::getValue));
+        return transformAndFilterParamList(dataset.getQueryParams()).collect(toMap(Param::getKey, Param::getValue));
     }
 
     public Map<String, String> headers() {
@@ -52,7 +54,12 @@ public class RequestConfig implements Serializable {
             return Collections.emptyMap();
         }
 
-        return Collections.unmodifiableMap(dataset.getHeaders().stream().filter(p -> p.getKey() != null && p.getValue() != null).filter(p -> !p.getKey().isEmpty() || !p.getValue().isEmpty()).collect(toMap(Param::getKey, Param::getValue)));
+        return Collections.unmodifiableMap(transformAndFilterParamList(dataset.getHeaders()).collect(toMap(Param::getKey, Param::getValue)));
+    }
+
+    public Stream<Param> transformAndFilterParamList(List<Param> params){
+        params.stream().filter(p -> p.getValue() == null).forEach(p -> p.setValue(""));
+        return params.stream().filter(p -> p.getKey() != null).filter(p -> !p.getKey().isEmpty());
     }
 
 }

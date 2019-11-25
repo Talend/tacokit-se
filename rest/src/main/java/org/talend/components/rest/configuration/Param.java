@@ -35,7 +35,6 @@ public class Param implements Serializable {
     private String key;
 
     @Option
-    @Required
     @Documentation("Value of the parameter.")
     private String value;
 

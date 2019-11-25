@@ -20,6 +20,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.talend.components.common.text.Substitutor;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
+import org.talend.components.rest.configuration.RequestBody;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
@@ -152,24 +153,63 @@ public class RestServiceTest {
         config.getDataset().setQueryParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
         config.getDataset().setHasHeaders(true);
         config.getDataset().setHeaders(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getDataset().setHasBody(true);
+        config.getDataset().getBody().setType(RequestBody.Type.FORM_DATA);
+        config.getDataset().getBody().setParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
 
         config.pathParams().forEach((k, v) -> {
             assertTrue(k != null);
-            assertFalse(k.isEmpty() && v.isEmpty());
+            assertFalse(k.isEmpty());
+            assertFalse(v == null);
         });
-        assertEquals(3, config.pathParams().size());
+        assertEquals(4, config.pathParams().size());
 
         config.queryParams().forEach((k, v) -> {
             assertTrue(k != null);
-            assertFalse(k.isEmpty() && v.isEmpty());
+            assertFalse(k.isEmpty());
+            assertFalse(v == null);
         });
-        assertEquals(3, config.queryParams().size());
+        assertEquals(4, config.queryParams().size());
 
         config.headers().forEach((k, v) -> {
             assertTrue(k != null);
-            assertFalse(k.isEmpty() && v.isEmpty());
+            assertFalse(k.isEmpty());
+            assertFalse(v == null);
         });
-        assertEquals(3, config.headers().size());
+        assertEquals(4, config.headers().size());
+
+
+        config.getDataset().getBody().getParams().forEach(p -> {
+            assertTrue(p != null);
+            assertFalse(p.getKey().isEmpty());
+            assertFalse(p.getValue() == null);
+        });
+        assertEquals(4, config.getDataset().getBody().getParams().size());
+    }
+
+    @Test
+    void paramsTransformNullToEmpty(){
+        config.getDataset().setHasPathParams(true);
+        config.getDataset().setPathParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getDataset().setHasQueryParams(true);
+        config.getDataset().setQueryParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getDataset().setHasHeaders(true);
+        config.getDataset().setHeaders(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getDataset().setHasBody(true);
+        config.getDataset().getBody().setType(RequestBody.Type.FORM_DATA);
+        config.getDataset().getBody().setParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+
+        assertEquals("", config.pathParams().get("xxx1"));
+        assertEquals("", config.queryParams().get("xxx1"));
+        assertEquals("", config.headers().get("xxx1"));
+
+        config.getDataset().getBody().getParams().stream().forEach(p -> {
+            assertFalse(p.getValue() == null);
+            if("xxx1".equals(p.getKey())){
+                assertTrue(p.getValue().isEmpty());
+            }
+        });
+
     }
 
 }
