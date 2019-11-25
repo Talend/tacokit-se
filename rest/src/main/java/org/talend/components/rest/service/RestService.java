@@ -93,16 +93,16 @@ public class RestService {
                 record, recordPointerFactory);
 
         // Check if there are some duplicate keys in given parameters
-        if(!checkDuplicates(config.getDataset().getHeaders())){
+        if(!hasNoDuplicates(config.getDataset().getHeaders())){
             throw new IllegalStateException(i18n.duplicateKeys(i18n.headers()));
         }
-        if(!checkDuplicates(config.getDataset().getQueryParams())){
+        if(!hasNoDuplicates(config.getDataset().getQueryParams())){
             throw new IllegalStateException(i18n.duplicateKeys(i18n.queryParameters()));
         }
-        if(!checkDuplicates(config.getDataset().getPathParams())){
+        if(!hasNoDuplicates(config.getDataset().getPathParams())){
             throw new IllegalStateException(i18n.duplicateKeys(i18n.pathParameters()));
         }
-        if(config.getDataset().getBody() != null && !checkDuplicates(config.getDataset().getBody().getParams())){
+        if(config.getDataset().getBody() != null && !hasNoDuplicates(config.getDataset().getBody().getParams())){
             throw new IllegalStateException(i18n.duplicateKeys(i18n.bodyParameters()));
         }
 
@@ -281,7 +281,12 @@ public class RestService {
     }
 
 
-    private boolean checkDuplicates(List<Param> params){
+    /**
+     *
+     * @param params
+     * @return true is no duplicates, false if any duplicates
+     */
+    public boolean hasNoDuplicates(List<Param> params){
         if(params == null){
             return true;
         }
