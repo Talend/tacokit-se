@@ -212,4 +212,14 @@ public class RestServiceTest {
 
     }
 
+    @Test
+    void testHasNoDuplicates(){
+        List<Param> withDuplciates = Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param("xxx1", "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", ""));
+        List<Param> withoutDuplciates = Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param("xxx2", "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", ""));
+
+        assertTrue(service.hasNoDuplicates(null));
+        assertTrue(service.hasNoDuplicates(withoutDuplciates));
+        assertFalse(service.hasNoDuplicates(withDuplciates));
+    }
+
 }
