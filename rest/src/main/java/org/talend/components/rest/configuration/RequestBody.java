@@ -24,6 +24,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @GridLayout({ @GridLayout.Row({ "type" }), @GridLayout.Row({ "textValue" }), @GridLayout.Row({ "jsonValue" }),
@@ -57,6 +58,15 @@ public class RequestBody implements Serializable {
     @ActiveIf(target = "type", value = { "FORM_DATA", "X_WWW_FORM_URLENCODED" })
     @Documentation("")
     private List<Param> params = new ArrayList<>();
+
+    public List<Param> getParams(){
+        if(params == null){
+            return null;
+        }
+
+        params.stream().filter(p -> p.getValue() == null).forEach(p -> p.setValue(""));
+        return params.stream().filter(p -> p.getKey() != null).filter(p -> !p.getKey().isEmpty()).collect(Collectors.toList());
+    }
 
     public void setTextContent(String content) {
         switch (this.getType()) {
