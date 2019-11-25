@@ -133,7 +133,7 @@ public class RestService {
 
         Response<byte[]> resp = null;
 
-        log.info(i18n.request(surl, config.getDataset().getDatastore().getAuthentication().getType().toString()));
+        log.info(i18n.request(config.getDataset().getMethodType().name(), surl, config.getDataset().getDatastore().getAuthentication().getType().toString()));
 
         try {
             if (config.getDataset().getDatastore().getAuthentication().getType() == Authorization.AuthorizationType.Digest) {

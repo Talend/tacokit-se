@@ -33,7 +33,7 @@ public interface I18n {
 
     String redirect(final int nbRedirect, final String url);
 
-    String request(final String url, final String authentication);
+    String request(final String method, final String url, final String authentication);
 
     String bodyContentLength(final int length);
 
