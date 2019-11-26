@@ -14,6 +14,7 @@
     <description>Rest client connector</description>
 
     <properties>
+        <testcontainers.version>1.12.3</testcontainers.version>
     </properties>
 
     <dependencies>
@@ -26,6 +27,12 @@
             <groupId>org.talend.components</groupId>
             <artifactId>connectors-test-bom</artifactId>
             <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

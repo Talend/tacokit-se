@@ -119,10 +119,10 @@ public class ClientTestWithEmbededServerTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {"POST,TEXT,src/test/resources/org/talend/components/rest/body/empty.txt",
+    @CsvSource(value = { "POST,TEXT,src/test/resources/org/talend/components/rest/body/empty.txt",
             "POST,TEXT,src/test/resources/org/talend/components/rest/body/Multilines.txt",
             "POST,JSON,src/test/resources/org/talend/components/rest/body/Example.json",
-            "POST,XML,src/test/resources/org/talend/components/rest/body/Example.xml"})
+            "POST,XML,src/test/resources/org/talend/components/rest/body/Example.xml" })
     void testBody(final String method, final String type, final String filename) throws IOException {
         Path resourceDirectory = Paths.get(filename);
         String content = Files.lines(resourceDirectory).collect(Collectors.joining("\n"));
@@ -170,10 +170,10 @@ public class ClientTestWithEmbededServerTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {"POST,TEXT,src/test/resources/org/talend/components/rest/body/empty.txt",
+    @CsvSource(value = { "POST,TEXT,src/test/resources/org/talend/components/rest/body/empty.txt",
             "POST,TEXT,src/test/resources/org/talend/components/rest/body/Multilines.txt",
             "POST,JSON,src/test/resources/org/talend/components/rest/body/Example.json",
-            "POST,XML,src/test/resources/org/talend/components/rest/body/Example.xml"})
+            "POST,XML,src/test/resources/org/talend/components/rest/body/Example.xml" })
     void testBodyForceContentType(final String method, final String type, final String filename) throws IOException {
         Path resourceDirectory = Paths.get(filename);
         String content = Files.lines(resourceDirectory).collect(Collectors.joining("\n"));
@@ -226,11 +226,11 @@ public class ClientTestWithEmbededServerTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {"GET,false,3,302,GET", "POST,false,4,302,POST", "PUT,false,5,302, PUT", "GET,true,6,302,GET",
+    @CsvSource(value = { "GET,false,3,302,GET", "POST,false,4,302,POST", "PUT,false,5,302, PUT", "GET,true,6,302,GET",
             "POST,true,7,302,GET", "PUT,true,8,302,GET", "GET,false,3,303,GET", "POST,false,3,303,GET",
-            "DELETE,false,3,303,GET"})
+            "DELETE,false,3,303,GET" })
     void testForceGetOnRedirect(final String method, final boolean forceGet, final int nbRedirect, final int redirectCode,
-                                final String expectedMethod) {
+            final String expectedMethod) {
         final List<ClientTestWithEmbededServerTest.Request> calls = new ArrayList<>();
         final AtomicInteger counter = new AtomicInteger(0);
 
@@ -273,7 +273,7 @@ public class ClientTestWithEmbededServerTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {"shift_jis,src/test/resources/org/talend/components/rest/body/encoded.shift_jis.txt"})
+    @CsvSource(value = { "shift_jis,src/test/resources/org/talend/components/rest/body/encoded.shift_jis.txt" })
     void testEncoding(final String encoding, final String filename) throws IOException {
         byte[] bytes = Files.readAllBytes(Paths.get(filename));
         final String contentType = "text/plain; " + ContentType.CHARSET_KEY + encoding;
@@ -321,9 +321,9 @@ public class ClientTestWithEmbededServerTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {"TEXT,src/test/resources/org/talend/components/rest/body/Multilines.txt,text/plain",
+    @CsvSource(value = { "TEXT,src/test/resources/org/talend/components/rest/body/Multilines.txt,text/plain",
             "JSON,src/test/resources/org/talend/components/rest/body/Example.json,application/json",
-            "XML,src/test/resources/org/talend/components/rest/body/Example.xml,text/xml"})
+            "XML,src/test/resources/org/talend/components/rest/body/Example.xml,text/xml" })
     void testForceContentType(final String type, final String filename, final String expected) throws IOException {
         Path resourceDirectory = Paths.get(filename);
         String content = Files.lines(resourceDirectory).collect(Collectors.joining("\n"));
@@ -352,7 +352,7 @@ public class ClientTestWithEmbededServerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {true, false})
+    @ValueSource(booleans = { true, false })
     void testForceContentType(final boolean parametersActivated) {
 
         final AtomicBoolean hasContentType = new AtomicBoolean();
@@ -383,7 +383,7 @@ public class ClientTestWithEmbededServerTest {
      * If body and headers are activated, but no Content-Type set, we force the body content-Type.
      */
     @ParameterizedTest
-    @ValueSource(booleans = {true, false})
+    @ValueSource(booleans = { true, false })
     void testForceContentTypeWhenHasBodyAndHeaders(final boolean alreadyHasContentTypeHeader) {
 
         final AtomicReference<String> receivedContentType = new AtomicReference<>();
@@ -453,8 +453,8 @@ public class ClientTestWithEmbededServerTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {"text/plain; charset=shift_jis,shift_jis", "text/html; charset=ascii; other=nothing,ascii",
-            "text/html, null", "charset=ascii, ascii"})
+    @CsvSource(value = { "text/plain; charset=shift_jis,shift_jis", "text/html; charset=ascii; other=nothing,ascii",
+            "text/html, null", "charset=ascii, ascii" })
     void testGetCharsetName(final String header, final String expected) {
         final Map<String, List<String>> headers = new HashMap<>(singletonMap(ContentType.HEADER_KEY, singletonList(header)));
         for (int i = 0; i < 3; i++) {
@@ -485,11 +485,10 @@ public class ClientTestWithEmbededServerTest {
         config.getDataset().getDatastore().setBase("http://localhost:" + port);
         config.getDataset().setMethodType(HttpMethod.GET);
 
-        try{
+        try {
             service.execute(config);
             fail("Timeout exception should be raised");
-        }
-        catch (IllegalStateException e){
+        } catch (IllegalStateException e) {
             Throwable cause = e.getCause();
             assertTrue(SocketTimeoutException.class.isInstance(cause));
         }
@@ -547,7 +546,8 @@ public class ClientTestWithEmbededServerTest {
         config.getDataset().setResource("get");
 
         config.getDataset().setHasPathParams(true);
-        config.getDataset().setPathParams(Arrays.asList(new Param("aaaa", null), new Param("aaaa", "val"), new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getDataset().setPathParams(Arrays.asList(new Param("aaaa", null), new Param("aaaa", "val"), new Param(null, "val"),
+                new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
 
         assertThrows(IllegalStateException.class, () -> service.execute(config));
     }
@@ -566,7 +566,8 @@ public class ClientTestWithEmbededServerTest {
         config.getDataset().setResource("get");
 
         config.getDataset().setHasQueryParams(true);
-        config.getDataset().setQueryParams(Arrays.asList(new Param("aaa", null), new Param("key1", "val"), new Param("aaa", "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getDataset().setQueryParams(Arrays.asList(new Param("aaa", null), new Param("key1", "val"),
+                new Param("aaa", "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
 
         assertThrows(IllegalStateException.class, () -> service.execute(config));
     }
@@ -585,7 +586,8 @@ public class ClientTestWithEmbededServerTest {
         config.getDataset().setResource("get");
 
         config.getDataset().setHasHeaders(true);
-        config.getDataset().setHeaders(Arrays.asList(new Param("xxx1", null), new Param("aaa", "val"), new Param(null, "val"), new Param("key2", "val"), new Param("aaa", ""), new Param("key3", "")));
+        config.getDataset().setHeaders(Arrays.asList(new Param("xxx1", null), new Param("aaa", "val"), new Param(null, "val"),
+                new Param("key2", "val"), new Param("aaa", ""), new Param("key3", "")));
 
         assertThrows(IllegalStateException.class, () -> service.execute(config));
     }
@@ -606,7 +608,8 @@ public class ClientTestWithEmbededServerTest {
         config.getDataset().setHasBody(true);
         RequestBody body = new RequestBody();
         body.setType(RequestBody.Type.FORM_DATA);
-        body.setParams(Arrays.asList(new Param("xxx1", null), new Param("aaa", "val"), new Param(null, "val"), new Param("key2", "val"), new Param("aaa", ""), new Param("key3", "")));
+        body.setParams(Arrays.asList(new Param("xxx1", null), new Param("aaa", "val"), new Param(null, "val"),
+                new Param("key2", "val"), new Param("aaa", ""), new Param("key3", "")));
         config.getDataset().setBody(body);
 
         assertThrows(IllegalStateException.class, () -> service.execute(config));
@@ -634,7 +637,8 @@ public class ClientTestWithEmbededServerTest {
         config.getDataset().setHasBody(true);
         RequestBody body = new RequestBody();
         body.setType(RequestBody.Type.FORM_DATA);
-        body.setParams(Arrays.asList(new Param("key1", null), new Param("key2", "val2"), new Param(null, "val"), new Param("key3", "val3"), new Param("", ""), new Param("key4", "val4")));
+        body.setParams(Arrays.asList(new Param("key1", null), new Param("key2", "val2"), new Param(null, "val"),
+                new Param("key3", "val3"), new Param("", ""), new Param("key4", "val4")));
         config.getDataset().setBody(body);
 
         Record resp = service.execute(config);
@@ -668,7 +672,8 @@ public class ClientTestWithEmbededServerTest {
         config.getDataset().setHasBody(true);
         RequestBody body = new RequestBody();
         body.setType(RequestBody.Type.X_WWW_FORM_URLENCODED);
-        body.setParams(Arrays.asList(new Param("key1", null), new Param("key2", "val2"), new Param(null, "val"), new Param("key3", "val3"), new Param("", ""), new Param("key4", "val4")));
+        body.setParams(Arrays.asList(new Param("key1", null), new Param("key2", "val2"), new Param(null, "val"),
+                new Param("key3", "val3"), new Param("", ""), new Param("key4", "val4")));
         config.getDataset().setBody(body);
 
         Record resp = service.execute(config);
@@ -679,7 +684,6 @@ public class ClientTestWithEmbededServerTest {
         assertEquals(200, resp.getInt("status"));
         assertEquals(expectedFormaData, receivedBody.get());
     }
-
 
     @Data
     @AllArgsConstructor
