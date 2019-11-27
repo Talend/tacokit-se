@@ -52,6 +52,8 @@ spec:
         -
             name: m2main
             hostPath: { path: ${m2} }
+    imagePullSecrets:
+        - name: talend-registry
 """
         }
     }
