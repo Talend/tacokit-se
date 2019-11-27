@@ -32,7 +32,9 @@ import static org.talend.components.common.service.http.UrlEncoder.queryEncode;
 @AllArgsConstructor
 public class Body {
 
-    public final static String BODY_FORMADATA_BOUNDARY = System.getProperty("org.talend.components.rest.service.body_formdata_boundary", "----------------------- org.talend.components.rest.service.body_formdata_boundary");
+    public final static String BODY_FORMADATA_BOUNDARY = System.getProperty(
+            "org.talend.components.rest.service.body_formdata_boundary",
+            "----------------------- org.talend.components.rest.service.body_formdata_boundary");
 
     private final RequestBody conf;
 
@@ -65,13 +67,20 @@ public class Body {
     }
 
     private byte[] xwwwformStrategy() {
-        return encode(Optional.ofNullable(conf.getParams()).orElse(Collections.emptyList()).stream().filter(p -> p.getKey() != null && p.getValue() != null).filter(p -> !p.getKey().isEmpty() || !p.getValue().isEmpty()).map(param -> param.getKey() + "=" + queryEncode(substitute(param.getValue())))
-                                .collect(Collectors.joining("&")));
+        return encode(Optional.ofNullable(conf.getParams()).orElse(Collections.emptyList()).stream()
+                .filter(p -> p.getKey() != null && p.getValue() != null)
+                .filter(p -> !p.getKey().isEmpty() || !p.getValue().isEmpty())
+                .map(param -> param.getKey() + "=" + queryEncode(substitute(param.getValue()))).collect(Collectors.joining("&")));
     }
 
     private byte[] formDataStrategy() {
-        return encode("--"+BODY_FORMADATA_BOUNDARY+"\n"+Optional.ofNullable(conf.getParams()).orElse(Collections.emptyList()).stream().filter(p -> p.getKey() != null && p.getValue() != null).filter(p -> !p.getKey().isEmpty() || !p.getValue().isEmpty()).map(param -> "Content-Disposition: form-data; name=\""+param.getKey() + "\"\n\n" + substitute(param.getValue()))
-                .collect(Collectors.joining("\n"+"--"+BODY_FORMADATA_BOUNDARY+"\n"))+"\n"+"--"+BODY_FORMADATA_BOUNDARY+"--");
+        return encode("--" + BODY_FORMADATA_BOUNDARY + "\n" + Optional.ofNullable(conf.getParams())
+                .orElse(Collections.emptyList()).stream().filter(p -> p.getKey() != null && p.getValue() != null)
+                .filter(p -> !p.getKey().isEmpty() || !p.getValue().isEmpty())
+                .map(param -> "Content-Disposition: form-data; name=\"" + param.getKey() + "\"\n\n"
+                        + substitute(param.getValue()))
+                .collect(Collectors.joining("\n" + "--" + BODY_FORMADATA_BOUNDARY + "\n")) + "\n" + "--" + BODY_FORMADATA_BOUNDARY
+                + "--");
 
     }
 

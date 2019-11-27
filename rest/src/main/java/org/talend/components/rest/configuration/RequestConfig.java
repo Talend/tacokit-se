@@ -54,10 +54,11 @@ public class RequestConfig implements Serializable {
             return Collections.emptyMap();
         }
 
-        return Collections.unmodifiableMap(transformAndFilterParamList(dataset.getHeaders()).collect(toMap(Param::getKey, Param::getValue)));
+        return Collections.unmodifiableMap(
+                transformAndFilterParamList(dataset.getHeaders()).collect(toMap(Param::getKey, Param::getValue)));
     }
 
-    public Stream<Param> transformAndFilterParamList(List<Param> params){
+    public Stream<Param> transformAndFilterParamList(List<Param> params) {
         params.stream().filter(p -> p.getValue() == null).forEach(p -> p.setValue(""));
         return params.stream().filter(p -> p.getKey() != null).filter(p -> !p.getKey().isEmpty());
     }

@@ -132,12 +132,10 @@ public class RestServiceTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = { "http://www.domain.com,,http://www.domain.com",
-                        "http://www.domain.com/,,http://www.domain.com/",
-                        "http://www.domain.com,get,http://www.domain.com/get",
-                        "http://www.domain.com/,get,http://www.domain.com/get",
-                        "http://www.domain.com,/get,http://www.domain.com/get",
-                        "   http://www.domain.com/ ,  /get ,http://www.domain.com//get", })
+    @CsvSource(value = { "http://www.domain.com,,http://www.domain.com", "http://www.domain.com/,,http://www.domain.com/",
+            "http://www.domain.com,get,http://www.domain.com/get", "http://www.domain.com/,get,http://www.domain.com/get",
+            "http://www.domain.com,/get,http://www.domain.com/get",
+            "   http://www.domain.com/ ,  /get ,http://www.domain.com//get", })
     void buildUrl(final String base, final String resource, final String expected) {
         config.getDataset().getDatastore().setBase(base);
         config.getDataset().setResource(resource == null ? "   " : resource);
@@ -146,16 +144,20 @@ public class RestServiceTest {
     }
 
     @Test
-    void paramsFilterEmpty(){
+    void paramsFilterEmpty() {
         config.getDataset().setHasPathParams(true);
-        config.getDataset().setPathParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getDataset().setPathParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"),
+                new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
         config.getDataset().setHasQueryParams(true);
-        config.getDataset().setQueryParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getDataset().setQueryParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"),
+                new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
         config.getDataset().setHasHeaders(true);
-        config.getDataset().setHeaders(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getDataset().setHeaders(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"),
+                new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
         config.getDataset().setHasBody(true);
         config.getDataset().getBody().setType(RequestBody.Type.FORM_DATA);
-        config.getDataset().getBody().setParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getDataset().getBody().setParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"),
+                new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
 
         config.pathParams().forEach((k, v) -> {
             assertTrue(k != null);
@@ -178,7 +180,6 @@ public class RestServiceTest {
         });
         assertEquals(4, config.headers().size());
 
-
         config.getDataset().getBody().getParams().forEach(p -> {
             assertTrue(p != null);
             assertFalse(p.getKey().isEmpty());
@@ -188,16 +189,20 @@ public class RestServiceTest {
     }
 
     @Test
-    void paramsTransformNullToEmpty(){
+    void paramsTransformNullToEmpty() {
         config.getDataset().setHasPathParams(true);
-        config.getDataset().setPathParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getDataset().setPathParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"),
+                new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
         config.getDataset().setHasQueryParams(true);
-        config.getDataset().setQueryParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getDataset().setQueryParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"),
+                new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
         config.getDataset().setHasHeaders(true);
-        config.getDataset().setHeaders(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getDataset().setHeaders(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"),
+                new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
         config.getDataset().setHasBody(true);
         config.getDataset().getBody().setType(RequestBody.Type.FORM_DATA);
-        config.getDataset().getBody().setParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getDataset().getBody().setParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"),
+                new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
 
         assertEquals("", config.pathParams().get("xxx1"));
         assertEquals("", config.queryParams().get("xxx1"));
@@ -205,7 +210,7 @@ public class RestServiceTest {
 
         config.getDataset().getBody().getParams().stream().forEach(p -> {
             assertFalse(p.getValue() == null);
-            if("xxx1".equals(p.getKey())){
+            if ("xxx1".equals(p.getKey())) {
                 assertTrue(p.getValue().isEmpty());
             }
         });
@@ -213,9 +218,11 @@ public class RestServiceTest {
     }
 
     @Test
-    void testHasNoDuplicates(){
-        List<Param> withDuplciates = Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param("xxx1", "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", ""));
-        List<Param> withoutDuplciates = Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param("xxx2", "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", ""));
+    void testHasNoDuplicates() {
+        List<Param> withDuplciates = Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param("xxx1", "val"),
+                new Param("key2", "val"), new Param("", ""), new Param("key3", ""));
+        List<Param> withoutDuplciates = Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param("xxx2", "val"),
+                new Param("key2", "val"), new Param("", ""), new Param("key3", ""));
 
         assertTrue(service.hasNoDuplicates(null));
         assertTrue(service.hasNoDuplicates(withoutDuplciates));

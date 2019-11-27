@@ -14,6 +14,10 @@
     <description>Rest client connector</description>
 
     <properties>
+        <testcontainers.version>1.12.3</testcontainers.version>
+        <!-- Currently I can't execute httpbin tests on CI -->
+        <!-- To run ITs test give the following option to mvn : -Dtest.excluded="" -->
+        <test.excluded>ITs</test.excluded>
     </properties>
 
     <dependencies>
@@ -26,6 +30,12 @@
             <groupId>org.talend.components</groupId>
             <artifactId>connectors-test-bom</artifactId>
             <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -40,6 +50,7 @@
                         <talend.component.junit.handler.state>static</talend.component.junit.handler.state>
                         <talend.junit.beam.version>${beam.version}</talend.junit.beam.version>
                     </systemPropertyVariables>
+                    <excludedGroups>${test.excluded}</excludedGroups>
                 </configuration>
             </plugin>
         </plugins>

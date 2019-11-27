@@ -59,8 +59,8 @@ public class RequestBody implements Serializable {
     @Documentation("")
     private List<Param> params = new ArrayList<>();
 
-    public List<Param> getParams(){
-        if(params == null){
+    public List<Param> getParams() {
+        if (params == null) {
             return null;
         }
 
@@ -101,7 +101,7 @@ public class RequestBody implements Serializable {
         TEXT("text/plain"),
         JSON("application/json"),
         XML("text/xml"),
-        FORM_DATA("multipart/form-data; boundary="+ Body.BODY_FORMADATA_BOUNDARY),
+        FORM_DATA("multipart/form-data; boundary=" + Body.BODY_FORMADATA_BOUNDARY),
         X_WWW_FORM_URLENCODED("application/x-www-form-urlencoded");
 
         private final String contentType;

@@ -13,8 +13,11 @@
 package org.talend.components.rest.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -28,17 +31,17 @@ import org.talend.components.rest.configuration.auth.Basic;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
-import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -47,17 +50,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Slf4j
+@Testcontainers
+@Tag("ITs") // Identify those tests as integration tests to exclude them since some difficulties to run them on ci currently
 @WithComponents(value = "org.talend.components.rest")
 public class ClientTestWithHttpbinTest {
 
-    public final static String HTTPBIN_BASE = System.getProperty("org.talend.components.rest.httpbin_base",
-            "http://tal-rd169.talend.lan:8085");
+    private static GenericContainer<?> httpbin;
+
+    public static Supplier<String> HTTPBIN_BASE;
 
     private final static int CONNECT_TIMEOUT = 30000;
 
@@ -76,6 +82,19 @@ public class ClientTestWithHttpbinTest {
 
     private boolean followRedirects_backup;
 
+    @BeforeAll
+    static void startHttpBinContainer() {
+        httpbin = new GenericContainer<>("kennethreitz/httpbin").withExposedPorts(80).waitingFor(Wait.forHttp("/"));
+        httpbin.start();
+        HTTPBIN_BASE = () -> System.getProperty("org.talend.components.rest.httpbin_base",
+                "http://localhost:" + httpbin.getMappedPort(80));
+    }
+
+    @AfterAll
+    static void stopHttpBinContainer() {
+        httpbin.stop();
+    }
+
     @BeforeEach
     void before() {
         followRedirects_backup = HttpURLConnection.getFollowRedirects();
@@ -86,7 +105,7 @@ public class ClientTestWithHttpbinTest {
 
         config = RequestConfigBuilderTest.getEmptyRequestConfig();
 
-        config.getDataset().getDatastore().setBase(HTTPBIN_BASE);
+        config.getDataset().getDatastore().setBase(HTTPBIN_BASE.get());
         config.getDataset().getDatastore().setConnectionTimeout(CONNECT_TIMEOUT);
         config.getDataset().getDatastore().setReadTimeout(READ_TIMEOUT);
     }
@@ -112,7 +131,7 @@ public class ClientTestWithHttpbinTest {
         assertEquals(service.buildUrl(config, Collections.emptyMap()), bodyJson.getString("url"));
 
         JsonObject headersJson = bodyJson.getJsonObject("headers");
-        URL base = new URL(HTTPBIN_BASE);
+        URL base = new URL(HTTPBIN_BASE.get());
         assertEquals(base.getHost() + ":" + base.getPort(), headersJson.getString("Host"));
     }
 
@@ -123,7 +142,7 @@ public class ClientTestWithHttpbinTest {
      */
     @Test
     void testParamsDisabled() throws MalformedURLException {
-        HttpMethod[] verbs = {HttpMethod.DELETE, HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT};
+        HttpMethod[] verbs = { HttpMethod.DELETE, HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT };
         config.getDataset().setResource("get");
         config.getDataset().setMethodType(HttpMethod.GET);
 
@@ -145,14 +164,14 @@ public class ClientTestWithHttpbinTest {
         JsonObject payload = payloadReader.readObject();
 
         assertEquals(0, payload.getJsonObject("args").size());
-        URL base = new URL(HTTPBIN_BASE);
+        URL base = new URL(HTTPBIN_BASE.get());
         assertEquals(base.getHost() + ":" + base.getPort(), payload.getJsonObject("headers").getString("Host"));
 
     }
 
     @Test
     void testQueryAndHeaderParams() {
-        HttpMethod[] verbs = {HttpMethod.DELETE, HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT};
+        HttpMethod[] verbs = { HttpMethod.DELETE, HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT };
         for (HttpMethod m : verbs) {
             config.getDataset().setResource(m.name().toLowerCase());
             config.getDataset().setMethodType(m);
@@ -198,7 +217,6 @@ public class ClientTestWithHttpbinTest {
 
         config.getDataset().getDatastore().setAuthentication(auth);
         config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setResource("/basic-auth/{user}/{pwd}");
 
         config.getDataset().setResource("/basic-auth/" + user + "/wrong_" + pwd);
         Record respForbidden = service.execute(config);
@@ -214,7 +232,7 @@ public class ClientTestWithHttpbinTest {
         Authentication auth = new Authentication();
         auth.setType(Authorization.AuthorizationType.Bearer);
 
-        config.getDataset().getDatastore().setBase(HTTPBIN_BASE);
+        config.getDataset().getDatastore().setBase(HTTPBIN_BASE.get());
         config.getDataset().getDatastore().setAuthentication(auth);
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("/bearer");
@@ -229,10 +247,10 @@ public class ClientTestWithHttpbinTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {"GET", "POST", "PUT"})
+    @CsvSource(value = { "GET", "POST", "PUT" })
     void testRedirect(final String method) {
 
-        String redirect_url = HTTPBIN_BASE + "/" + method.toLowerCase() + "?redirect=ok";
+        String redirect_url = HTTPBIN_BASE.get() + "/" + method.toLowerCase() + "?redirect=ok";
         config.getDataset().setResource("redirect-to?url=" + redirect_url);
         config.getDataset().setMethodType(HttpMethod.valueOf(method));
         config.getDataset().setMaxRedirect(1);
@@ -247,9 +265,9 @@ public class ClientTestWithHttpbinTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {"GET,", "GET,http://www.google.com"})
+    @CsvSource(value = { "GET,", "GET,http://www.google.com" })
     void testRedirectOnlySameHost(final String method, final String redirect_url) throws MalformedURLException {
-        String mainHost = new URL(HTTPBIN_BASE).getHost();
+        String mainHost = new URL(HTTPBIN_BASE.get()).getHost();
 
         config.getDataset().setResource("redirect-to?url=" + ("".equals(redirect_url) ? mainHost : redirect_url));
         config.getDataset().setMethodType(HttpMethod.valueOf(method));
@@ -270,7 +288,7 @@ public class ClientTestWithHttpbinTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {"6,-1", "3,3", "3,5"})
+    @CsvSource(value = { "6,-1", "3,3", "3,5" })
     void testRedirectNOk(final int nbRedirect, final int maxRedict) {
         config.getDataset().setResource("redirect/" + nbRedirect);
         config.getDataset().setMethodType(HttpMethod.GET);
@@ -281,7 +299,7 @@ public class ClientTestWithHttpbinTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {"3,0", "3,1", "3,2", "5,4"})
+    @CsvSource(value = { "3,0", "3,1", "3,2", "5,4" })
     void testRedirectNko(final int nbRedirect, final int maxRedict) {
         config.getDataset().setResource("redirect/" + nbRedirect);
         config.getDataset().setMethodType(HttpMethod.GET);
@@ -298,8 +316,8 @@ public class ClientTestWithHttpbinTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {"auth-int,MD5", "auth,MD5", "auth-int,MD5-sess", "auth,MD5-sess", "auth-int,SHA-256", "auth,SHA-256",
-            "auth-int,SHA-512", "auth,SHA-512"})
+    @CsvSource(value = { "auth-int,MD5", "auth,MD5", "auth-int,MD5-sess", "auth,MD5-sess", "auth-int,SHA-256", "auth,SHA-256",
+            "auth-int,SHA-512", "auth,SHA-512" })
     void testDisgestAuth(final String qop, final String algo) {
         String user = "my_user";
         String pwd = "my_password";
@@ -320,7 +338,7 @@ public class ClientTestWithHttpbinTest {
     }
 
     private void testDigestAuthWithQop(final int expected, final String user, final String pwd, final Authentication auth,
-                                       final String qop) {
+            final String qop) {
         config.getDataset().getDatastore().setAuthentication(auth);
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("digest-auth/" + qop + "/" + user + "/" + pwd);
@@ -330,7 +348,7 @@ public class ClientTestWithHttpbinTest {
     }
 
     private void testDigestAuthWithQopAlgo(final int expected, final String user, final String pwd, final Authentication auth,
-                                           final String qop, final String algo) {
+            final String qop, final String algo) {
         config.getDataset().getDatastore().setAuthentication(auth);
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("digest-auth/" + qop + "/" + user + "/" + pwd + "/" + algo);
@@ -340,7 +358,7 @@ public class ClientTestWithHttpbinTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {"json", "xml", "html"})
+    @CsvSource(value = { "json", "xml", "html" })
     void testformats(final String type) {
         // Currently return body as String
         config.getDataset().setMethodType(HttpMethod.GET);
@@ -352,7 +370,7 @@ public class ClientTestWithHttpbinTest {
     }
 
     @Test
-    void testBodyFormData(){
+    void testBodyFormData() {
         config.getDataset().setHasBody(true);
 
         RequestBody body = new RequestBody();
@@ -372,7 +390,7 @@ public class ClientTestWithHttpbinTest {
     }
 
     @Test
-    void testBodyXwwwformURLEncoded(){
+    void testBodyXwwwformURLEncoded() {
         config.getDataset().setHasBody(true);
 
         RequestBody body = new RequestBody();
