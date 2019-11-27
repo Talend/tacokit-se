@@ -13,7 +13,9 @@
 package org.talend.components.rest.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -55,13 +57,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Slf4j
 @Testcontainers
-@Tag("ITs")
+@Tag("ITs") // Identify those tests as integration tests to exclude them since some difficulties to run them on ci currently
 @WithComponents(value = "org.talend.components.rest")
 public class ClientTestWithHttpbinTest {
 
-    private GenericContainer<?> httpbin;
+    private static GenericContainer<?> httpbin;
 
-    public Supplier<String> HTTPBIN_BASE;
+    public static Supplier<String> HTTPBIN_BASE;
 
     private final static int CONNECT_TIMEOUT = 30000;
 
@@ -80,13 +82,21 @@ public class ClientTestWithHttpbinTest {
 
     private boolean followRedirects_backup;
 
-    @BeforeEach
-    void before() {
+    @BeforeAll
+    static void startHttpBinContainer() {
         httpbin = new GenericContainer<>("kennethreitz/httpbin").withExposedPorts(80).waitingFor(Wait.forHttp("/"));
         httpbin.start();
         HTTPBIN_BASE = () -> System.getProperty("org.talend.components.rest.httpbin_base",
                 "http://localhost:" + httpbin.getMappedPort(80));
+    }
 
+    @AfterAll
+    static void stopHttpBinContainer() {
+        httpbin.stop();
+    }
+
+    @BeforeEach
+    void before() {
         followRedirects_backup = HttpURLConnection.getFollowRedirects();
         HttpURLConnection.setFollowRedirects(false);
 
@@ -103,7 +113,6 @@ public class ClientTestWithHttpbinTest {
     @AfterEach
     void after() {
         HttpURLConnection.setFollowRedirects(followRedirects_backup);
-        httpbin.stop();
     }
 
     @Test

@@ -88,7 +88,7 @@ spec:
                     sh 'for i in ci_documentation ci_nexus ci_site; do rm -Rf $i; rsync -av . $i; done'
                     // real task
                     withCredentials([nexusCredentials]) {
-                        sh "mvn -pl rest -am -U -B -s .jenkins/settings.xml clean install -PITs -e ${talendOssRepositoryArg} -Dtest=ClientTestWithHttpbinTest#httpbinGet -DfailIfNoTests=false"
+                        sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -e ${talendOssRepositoryArg}"
                     }
                 }
             }
