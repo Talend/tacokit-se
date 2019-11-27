@@ -40,7 +40,7 @@ spec:
     containers:
         -
             name: main
-            image: 'khabali/jenkins-java-build-container:latest'
+            image: 'artifactory.datapwn.com/tlnd-docker-dev/talend/common/tsbi/jdk8-builder-base:1.12.0-20191022071355'
             command: [cat]
             tty: true
             volumeMounts: [{name: docker, mountPath: /var/run/docker.sock}, {name: m2main, mountPath: /root/.m2/repository}]
@@ -244,6 +244,10 @@ post_release_version=\$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:eva
 
 # push tag to origin
 git push origin release/\${release_version}
+
+# We want smooth transition on version with no transition to release
+# ie: 1.3.0-SNAPSHOT > 1.3.1-SNAPSHOT
+# and NOT 1.3.0-SNAPSHOT > 1.3.0 > 1.3.1-SNAPSHOT
 
 # Reset the current branch to the commit just before the release:
 git reset --hard HEAD~2
