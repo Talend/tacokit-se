@@ -32,6 +32,7 @@ import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -57,12 +58,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @Tag("ITs")
 @WithComponents(value = "org.talend.components.rest")
 public class ClientTestWithHttpbinTest {
-    @Container
-    private static final GenericContainer<?> httpbin = new GenericContainer<>("kennethreitz/httpbin")
-            .withExposedPorts(80);
 
-    public final static Supplier<String> HTTPBIN_BASE = () -> System.getProperty("org.talend.components.rest.httpbin_base",
-            "http://localhost:" + httpbin.getMappedPort(80));
+    private GenericContainer<?> httpbin;
+
+    public Supplier<String> HTTPBIN_BASE;
 
     private final static int CONNECT_TIMEOUT = 30000;
 
@@ -83,6 +82,11 @@ public class ClientTestWithHttpbinTest {
 
     @BeforeEach
     void before() {
+        httpbin = new GenericContainer<>("kennethreitz/httpbin").withExposedPorts(80).waitingFor(Wait.forHttp("/"));
+        httpbin.start();
+        HTTPBIN_BASE = () -> System.getProperty("org.talend.components.rest.httpbin_base",
+                "http://localhost:" + httpbin.getMappedPort(80));
+
         followRedirects_backup = HttpURLConnection.getFollowRedirects();
         HttpURLConnection.setFollowRedirects(false);
 
@@ -99,6 +103,7 @@ public class ClientTestWithHttpbinTest {
     @AfterEach
     void after() {
         HttpURLConnection.setFollowRedirects(followRedirects_backup);
+        httpbin.stop();
     }
 
     @Test
