@@ -78,6 +78,20 @@ spec:
     }
 
     stages {
+        stage('Prepare Build') {
+            steps {
+                container('main') {
+                    withCredentials([
+                        usernamePassword(credentialsId: 'docker-registry-credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_LOGIN')
+                    ]) {
+                       sh """#! /bin/bash
+                        set +x
+                        echo $DOCKER_PASSWORD | docker login $TALEND_REGISTRY -u $DOCKER_LOGIN --password-stdin
+                       """
+                    }
+                }
+            }
+        }
         stage('Run maven') {
             when {
                 expression { params.Action == 'STANDARD' }

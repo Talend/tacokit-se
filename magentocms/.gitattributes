@@ -1,0 +1,6 @@
+# do not change line endings for .sh scripts
+*.sh text eol=lf
+install-magento text eol=lf
+install-sampledata text eol=lf
+test_docker.cer text eol=lf
+test_docker.key text eol=lf

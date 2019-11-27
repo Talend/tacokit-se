@@ -1,0 +1,14 @@
+generate keystore:
+"c:\Program Files\Java\jre1.8.0_191\bin\keytool" -genkeypair -keysize 2048 -keyalg RSA -alias "Test Docker" -storetype jks -keystore test_docker.jks -ext san=ip:127.0.0.1,ip:192.168.99.100,ip:192.168.99.101,ip:172.17.0.1,dns:localhost -storepass changeit
+add first and last name
+other options by default
+in keystoreexplorer export PEM certificate and private key (do not encrypt)
+
+second variant to to generate keystore
+"c:\Program Files\Java\jre1.8.0_181\bin\keytool" -genkeypair -keysize 2048 -keyalg RSA -dname "CN=test-docker" -alias "Test Docker" -storetype PKCS12 -keystore test_docker.jks -ext san=ip:127.0.0.1,ip:192.168.99.100,ip:192.168.99.101,dns:localhost -storepass changeit -keypass changeit
+export key and certificate:
+"c:\Program Files\Java\jre1.8.0_191\bin\keytool" -export -keystore test_docker.jks -alias "Test Docker" -file test_docker.cer -storepass changeit
+in git-bash (winpty for windows):
+winpty openssl pkcs12 -in test_docker.p12 -out server.key -passin pass:changeit -nocerts -nodes
+winpty openssl pkcs8 -out test_docker.key -in server.key -nocrypt
+

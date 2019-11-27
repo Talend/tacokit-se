@@ -1,0 +1,1 @@
+mag_container_run.cmd --docker-host 192.168.99.100 --magento-port 32570 --magento-port-secure 32571 --magento-use-secure 1 --magento-use-secure-admin 1
