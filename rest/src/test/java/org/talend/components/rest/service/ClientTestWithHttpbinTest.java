@@ -208,7 +208,6 @@ public class ClientTestWithHttpbinTest {
 
         config.getDataset().getDatastore().setAuthentication(auth);
         config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setResource("/basic-auth/{user}/{pwd}");
 
         config.getDataset().setResource("/basic-auth/" + user + "/wrong_" + pwd);
         Record respForbidden = service.execute(config);
