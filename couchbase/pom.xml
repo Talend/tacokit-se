@@ -20,8 +20,8 @@
   <dependencies>
     <!-- traductions -->
     <dependency>
-      <groupId>org.talend.locales.connectors-se</groupId>
-      <artifactId>couchbase</artifactId>
+      <groupId>org.talend.components</groupId>
+      <artifactId>couchbase-locales</artifactId>
       <version>${locales.version}</version>
     </dependency>
 

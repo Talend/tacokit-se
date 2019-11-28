@@ -49,8 +49,8 @@
     <dependencies>
         <!-- traductions -->
         <dependency>
-            <groupId>org.talend.locales.connectors-se</groupId>
-            <artifactId>azureblob</artifactId>
+            <groupId>org.talend.components</groupId>
+            <artifactId>azureblob-locales</artifactId>
             <version>${locales.version}</version>
         </dependency>
 

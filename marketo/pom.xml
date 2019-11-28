@@ -20,8 +20,8 @@
     <dependencies>
         <!-- traductions -->
         <dependency>
-            <groupId>org.talend.locales.connectors-se</groupId>
-            <artifactId>marketo</artifactId>
+            <groupId>org.talend.components</groupId>
+            <artifactId>marketo-locales</artifactId>
             <version>${locales.version}</version>
         </dependency>
 

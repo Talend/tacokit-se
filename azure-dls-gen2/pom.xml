@@ -23,8 +23,8 @@
     <dependencies>
         <!-- traductions -->
         <dependency>
-            <groupId>org.talend.locales.connectors-se</groupId>
-            <artifactId>azure-dls-gen2</artifactId>
+            <groupId>org.talend.components</groupId>
+            <artifactId>azure-dls-gen2-locales</artifactId>
             <version>${locales.version}</version>
         </dependency>
 

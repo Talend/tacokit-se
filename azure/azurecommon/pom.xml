@@ -28,8 +28,8 @@
   <dependencies>
     <!-- traductions -->
     <dependency>
-      <groupId>org.talend.locales.connectors-se</groupId>
-      <artifactId>azurecommon</artifactId>
+      <groupId>org.talend.components</groupId>
+      <artifactId>azurecommon-locales</artifactId>
       <version>${locales.version}</version>
     </dependency>
 

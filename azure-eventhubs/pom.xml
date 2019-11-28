@@ -18,8 +18,8 @@
   <dependencies>
     <!-- traductions -->
     <dependency>
-      <groupId>org.talend.locales.connectors-se</groupId>
-      <artifactId>azure-eventhubs</artifactId>
+      <groupId>org.talend.components</groupId>
+      <artifactId>azure-eventhubs-locales</artifactId>
       <version>${locales.version}</version>
     </dependency>
 
