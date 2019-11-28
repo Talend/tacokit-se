@@ -42,6 +42,7 @@
         -->
         <module>azure-dls-gen2</module>
         <module>marketo</module>
+        <module>components-activemq</module>
     </modules>
 
     <scm>
