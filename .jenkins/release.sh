@@ -1,5 +1,13 @@
 #! /bin/bash
 
+# git config hack when pushing to bypass :
+# "fatal: could not read Username for 'https://github.com': No such device or address" error.
+# This appeared after 2fa auth activation on github.
+git config --global credential.username ${GITHUB_LOGIN}
+git config --global credential.helper   '!echo password=${GITHUB_TOKEN}; echo'
+git config --global credential.name     "jenkins-build"
+env|sort
+
 pre_release_version=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
 release_version=$(echo ${pre_release_version}|cut -d- -f1)
 
@@ -11,10 +19,17 @@ fi
 
 # prepare release
 mvn -B -s .jenkins/settings.xml release:clean release:prepare
+if [[ ! $? -eq 0 ]] ; then
+    echo mvn error during build
+    exit
+fi
 
 # perform release
 mvn -B -s .jenkins/settings.xml release:perform  -Darguments='-Dmaven.javadoc.skip=true'
-
+if [[ ! $? -eq 0 ]] ; then
+    echo mvn error during build
+    exit
+fi
 post_release_version=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
 
 # push tag to origin
