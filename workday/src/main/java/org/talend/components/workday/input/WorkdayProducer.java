@@ -25,9 +25,9 @@ import java.io.Serializable;
 import java.util.Iterator;
 
 @Version(1)
-@Icon(value = Icon.IconType.BURGER) // FIXME : find a real icon.
-@Emitter(family = "Workday", name = "queries")
-@Documentation("Component to extract data from workday ERP via Workday Query Language")
+@Icon(value = Icon.IconType.CUSTOM, custom = "WorkdayInput")
+@Emitter(family = "Workday", name = "Input")
+@Documentation("Component to extract data from workday ERP via Workday Query Language or Report As A Service")
 public class WorkdayProducer implements Serializable {
 
     private static final long serialVersionUID = 2693235150546844805L;
