@@ -21,7 +21,6 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -32,19 +31,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static java.nio.file.Files.createTempDirectory;
-import static java.nio.file.Files.createTempFile;
-import static java.nio.file.Files.newBufferedWriter;
+import static java.nio.file.Files.*;
 import static java.time.LocalDateTime.now;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Locale.ROOT;
@@ -59,6 +52,8 @@ public class SnowflakeCopy {
     private static final long maxChunk = 16 * 1024 * 1024; // 16MB
 
     private static final String TIMESTAMP_FORMAT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+
+    private static final List<Path> tmpFiles = new ArrayList<Path>();
 
     public static List<Reject> putAndCopy(final Connection connection, final List<Record> records, final String fqStageName,
             final String fqTableName, final String fqTmpTableName) throws SQLException {
@@ -93,7 +88,7 @@ public class SnowflakeCopy {
         try {
             final Path tmp = createTempDirectory("talend-jdbc-snowflake-");
             log.debug("Temp folder {} created.", tmp);
-            tmp.toFile().deleteOnExit();
+            tmpFiles.add(tmp);
             return tmp;
         } catch (final IOException e) {
             throw new IllegalStateException(e);
@@ -246,7 +241,7 @@ public class SnowflakeCopy {
                 try {
                     chunk = createTempFile(tmpDir, "part_" + part + "_", "_" + suffix + ".csv");
                     log.debug("Temp file {} created", chunk);
-                    chunk.toFile().deleteOnExit();
+                    tmpFiles.add(chunk);
                     writer = newBufferedWriter(chunk, StandardCharsets.UTF_8);
                 } catch (IOException e) {
                     throw new IllegalStateException(e);
@@ -307,5 +302,19 @@ public class SnowflakeCopy {
         } else {
             return value;
         }
+    }
+
+    public static void cleanTmpFiles(){
+        Consumer<Path> deletePath = p -> {
+            try {
+                Files.delete(p);
+            } catch (IOException e) {
+                log.warn("Cannot clean tmp file '{}'",p.getFileName());
+                log.warn(Arrays.stream(e.getStackTrace()).map(String::valueOf).collect(Collectors.joining("\n")));
+            }
+        };
+        tmpFiles.stream().filter(e->!Files.isDirectory(e)).forEach(deletePath);
+        tmpFiles.stream().filter(Files::isDirectory).forEach(deletePath);
+
     }
 }
