@@ -111,7 +111,6 @@ public class LeadSource extends MarketoSource {
             result = ZonedDateTime.now()
                     .minus(Period.parse(configuration.getDataSet().getSinceDateTimeRelative().getRelativeOffset()))
                     .format(DateTimeFormatter.ofPattern(DATETIME_FORMAT));
-
         }
 
         return result;
