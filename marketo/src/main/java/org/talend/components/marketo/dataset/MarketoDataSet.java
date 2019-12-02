@@ -13,10 +13,8 @@
 package org.talend.components.marketo.dataset;
 
 import java.io.Serializable;
-import java.time.Period;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,13 +31,12 @@ import org.talend.sdk.component.api.meta.Documentation;
 import lombok.Data;
 import lombok.ToString;
 
+import static org.talend.components.marketo.dataset.MarketoDataSet.DateTimeRelative.PERIOD_AGO_2W;
 import static org.talend.components.marketo.service.UIActionService.ACTIVITIES_LIST;
-import static org.talend.components.marketo.service.UIActionService.DATE_RANGES;
 import static org.talend.components.marketo.service.UIActionService.FIELD_NAMES;
 import static org.talend.components.marketo.service.UIActionService.LIST_NAMES;
 import static org.talend.components.marketo.service.UIActionService.VALIDATION_DATETIME_PATTERN;
 import static org.talend.components.marketo.service.UIActionService.VALIDATION_LIST_PROPERTY;
-import static org.talend.components.marketo.service.UIActionService.VALIDATION_STRING_PROPERTY;
 import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.AND;
 
 @Data
@@ -78,10 +75,8 @@ public class MarketoDataSet implements Serializable {
     @ActiveIfs(operator = AND, value = { //
             @ActiveIf(target = "leadAction", value = { "getLeadActivity" }), //
             @ActiveIf(target = "dateTimeMode", value = { "relative" }) })
-    @Suggestable(value = DATE_RANGES, parameters = { "../dateTimeMode" })
-    @Validable(VALIDATION_STRING_PROPERTY)
     @Documentation("Since Relative Date Time")
-    private String sinceDateTimeRelative = String.valueOf(Period.ofWeeks(2).getDays());
+    private DateTimeRelative sinceDateTimeRelative = PERIOD_AGO_2W;
 
     @Option
     @ActiveIfs(operator = AND, value = { //
@@ -114,4 +109,22 @@ public class MarketoDataSet implements Serializable {
         relative,
         absolute
     }
+
+    public enum DateTimeRelative {
+        PERIOD_AGO_1W("P7D"), //
+        PERIOD_AGO_2W("P14D"), //
+        PERIOD_AGO_1M("P1M"), //
+        PERIOD_AGO_3M("P3M"), //
+        PERIOD_AGO_6M("P6M"), //
+        PERIOD_AGO_1Y("P1Y"), //
+        PERIOD_AGO_2Y("P2Y"); //
+
+        @lombok.Getter
+        private String relativeOffset;
+
+        DateTimeRelative(String value) {
+            this.relativeOffset = value;
+        }
+    }
+
 }
