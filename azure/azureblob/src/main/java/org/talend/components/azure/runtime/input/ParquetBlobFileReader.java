@@ -56,11 +56,11 @@ public class ParquetBlobFileReader extends BlobFileReader {
 
         private final static String AZURE_FILESYSTEM_PROPERTY_VALUE = "org.apache.hadoop.fs.azure.NativeAzureFileSystem";
 
-        private final static String AZURE_ACCOUNT_CRED_KEY_FORMAT = "fs.azure.account.key.%s.blob.core.windows.net";
+        private final static String AZURE_ACCOUNT_CRED_KEY_FORMAT = "fs.azure.account.key.%s.blob.%s";
 
-        private final static String AZURE_SAS_CRED_KEY_FORMAT = "fs.azure.sas.%s.%s.blob.core.windows.net";
+        private final static String AZURE_SAS_CRED_KEY_FORMAT = "fs.azure.sas.%s.%s.blob.%s";
 
-        private final static String AZURE_URI_FORMAT = "wasb%s://%s@%s.blob.core.windows.net/%s";
+        private final static String AZURE_URI_FORMAT = "wasb%s://%s@%s.blob.%s/%s";
 
         private Pattern sasPattern = Pattern.compile(SAS_PATTERN);
 
@@ -69,6 +69,8 @@ public class ParquetBlobFileReader extends BlobFileReader {
         private Configuration hadoopConfig;
 
         private String accountName;
+
+        private String endpointSuffix;
 
         private ParquetReader<GenericRecord> reader;
 
@@ -87,12 +89,15 @@ public class ParquetBlobFileReader extends BlobFileReader {
                 Matcher mather = sasPattern
                         .matcher(getConfig().getConnection().getSignatureConnection().getAzureSharedAccessSignature());
                 accountName = mather.group(2);
-                String sasKey = String.format(AZURE_SAS_CRED_KEY_FORMAT, getConfig().getContainerName(), accountName);
-                String token = mather.group(4);
+                endpointSuffix = mather.group(4);
+                String sasKey = String.format(AZURE_SAS_CRED_KEY_FORMAT, getConfig().getContainerName(), accountName,
+                        endpointSuffix);
+                String token = mather.group(5);
                 hadoopConfig.set(sasKey, token);
             } else {
                 accountName = getConfig().getConnection().getAccountConnection().getAccountName();
-                String accountCredKey = String.format(AZURE_ACCOUNT_CRED_KEY_FORMAT, accountName);
+                String accountCredKey = String.format(AZURE_ACCOUNT_CRED_KEY_FORMAT, accountName,
+                        getConfig().getConnection().getEndpointSuffix());
                 hadoopConfig.set(accountCredKey, getConfig().getConnection().getAccountConnection().getAccountKey());
             }
         }
@@ -113,7 +118,7 @@ public class ParquetBlobFileReader extends BlobFileReader {
             boolean isHttpsConnectionUsed = getConfig().getConnection().isUseAzureSharedSignature()
                     || getConfig().getConnection().getAccountConnection().getProtocol().equals(Protocol.HTTPS);
             String blobURI = String.format(AZURE_URI_FORMAT, isHttpsConnectionUsed ? "s" : "", getConfig().getContainerName(),
-                    accountName, getCurrentItem().getName());
+                    accountName, endpointSuffix, getCurrentItem().getName());
             try {
                 InputFile file = HadoopInputFile.fromPath(new org.apache.hadoop.fs.Path(blobURI), hadoopConfig);
                 reader = AvroParquetReader.<GenericRecord> builder(file).build();
