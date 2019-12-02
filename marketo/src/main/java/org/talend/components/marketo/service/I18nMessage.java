@@ -31,19 +31,5 @@ public interface I18nMessage {
 
     String invalidFields();
 
-    String periodAgo1w();
-
-    String periodAgo2w();
-
-    String periodAgo1m();
-
-    String periodAgo3m();
-
-    String periodAgo6m();
-
-    String periodAgo1y();
-
-    String periodAgo2y();
-
     String invalidDateTime();
 }

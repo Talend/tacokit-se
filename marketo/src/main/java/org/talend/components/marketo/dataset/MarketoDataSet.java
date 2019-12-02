@@ -98,7 +98,7 @@ public class MarketoDataSet implements Serializable {
     @ActiveIf(target = "leadAction", negate = true, value = { "getLeadActivity" })
     @Suggestable(value = FIELD_NAMES, parameters = { "../dataStore" })
     @Documentation("Fields")
-    private List<String> fields = new ArrayList<>();
+    private List<String> fields = Collections.emptyList();
 
     public enum LeadAction {
         getLeadActivity,

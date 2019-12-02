@@ -248,30 +248,6 @@ public class UIActionService extends MarketoService {
         }
     }
 
-    @Suggestions(DATE_RANGES)
-    public SuggestionValues getDateSuggestions(final String mode) {
-        List<Item> suggestedDates = new ArrayList<>();
-        final String[] labels = { //
-                i18n.periodAgo1w(), //
-                i18n.periodAgo2w(), //
-                i18n.periodAgo1m(), //
-                i18n.periodAgo3m(), //
-                i18n.periodAgo6m(), //
-                i18n.periodAgo1y(), //
-                i18n.periodAgo2y(), //
-        };
-        final String[] values = { //
-                "P7D", "P14D", "P1M", "P3M", "P6M", "P1Y", "P2Y" };
-        String label;
-        String value;
-        for (int i = 0; i < labels.length; ++i) {
-            label = labels[i];
-            value = values[i];
-            suggestedDates.add(new SuggestionValues.Item(value, label));
-        }
-        return new SuggestionValues(true, suggestedDates);
-    }
-
     @AsyncValidation(VALIDATION_URL_PROPERTY)
     public ValidationResult validateEndpoint(final String url) {
         try {
