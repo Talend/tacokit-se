@@ -14,21 +14,21 @@ release_version=$(echo ${pre_release_version}|cut -d- -f1)
 # check for snapshot
 if [[ $pre_release_version != *'-SNAPSHOT' ]]; then
     echo Cannot release from a non SNAPSHOT, exiting.
-    exit
+    exit 123
 fi
 
 # prepare release
 mvn -B -s .jenkins/settings.xml release:clean release:prepare
 if [[ ! $? -eq 0 ]] ; then
     echo mvn error during build
-    exit
+    exit 123
 fi
 
 # perform release
 mvn -B -s .jenkins/settings.xml release:perform  -Darguments='-Dmaven.javadoc.skip=true'
 if [[ ! $? -eq 0 ]] ; then
     echo mvn error during build
-    exit
+    exit 123
 fi
 post_release_version=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
 
