@@ -17,6 +17,7 @@ import java.io.Serializable;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.action.Validable;
+import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataStore;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
@@ -45,15 +46,18 @@ public class MarketoDataStore implements Serializable {
     public static final String NAME = "MarketoDataStore";
 
     @Option
+    @Required
     @Validable(VALIDATION_URL_PROPERTY)
     @Documentation("Marketo Endpoint (host only, ie: https://123-ABC-456.mktorest.com)")
     private String endpoint;
 
     @Option
+    @Required
     @Documentation("Marketo Client Id")
     private String clientId;
 
     @Option
+    @Required
     @Credential
     @Documentation("Marketo Client Secret")
     private String clientSecret;
