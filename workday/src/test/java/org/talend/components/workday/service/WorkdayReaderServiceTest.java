@@ -15,42 +15,12 @@ package org.talend.components.workday.service;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.talend.components.workday.WorkdayException;
-import org.talend.components.workday.dataset.WorkdayServiceDataSet;
-import org.talend.sdk.component.api.service.completion.SuggestionValues;
-import org.talend.sdk.component.api.service.completion.Values;
 
 import javax.json.Json;
 import javax.json.JsonObject;
-import java.util.Collection;
 import java.util.Iterator;
 
 class WorkdayReaderServiceTest {
-
-    @Test
-    void loadModules() {
-        WorkdayReaderService reader = new WorkdayReaderService();
-        final Values modules = reader.loadModules();
-
-        Assertions.assertNotNull(modules);
-        final Collection<Values.Item> modulesItems = modules.getItems();
-        Assertions.assertNotNull(modulesItems);
-        Assertions.assertFalse(modulesItems.isEmpty());
-
-        final Values.Item module = modulesItems.iterator().next();
-
-        final SuggestionValues services = reader.loadServices(module.getId());
-        Assertions.assertNotNull(services);
-        final Collection<SuggestionValues.Item> servicesItems = services.getItems();
-        Assertions.assertNotNull(servicesItems);
-        Assertions.assertFalse(servicesItems.isEmpty());
-
-        final SuggestionValues.Item service = servicesItems.iterator().next();
-        Assertions.assertNotNull(service);
-
-        final WorkdayServiceDataSet.Parameters parameters = reader.loadServiceParameter(module.getId(), service.getId());
-        Assertions.assertNotNull(parameters);
-
-    }
 
     @Test
     void extractIterator() {

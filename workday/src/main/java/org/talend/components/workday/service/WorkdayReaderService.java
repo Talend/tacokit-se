@@ -15,24 +15,17 @@ package org.talend.components.workday.service;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.workday.WorkdayException;
 import org.talend.components.workday.dataset.QueryHelper;
-import org.talend.components.workday.dataset.SwaggerLoader;
-import org.talend.components.workday.dataset.WorkdayServiceDataSet;
 import org.talend.components.workday.datastore.Token;
 import org.talend.components.workday.datastore.WorkdayDataStore;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.completion.DynamicValues;
-import org.talend.sdk.component.api.service.completion.SuggestionValues;
-import org.talend.sdk.component.api.service.completion.Suggestions;
-import org.talend.sdk.component.api.service.completion.Values;
 import org.talend.sdk.component.api.service.http.Response;
-import org.talend.sdk.component.api.service.update.Update;
 
 import javax.json.JsonArray;
 import javax.json.JsonObject;
-import java.net.URL;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
 
 @Service
 @Version(1)
@@ -44,13 +37,6 @@ public class WorkdayReaderService {
 
     @Service
     private AccessTokenService accessToken;
-
-    private final transient SwaggerLoader loader;
-
-    public WorkdayReaderService() {
-        final URL swaggersDirectory = WorkdayReaderService.class.getClassLoader().getResource("swaggers/");
-        this.loader = new SwaggerLoader(swaggersDirectory.getPath());
-    }
 
     public JsonObject find(WorkdayDataStore datastore, QueryHelper helper, Map<String, String> queryParams) {
         final Token token = accessToken.findToken(datastore);
@@ -71,17 +57,6 @@ public class WorkdayReaderService {
         return result.body();
     }
 
-    public JsonObject findPage(WorkdayDataStore datastore, QueryHelper helper, int offset, int limit,
-            Map<String, String> queryParams) {
-        final Map<String, String> allQueryParams = new HashMap<>();
-        if (queryParams != null) {
-            allQueryParams.putAll(queryParams);
-        }
-        allQueryParams.put("offset", Integer.toString(offset));
-        allQueryParams.put("limit", Integer.toString(limit));
-        return this.find(datastore, helper, allQueryParams);
-    }
-
     public Iterator<JsonObject> extractIterator(JsonObject result, String arrayName) {
         if (result == null) {
             return Collections.emptyIterator();
@@ -96,38 +71,5 @@ public class WorkdayReaderService {
             return Collections.emptyIterator();
         }
         return data.stream().map(JsonObject.class::cast).iterator();
-    }
-
-    @DynamicValues("workdayModules")
-    public Values loadModules() {
-        log.info("loadModules");
-        return new Values(loader.getModules());
-    }
-
-    @Suggestions("workdayServices")
-    public SuggestionValues loadServices(String module) {
-        log.info("loadServices for module {}", module);
-        final List<SuggestionValues.Item> services = loader.findGetServices(module).keySet().stream()
-                .map((String service) -> new SuggestionValues.Item(service, service)).collect(Collectors.toList());
-
-        return new SuggestionValues(false, services);
-    }
-
-    @Update("workdayServicesParams")
-    public WorkdayServiceDataSet.Parameters loadServiceParameter(String module, String service) {
-        log.info("workdayServicesParams suggestion for {} {}", module, service);
-        final WorkdayServiceDataSet.Parameters parameters = new WorkdayServiceDataSet.Parameters();
-        parameters.setParametersList(Collections.emptyList());
-        final Map<String, List<WorkdayServiceDataSet.Parameter>> moduleServices = this.loader.findGetServices(module);
-        if (moduleServices == null) {
-            return parameters;
-        }
-        final List<WorkdayServiceDataSet.Parameter> serviceParameters = moduleServices.get(service);
-        if (serviceParameters == null) {
-            return parameters;
-        }
-        log.info("workdayServicesParams : nombre params {}", serviceParameters.size());
-        parameters.setParametersList(serviceParameters);
-        return parameters;
     }
 }
