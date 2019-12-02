@@ -12,6 +12,8 @@
  */
 package org.talend.components.azure.runtime.input;
 
+import static org.talend.components.azure.common.service.AzureComponentServices.SAS_PATTERN;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.regex.Matcher;
@@ -28,13 +30,14 @@ import org.talend.components.azure.dataset.AzureBlobDataset;
 import org.talend.components.azure.runtime.converters.ParquetConverter;
 import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.components.azure.service.MessageService;
+import org.talend.components.azure.service.RegionUtils;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.ListBlobItem;
+
 import lombok.extern.slf4j.Slf4j;
-import static org.talend.components.azure.common.service.AzureComponentServices.SAS_PATTERN;
 
 @Slf4j
 public class ParquetBlobFileReader extends BlobFileReader {
@@ -55,14 +58,6 @@ public class ParquetBlobFileReader extends BlobFileReader {
         private final static String AZURE_FILESYSTEM_PROPERTY_KEY = "fs.azure";
 
         private final static String AZURE_FILESYSTEM_PROPERTY_VALUE = "org.apache.hadoop.fs.azure.NativeAzureFileSystem";
-
-        private final static String AZURE_ACCOUNT_CRED_KEY_FORMAT = "fs.azure.account.key.%s.blob.%s";
-
-        private final static String AZURE_SAS_CRED_KEY_FORMAT = "fs.azure.sas.%s.%s.blob.%s";
-
-        private final static String AZURE_URI_FORMAT = "wasb%s://%s@%s.blob.%s/%s";
-
-        private Pattern sasPattern = Pattern.compile(SAS_PATTERN);
 
         private ParquetConverter converter;
 
@@ -86,17 +81,16 @@ public class ParquetBlobFileReader extends BlobFileReader {
             hadoopConfig = new Configuration();
             hadoopConfig.set(AZURE_FILESYSTEM_PROPERTY_KEY, AZURE_FILESYSTEM_PROPERTY_VALUE);
             if (getConfig().getConnection().isUseAzureSharedSignature()) {
-                Matcher mather = sasPattern
-                        .matcher(getConfig().getConnection().getSignatureConnection().getAzureSharedAccessSignature());
-                accountName = mather.group(2);
-                endpointSuffix = mather.group(4);
-                String sasKey = String.format(AZURE_SAS_CRED_KEY_FORMAT, getConfig().getContainerName(), accountName,
-                        endpointSuffix);
-                String token = mather.group(5);
+                RegionUtils ru = new RegionUtils();
+                ru.init4Signature(getConfig().getConnection().getSignatureConnection());
+                accountName = ru.getAccountName4SignatureAuth();
+                endpointSuffix = ru.getEndpointSuffix4SignatureAuth();
+                String sasKey = RegionUtils.getSasKey4SignatureAuth(getConfig().getContainerName(), accountName, endpointSuffix);
+                String token = ru.getToken4SignatureAuth();
                 hadoopConfig.set(sasKey, token);
             } else {
                 accountName = getConfig().getConnection().getAccountConnection().getAccountName();
-                String accountCredKey = String.format(AZURE_ACCOUNT_CRED_KEY_FORMAT, accountName,
+                String accountCredKey = RegionUtils.getAccountCredKey4AccountAuth(accountName,
                         getConfig().getConnection().getEndpointSuffix());
                 hadoopConfig.set(accountCredKey, getConfig().getConnection().getAccountConnection().getAccountKey());
             }
@@ -117,8 +111,8 @@ public class ParquetBlobFileReader extends BlobFileReader {
 
             boolean isHttpsConnectionUsed = getConfig().getConnection().isUseAzureSharedSignature()
                     || getConfig().getConnection().getAccountConnection().getProtocol().equals(Protocol.HTTPS);
-            String blobURI = String.format(AZURE_URI_FORMAT, isHttpsConnectionUsed ? "s" : "", getConfig().getContainerName(),
-                    accountName, endpointSuffix, getCurrentItem().getName());
+            String blobURI = RegionUtils.getBlobURI(isHttpsConnectionUsed, getConfig().getContainerName(), accountName,
+                    endpointSuffix, getCurrentItem().getName());
             try {
                 InputFile file = HadoopInputFile.fromPath(new org.apache.hadoop.fs.Path(blobURI), hadoopConfig);
                 reader = AvroParquetReader.<GenericRecord> builder(file).build();
