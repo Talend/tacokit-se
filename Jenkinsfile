@@ -207,7 +207,7 @@ spec:
                             gitCredentials ]) {
                         script {
                             sh "mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-deploy"
-                            sh "cd tmp/repository && mvn -s ../../.jenkins/settings.xml clean deploy -DaltDeploymentRepository=talend_nexus_deployment::default::https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceRelease/"
+                            sh "cd tmp/repository && mvn -s ../../.jenkins/settings.xml clean deploy"
                         }
                     }
                 }
