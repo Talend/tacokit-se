@@ -307,9 +307,10 @@ public class SnowflakeCopy {
     public static void cleanTmpFiles(){
         Consumer<Path> deletePath = p -> {
             try {
+                log.info("Deleting temp file/forlder: {}",p);
                 Files.delete(p);
             } catch (IOException e) {
-                log.warn("Cannot clean tmp file '{}'",p.getFileName());
+                log.warn("Cannot clean tmp file '{}'",p);
                 log.warn(Arrays.stream(e.getStackTrace()).map(String::valueOf).collect(Collectors.joining("\n")));
             }
         };
