@@ -81,8 +81,7 @@ public class ParquetBlobFileReader extends BlobFileReader {
             hadoopConfig = new Configuration();
             hadoopConfig.set(AZURE_FILESYSTEM_PROPERTY_KEY, AZURE_FILESYSTEM_PROPERTY_VALUE);
             if (getConfig().getConnection().isUseAzureSharedSignature()) {
-                RegionUtils ru = new RegionUtils();
-                ru.init4Signature(getConfig().getConnection().getSignatureConnection());
+                RegionUtils ru = new RegionUtils(getConfig().getConnection().getSignatureConnection());
                 accountName = ru.getAccountName4SignatureAuth();
                 endpointSuffix = ru.getEndpointSuffix4SignatureAuth();
                 String sasKey = RegionUtils.getSasKey4SignatureAuth(getConfig().getContainerName(), accountName, endpointSuffix);

@@ -31,8 +31,11 @@ public class RegionUtils {
 
     private Matcher matcher;
 
-    public void init4Signature(AzureStorageConnectionSignature ascs) {
+    public RegionUtils(AzureStorageConnectionSignature ascs) {
         matcher = sasPattern.matcher(ascs.getAzureSharedAccessSignature());
+        if (!matcher.matches()) {
+            throw new RuntimeException("SAS URL format is not right, please check it");
+        }
     }
 
     public String getAccountName4SignatureAuth() {

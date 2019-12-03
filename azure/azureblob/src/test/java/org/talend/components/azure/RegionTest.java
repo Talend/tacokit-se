@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.talend.components.azure.common.connection.AzureStorageConnectionAccount;
 import org.talend.components.azure.common.connection.AzureStorageConnectionSignature;
 import org.talend.components.azure.common.service.AzureComponentServices;
+import org.talend.components.azure.service.RegionUtils;
 
 import com.microsoft.azure.storage.CloudStorageAccount;
 
@@ -78,7 +79,21 @@ public class RegionTest {
 
     @Test
     public void testRegionUtils() throws URISyntaxException {
-
+        String[] regions = { "core.chinacloudapi.cn", "core.windows.net" };
+        for (String region : regions) {
+            AzureStorageConnectionSignature accountConnection = new AzureStorageConnectionSignature();
+            accountConnection.setAzureSharedAccessSignature("https://myaccount.blob." + region + "/mytoken");
+            RegionUtils ru = new RegionUtils(accountConnection);
+            Assert.assertEquals("myaccount", ru.getAccountName4SignatureAuth());
+            Assert.assertEquals(region, ru.getEndpointSuffix4SignatureAuth());
+            Assert.assertEquals("mytoken", ru.getToken4SignatureAuth());
+            Assert.assertEquals("fs.azure.sas.mycontainer.myaccount.blob." + region, RegionUtils.getSasKey4SignatureAuth(
+                    "mycontainer", ru.getAccountName4SignatureAuth(), ru.getEndpointSuffix4SignatureAuth()));
+            Assert.assertEquals("fs.azure.account.key.myaccount.blob." + region,
+                    RegionUtils.getAccountCredKey4AccountAuth("myaccount", region));
+            Assert.assertEquals("wasbs://mycontainer@myaccount.blob." + region + "/myitem",
+                    RegionUtils.getBlobURI(true, "mycontainer", "myaccount", region, "myitem"));
+        }
     }
 
 }
