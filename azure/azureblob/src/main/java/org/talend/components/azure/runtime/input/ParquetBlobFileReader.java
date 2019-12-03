@@ -12,12 +12,8 @@
  */
 package org.talend.components.azure.runtime.input;
 
-import static org.talend.components.azure.common.service.AzureComponentServices.SAS_PATTERN;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.avro.generic.GenericRecord;
 import org.apache.hadoop.conf.Configuration;
