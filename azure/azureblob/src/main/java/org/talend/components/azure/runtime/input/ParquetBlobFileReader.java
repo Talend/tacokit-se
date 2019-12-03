@@ -85,8 +85,8 @@ public class ParquetBlobFileReader extends BlobFileReader {
                 hadoopConfig.set(sasKey, token);
             } else {
                 accountName = getConfig().getConnection().getAccountConnection().getAccountName();
-                String accountCredKey = RegionUtils.getAccountCredKey4AccountAuth(accountName,
-                        getConfig().getConnection().getEndpointSuffix());
+                endpointSuffix = getConfig().getConnection().getEndpointSuffix();
+                String accountCredKey = RegionUtils.getAccountCredKey4AccountAuth(accountName, endpointSuffix);
                 hadoopConfig.set(accountCredKey, getConfig().getConnection().getAccountConnection().getAccountKey());
             }
         }
