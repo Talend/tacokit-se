@@ -48,18 +48,18 @@ public class MarketoDataStore implements Serializable {
     @Option
     @Required
     @Validable(VALIDATION_URL_PROPERTY)
-    @Documentation("Marketo Endpoint (host only, ie: https://123-ABC-456.mktorest.com)")
+    @Documentation("Marketo endpoint (host only, ie: https://123-ABC-456.mktorest.com)")
     private String endpoint;
 
     @Option
     @Required
-    @Documentation("Marketo Client Id")
+    @Documentation("Marketo client id")
     private String clientId;
 
     @Option
     @Required
     @Credential
-    @Documentation("Marketo Client Secret")
+    @Documentation("Marketo client secret")
     private String clientSecret;
 
 }

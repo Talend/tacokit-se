@@ -58,7 +58,7 @@ public class MarketoDataSet implements Serializable {
     private MarketoDataStore dataStore;
 
     @Option
-    @Documentation("Lead Action")
+    @Documentation("Lead action")
     private LeadAction leadAction = MarketoDataSet.LeadAction.getLeadsByList;
 
     @Option
@@ -68,14 +68,14 @@ public class MarketoDataSet implements Serializable {
 
     @Option
     @ActiveIf(target = "leadAction", value = { "getLeadActivity" })
-    @Documentation("Date Time Mode")
+    @Documentation("Date time mode")
     private DateTimeMode dateTimeMode = DateTimeMode.relative;
 
     @Option
     @ActiveIfs(operator = AND, value = { //
             @ActiveIf(target = "leadAction", value = { "getLeadActivity" }), //
             @ActiveIf(target = "dateTimeMode", value = { "relative" }) })
-    @Documentation("Since Relative Date Time")
+    @Documentation("Since relative date time")
     private DateTimeRelative sinceDateTimeRelative = PERIOD_AGO_2W;
 
     @Option
@@ -83,7 +83,7 @@ public class MarketoDataSet implements Serializable {
             @ActiveIf(target = "leadAction", value = { "getLeadActivity" }), //
             @ActiveIf(target = "dateTimeMode", value = { "absolute" }) })
     @Validable(VALIDATION_DATETIME_PATTERN)
-    @Documentation("Since Absolute Date Time")
+    @Documentation("Since absolute date time")
     private String sinceDateTimeAbsolute = ZonedDateTime.now().minusMonths(2)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
@@ -91,7 +91,7 @@ public class MarketoDataSet implements Serializable {
     @ActiveIf(target = "leadAction", value = "getLeadActivity")
     @Suggestable(value = ACTIVITIES_LIST, parameters = { "../dataStore" })
     @Validable(VALIDATION_LIST_PROPERTY)
-    @Documentation("Activity Type Ids (10 max supported)")
+    @Documentation("Activity type ids (10 max supported)")
     private List<String> activityTypeIds = Collections.emptyList();
 
     @Option
