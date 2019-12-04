@@ -15,6 +15,8 @@
 
     <properties>
         <hamcrest.version>1.3</hamcrest.version>
+        <!-- FIXME: remove when locales are up to date -->
+        <talend.validation.internationalization>false</talend.validation.internationalization>
     </properties>
 
     <dependencies>
