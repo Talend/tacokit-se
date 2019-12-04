@@ -308,7 +308,7 @@ public class UIActionService extends MarketoService {
 
     @AsyncValidation(VALIDATION_DATETIME_PATTERN)
     public ValidationResult validateDateTimePattern(final String date) {
-        log.error("[validateDateTimePattern] {}", date);
+        log.debug("[validateDateTimePattern] {}", date);
         if (date == null || date.isEmpty()) {
             return new ValidationResult(ValidationResult.Status.KO, i18n.invalidBlankProperty());
         }
