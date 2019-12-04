@@ -121,7 +121,7 @@ public abstract class Output implements Serializable {
         if (datasource != null) {
             datasource.close();
         }
-        if("Snowflake".equals(configuration.getDataset().getConnection().getDbType())){
+        if ("Snowflake".equals(configuration.getDataset().getConnection().getDbType())) {
             SnowflakeCopy.cleanTmpFiles();
         }
     }
