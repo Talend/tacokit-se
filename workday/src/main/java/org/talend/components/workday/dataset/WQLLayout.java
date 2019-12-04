@@ -17,6 +17,7 @@ import org.talend.components.workday.WorkdayException;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Code;
+import org.talend.sdk.component.api.configuration.ui.widget.TextArea;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
@@ -34,6 +35,7 @@ public class WQLLayout implements Serializable, QueryHelper {
     private static final long serialVersionUID = 898158661235915308L;
 
     @Option
+    @TextArea
     @Code("wql")
     @Documentation("A valid read only query is the source type is Query")
     private String query;
