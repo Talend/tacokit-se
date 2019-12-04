@@ -26,6 +26,13 @@
   <name>Components :: AzureCommon</name>
 
   <dependencies>
+    <!-- traductions -->
+    <dependency>
+      <groupId>org.talend.components</groupId>
+      <artifactId>azurecommon-locales</artifactId>
+      <version>${locales.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>

@@ -18,6 +18,13 @@
     </properties>
 
     <dependencies>
+        <!-- traductions -->
+        <dependency>
+            <groupId>org.talend.components</groupId>
+            <artifactId>marketo-locales</artifactId>
+            <version>${locales.version}</version>
+        </dependency>
+
         <!-- Testing -->
         <dependency>
             <groupId>org.hamcrest</groupId>

@@ -23,6 +23,13 @@
   </properties>
 
   <dependencies>
+    <!-- traductions -->
+    <dependency>
+      <groupId>org.talend.components</groupId>
+      <artifactId>salesforce-locales</artifactId>
+      <version>${locales.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>com.force.api</groupId>
       <artifactId>force-wsc</artifactId>

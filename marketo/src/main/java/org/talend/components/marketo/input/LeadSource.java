@@ -108,15 +108,10 @@ public class LeadSource extends MarketoSource {
         if (DateTimeMode.absolute.equals(configuration.getDataSet().getDateTimeMode())) {
             result = configuration.getDataSet().getSinceDateTimeAbsolute();
         } else {
-            result = ZonedDateTime.now().minus(Period.parse(configuration.getDataSet().getSinceDateTimeRelative()))
+            result = ZonedDateTime.now()
+                    .minus(Period.parse(configuration.getDataSet().getSinceDateTimeRelative().getRelativeOffset()))
                     .format(DateTimeFormatter.ofPattern(DATETIME_FORMAT));
-
         }
-        log.warn("[computeDateTimeFromConfiguration] SinceDateTime [{}] : {} / {} => {}",
-                configuration.getDataSet().getDateTimeMode(), //
-                configuration.getDataSet().getSinceDateTimeRelative(), //
-                configuration.getDataSet().getSinceDateTimeAbsolute(), //
-                result);
 
         return result;
     }
