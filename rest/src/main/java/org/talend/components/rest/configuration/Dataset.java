@@ -35,7 +35,8 @@ import java.util.List;
         @GridLayout.Row({ "hasHeaders" }), @GridLayout.Row({ "headers" }), @GridLayout.Row({ "hasQueryParams" }),
         @GridLayout.Row({ "queryParams" }), @GridLayout.Row({ "hasPathParams" }), @GridLayout.Row({ "pathParams" }),
         @GridLayout.Row({ "hasBody" }), @GridLayout.Row({ "body" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "datastore" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "maxRedirect" }),
+        @GridLayout.Row({ "only_same_host" }), @GridLayout.Row({ "force_302_redirect" }), @GridLayout.Row({ "datastore" }) })
 @Documentation("Dataset configuration.")
 public class Dataset implements Serializable {
 
@@ -58,18 +59,21 @@ public class Dataset implements Serializable {
     @Documentation("How many redirection are supported ? (-1 for infinite)")
     @DefaultValue("3")
     @Min(-1)
+    @Option
     private Integer maxRedirect = 3;
 
     // @Option
     @Documentation("Redirect only if same host.")
     @DefaultValue("false")
     @ActiveIf(target = "maxRedirect", value = "0", negate = true)
+    @Option
     private Boolean only_same_host = false;
 
     // @Option
     @Documentation("Force a GET on a 302 redirection.")
     @DefaultValue("false")
     @ActiveIf(target = "maxRedirect", value = "0", negate = true)
+    @Option
     private Boolean force_302_redirect = false;
 
     @Option

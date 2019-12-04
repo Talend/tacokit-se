@@ -27,6 +27,7 @@ import static java.util.stream.Collectors.toMap;
 
 @Data
 @GridLayout({ @GridLayout.Row({ "dataset" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataset" }) })
 public class RequestConfig implements Serializable {
 
     @Option
