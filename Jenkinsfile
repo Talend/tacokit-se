@@ -164,25 +164,19 @@ spec:
             when {
                 anyOf {
                     expression { params.Action == 'PUSH_TO_XTM' }
-//                    allOf{
-//                        triggeredBy 'TimerTrigger'
-//                        expression {
-//                            (calendar.get(Calendar.WEEK_OF_MONTH) == 2 ||  calendar.get(Calendar.WEEK_OF_MONTH) == 4) && calendar.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY
-//                        }
-//                    }
+                    allOf {
+                        triggeredBy 'TimerTrigger'
+                        expression { calendar.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY }
+                    }
                 }
                 anyOf {
                     branch 'master'
-                    expression { BRANCH_NAME.startsWith('maintenance/') }
+                    expression { env.BRANCH_NAME.startsWith('maintenance/') }
                 }
             }
             steps {
                 container('main') {
-                    withCredentials([nexusCredentials,
-                            string(
-                                    credentialsId: 'xtm-token',
-                                    variable: 'XTM_TOKEN')
-                    ]) {
+                    withCredentials([nexusCredentials, string(credentialsId: 'xtm-token', variable: 'XTM_TOKEN')]) {
                         script {
                             sh "mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-export"
                         }
@@ -195,7 +189,7 @@ spec:
                 expression { params.Action == 'DEPLOY_FROM_XTM' }
                 anyOf {
                     branch 'master'
-                    expression { BRANCH_NAME.startsWith('maintenance/') }
+                    expression { env.BRANCH_NAME.startsWith('maintenance/') }
                 }
             }
             steps {
