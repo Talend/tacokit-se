@@ -12,6 +12,7 @@
  */
 package org.talend.components.workday.input;
 
+import org.talend.components.workday.dataset.WorkdayDataSet;
 import org.talend.components.workday.service.WorkdayReaderService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -34,7 +35,7 @@ public class WorkdayProducer implements Serializable {
 
     private final WorkdayConfiguration config;
 
-    private transient final WorkdayReaderService reader;
+    private final WorkdayReaderService reader;
 
     private transient Iterator<JsonObject> jsonIterator = null;
 
@@ -46,9 +47,9 @@ public class WorkdayProducer implements Serializable {
     @Producer
     public JsonObject next() {
         if (this.jsonIterator == null) {
-            JsonObject obj = reader.find(this.config.getDataSet().getDatastore(), this.config.getDataSet(),
-                    this.config.getDataSet().extractQueryParam());
-            this.jsonIterator = reader.extractIterator(obj, config.getDataSet().getMode().arrayName);
+            final WorkdayDataSet workdayds = this.config.getDataSet();
+            JsonObject obj = reader.find(workdayds.getDatastore(), workdayds, workdayds.extractQueryParam());
+            this.jsonIterator = reader.extractIterator(obj, workdayds.getMode().arrayName);
         }
         if (this.jsonIterator == null || !this.jsonIterator.hasNext()) {
             return null;
