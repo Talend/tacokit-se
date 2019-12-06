@@ -136,7 +136,11 @@ public class RedshiftPlatform extends Platform {
         case RECORD:
         case ARRAY:
         default:
-            throw new IllegalStateException(getI18n().errorUnsupportedType(column.getType().name(), column.getName()));
+            if (column.getType().name() != null || column.getName() != null) {
+                throw new IllegalStateException(getI18n().errorUnsupportedType(column.getType().name(), column.getName()));
+            }
+            throw new IllegalArgumentException(
+                    getI18n().errorUnsupportedData(String.valueOf(column.getEntry().getDefaultValue())));
         }
     }
 

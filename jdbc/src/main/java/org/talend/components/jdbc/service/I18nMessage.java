@@ -93,4 +93,6 @@ public interface I18nMessage {
     String errorVacantAccountKey();
 
     String errorNoRecordReceived();
+
+    String errorUnsupportedData(String data);
 }
