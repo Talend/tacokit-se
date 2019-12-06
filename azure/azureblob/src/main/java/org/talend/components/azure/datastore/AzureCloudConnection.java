@@ -26,7 +26,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 import lombok.Data;
 import static org.talend.components.azure.service.AzureBlobComponentServices.TEST_CONNECTION;
 
-@GridLayout({ @GridLayout.Row("useAzureSharedSignature"), @GridLayout.Row("accountConnection"), @GridLayout.Row("endpointSuffix"),
+@GridLayout({ @GridLayout.Row("useAzureSharedSignature"), @GridLayout.Row("accountConnection"),
         @GridLayout.Row("signatureConnection") })
 @Data
 @DataStore
@@ -39,11 +39,6 @@ public class AzureCloudConnection implements Serializable {
             + "Ensure that the administrator of the system has granted you the appropriate access permissions to this storage account.")
     @ActiveIf(target = "useAzureSharedSignature", value = "false")
     private AzureStorageConnectionAccount accountConnection;
-
-    @Option
-    @Documentation("Endpoint suffix, decide the region of current service : core.chinacloudapi.cn, core.windows.net, core.cloudapi.de, core.usgovcloudapi.net")
-    @ActiveIf(target = "useAzureSharedSignature", value = "false")
-    private String endpointSuffix = "core.windows.net";
 
     @Option
     @Documentation("Use a shared access signature (SAS) to access the storage resources without need for the account key. "

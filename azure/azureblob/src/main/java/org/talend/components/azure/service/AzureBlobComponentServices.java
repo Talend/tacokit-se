@@ -53,8 +53,7 @@ public class AzureBlobComponentServices {
         try {
             CloudStorageAccount cloudStorageAccount = azureConnection.isUseAzureSharedSignature()
                     ? connectionService.createStorageAccount(azureConnection.getSignatureConnection())
-                    : connectionService.createStorageAccount(azureConnection.getAccountConnection(),
-                            azureConnection.getEndpointSuffix());
+                    : connectionService.createStorageAccount(azureConnection.getAccountConnection());
             return connectionService.testConnection(cloudStorageAccount);
         } catch (URISyntaxException e) {
             return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18nService.illegalContainerName());
@@ -66,8 +65,7 @@ public class AzureBlobComponentServices {
     public CloudStorageAccount createStorageAccount(AzureCloudConnection azureConnection) throws URISyntaxException {
         return azureConnection.isUseAzureSharedSignature()
                 ? connectionService.createStorageAccount(azureConnection.getSignatureConnection())
-                : connectionService.createStorageAccount(azureConnection.getAccountConnection(),
-                        azureConnection.getEndpointSuffix());
+                : connectionService.createStorageAccount(azureConnection.getAccountConnection());
     }
 
     @Suggestions(GET_CONTAINER_NAMES)
