@@ -13,12 +13,11 @@
 package org.talend.components.marketo.dataset;
 
 import java.io.Serializable;
-import java.time.Period;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import org.talend.components.marketo.datastore.MarketoDataStore;
+import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.action.Validable;
@@ -39,6 +38,7 @@ import static org.talend.components.marketo.service.UIActionService.VALIDATION_D
 import static org.talend.components.marketo.service.UIActionService.VALIDATION_LIST_PROPERTY;
 import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.AND;
 
+@Version(value = 2, migrationHandler = MarketoDataSetMigrationHandler.class)
 @Data
 @DataSet
 @Documentation("Marketo Dataset")
