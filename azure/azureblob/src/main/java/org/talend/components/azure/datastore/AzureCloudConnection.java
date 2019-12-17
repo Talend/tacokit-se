@@ -12,6 +12,9 @@
  */
 package org.talend.components.azure.datastore;
 
+import static org.talend.components.azure.service.AzureBlobComponentServices.TEST_CONNECTION;
+import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
+
 import java.io.Serializable;
 
 import org.talend.components.azure.common.connection.AzureStorageConnectionAccount;
@@ -24,10 +27,10 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
-import static org.talend.components.azure.service.AzureBlobComponentServices.TEST_CONNECTION;
 
-@GridLayout({ @GridLayout.Row("useAzureSharedSignature"), @GridLayout.Row("accountConnection"), @GridLayout.Row("endpointSuffix"),
+@GridLayout({ @GridLayout.Row("useAzureSharedSignature"), @GridLayout.Row("accountConnection"),
         @GridLayout.Row("signatureConnection") })
+@GridLayout(names = ADVANCED, value = { @GridLayout.Row("endpointSuffix") })
 @Data
 @DataStore
 @Checkable(TEST_CONNECTION)
