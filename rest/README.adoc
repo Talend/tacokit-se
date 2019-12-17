@@ -1,0 +1,96 @@
+= Talend REST Connectors
+This project contains Talend HTTP REST connectors builded with TCK framework.
+
+== How to build the project
+The project locally use maven as build tool.
+
+```
+mvn clean install
+```
+
+Tests use some facilities proposed by http://httpbin.org/ so you may need to define you own instance with +org.talend.components.rest.httpbin_base+
+
+```
+mvn clean install  -Dorg.talend.components.rest.httpbin_base=<you local httpbin instance or https://httpbin.org>
+```
+
+At this time, the httpbin docker image in dockerhub doesn't provide authentication endpoints. you have to build your own from https://github.com/postmanlabs/httpbin.
+
+== Configure the query from incoming records
+REST connectors let you configure:
+
+* Resource segments
+* Headers
+* Query parameters
+* Body
+
+In all of them, you can define some placeholders that will be replaced by values from incoming record.
+
+Placeholders start with '{' and terminate with '}', except for body since thay start with '${' to be easily distinguish from json.
+
+In placeholders you will set a record pointer to reference a value from the incoming record. A placeholder can have a default value after ':-' _{/path/to/value:-defaultValue}_
+
+For example, if the incoming record has been built from this json. So it has the same hierarchical schema:
+----
+{
+    "q": 12345,
+    "val_head1": "head1",
+    "entity":{
+        "type": "book",
+        "book": {
+            "id": "A321A32A13A2",
+            "title": "Twenty Thousand Leagues Under the Sea",
+            "price": 5.60
+        }
+    }
+}
+----
+
+If we define such a configuration
+
+* Resource
+** get/{entity}/{id}
+* Path parameters
+** entity = {/entity/type}
+** id = {/entity/book/id}
+* Header parameters
+** header1 = {/val_head1}
+* Query parameters
+** q = {/q}
+
+_Note that resource placeholders reference path parameters. A resource coming from an openapi service descriptor will have this syntax._
+
+Parmeters will be replaced by:
+
+* Resource
+** get/book/A321A32A13A2
+* Header parameters
+** header1 = head1
+* Query parameters
+** q = 12345
+
+The same for the body. If we define something like:
+----
+{
+    book:{
+        name: "${/entity/book/title}",
+        price: ${/entity/book/price}
+    }
+}
+----
+It will be replaced by:
+----
+{
+    book:{
+        name: "Twenty Thousand Leagues Under the Sea",
+        price: 5.6
+    }
+}
+----
+
+You can configure placeholder prefix and suffix with options:
+
+* org.talend.components.rest.parameters_substitutor_prefix
+* org.talend.components.rest.parameters_substitutor_suffix
+* org.talend.components.rest.body_substitutor_prefix
+* org.talend.components.rest.body_substitutor_suffix

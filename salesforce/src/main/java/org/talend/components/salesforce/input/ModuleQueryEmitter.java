@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.talend.components.salesforce.configuration.InputModuleConfig;
-import org.talend.components.salesforce.configuration.InputSOQLConfig;
 import org.talend.components.salesforce.dataset.ModuleDataSet;
 import org.talend.components.salesforce.service.Messages;
 import org.talend.components.salesforce.service.SalesforceService;
@@ -46,6 +45,8 @@ import lombok.extern.slf4j.Slf4j;
 @Documentation("Salesforce module query input ")
 public class ModuleQueryEmitter extends AbstractQueryEmitter implements Serializable {
 
+    private transient List<String> allModuleFields;
+
     public ModuleQueryEmitter(@Option("configuration") final InputModuleConfig inputModuleConfig, final SalesforceService service,
             LocalConfiguration configuration, final RecordBuilderFactory recordBuilderFactory, final Messages messages) {
         super(inputModuleConfig, service, configuration, recordBuilderFactory, messages);
@@ -56,27 +57,13 @@ public class ModuleQueryEmitter extends AbstractQueryEmitter implements Serializ
      */
     public String getQuery() {
 
-        List<String> allModuleFields;
-        DescribeSObjectResult describeSObjectResult;
-        try {
-            final PartnerConnection connection = service.connect(inputConfig.getDataSet().getDataStore(), localConfiguration);
-            describeSObjectResult = connection.describeSObject(getModuleName());
-            allModuleFields = getColumnNames(describeSObjectResult);
-        } catch (ConnectionException e) {
-            if (ApiFault.class.isInstance(e)) {
-                ApiFault fault = ApiFault.class.cast(e);
-                throw new IllegalStateException(fault.getExceptionMessage(), e);
-            }
-            throw new IllegalStateException(e);
-        }
-
-        List<String> queryFields;
         List<String> selectedColumns = getColumnNames();
+        List<String> queryFields;
         if (selectedColumns == null || selectedColumns.isEmpty()) {
-            queryFields = allModuleFields;
-        } else if (!allModuleFields.containsAll(selectedColumns)) { // ensure requested fields exist
+            queryFields = getAllModuleFields();
+        } else if (!getAllModuleFields().containsAll(selectedColumns)) { // ensure requested fields exist
             throw new IllegalStateException(
-                    "columns { " + selectedColumns.stream().filter(c -> !allModuleFields.contains(c)).collect(joining(","))
+                    "columns { " + selectedColumns.stream().filter(c -> !getAllModuleFields().contains(c)).collect(joining(","))
                             + " } " + "doesn't exist in module '" + getModuleName() + "'");
         } else {
             queryFields = selectedColumns;
@@ -108,19 +95,38 @@ public class ModuleQueryEmitter extends AbstractQueryEmitter implements Serializ
 
     @Override
     List<String> getColumnNames() {
-        return ((ModuleDataSet) inputConfig.getDataSet()).getSelectColumnNames();
+        List<String> selectedFields = ((ModuleDataSet) inputConfig.getDataSet()).getSelectColumnNames();
+        if (selectedFields != null && selectedFields.size() > 0) {
+            return ((ModuleDataSet) inputConfig.getDataSet()).getSelectColumnNames();
+        } else {
+            return getAllModuleFields();
+        }
     }
 
-    private List<String> getColumnNames(DescribeSObjectResult in) {
-        List<String> fields = new ArrayList<>();
-        for (Field field : in.getFields()) {
-            // filter the invalid compound columns for salesforce bulk query api
-            if (!service.isSuppotedType(field)) {
-                continue;
+    private List<String> getAllModuleFields() {
+        if (allModuleFields == null) {
+            DescribeSObjectResult describeSObjectResult;
+            try {
+                final PartnerConnection connection = service.connect(inputConfig.getDataSet().getDataStore(), localConfiguration);
+                describeSObjectResult = connection.describeSObject(getModuleName());
+                allModuleFields = new ArrayList<>();
+                for (Field field : describeSObjectResult.getFields()) {
+                    // filter the invalid compound columns for salesforce bulk query api
+                    if (!service.isSuppotedType(field)) {
+                        continue;
+                    }
+                    allModuleFields.add(field.getName());
+                }
+                return allModuleFields;
+            } catch (ConnectionException e) {
+                if (ApiFault.class.isInstance(e)) {
+                    ApiFault fault = ApiFault.class.cast(e);
+                    throw new IllegalStateException(fault.getExceptionMessage(), e);
+                }
+                throw new IllegalStateException(e);
             }
-            fields.add(field.getName());
         }
-        return fields;
+        return allModuleFields;
     }
 
 }

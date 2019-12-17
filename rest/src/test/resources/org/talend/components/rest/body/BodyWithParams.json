@@ -1,0 +1,12 @@
+{
+  "book": {
+    "title": "${/book/title}",
+    "price": ${/book/market/price}
+    "meta": {
+      "ids": {
+        "ID": ${/book/identification/id},
+        "ISBN": ${/book/identification/isbn}
+      }
+    }
+  }
+}

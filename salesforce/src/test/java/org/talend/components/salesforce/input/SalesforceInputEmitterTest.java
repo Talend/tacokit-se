@@ -24,6 +24,7 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -38,10 +39,10 @@ import org.junit.jupiter.api.TestInstance;
 import org.talend.components.salesforce.SalesforceTestBase;
 import org.talend.components.salesforce.configuration.InputModuleConfig;
 import org.talend.components.salesforce.configuration.InputSOQLConfig;
+import org.talend.components.salesforce.configuration.OutputConfig;
 import org.talend.components.salesforce.dataset.ModuleDataSet;
 import org.talend.components.salesforce.dataset.SOQLQueryDataSet;
 import org.talend.components.salesforce.datastore.BasicDataStore;
-import org.talend.components.salesforce.configuration.OutputConfig;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
@@ -370,6 +371,27 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
         Record record = records.get(0);
         assertEquals("F_test_types_" + UNIQUE_ID + " " + "L_test_types_" + UNIQUE_ID, record.getString("Contact_Name"));
         assertNull(record.getString("Account_Name"));
+    }
+
+    @Test
+    @DisplayName("Test query module with empty selected fields")
+    public void testModuleQueryEmptySelectedFields() {
+        final ModuleDataSet moduleDataSet = new ModuleDataSet();
+        moduleDataSet.setModuleName("Account");
+        moduleDataSet.setSelectColumnNames(Collections.emptyList());
+        moduleDataSet.setDataStore(getDataStore());
+        moduleDataSet.setCondition("Name Like 'TestName_%" + UNIQUE_ID + "%' limit 10");
+
+        final InputModuleConfig inputConfig = new InputModuleConfig();
+        inputConfig.setDataSet(moduleDataSet);
+
+        final String config = configurationByExample().forInstance(inputConfig).configured().toQueryString();
+        Job.components().component("salesforce-input", "Salesforce://ModuleQueryInput?" + config)
+                .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
+        final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
+        Assert.assertEquals(10, records.size());
+        Schema schema = records.iterator().next().getSchema();
+        assertTrue(schema.getEntries().size() > 50, "schema fields list size: " + schema.getEntries().size());
     }
 
     @AfterAll

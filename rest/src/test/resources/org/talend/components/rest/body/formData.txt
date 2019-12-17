@@ -1,0 +1,17 @@
+------------------------- org.talend.components.rest.service.body_formdata_boundary
+Content-Disposition: form-data; name="key1"
+
+
+------------------------- org.talend.components.rest.service.body_formdata_boundary
+Content-Disposition: form-data; name="key2"
+
+val2
+------------------------- org.talend.components.rest.service.body_formdata_boundary
+Content-Disposition: form-data; name="key3"
+
+val3
+------------------------- org.talend.components.rest.service.body_formdata_boundary
+Content-Disposition: form-data; name="key4"
+
+val4
+------------------------- org.talend.components.rest.service.body_formdata_boundary--
