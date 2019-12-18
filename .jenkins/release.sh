@@ -11,10 +11,6 @@ env | sort
 pre_release_version=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
 release_version=$(echo ${pre_release_version} | cut -d- -f1)
 
-# TODO : see where this need to be updated
-# <connectors-test-bom.version>1.5.0-SNAPSHOT</connectors-test-bom.version>
-# <common.version>1.5.0-SNAPSHOT</common.version>
-
 # check for snapshot
 if [[ $pre_release_version != *'-SNAPSHOT' ]]; then
   echo Cannot release from a non SNAPSHOT, exiting.
@@ -68,6 +64,8 @@ if [[ ${BRANCH_NAME} == 'master' ]]; then
   # apply bump
   mvn -B -s .jenkins/settings.xml versions:set -DnewVersion=${next_master_version}
   mvn versions:set-property -Dproperty=locales.version -DnewVersion="[${major}.${minor},)"
+  mvn versions:set-property -Dproperty=common.version -DnewVersion=${next_master_version}
+  mvn versions:set-property -Dproperty=connectors-test-bom.version -DnewVersion=${next_master_version}
   git add -u
   git commit -m "[jenkins-release] prepare for next development iteration $next_master_version"
 
