@@ -45,6 +45,12 @@ public class SalesforceTestBase implements Serializable {
 
     public static String SECURITY_KEY;
 
+    public static String EXPIRED_USER_ID;
+
+    public static String EXPIRED_PASSWORD;
+
+    public static String EXPIRED_SECURITY_KEY;
+
     static {
         final MavenDecrypter decrypter = new MavenDecrypter();
         final Server serverWithPassword = decrypter.find("salesforce-password");
@@ -52,6 +58,11 @@ public class SalesforceTestBase implements Serializable {
         USER_ID = serverWithPassword.getUsername();
         PASSWORD = serverWithPassword.getPassword();
         SECURITY_KEY = serverWithSecuritykey.getPassword();
+        final Server expiredServerWithPassword = decrypter.find("salesforce-password-expired");
+        final Server expiredServerWithSecuritykey = decrypter.find("salesforce-securitykey-expired");
+        EXPIRED_USER_ID = expiredServerWithPassword.getUsername();
+        EXPIRED_PASSWORD = expiredServerWithPassword.getPassword();
+        EXPIRED_SECURITY_KEY = expiredServerWithSecuritykey.getPassword();
     }
 
     @Injected
