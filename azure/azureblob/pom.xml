@@ -93,6 +93,10 @@
                     <groupId>xml-apis</groupId>
                     <artifactId>xml-apis</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.rackspace.apache</groupId>
+                    <artifactId>xerces2-xsd11</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
