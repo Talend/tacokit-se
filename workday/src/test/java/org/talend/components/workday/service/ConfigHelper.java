@@ -12,19 +12,11 @@
  */
 package org.talend.components.workday.service;
 
-import org.apache.xbean.propertyeditor.PropertyEditorRegistry;
 import org.talend.components.workday.datastore.WorkdayDataStore;
-import org.talend.sdk.component.api.service.http.HttpClientFactory;
-import org.talend.sdk.component.runtime.manager.reflect.ParameterModelService;
-import org.talend.sdk.component.runtime.manager.reflect.ReflectionService;
-import org.talend.sdk.component.runtime.manager.service.http.HttpClientFactoryImpl;
 
-import javax.json.bind.JsonbBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.Properties;
 
 public class ConfigHelper {
@@ -48,29 +40,5 @@ public class ConfigHelper {
         wds.setAuthEndpoint(props.getProperty("authendpoint"));
         wds.setEndpoint(props.getProperty("endpoint"));
         return wds;
-    }
-
-    public static WorkdayReaderService buildReader() throws NoSuchFieldException, IllegalAccessException {
-        final PropertyEditorRegistry propertyEditorRegistry = new PropertyEditorRegistry();
-        HttpClientFactory factory = new HttpClientFactoryImpl("test",
-                new ReflectionService(new ParameterModelService(propertyEditorRegistry), propertyEditorRegistry),
-                JsonbBuilder.create(), new HashMap<>());
-        final WorkdayReader reader = factory.create(WorkdayReader.class, "https://api.workday.com");
-        final WorkdayReaderService service = new WorkdayReaderService();
-        Field readerField = WorkdayReaderService.class.getDeclaredField("reader");
-        readerField.setAccessible(true);
-        readerField.set(service, reader);
-
-        final AccessTokenProvider provider = factory.create(AccessTokenProvider.class, "https://auth.api.workday.com");
-        AccessTokenService providerService = new AccessTokenService();
-        final Field serviceField = AccessTokenService.class.getDeclaredField("service");
-        serviceField.setAccessible(true);
-        serviceField.set(providerService, provider);
-
-        Field tokenField = WorkdayReaderService.class.getDeclaredField("accessToken");
-        tokenField.setAccessible(true);
-        tokenField.set(service, providerService);
-
-        return service;
     }
 }

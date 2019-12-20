@@ -24,7 +24,7 @@ public interface WorkdayReader extends HttpClient {
 
     /**
      * search for workday data.
-     * 
+     *
      * @param token : authorize token.
      * @param servicePath: final path for workday REST service (common/v1/workers ...).
      * @param othersParam: other query REST parameters

@@ -37,7 +37,7 @@ public class RAASLayout implements Serializable, QueryHelper {
 
     @Override
     public String getServiceToCall() {
-        return "raas/" + this.user + '/' + this.report;
+        return String.format("raas/%s/%s", this.user, this.report);
     }
 
     @Override

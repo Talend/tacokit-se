@@ -15,34 +15,10 @@
 
     <properties>
         <hamcrest.version>1.3</hamcrest.version>
+        <talend.junit.http.passthrough>false</talend.junit.http.passthrough>
     </properties>
 
     <dependencies>
-        <!-- read workday swagger v 2.0 -->
-        <dependency>
-            <groupId>io.swagger</groupId>
-            <artifactId>swagger-parser</artifactId>
-            <version>1.0.46</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>${jackson.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>${jackson.version}</version>
-            <scope>compile</scope>
-        </dependency>
-
         <!-- Testing -->
         <dependency>
             <groupId>org.hamcrest</groupId>
@@ -70,6 +46,12 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire.version}</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <!--<talend.junit.http.capture>true</talend.junit.http.capture>-->
+                        <talend.junit.http.passthrough>${talend.junit.http.passthrough}</talend.junit.http.passthrough>
+                    </systemPropertyVariables>
+                </configuration>
             </plugin>
         </plugins>
     </build>

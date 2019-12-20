@@ -20,21 +20,26 @@ import org.talend.components.workday.dataset.RAASLayout;
 import org.talend.components.workday.dataset.WorkdayDataSet;
 import org.talend.components.workday.service.ConfigHelper;
 import org.talend.components.workday.service.WorkdayReaderService;
+import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.junit.http.junit5.HttpApi;
+import org.talend.sdk.component.junit.http.junit5.HttpApiName;
+import org.talend.sdk.component.junit5.WithComponents;
 
 import javax.json.JsonObject;
 
+@HttpApi(useSsl = true)
+@WithComponents("org.talend.components.workday")
 class RAASProducerTest {
 
     private static WorkdayDataSet dataset;
 
     private static WorkdayConfiguration cfg;
 
-    private static WorkdayReaderService service;
+    @Service
+    private WorkdayReaderService service;
 
     @BeforeAll
     private static void init() throws NoSuchFieldException, IllegalAccessException {
-        RAASProducerTest.service = ConfigHelper.buildReader();
-
         RAASProducerTest.cfg = new WorkdayConfiguration();
         RAASProducerTest.dataset = new WorkdayDataSet();
         RAASProducerTest.dataset.setDatastore(ConfigHelper.buildDataStore());

@@ -20,21 +20,32 @@ import org.talend.components.workday.dataset.WQLLayout;
 import org.talend.components.workday.dataset.WorkdayDataSet;
 import org.talend.components.workday.service.ConfigHelper;
 import org.talend.components.workday.service.WorkdayReaderService;
+import org.talend.sdk.component.api.DecryptedServer;
+import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.junit.http.junit5.HttpApi;
+import org.talend.sdk.component.junit.http.junit5.HttpApiName;
+import org.talend.sdk.component.junit5.WithComponents;
+import org.talend.sdk.component.junit5.WithMavenServers;
 
 import javax.json.JsonObject;
 
+@WithMavenServers
+@HttpApi(useSsl = true)
+@WithComponents("org.talend.components.workday")
 class WorkdayProducerTest {
 
     private static WorkdayDataSet dataset;
 
     private static WorkdayConfiguration cfg;
 
-    private static WorkdayReaderService service;
+    @Service
+    private WorkdayReaderService service;
+
+    @DecryptedServer(value = "tdi.workday")
+    private org.talend.sdk.component.maven.Server wdClient;
 
     @BeforeAll
-    private static void init() throws NoSuchFieldException, IllegalAccessException {
-        WorkdayProducerTest.service = ConfigHelper.buildReader();
-
+    private static void init() {
         WorkdayProducerTest.cfg = new WorkdayConfiguration();
         WorkdayProducerTest.dataset = new WorkdayDataSet();
         WorkdayProducerTest.dataset.setDatastore(ConfigHelper.buildDataStore());
@@ -53,6 +64,7 @@ class WorkdayProducerTest {
         Assertions.assertNotNull(o);
     }
 
+    @HttpApiName("wqlError.json")
     @Test
     void nextError() {
         String query = "SELECT accountCurrency, bankAccountSecuritySegment, priorDayAccountBalance "

@@ -1,0 +1,56 @@
+[
+  {
+    "request":{
+      "headers":{
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Connection":"keep-alive",
+        "Content-Length":"52",
+        "Content-Type":"application/x-www-form-urlencoded"
+      },
+      "method":"POST",
+      "uri":"https://auth.api.workday.com/v1/token"
+    },
+    "response":{
+      "headers":{
+        "X-Frame-Options":"DENY",
+        "Referrer-Policy":"origin-when-cross-origin, strict-origin-when-cross-origin",
+        "Request-Time":"136",
+        "Strict-Transport-Security":"max-age=31536000; includeSubDomains",
+        "X-Content-Type-Options":"nosniff",
+        "Content-Security-Policy":"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:",
+        "Connection":"keep-alive",
+        "Set-Cookie":"AWSALB=mtWLJMvSE0c9cu4ViJ8v3EgnpIht1/6l3l/kvUM2QpcekIVaHEpnT7q83PPgVH9HYEL6V9Fws4jysqeg3D6YA8eFIE978oFKVUx6TnkrThLP+gH6ackYMUuXssR0; Expires=Fri, 27 Dec 2019 17:00:22 GMT; Path=/",
+        "X-Permitted-Cross-Domain-Policies":"master-only",
+        "X-XSS-Protection":"1; mode=block",
+        "Content-Length":"981",
+        "Content-Type":"application/json"
+      },
+      "payload":"{\"access_token\":\"eyJhbGciOiJSUzUxMiIsImtpZCI6IjIwMTktMTItMjAifQ.eyJpc3MiOiJDXHUwMDNkVVMsU1RcdTAwM2RDQSxMXHUwMDNkUGxlYXNhbnRvbixPVVx1MDAzZERldmVsb3BtZW50LE9cdTAwM2RXb3JrZGF5LENOXHUwMDNkT0NUT1BBQVMiLCJhdXRoX3RpbWUiOjE1NzY4NjEyMjMsImF1dGhfdHlwZSI6IlBhYVMiLCJzeXNfYWNjdF90eXAiOiJFUyIsInNjb3BlIjp7ImNsaWVudF9pZCI6Ik5tTTRPVEV3T0dVdFpqUmtOaTAwWldNMExXRXhOV0V0TVdZMlpXTmpPVEJoWWpKbCJ9LCJ0b2tlblR5cGUiOiJJZGVudGl0eSIsInN1YiI6ImxtY25laWwiLCJhdWQiOiJ3ZCIsImV4cCI6MTU3Njg2NDgyMywiaWF0IjoxNTc2ODYxMjIzLCJqdGkiOiJ4cHp5OHdtcjcyOWtkYXc3dXpybzgzd3JrYXVkYXU1aHo0Mmw1c3d1Ym01anMwNGoiLCJ0ZW5hbnQiOiJlcHY2Z21zNjAifQ.YLuzeo_ZKmILU00BW4nXj7ZGazhqXlwo-prRUzrLErmrV18Ir1l30h75pLzF8aqfcn2_NN-qV9pi38Gvl-nnqVLLNyfAvj5W8E7i-LZr3J0Ghzw7LOHOdZvCaQ4k1j2xTnlqCA76g3lOrEfqzNYYHUDcujqURr2rWa-0MdTOufrH4RkWaNgIofv254Ur3cOHcst1VMGq2WI1kAtmTjl-a2tGh2nMSSfZbc780FJ3uzwPS43R6fMBg4S5LrZW2sOeo7iMxOvkMSILQ1kPW-nswLXsulU2BKhD_hkS9Pt-JTuqyRB39EG4HB6SXMYNQj8nAcuIg3nGQsjAbDRUB_CfzQ\",\"token_type\":\"Bearer\",\"expires_in\":\"3600\"}",
+      "status":200
+    }
+  },
+  {
+    "request":{
+      "headers":{
+        "content-length":"0",
+        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Connection":"keep-alive"
+      },
+      "method":"GET",
+      "uri":"https://api.workday.com/wql/v1/data?query=SELECT+accountCurrency%2C+bankAccountSecuritySegment%2C+priorDayAccountBalance+FROM+UnkownfinancialAccounts"
+    },
+    "response":{
+      "headers":{
+        "Transfer-Encoding":"chunked",
+        "oms-xo-version":"2019.33.1129.????",
+        "Cache-Control":"no-cache",
+        "Instance":"11020 on 443",
+        "Connection":"keep-alive",
+        "wd-common-request-id":"ROBOT|A2722DD2|16F2440C",
+        "Content-Type":"application/json"
+      },
+      "payload":"{\"error\":\"invalid request: WQL error.\",\"errors\":[{\"error\":\"DataSource: UnkownfinancialAccounts is invalid\",\"location\":\"Error in from clause\"}]}",
+      "status":400
+    }
+  }
+]

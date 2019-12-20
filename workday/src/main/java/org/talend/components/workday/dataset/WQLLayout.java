@@ -36,7 +36,7 @@ public class WQLLayout implements Serializable, QueryHelper {
 
     @Option
     @TextArea
-    @Code("wql")
+    @Code("sql")
     @Documentation("A valid read only query is the source type is Query")
     private String query;
 
