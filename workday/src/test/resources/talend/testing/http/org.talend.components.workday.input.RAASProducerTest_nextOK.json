@@ -4,7 +4,7 @@
       "headers":{
         "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
         "Connection":"keep-alive",
-        "Content-Length":"52",
+        "Content-Length":"54",
         "Content-Type":"application/x-www-form-urlencoded"
       },
       "method":"POST",
@@ -22,10 +22,10 @@
         "Set-Cookie":"AWSALB=8tdu20YQy8/ITzTCUEBkqLHiA7ero2eQA+/2jgpC8IYt8xaD6zT32MOu41A8L/ueYZH1XGrGi7kc/ccT2plsxLAxAh9uif1ZkDPcAS4vTPwwlG45N0kdkzWZzWwv; Expires=Fri, 27 Dec 2019 17:07:18 GMT; Path=/",
         "X-Permitted-Cross-Domain-Policies":"master-only",
         "X-XSS-Protection":"1; mode=block",
-        "Content-Length":"983",
+        "Content-Length":"69",
         "Content-Type":"application/json"
       },
-      "payload":"{\"access_token\":\"eyJhbGciOiJSUzUxMiIsImtpZCI6IjIwMTktMTItMjAifQ.eyJpc3MiOiJDXHUwMDNkVVMsU1RcdTAwM2RDQSxMXHUwMDNkUGxlYXNhbnRvbixPVVx1MDAzZERldmVsb3BtZW50LE9cdTAwM2RXb3JrZGF5LENOXHUwMDNkT0NUT1BBQVMiLCJhdXRoX3RpbWUiOjE1NzY4NjE2MzgsImF1dGhfdHlwZSI6IlBhYVMiLCJzeXNfYWNjdF90eXAiOiJFUyIsInNjb3BlIjp7ImNsaWVudF9pZCI6Ik5tTTRPVEV3T0dVdFpqUmtOaTAwWldNMExXRXhOV0V0TVdZMlpXTmpPVEJoWWpKbCJ9LCJ0b2tlblR5cGUiOiJJZGVudGl0eSIsInN1YiI6ImxtY25laWwiLCJhdWQiOiJ3ZCIsImV4cCI6MTU3Njg2NTIzOCwiaWF0IjoxNTc2ODYxNjM4LCJqdGkiOiIyaG5mNjBnbW8wMDMyNDN1MGRsMHF6OWN5MjRmaGJncWc0NDZ6c2FhdXB5NmgxZzZ1ZCIsInRlbmFudCI6ImVwdjZnbXM2MCJ9.sb65QgQynRXucHYGe7Gs5t5jTXbJVLGdxgQJDm7BmpiKDrgucrV_fSYb_QV2RgUU3kDOIAdr50n3TDxVAnEsByHb7_WFZYSGMtai98vu13huYUC_KKIS0_6saxd67l5nAJM0KCFARfey3h4zxpEav1lq13RPky1FxYTH5Ykqy2VN7C2kn1l-3Te2sOr267aZ3vVqPfEIhjaQ6pLWhN-MUh2AR8FGET9CUxN9UliK3EST1dGafHjYT-9h5djwz9vjAoF1xNpVCQ-kVWGYUbh0NxXDZHgCgcHpAPrtFUrFRAgz7LU7qu_jqUIu7glxF0Q91W2dH_-CkdaQg6NNj6778w\",\"token_type\":\"Bearer\",\"expires_in\":\"3600\"}",
+      "payload":"{\"access_token\":\"tokenjwt\",\"token_type\":\"Bearer\",\"expires_in\":\"3600\"}",
       "status":200
     }
   },

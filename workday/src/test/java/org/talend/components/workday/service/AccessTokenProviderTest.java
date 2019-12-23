@@ -19,6 +19,7 @@ import org.talend.components.workday.WorkdayException;
 import org.talend.components.workday.datastore.Token;
 import org.talend.components.workday.datastore.WorkdayDataStore;
 import org.talend.sdk.component.api.service.http.HttpClientFactory;
+import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.runtime.manager.reflect.ParameterModelService;
 import org.talend.sdk.component.runtime.manager.reflect.ReflectionService;
 import org.talend.sdk.component.runtime.manager.service.http.HttpClientFactoryImpl;
@@ -26,6 +27,7 @@ import org.talend.sdk.component.runtime.manager.service.http.HttpClientFactoryIm
 import javax.json.bind.JsonbBuilder;
 import java.util.HashMap;
 
+@HttpApi(useSsl = true)
 class AccessTokenProviderTest {
 
     @Test
@@ -35,7 +37,7 @@ class AccessTokenProviderTest {
                 new ReflectionService(new ParameterModelService(propertyEditorRegistry), propertyEditorRegistry),
                 JsonbBuilder.create(), new HashMap<>());
 
-        AccessTokenProvider provider = factory.create(AccessTokenProvider.class, "https://auth.api.workday.com");
+        AccessTokenProvider provider = factory.create(AccessTokenProvider.class, ConfigHelper.defaultAuthenticationURL);
         WorkdayDataStore wds = ConfigHelper.buildDataStore();
 
         Token tk = provider.getAccessToken(wds);
@@ -50,7 +52,7 @@ class AccessTokenProviderTest {
                 new ReflectionService(new ParameterModelService(propertyEditorRegistry), propertyEditorRegistry),
                 JsonbBuilder.create(), new HashMap<>());
 
-        AccessTokenProvider provider = factory.create(AccessTokenProvider.class, "https://auth.api.workday.com");
+        AccessTokenProvider provider = factory.create(AccessTokenProvider.class, ConfigHelper.defaultAuthenticationURL);
 
         WorkdayDataStore wds = ConfigHelper.buildDataStore();
         wds.setClientSecret("fautSecret");

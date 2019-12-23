@@ -21,6 +21,10 @@ import java.util.Properties;
 
 public class ConfigHelper {
 
+    public static final String defaultAuthenticationURL = "https://auth.api.workday.com";
+
+    public static final String defaultServiceURL = "https://api.workday.com";
+
     public static Properties workdayProps() {
         try (InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("workdayConfig.properties")) {
             Properties wkprops = new Properties();

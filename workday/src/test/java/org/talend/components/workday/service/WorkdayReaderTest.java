@@ -19,6 +19,7 @@ import org.talend.components.workday.datastore.Token;
 import org.talend.components.workday.datastore.WorkdayDataStore;
 import org.talend.sdk.component.api.service.http.HttpClientFactory;
 import org.talend.sdk.component.api.service.http.Response;
+import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.runtime.manager.reflect.ParameterModelService;
 import org.talend.sdk.component.runtime.manager.reflect.ReflectionService;
 import org.talend.sdk.component.runtime.manager.service.http.HttpClientFactoryImpl;
@@ -29,6 +30,7 @@ import javax.json.bind.JsonbBuilder;
 import java.util.HashMap;
 import java.util.Map;
 
+@HttpApi(useSsl = true)
 class WorkdayReaderTest {
 
     @Test
@@ -38,12 +40,12 @@ class WorkdayReaderTest {
                 new ReflectionService(new ParameterModelService(propertyEditorRegistry), propertyEditorRegistry),
                 JsonbBuilder.create(), new HashMap<>());
 
-        AccessTokenProvider provider = factory.create(AccessTokenProvider.class, "https://auth.api.workday.com");
+        AccessTokenProvider provider = factory.create(AccessTokenProvider.class, ConfigHelper.defaultAuthenticationURL);
 
         WorkdayDataStore wds = ConfigHelper.buildDataStore();
         Token tk = provider.getAccessToken(wds);
 
-        WorkdayReader reader = factory.create(WorkdayReader.class, "https://api.workday.com");
+        WorkdayReader reader = factory.create(WorkdayReader.class, ConfigHelper.defaultServiceURL);
         String header = tk.getAuthorizationHeaderValue();
         Map<String, String> params = new HashMap<>();
         params.put("offset", "0");

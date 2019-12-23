@@ -4,7 +4,7 @@
       "headers": {
         "Accept": "text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
         "Connection": "keep-alive",
-        "Content-Length": "52",
+        "Content-Length": "54",
         "Content-Type": "application/x-www-form-urlencoded"
       },
       "method": "POST",
@@ -19,14 +19,14 @@
         "X-Content-Type-Options": "nosniff",
         "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:",
         "Connection": "keep-alive",
-        "Set-Cookie": "AWSALB=8wEa1E68laEUxlOF0m8OzwbeVxugTfv8tWWd7zW49Or0svYFFeQnzdNPz4iOli2inaJJYfGPVRDQx1SBSx5rvN4UI3b3Mxs51Ew3yeFp0LBhoKOSmK6F+VtIINwo; Expires=Fri, 30 Dec 2029 14:47:08 GMT; Path=/",
+        "Set-Cookie": "AWSALB=__myCook; Expires=Fri, 30 Dec 2040 10:00:00 GMT; Path=/",
         "X-Permitted-Cross-Domain-Policies": "master-only",
         "X-XSS-Protection": "1; mode=block",
-        "Content-Length": "983",
+        "Content-Length": "70",
         "Content-Type": "application/json",
         "X-Talend": "Mock"
       },
-      "payload": "{\"access_token\":\"eyJhbGciOiJSUzUxMiIsImtpZCI6IjIwMTktMTItMjAifQ.eyJpc3MiOiJDXHUwMDNkVVMsU1RcdTAwM2RDQSxMXHUwMDNkUGxlYXNhbnRvbixPVVx1MDAzZERldmVsb3BtZW50LE9cdTAwM2RXb3JrZGF5LENOXHUwMDNkT0NUT1BBQVMiLCJhdXRoX3RpbWUiOjE1NzY4NTMyMjgsImF1dGhfdHlwZSI6IlBhYVMiLCJzeXNfYWNjdF90eXAiOiJFUyIsInNjb3BlIjp7ImNsaWVudF9pZCI6Ik5tTTRPVEV3T0dVdFpqUmtOaTAwWldNMExXRXhOV0V0TVdZMlpXTmpPVEJoWWpKbCJ9LCJ0b2tlblR5cGUiOiJJZGVudGl0eSIsInN1YiI6ImxtY25laWwiLCJhdWQiOiJ3ZCIsImV4cCI6MTU3Njg1NjgyOCwiaWF0IjoxNTc2ODUzMjI4LCJqdGkiOiIxZ25wMWR6M2x3MDhvenhydGdybWJuMjUwMGVjamRqdTZ5dDAzb2c2bDRhNHZzZjNnYSIsInRlbmFudCI6ImVwdjZnbXM2MCJ9.NYd_lKtCfoBB--870RxJfVK3SQj692DEfN8aGTa_9ZD-YsFLIoQtv3SFGbIgnvNB7SMLtZQ2yxV7oNV6ptdU3JUsOSj2e7R1Hj6NjVuXHle9vu1kko-CheeTeyJocP7a2jRdu_sLt4dlxS7Ei3vCRJLfnHMo7dCYJEB24alv6dDL6lHHoOY3BZR1coykvkGcok0_g4Xv_386T8cI8JZ-Oqr4zOqJMlLyhqdSnPQNvTYr6LJgxo_1ySxA1XLFp1sGusVjrrIC-9zbwJZcxjh8pzpHrTrfIJfGshc-73xrPqlZl4ZjtedxXwl0CIsE8rIp3TAAbtulSFSlzJ2w2f2aWw\",\"token_type\":\"Bearer\",\"expires_in\":\"3600\"}",
+      "payload": "{\"access_token\":\"token.jwt\",\"token_type\":\"Bearer\",\"expires_in\":\"3600\"}",
       "status": 200
     }
   },

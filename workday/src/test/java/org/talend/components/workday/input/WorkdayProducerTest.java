@@ -64,7 +64,6 @@ class WorkdayProducerTest {
         Assertions.assertNotNull(o);
     }
 
-    @HttpApiName("wqlError.json")
     @Test
     void nextError() {
         String query = "SELECT accountCurrency, bankAccountSecuritySegment, priorDayAccountBalance "

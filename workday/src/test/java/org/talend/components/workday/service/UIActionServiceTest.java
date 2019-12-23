@@ -19,6 +19,7 @@ import org.talend.components.workday.datastore.WorkdayDataStore;
 import org.talend.sdk.component.api.service.asyncvalidation.ValidationResult;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.http.HttpClientFactory;
+import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.runtime.manager.reflect.ParameterModelService;
 import org.talend.sdk.component.runtime.manager.reflect.ReflectionService;
 import org.talend.sdk.component.runtime.manager.service.http.HttpClientFactoryImpl;
@@ -27,10 +28,31 @@ import javax.json.bind.JsonbBuilder;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 
+@HttpApi(useSsl = true)
 class UIActionServiceTest {
 
     @Test
     void validateConnection() throws NoSuchFieldException, IllegalAccessException {
+
+        final UIActionService service = buildService();
+        final HealthCheckStatus healthCheckStatus = service.validateConnection(ConfigHelper.buildDataStore());
+        Assertions.assertNotNull(healthCheckStatus);
+        Assertions.assertEquals(HealthCheckStatus.Status.OK, healthCheckStatus.getStatus());
+
+
+    }
+
+    @Test
+    void validateConnectionKO() throws NoSuchFieldException, IllegalAccessException {
+        final WorkdayDataStore wds = ConfigHelper.buildDataStore();
+        wds.setClientSecret("FAUX");
+        final UIActionService service = buildService();
+        final HealthCheckStatus healthCheckStatusKO = service.validateConnection(wds);
+        Assertions.assertNotNull(healthCheckStatusKO);
+        Assertions.assertEquals(HealthCheckStatus.Status.KO, healthCheckStatusKO.getStatus());
+    }
+
+    private UIActionService buildService() throws NoSuchFieldException, IllegalAccessException {
         UIActionService service = new UIActionService();
 
         final PropertyEditorRegistry propertyEditorRegistry = new PropertyEditorRegistry();
@@ -38,8 +60,7 @@ class UIActionServiceTest {
                 new ReflectionService(new ParameterModelService(propertyEditorRegistry), propertyEditorRegistry),
                 JsonbBuilder.create(), new HashMap<>());
 
-        AccessTokenProvider provider = factory.create(AccessTokenProvider.class, "https://auth.api.workday.com");
-        WorkdayDataStore wds = ConfigHelper.buildDataStore();
+        AccessTokenProvider provider = factory.create(AccessTokenProvider.class, ConfigHelper.defaultAuthenticationURL);
 
         I18n intern = new I18n() {
 
@@ -62,14 +83,7 @@ class UIActionServiceTest {
         internationalField.setAccessible(true);
         internationalField.set(service, intern);
 
-        final HealthCheckStatus healthCheckStatus = service.validateConnection(wds);
-        Assertions.assertNotNull(healthCheckStatus);
-        Assertions.assertEquals(HealthCheckStatus.Status.OK, healthCheckStatus.getStatus());
-
-        wds.setClientSecret("FAUX");
-        final HealthCheckStatus healthCheckStatusKO = service.validateConnection(wds);
-        Assertions.assertNotNull(healthCheckStatusKO);
-        Assertions.assertEquals(HealthCheckStatus.Status.KO, healthCheckStatusKO.getStatus());
+        return service;
     }
 
     @Test
