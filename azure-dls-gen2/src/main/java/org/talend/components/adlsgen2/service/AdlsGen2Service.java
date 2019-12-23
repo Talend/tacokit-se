@@ -31,7 +31,7 @@ import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.talend.components.adlsgen2.common.format.avro.AvroIterator;
 import org.talend.components.adlsgen2.common.format.csv.CsvIterator;
 import org.talend.components.adlsgen2.common.format.json.JsonIterator;
