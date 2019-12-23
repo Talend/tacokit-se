@@ -50,8 +50,6 @@ public class RandomDataGeneratorIterator implements Iterator<Record>, Serializab
 
         int countVal = count.incrementAndGet();
 
-        // System.out.println(countVal + " / " + nbRecords);
-
         return rbf.newRecordBuilder().withInt("ID", countVal)
                 .withString("NAME", Thread.currentThread().getName() + "_" + countVal).withFloat("VALUE_F", (float) Math.random())
                 .withBoolean("IS_TRUE", countVal % 2 == 0).withTimestamp("TMSTP", System.currentTimeMillis())
