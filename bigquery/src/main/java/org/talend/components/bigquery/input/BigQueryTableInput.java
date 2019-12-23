@@ -89,7 +89,7 @@ public class BigQueryTableInput implements Serializable {
                 TableResult tableResult = bigQuery.listTableData(tableId, tableSchema);
                 queryResult = tableResult.iterateAll().iterator();
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error(i18n.errorQueryExecution(), e);
             } finally {
                 loaded = true;
             }
