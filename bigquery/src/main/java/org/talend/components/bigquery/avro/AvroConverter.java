@@ -26,11 +26,11 @@ import org.apache.avro.SchemaBuilder;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericData.Array;
 import org.apache.avro.generic.GenericRecord;
+import org.talend.components.bigquery.service.BigQueryConnectorException;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.record.Schema.Type;
-import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import lombok.extern.slf4j.Slf4j;
@@ -233,7 +233,7 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
         case BOOLEAN:
             return org.apache.avro.Schema.Type.BOOLEAN;
         }
-        throw new RuntimeException(String.format(ERROR_UNDEFINED_TYPE, type.name()));
+        throw new BigQueryConnectorException(String.format(ERROR_UNDEFINED_TYPE, type.name()));
     }
 
     /**
@@ -278,7 +278,7 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
                 LogicalTypes.timestampMillis().addToSchema(builder);
                 break;
             default:
-                throw new RuntimeException(String.format(ERROR_UNDEFINED_TYPE, e.getType().name()));
+                throw new BigQueryConnectorException(String.format(ERROR_UNDEFINED_TYPE, e.getType().name()));
             }
             org.apache.avro.Schema unionWithNull;
             if (builder.getType() == org.apache.avro.Schema.Type.RECORD) {
@@ -420,7 +420,7 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
         case BOOLEAN:
             return Type.BOOLEAN;
         default:
-            throw new RuntimeException(String.format(ERROR_UNDEFINED_TYPE, type.name()));
+            throw new BigQueryConnectorException(String.format(ERROR_UNDEFINED_TYPE, type.name()));
         }
     }
 
@@ -459,7 +459,7 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
         case NULL:
             break;
         default:
-            throw new RuntimeException(String.format(ERROR_UNDEFINED_TYPE, entry.getType().name()));
+            throw new BigQueryConnectorException(String.format(ERROR_UNDEFINED_TYPE, entry.getType().name()));
         }
     }
 
@@ -542,7 +542,7 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
             }
             break;
         default:
-            throw new RuntimeException(String.format(ERROR_UNDEFINED_TYPE, entry.getType().name()));
+            throw new BigQueryConnectorException(String.format(ERROR_UNDEFINED_TYPE, entry.getType().name()));
         }
     }
 

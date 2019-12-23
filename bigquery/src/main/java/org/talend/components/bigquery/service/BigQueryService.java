@@ -435,7 +435,7 @@ public class BigQueryService {
             return GoogleCredentials.fromStream(new ByteArrayInputStream(credentials.getBytes()))
                     .createScoped(BigqueryScopes.all());
         } catch (IOException e) {
-            throw new RuntimeException(
+            throw new BigQueryConnectorException(
                     "Exception when read service account file: " + credentials + "\nMessage is:" + e.getMessage());
         }
     }

@@ -16,6 +16,7 @@ import com.google.cloud.bigquery.*;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.bigquery.dataset.QueryDataSet;
 import org.talend.components.bigquery.datastore.BigQueryConnection;
+import org.talend.components.bigquery.service.BigQueryConnectorException;
 import org.talend.components.bigquery.service.BigQueryService;
 import org.talend.components.bigquery.service.I18nMessage;
 import org.talend.sdk.component.api.component.Icon;
@@ -85,7 +86,7 @@ public class BigQueryQueryInput implements Serializable {
 
             } catch (Exception e) {
                 log.error(i18n.errorQueryExecution(), e);
-                throw new RuntimeException(e.getMessage());
+                throw new BigQueryConnectorException(e.getMessage());
             } finally {
                 loaded = true;
             }

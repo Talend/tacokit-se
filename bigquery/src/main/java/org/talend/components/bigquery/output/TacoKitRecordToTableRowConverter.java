@@ -17,6 +17,7 @@ import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.FieldList;
 import com.google.cloud.bigquery.LegacySQLTypeName;
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.bigquery.service.BigQueryConnectorException;
 import org.talend.components.bigquery.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -106,7 +107,7 @@ public class TacoKitRecordToTableRowConverter {
                                 .map(getDateFunction(field.getType())).collect(toList()));
                         break;
                     default:
-                        throw new RuntimeException(i18n.entryTypeNotDefined(entry.getElementSchema().getType().name()));
+                        throw new BigQueryConnectorException(i18n.entryTypeNotDefined(entry.getElementSchema().getType().name()));
                     }
                     break;
                 case STRING:
@@ -134,7 +135,7 @@ public class TacoKitRecordToTableRowConverter {
                     tableRow.put(fieldName, getDateFunction(field.getType()).apply(input.getDateTime(fieldName)));
                     break;
                 default:
-                    throw new RuntimeException(i18n.entryTypeNotDefined(entry.getType().name()));
+                    throw new BigQueryConnectorException(i18n.entryTypeNotDefined(entry.getType().name()));
                 }
             }
         }

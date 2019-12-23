@@ -16,6 +16,7 @@ import com.google.api.services.bigquery.model.TableReference;
 import com.google.cloud.bigquery.*;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.bigquery.datastore.BigQueryConnection;
+import org.talend.components.bigquery.service.BigQueryConnectorException;
 import org.talend.components.bigquery.service.BigQueryService;
 import org.talend.components.bigquery.service.I18nMessage;
 import org.talend.sdk.component.api.component.Icon;
@@ -96,7 +97,7 @@ public class BigQueryOutput implements Serializable {
         if (table != null) {
             tableSchema = table.getDefinition().getSchema();
         } else if (configuration.getTableOperation() != BigQueryOutputConfig.TableOperation.CREATE_IF_NOT_EXISTS) {
-            throw new RuntimeException(i18n.infoTableNoExists(
+            throw new BigQueryConnectorException(i18n.infoTableNoExists(
                     configuration.getDataSet().getBqDataset() + "." + configuration.getDataSet().getTableName()));
         }
     }

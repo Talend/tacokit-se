@@ -25,6 +25,7 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumReader;
 import org.talend.components.bigquery.avro.AvroConverter;
 import org.talend.components.bigquery.datastore.BigQueryConnection;
+import org.talend.components.bigquery.service.BigQueryConnectorException;
 import org.talend.components.bigquery.service.BigQueryService;
 import org.talend.components.bigquery.service.GoogleStorageService;
 import org.talend.components.bigquery.service.I18nMessage;
@@ -111,7 +112,7 @@ public class BigQueryTableExtractInput implements Serializable {
                 dataStream = storageService.getDataFileStream(storage, bucket, gsBlob);
             } catch (Exception e) {
                 log.error(i18n.errorBlobReaderInit(), e);
-                throw new RuntimeException(e);
+                throw new BigQueryConnectorException(e);
             } finally {
                 loaded = true;
             }

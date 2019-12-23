@@ -16,6 +16,7 @@ import com.google.cloud.bigquery.*;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.bigquery.dataset.TableDataSet;
 import org.talend.components.bigquery.datastore.BigQueryConnection;
+import org.talend.components.bigquery.service.BigQueryConnectorException;
 import org.talend.components.bigquery.service.BigQueryService;
 import org.talend.components.bigquery.service.I18nMessage;
 import org.talend.sdk.component.api.component.Icon;
@@ -78,7 +79,8 @@ public class BigQueryTableInput implements Serializable {
                 TableId tableId = TableId.of(connection.getProjectName(), dataSet.getBqDataset(), dataSet.getTableName());
                 Table table = bigQuery.getTable(tableId);
                 if (table == null) {
-                    throw new RuntimeException(i18n.infoTableNoExists(dataSet.getBqDataset() + "." + dataSet.getTableName()));
+                    throw new BigQueryConnectorException(
+                            i18n.infoTableNoExists(dataSet.getBqDataset() + "." + dataSet.getTableName()));
                 }
                 tableSchema = table.getDefinition().getSchema();
 

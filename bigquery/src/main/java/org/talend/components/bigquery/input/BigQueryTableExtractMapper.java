@@ -19,6 +19,7 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.bigquery.datastore.BigQueryConnection;
+import org.talend.components.bigquery.service.BigQueryConnectorException;
 import org.talend.components.bigquery.service.BigQueryService;
 import org.talend.components.bigquery.service.GoogleStorageService;
 import org.talend.components.bigquery.service.I18nMessage;
@@ -92,7 +93,7 @@ public class BigQueryTableExtractMapper implements Serializable {
                 configuration.getTableDataset().getTableName());
         table = bigQuery.getTable(tableId);
         if (table == null) {
-            throw new RuntimeException(i18n.infoTableNoExists(
+            throw new BigQueryConnectorException(i18n.infoTableNoExists(
                     configuration.getTableDataset().getBqDataset() + "." + configuration.getTableDataset().getTableName()));
         }
         Schema gSchema = table.getDefinition().getSchema();
@@ -129,7 +130,7 @@ public class BigQueryTableExtractMapper implements Serializable {
 
         } catch (Exception e) {
             log.error(i18n.errorSplit(), e);
-            throw new RuntimeException();
+            throw new BigQueryConnectorException();
         }
     }
 
