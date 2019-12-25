@@ -25,6 +25,7 @@ import org.talend.components.jdbc.output.statement.operations.snowflake.Snowflak
 import org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeUpdate;
 import org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeUpsert;
 import org.talend.components.jdbc.service.I18nMessage;
+import org.talend.components.jdbc.service.SnowflakeCopyService;
 
 import static java.util.Locale.ROOT;
 import static org.talend.components.jdbc.output.platforms.SnowflakePlatform.SNOWFLAKE;
@@ -38,17 +39,18 @@ public final class QueryManagerFactory {
     public static QueryManagerImpl getQueryManager(final Platform platform, final I18nMessage i18n,
             final OutputConfig configuration) {
         final String db = configuration.getDataset().getConnection().getDbType().toLowerCase(ROOT);
+        SnowflakeCopyService snow = new SnowflakeCopyService();
         switch (db) {
         case SNOWFLAKE:
             switch (configuration.getActionOnData()) {
             case INSERT:
                 return new SnowflakeInsert(platform, configuration, i18n);
             case UPDATE:
-                return new SnowflakeUpdate(platform, configuration, i18n);
+                return new SnowflakeUpdate(platform, configuration, i18n, snow);
             case DELETE:
-                return new SnowflakeDelete(platform, configuration, i18n);
+                return new SnowflakeDelete(platform, configuration, i18n, snow);
             case UPSERT:
-                return new SnowflakeUpsert(platform, configuration, i18n);
+                return new SnowflakeUpsert(platform, configuration, i18n, snow);
             default:
                 throw new IllegalStateException(i18n.errorUnsupportedDatabaseAction());
             }

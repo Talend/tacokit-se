@@ -14,7 +14,7 @@ package org.talend.components.jdbc.testsuite;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeCopy;
+import org.talend.components.jdbc.service.SnowflakeCopyService;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -26,19 +26,21 @@ public class SnowflakeCopyTest {
 
     @Test
     public void createTmpDirTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, IOException {
-        Method createWorkDir = SnowflakeCopy.class.getDeclaredMethod("createWorkDir");
+        SnowflakeCopyService snowflakeCopyService = new SnowflakeCopyService();
+        Method createWorkDir = SnowflakeCopyService.class.getDeclaredMethod("createWorkDir");
         createWorkDir.setAccessible(true);
-        Path path = (Path) createWorkDir.invoke(null);
+        Path path = (Path) createWorkDir.invoke(snowflakeCopyService);
         Assertions.assertTrue(path.toFile().exists());
         Files.delete(path);
     }
 
     @Test
     public void cleanTmpFile() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        Method createWorkDir = SnowflakeCopy.class.getDeclaredMethod("createWorkDir");
+        SnowflakeCopyService snowflakeCopyService = new SnowflakeCopyService();
+        Method createWorkDir = SnowflakeCopyService.class.getDeclaredMethod("createWorkDir");
         createWorkDir.setAccessible(true);
-        Path path2 = (Path) createWorkDir.invoke(null);
-        SnowflakeCopy.cleanTmpFiles();
+        Path path2 = (Path) createWorkDir.invoke(snowflakeCopyService);
+        snowflakeCopyService.cleanTmpFiles();
         Assertions.assertFalse(path2.toFile().exists());
     }
 

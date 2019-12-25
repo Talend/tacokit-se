@@ -17,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.configuration.OutputConfig;
 import org.talend.components.jdbc.output.platforms.Platform;
 import org.talend.components.jdbc.output.statement.QueryManager;
-import org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeCopy;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.processor.AfterGroup;
@@ -120,9 +119,6 @@ public abstract class Output implements Serializable {
     public void preDestroy() {
         if (datasource != null) {
             datasource.close();
-        }
-        if ("Snowflake".equals(configuration.getDataset().getConnection().getDbType())) {
-            SnowflakeCopy.cleanTmpFiles();
         }
     }
 
