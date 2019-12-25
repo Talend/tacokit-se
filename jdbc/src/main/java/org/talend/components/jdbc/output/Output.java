@@ -25,6 +25,7 @@ import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.record.Record;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.Serializable;
@@ -66,9 +67,15 @@ public abstract class Output implements Serializable {
 
     protected abstract Platform getPlatform();
 
+    @PostConstruct
+    public void PostConstruct() {
+
+    }
+
     @BeforeGroup
     public void beforeGroup() {
         this.records = new ArrayList<>();
+        log.warn("beforeGroup runing");
     }
 
     @ElementListener
@@ -95,6 +102,7 @@ public abstract class Output implements Serializable {
 
     @AfterGroup
     public void afterGroup() throws SQLException {
+        log.warn("afterGroup runing");
         if (!tableExistsCheck && !tableCreated && configuration.isCreateTableIfNotExists()) {
             try (final Connection connection = datasource.getConnection()) {
                 getPlatform().createTableIfNotExist(connection, configuration.getDataset().getTableName(),
@@ -117,6 +125,7 @@ public abstract class Output implements Serializable {
 
     @PreDestroy
     public void preDestroy() {
+        log.warn("preDestroy runing");
         if (datasource != null) {
             datasource.close();
         }

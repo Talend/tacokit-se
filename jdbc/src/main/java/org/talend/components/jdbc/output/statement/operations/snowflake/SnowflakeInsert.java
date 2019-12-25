@@ -27,6 +27,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class SnowflakeInsert extends Insert {
 
     @Service
@@ -38,6 +41,7 @@ public class SnowflakeInsert extends Insert {
 
     @Override
     public List<Reject> execute(List<Record> records, final JdbcService.JdbcDatasource dataSource) throws SQLException {
+        log.warn("List<Reject> execute runing");
         buildQuery(records);
         final List<Reject> rejects = new ArrayList<>();
         try (final Connection connection = dataSource.getConnection()) {
