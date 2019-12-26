@@ -57,6 +57,8 @@ public class SnowflakeDelete extends Delete {
                 }
             }
             connection.commit();
+        } finally {
+            snowflakeCopy.cleanTmpFiles();
         }
         return rejects;
     }

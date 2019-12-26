@@ -67,15 +67,9 @@ public abstract class Output implements Serializable {
 
     protected abstract Platform getPlatform();
 
-    @PostConstruct
-    public void PostConstruct() {
-
-    }
-
     @BeforeGroup
     public void beforeGroup() {
         this.records = new ArrayList<>();
-        log.warn("beforeGroup runing");
     }
 
     @ElementListener
@@ -102,7 +96,6 @@ public abstract class Output implements Serializable {
 
     @AfterGroup
     public void afterGroup() throws SQLException {
-        log.warn("afterGroup runing");
         if (!tableExistsCheck && !tableCreated && configuration.isCreateTableIfNotExists()) {
             try (final Connection connection = datasource.getConnection()) {
                 getPlatform().createTableIfNotExist(connection, configuration.getDataset().getTableName(),
@@ -125,7 +118,6 @@ public abstract class Output implements Serializable {
 
     @PreDestroy
     public void preDestroy() {
-        log.warn("preDestroy runing");
         if (datasource != null) {
             datasource.close();
         }

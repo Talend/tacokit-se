@@ -35,13 +35,14 @@ public class SnowflakeInsert extends Insert {
     @Service
     SnowflakeCopyService snowflakeCopy;
 
-    public SnowflakeInsert(Platform platform, OutputConfig configuration, I18nMessage i18n) {
+    public SnowflakeInsert(Platform platform, OutputConfig configuration, I18nMessage i18n,
+            SnowflakeCopyService snowflakeCopyService) {
         super(platform, configuration, i18n);
+        this.snowflakeCopy = snowflakeCopyService;
     }
 
     @Override
     public List<Reject> execute(List<Record> records, final JdbcService.JdbcDatasource dataSource) throws SQLException {
-        log.warn("List<Reject> execute runing");
         buildQuery(records);
         final List<Reject> rejects = new ArrayList<>();
         try (final Connection connection = dataSource.getConnection()) {
@@ -54,6 +55,8 @@ public class SnowflakeInsert extends Insert {
             } else {
                 connection.rollback();
             }
+        } finally {
+            snowflakeCopy.cleanTmpFiles();
         }
         return rejects;
     }

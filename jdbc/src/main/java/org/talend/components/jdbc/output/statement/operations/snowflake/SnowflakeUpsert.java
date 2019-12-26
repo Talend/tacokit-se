@@ -69,9 +69,12 @@ public class SnowflakeUpsert extends UpsertDefault {
                             + " values"
                             + getInsert().getQueryParams().values().stream().map(e -> getPlatform().identifier(e.getName()))
                                     .map(name -> "source." + name).collect(Collectors.joining(",", "(", ")")));
+                    connection.commit();
+                } finally {
+                    snowflakeCopy.cleanTmpFiles();
                 }
             }
-            connection.commit();
+
         }
         return rejects;
     }

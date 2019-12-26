@@ -14,6 +14,7 @@ package org.talend.components.jdbc.service;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -50,14 +51,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Service
-public class SnowflakeCopyService {
+public class SnowflakeCopyService implements Serializable {
 
-    private transient final long maxChunk = 16 * 1024 * 1024; // 16MB
+    private final long maxChunk = 16 * 1024 * 1024; // 16MB
 
-    private transient final String TIMESTAMP_FORMAT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+    private final String TIMESTAMP_FORMAT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
 
-    private transient final List<Path> tmpFiles = new ArrayList<>();
+    private final List<Path> tmpFiles = new ArrayList<>();
 
     @Service
     private I18nMessage i18n;

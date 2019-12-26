@@ -62,6 +62,8 @@ public class SnowflakeUpdate extends Update {
                 }
             }
             connection.commit();
+        } finally {
+            snowflakeCopy.cleanTmpFiles();
         }
         return rejects;
     }
