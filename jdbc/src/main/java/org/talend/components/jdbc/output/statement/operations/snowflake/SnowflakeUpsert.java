@@ -32,11 +32,10 @@ import static java.util.stream.Collectors.joining;
 
 public class SnowflakeUpsert extends UpsertDefault {
 
-    SnowflakeCopyService snowflakeCopy;
+    SnowflakeCopyService snowflakeCopy = new SnowflakeCopyService();
 
-    public SnowflakeUpsert(Platform platform, OutputConfig configuration, I18nMessage i18n, SnowflakeCopyService snowflakeCopy) {
+    public SnowflakeUpsert(Platform platform, OutputConfig configuration, I18nMessage i18n) {
         super(platform, configuration, i18n);
-        this.snowflakeCopy = snowflakeCopy;
     }
 
     @Override

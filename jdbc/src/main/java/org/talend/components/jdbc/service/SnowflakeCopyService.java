@@ -43,7 +43,6 @@ import org.talend.components.jdbc.output.Reject;
 import org.talend.components.jdbc.output.statement.operations.QueryManagerImpl;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.service.Service;
 
 import lombok.Data;
 import lombok.Getter;
@@ -53,14 +52,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SnowflakeCopyService implements Serializable {
 
-    private final long maxChunk = 16 * 1024 * 1024; // 16MB
+    private static final long maxChunk = 16 * 1024 * 1024; // 16MB
 
-    private final String TIMESTAMP_FORMAT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+    private static final String TIMESTAMP_FORMAT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
 
     private final List<Path> tmpFiles = new ArrayList<>();
 
-    @Service
-    private I18nMessage i18n;
+    private Path tmpFolder;
 
     public List<Reject> putAndCopy(final Connection connection, final List<Record> records, final String fqStageName,
             final String fqTableName, final String fqTmpTableName) throws SQLException {
@@ -93,10 +91,9 @@ public class SnowflakeCopyService implements Serializable {
 
     private Path createWorkDir() {
         try {
-            final Path tmp = Files.createTempDirectory("talend-jdbc-snowflake-");
-            log.debug("Temp folder {} created.", tmp);
-            tmpFiles.add(tmp);
-            return tmp;
+            tmpFolder = Files.createTempDirectory("talend-jdbc-snowflake-");
+            log.debug("Temp folder {} created.", tmpFolder);
+            return tmpFolder;
         } catch (final IOException e) {
             throw new IllegalStateException(e);
         }
@@ -293,7 +290,8 @@ public class SnowflakeCopyService implements Serializable {
         case ARRAY:
         case RECORD:
         default:
-            throw new IllegalArgumentException(i18n.errorUnsupportedType(entry.getType().name(), entry.getName()));
+            throw new IllegalArgumentException(
+                    "Unsupported \"" + entry.getType().name() + "\" type for field: " + entry.getName());
         }
     }
 
@@ -318,11 +316,9 @@ public class SnowflakeCopyService implements Serializable {
                 Files.deleteIfExists(p);
             } catch (IOException e) {
                 log.warn("Cannot clean tmp file/forlder '{}'", p);
-                log.warn(Arrays.stream(e.getStackTrace()).map(String::valueOf).collect(Collectors.joining("\n")));
             }
         };
-        tmpFiles.stream().filter(e -> !Files.isDirectory(e)).forEach(deletePath);
-        tmpFiles.stream().filter(Files::isDirectory).forEach(deletePath);
-
+        tmpFiles.stream().forEach(deletePath);
+        deletePath.accept(tmpFolder);
     }
 }

@@ -27,18 +27,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class SnowflakeInsert extends Insert {
 
-    @Service
-    SnowflakeCopyService snowflakeCopy;
+    SnowflakeCopyService snowflakeCopy = new SnowflakeCopyService();
 
-    public SnowflakeInsert(Platform platform, OutputConfig configuration, I18nMessage i18n,
-            SnowflakeCopyService snowflakeCopyService) {
+    public SnowflakeInsert(Platform platform, OutputConfig configuration, I18nMessage i18n) {
         super(platform, configuration, i18n);
-        this.snowflakeCopy = snowflakeCopyService;
     }
 
     @Override

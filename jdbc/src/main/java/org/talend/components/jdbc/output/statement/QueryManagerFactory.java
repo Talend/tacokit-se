@@ -39,18 +39,17 @@ public final class QueryManagerFactory {
     public static QueryManagerImpl getQueryManager(final Platform platform, final I18nMessage i18n,
             final OutputConfig configuration) {
         final String db = configuration.getDataset().getConnection().getDbType().toLowerCase(ROOT);
-        SnowflakeCopyService copyService = new SnowflakeCopyService();
         switch (db) {
         case SNOWFLAKE:
             switch (configuration.getActionOnData()) {
             case INSERT:
-                return new SnowflakeInsert(platform, configuration, i18n, copyService);
+                return new SnowflakeInsert(platform, configuration, i18n);
             case UPDATE:
-                return new SnowflakeUpdate(platform, configuration, i18n, copyService);
+                return new SnowflakeUpdate(platform, configuration, i18n);
             case DELETE:
-                return new SnowflakeDelete(platform, configuration, i18n, copyService);
+                return new SnowflakeDelete(platform, configuration, i18n);
             case UPSERT:
-                return new SnowflakeUpsert(platform, configuration, i18n, copyService);
+                return new SnowflakeUpsert(platform, configuration, i18n);
             default:
                 throw new IllegalStateException(i18n.errorUnsupportedDatabaseAction());
             }
