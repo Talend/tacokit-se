@@ -88,7 +88,7 @@ public class SnowflakeCopyService implements Serializable {
     public String tmpTableName(final String tableName) {
         final String suffix = LocalDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String tmpTableName = "tmp_" + tableName + "_" + suffix;
-        return tmpTableName.length() < 256 ? tmpTableName : tmpTableName.substring(0, 256);
+        return tmpTableName.length() < 256 ? tmpTableName : tmpTableName.substring(0, 255);
     }
 
     private Path createWorkDir() {
