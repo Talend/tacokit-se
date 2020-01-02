@@ -100,6 +100,6 @@ public class Body {
     }
 
     private String substitute(final String value) {
-        return !value.contains(this.substitutor.getPrefix()) ? value : this.substitutor.replace(value);
+        return this.substitutor.replace(value);
     }
 }
