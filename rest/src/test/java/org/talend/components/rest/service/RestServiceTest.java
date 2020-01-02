@@ -118,7 +118,7 @@ public class RestServiceTest {
         config.getDataset().setHasQueryParams(true);
         config.getDataset().setQueryParams(queryParams);
 
-        Substitutor substitutor = new RecordSubstitutor("${", "}", record, new RecordPointerFactoryImpl(null));
+        Substitutor substitutor = new Substitutor(new Substitutor.KeyFinder("${", "}"), new RecordDictionary(record, new RecordPointerFactoryImpl(null)));
 
         Map<String, String> updatedQueryParams = service.updateParamsFromRecord(config.queryParams(), substitutor);
 
