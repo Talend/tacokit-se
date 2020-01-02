@@ -12,13 +12,19 @@
  */
 package org.talend.components.workday.service;
 
-import org.talend.components.workday.datastore.WorkdayDataStore;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.Properties;
 
+import org.junit.jupiter.api.Test;
+import org.talend.components.workday.datastore.WorkdayDataStore;
+import org.talend.sdk.component.maven.MavenDecrypter;
+import org.talend.sdk.component.maven.Server;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class ConfigHelper {
 
     public static final String defaultAuthenticationURL = "https://auth.api.workday.com";
@@ -29,6 +35,21 @@ public class ConfigHelper {
         try (InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("workdayConfig.properties")) {
             Properties wkprops = new Properties();
             wkprops.load(in);
+
+        /*    final String property = System.getProperty("talend.junit.http.passthrough"); // property defined in pom.xml.
+            if ("true".equals(property)) {
+                MavenDecrypter decrypter = new MavenDecrypter();
+                try {
+                    final Server serverWorkday = decrypter.find("workday.account");
+                    // server contains 2 value (user/pwd), we need to put real tenant alias in workdayConfig.properties file.
+                    wkprops.setProperty("clientId", serverWorkday.getUsername());
+                    wkprops.setProperty("clientSecret", serverWorkday.getPassword());
+                } catch (IllegalArgumentException ex) {
+                    // workday.account not exist.
+                    log.warn("can't find 'workday.account' in maven file.", ex);
+                }
+            }*/
+
             return wkprops;
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
