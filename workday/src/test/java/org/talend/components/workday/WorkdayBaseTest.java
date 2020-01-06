@@ -36,7 +36,7 @@ public class WorkdayBaseTest {
         Properties props = this.workdayProps();
         WorkdayDataStore wds = new WorkdayDataStore();
         wds.setClientId(serverWorkday.getUsername());
-        wds.setClientSecret(props.getProperty(serverWorkday.getPassword()));
+        wds.setClientSecret(serverWorkday.getPassword());
         wds.setTenantAlias(props.getProperty("tenant"));
         wds.setAuthEndpoint(props.getProperty("authendpoint"));
         wds.setEndpoint(props.getProperty("endpoint"));
