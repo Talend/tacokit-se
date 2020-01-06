@@ -38,7 +38,7 @@ public class Substitutor {
     private static final char ESCAPE = '\\';
 
     /** delimiter to separate a key and a default value or a variable ( ${key:-default} */
-    private static final Pattern delimiter = Pattern.compile("([^:]*):-(.*)");
+    private static final Pattern DELIMITER = Pattern.compile("([^:]*):-(.*)");
 
     /**
      * Define a result for a search in a string.
@@ -69,7 +69,7 @@ public class Substitutor {
         public KeyFinder(String prefix, String suffix) {
             String aPrefix = escapeChars(prefix);
             String aSuffix = escapeChars(suffix);
-            String exp = aPrefix + "(([^" + escapeChars(suffix.substring(0,1)) + "]*))" + aSuffix;
+            String exp = aPrefix + "([^" + escapeChars(suffix.substring(0,1)) + "]*)" + aSuffix;
             pattern = Pattern.compile(exp);
         }
 
@@ -190,7 +190,7 @@ public class Substitutor {
     private String findOrDefault(String key) {
         String defaultValue = "";
 
-        Matcher matcher = delimiter.matcher(key);
+        Matcher matcher = DELIMITER.matcher(key);
         if (matcher.matches()) {
             // there's a default value.
             key = matcher.group(1);
