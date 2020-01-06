@@ -19,7 +19,6 @@
         "X-Content-Type-Options":"nosniff",
         "Content-Security-Policy":"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:",
         "Connection":"keep-alive",
-        "Set-Cookie":"AWSALB=xt3y0vWtlivz5nK6Ejza8lnZSWZ6ntX/a3u4V517tJdnHKZI25vfFdEEn77NoJy3fB9h0MdW+mu5f9AhuZYYv6NjXb57LOorbcDjxQYaJRmMKQ8YdGnfrnQ3Vrtj; Expires=Mon, 30 Dec 2039 07:24:15 GMT; Path=/",
         "X-Permitted-Cross-Domain-Policies":"master-only",
         "X-XSS-Protection":"1; mode=block",
         "Content-Length":"70",
