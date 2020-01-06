@@ -12,52 +12,47 @@
  */
 package org.talend.components.workday.input;
 
+import javax.json.JsonObject;
+
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.talend.components.workday.WorkdayBaseTest;
 import org.talend.components.workday.WorkdayException;
 import org.talend.components.workday.dataset.WQLLayout;
 import org.talend.components.workday.dataset.WorkdayDataSet;
-import org.talend.components.workday.service.ConfigHelper;
 import org.talend.components.workday.service.WorkdayReaderService;
-import org.talend.sdk.component.api.DecryptedServer;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.http.junit5.HttpApi;
-import org.talend.sdk.component.junit.http.junit5.HttpApiName;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.junit5.WithMavenServers;
-
-import javax.json.JsonObject;
 
 @WithMavenServers
 @HttpApi(useSsl = true)
 @WithComponents("org.talend.components.workday")
-class WorkdayProducerTest {
+class WorkdayProducerTest extends WorkdayBaseTest {
 
-    private static WorkdayDataSet dataset;
+    private WorkdayDataSet dataset;
 
-    private static WorkdayConfiguration cfg;
+    private WorkdayConfiguration cfg;
 
     @Service
     private WorkdayReaderService service;
 
-    @DecryptedServer(value = "tdi.workday")
-    private org.talend.sdk.component.maven.Server wdClient;
-
-    @BeforeAll
-    private static void init() {
-        WorkdayProducerTest.cfg = new WorkdayConfiguration();
-        WorkdayProducerTest.dataset = new WorkdayDataSet();
-        WorkdayProducerTest.dataset.setDatastore(ConfigHelper.buildDataStore());
-        WorkdayProducerTest.dataset.setMode(WorkdayDataSet.WorkdayMode.WQL);
-        WorkdayProducerTest.dataset.setWql(new WQLLayout());
-        WorkdayProducerTest.cfg.setDataSet(dataset);
+    @BeforeEach
+    private void init() {
+        this.cfg = new WorkdayConfiguration();
+        this.dataset = new WorkdayDataSet();
+        this.dataset.setDatastore(this.buildDataStore());
+        this.dataset.setMode(WorkdayDataSet.WorkdayMode.WQL);
+        this.dataset.setWql(new WQLLayout());
+        this.cfg.setDataSet(dataset);
     }
 
     @Test
     void nextOK() {
         String query = "SELECT accountCurrency, bankAccountSecuritySegment, priorDayAccountBalance " + "FROM financialAccounts";
-        WorkdayProducerTest.dataset.getWql().setQuery(query);
+        this.dataset.getWql().setQuery(query);
 
         WorkdayProducer producer = new WorkdayProducer(cfg, service);
         JsonObject o = producer.next();
@@ -68,7 +63,7 @@ class WorkdayProducerTest {
     void nextError() {
         String query = "SELECT accountCurrency, bankAccountSecuritySegment, priorDayAccountBalance "
                 + "FROM UnkownfinancialAccounts";
-        WorkdayProducerTest.dataset.getWql().setQuery(query);
+        this.dataset.getWql().setQuery(query);
         WorkdayProducer producer = new WorkdayProducer(cfg, service);
 
         Assertions.assertThrows(WorkdayException.class, producer::next);

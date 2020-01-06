@@ -12,24 +12,23 @@
  */
 package org.talend.components.workday.input;
 
+import javax.json.JsonObject;
+
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.talend.components.workday.WorkdayBaseTest;
 import org.talend.components.workday.WorkdayException;
 import org.talend.components.workday.dataset.RAASLayout;
 import org.talend.components.workday.dataset.WorkdayDataSet;
-import org.talend.components.workday.service.ConfigHelper;
 import org.talend.components.workday.service.WorkdayReaderService;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.http.junit5.HttpApi;
-import org.talend.sdk.component.junit.http.junit5.HttpApiName;
 import org.talend.sdk.component.junit5.WithComponents;
-
-import javax.json.JsonObject;
 
 @HttpApi(useSsl = true)
 @WithComponents("org.talend.components.workday")
-class RAASProducerTest {
+class RAASProducerTest extends WorkdayBaseTest {
 
     private static WorkdayDataSet dataset;
 
@@ -38,11 +37,11 @@ class RAASProducerTest {
     @Service
     private WorkdayReaderService service;
 
-    @BeforeAll
-    private static void init() throws NoSuchFieldException, IllegalAccessException {
+    @BeforeEach
+    private void init() throws NoSuchFieldException, IllegalAccessException {
         RAASProducerTest.cfg = new WorkdayConfiguration();
         RAASProducerTest.dataset = new WorkdayDataSet();
-        RAASProducerTest.dataset.setDatastore(ConfigHelper.buildDataStore());
+        RAASProducerTest.dataset.setDatastore(this.buildDataStore());
         RAASProducerTest.dataset.setMode(WorkdayDataSet.WorkdayMode.RAAS);
         RAASProducerTest.dataset.setRaas(new RAASLayout());
         cfg.setDataSet(dataset);

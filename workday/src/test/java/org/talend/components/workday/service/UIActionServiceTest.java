@@ -12,9 +12,15 @@
  */
 package org.talend.components.workday.service;
 
+import java.lang.reflect.Field;
+import java.util.HashMap;
+
+import javax.json.bind.JsonbBuilder;
+
 import org.apache.xbean.propertyeditor.PropertyEditorRegistry;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.talend.components.workday.WorkdayBaseTest;
 import org.talend.components.workday.datastore.WorkdayDataStore;
 import org.talend.sdk.component.api.service.asyncvalidation.ValidationResult;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
@@ -24,18 +30,14 @@ import org.talend.sdk.component.runtime.manager.reflect.ParameterModelService;
 import org.talend.sdk.component.runtime.manager.reflect.ReflectionService;
 import org.talend.sdk.component.runtime.manager.service.http.HttpClientFactoryImpl;
 
-import javax.json.bind.JsonbBuilder;
-import java.lang.reflect.Field;
-import java.util.HashMap;
-
 @HttpApi(useSsl = true)
-class UIActionServiceTest {
+class UIActionServiceTest extends WorkdayBaseTest {
 
     @Test
     void validateConnection() throws NoSuchFieldException, IllegalAccessException {
 
         final UIActionService service = buildService();
-        final HealthCheckStatus healthCheckStatus = service.validateConnection(ConfigHelper.buildDataStore());
+        final HealthCheckStatus healthCheckStatus = service.validateConnection(this.buildDataStore());
         Assertions.assertNotNull(healthCheckStatus);
         Assertions.assertEquals(HealthCheckStatus.Status.OK, healthCheckStatus.getStatus());
 
@@ -44,7 +46,7 @@ class UIActionServiceTest {
 
     @Test
     void validateConnectionKO() throws NoSuchFieldException, IllegalAccessException {
-        final WorkdayDataStore wds = ConfigHelper.buildDataStore();
+        final WorkdayDataStore wds = this.buildDataStore();
         wds.setClientSecret("FAUX");
         final UIActionService service = buildService();
         final HealthCheckStatus healthCheckStatusKO = service.validateConnection(wds);
@@ -60,7 +62,7 @@ class UIActionServiceTest {
                 new ReflectionService(new ParameterModelService(propertyEditorRegistry), propertyEditorRegistry),
                 JsonbBuilder.create(), new HashMap<>());
 
-        AccessTokenProvider provider = factory.create(AccessTokenProvider.class, ConfigHelper.defaultAuthenticationURL);
+        AccessTokenProvider provider = factory.create(AccessTokenProvider.class, WorkdayBaseTest.defaultAuthenticationURL);
 
         I18n intern = new I18n() {
 

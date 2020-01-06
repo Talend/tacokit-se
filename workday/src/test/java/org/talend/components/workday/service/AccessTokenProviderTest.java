@@ -12,9 +12,14 @@
  */
 package org.talend.components.workday.service;
 
+import java.util.HashMap;
+
+import javax.json.bind.JsonbBuilder;
+
 import org.apache.xbean.propertyeditor.PropertyEditorRegistry;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.talend.components.workday.WorkdayBaseTest;
 import org.talend.components.workday.WorkdayException;
 import org.talend.components.workday.datastore.Token;
 import org.talend.components.workday.datastore.WorkdayDataStore;
@@ -24,11 +29,8 @@ import org.talend.sdk.component.runtime.manager.reflect.ParameterModelService;
 import org.talend.sdk.component.runtime.manager.reflect.ReflectionService;
 import org.talend.sdk.component.runtime.manager.service.http.HttpClientFactoryImpl;
 
-import javax.json.bind.JsonbBuilder;
-import java.util.HashMap;
-
 @HttpApi(useSsl = true)
-class AccessTokenProviderTest {
+class AccessTokenProviderTest extends WorkdayBaseTest {
 
     @Test
     void getAccessToken() {
@@ -37,8 +39,8 @@ class AccessTokenProviderTest {
                 new ReflectionService(new ParameterModelService(propertyEditorRegistry), propertyEditorRegistry),
                 JsonbBuilder.create(), new HashMap<>());
 
-        AccessTokenProvider provider = factory.create(AccessTokenProvider.class, ConfigHelper.defaultAuthenticationURL);
-        WorkdayDataStore wds = ConfigHelper.buildDataStore();
+        AccessTokenProvider provider = factory.create(AccessTokenProvider.class, WorkdayBaseTest.defaultAuthenticationURL);
+        WorkdayDataStore wds = this.buildDataStore();
 
         Token tk = provider.getAccessToken(wds);
         Assertions.assertNotNull(tk);
@@ -52,9 +54,9 @@ class AccessTokenProviderTest {
                 new ReflectionService(new ParameterModelService(propertyEditorRegistry), propertyEditorRegistry),
                 JsonbBuilder.create(), new HashMap<>());
 
-        AccessTokenProvider provider = factory.create(AccessTokenProvider.class, ConfigHelper.defaultAuthenticationURL);
+        AccessTokenProvider provider = factory.create(AccessTokenProvider.class, WorkdayBaseTest.defaultAuthenticationURL);
 
-        WorkdayDataStore wds = ConfigHelper.buildDataStore();
+        WorkdayDataStore wds = this.buildDataStore();
         wds.setClientSecret("fautSecret");
 
         Assertions.assertThrows(WorkdayException.class, () -> provider.getAccessToken(wds));

@@ -12,9 +12,17 @@
  */
 package org.talend.components.workday.service;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.json.bind.JsonbBuilder;
+
 import org.apache.xbean.propertyeditor.PropertyEditorRegistry;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.talend.components.workday.WorkdayBaseTest;
 import org.talend.components.workday.datastore.Token;
 import org.talend.components.workday.datastore.WorkdayDataStore;
 import org.talend.sdk.component.api.service.http.HttpClientFactory;
@@ -24,14 +32,8 @@ import org.talend.sdk.component.runtime.manager.reflect.ParameterModelService;
 import org.talend.sdk.component.runtime.manager.reflect.ReflectionService;
 import org.talend.sdk.component.runtime.manager.service.http.HttpClientFactoryImpl;
 
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.bind.JsonbBuilder;
-import java.util.HashMap;
-import java.util.Map;
-
 @HttpApi(useSsl = true)
-class WorkdayReaderTest {
+class WorkdayReaderTest extends WorkdayBaseTest {
 
     @Test
     void search() {
@@ -40,12 +42,12 @@ class WorkdayReaderTest {
                 new ReflectionService(new ParameterModelService(propertyEditorRegistry), propertyEditorRegistry),
                 JsonbBuilder.create(), new HashMap<>());
 
-        AccessTokenProvider provider = factory.create(AccessTokenProvider.class, ConfigHelper.defaultAuthenticationURL);
+        AccessTokenProvider provider = factory.create(AccessTokenProvider.class, WorkdayBaseTest.defaultAuthenticationURL);
 
-        WorkdayDataStore wds = ConfigHelper.buildDataStore();
+        WorkdayDataStore wds = this.buildDataStore();
         Token tk = provider.getAccessToken(wds);
 
-        WorkdayReader reader = factory.create(WorkdayReader.class, ConfigHelper.defaultServiceURL);
+        WorkdayReader reader = factory.create(WorkdayReader.class, WorkdayBaseTest.defaultServiceURL);
         String header = tk.getAuthorizationHeaderValue();
         Map<String, String> params = new HashMap<>();
         params.put("offset", "0");

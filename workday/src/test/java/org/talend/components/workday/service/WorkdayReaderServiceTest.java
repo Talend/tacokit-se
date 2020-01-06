@@ -12,13 +12,14 @@
  */
 package org.talend.components.workday.service;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.talend.components.workday.WorkdayException;
+import java.util.Iterator;
 
 import javax.json.Json;
 import javax.json.JsonObject;
-import java.util.Iterator;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.talend.components.workday.WorkdayException;
 
 class WorkdayReaderServiceTest {
 
