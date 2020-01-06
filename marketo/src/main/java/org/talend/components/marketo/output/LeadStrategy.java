@@ -86,7 +86,7 @@ public class LeadStrategy extends OutputComponentStrategy implements ProcessorSt
     }
 
     private JsonObject deleteLeads(JsonObject payload) {
-        return handleResponse(leadClient.deleteLeads(HEADER_CONTENT_TYPE_APPLICATION_JSON, accessToken, payload));
+        return marketoService.handleResponse(leadClient.deleteLeads(HEADER_CONTENT_TYPE_APPLICATION_JSON, accessToken, payload));
     }
 
     private void addLeadsInList(List<JsonObject> leads) {
@@ -102,11 +102,11 @@ public class LeadStrategy extends OutputComponentStrategy implements ProcessorSt
         if (response.status() == MarketoApiConstants.HTTP_STATUS_OK) {
             if (!response.body().getBoolean(ATTR_SUCCESS)) {
                 log.error("[handleListResponse] Error during adding leads to list {}: {}", listId,
-                        getErrors(response.body().getJsonArray(ATTR_ERRORS)));
+                        marketoService.getErrors(response.body().getJsonArray(ATTR_ERRORS)));
             } else {
                 response.body().getJsonArray(ATTR_RESULT).getValuesAs(JsonObject.class).stream().filter(this::isRejected)
                         .forEach(e -> log.error("[handleListResponse] Lead add to List {}: {}", listId,
-                                getErrors(e.getJsonArray(ATTR_REASONS))));
+                                marketoService.getErrors(e.getJsonArray(ATTR_REASONS))));
             }
         }
     }
@@ -118,7 +118,7 @@ public class LeadStrategy extends OutputComponentStrategy implements ProcessorSt
                     .filter(lead -> !isRejected(lead)).collect(Collectors.toList()));
         }
         // return main action status
-        return handleResponse(response);
+        return marketoService.handleResponse(response);
     }
 
 }

@@ -72,7 +72,7 @@ public class LeadSource extends MarketoSource {
     private JsonObject getLeadsByListId() {
         Integer listId = Integer.parseInt(configuration.getDataSet().getListId());
         String fields = schema.keySet().stream().collect(Collectors.joining(","));
-        return handleResponse(listClient.getLeadsByListId(accessToken, nextPageToken, listId, fields));
+        return marketoService.handleResponse(listClient.getLeadsByListId(accessToken, nextPageToken, listId, fields));
     }
 
     private Boolean isLeadUrlSizeGreaterThan8k(String filterType, String filterValues, String fields) {
@@ -132,15 +132,16 @@ public class LeadSource extends MarketoSource {
             activityTypeIds = configuration.getDataSet().getActivityTypeIds().stream().collect(joining(","));
         }
         String listId = configuration.getDataSet().getListId();
-        return handleResponse(leadClient.getLeadActivities(accessToken, nextPageToken, activityTypeIds, "", listId, ""));
+        return marketoService
+                .handleResponse(leadClient.getLeadActivities(accessToken, nextPageToken, activityTypeIds, "", listId, ""));
     }
 
     public JsonObject getActivities() {
-        return handleResponse(leadClient.getActivities(accessToken));
+        return marketoService.handleResponse(leadClient.getActivities(accessToken));
     }
 
     public String getPagingToken(String dateTime) {
-        return handleResponse(leadClient.getPagingToken(accessToken, dateTime)).getString(ATTR_NEXT_PAGE_TOKEN);
+        return marketoService.handleResponse(leadClient.getPagingToken(accessToken, dateTime)).getString(ATTR_NEXT_PAGE_TOKEN);
     }
 
 }

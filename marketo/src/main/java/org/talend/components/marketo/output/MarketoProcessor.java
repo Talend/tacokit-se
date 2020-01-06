@@ -92,7 +92,7 @@ public class MarketoProcessor extends MarketoSourceOrProcessor {
         JsonObject payload = strategy.getPayload(records);
         JsonObject result = strategy.runAction(payload);
         result.getJsonArray(ATTR_RESULT).getValuesAs(JsonObject.class).stream().filter(strategy::isRejected).forEach(e -> {
-            log.error(getErrors(e.getJsonArray(ATTR_REASONS)));
+            log.error(marketoService.getErrors(e.getJsonArray(ATTR_REASONS)));
         });
     }
 
