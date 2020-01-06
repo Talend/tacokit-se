@@ -57,7 +57,7 @@ public class UIActionServiceTestIT extends MarketoBaseTest {
     void getListNamesWithMoreListsThanBatchLimit() {
         SuggestionValues lists = service.getListNames(dataStore);
         Assertions.assertNotNull(lists);
-        log.info("[getListNamesMoreThan300] list count: {}", lists.getItems().size());
+        log.info("[getListNamesWithMoreListsThanBatchLimit] list count: {}", lists.getItems().size());
         Assertions.assertNotEquals(0, lists.getItems().size());
         Assertions.assertTrue(lists.getItems().size() > 300);
     }
