@@ -22,6 +22,9 @@ public class WorkdayBaseTest {
     @DecryptedServer(value = "workday.account")
     protected Server serverWorkday;
 
+    @DecryptedServer(value = "workday.tenant")
+    protected Server serverWorkdayTenant;
+
     protected Properties workdayProps() {
         try (InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("workdayConfig.properties")) {
             Properties wkprops = new Properties();
@@ -37,7 +40,10 @@ public class WorkdayBaseTest {
         WorkdayDataStore wds = new WorkdayDataStore();
         wds.setClientId(serverWorkday.getUsername());
         wds.setClientSecret(serverWorkday.getPassword());
-        wds.setTenantAlias(props.getProperty("tenant"));
+
+        // tenant
+        wds.setTenantAlias(serverWorkdayTenant.getUsername());
+
         wds.setAuthEndpoint(props.getProperty("authendpoint"));
         wds.setEndpoint(props.getProperty("endpoint"));
         return wds;
