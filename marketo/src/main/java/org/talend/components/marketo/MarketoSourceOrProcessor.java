@@ -15,7 +15,9 @@ package org.talend.components.marketo;
 import java.io.Serializable;
 
 import javax.annotation.PostConstruct;
+import javax.json.JsonArray;
 import javax.json.JsonBuilderFactory;
+import javax.json.JsonObject;
 import javax.json.JsonReaderFactory;
 import javax.json.JsonWriterFactory;
 
@@ -23,6 +25,7 @@ import org.talend.components.marketo.dataset.MarketoDataSet;
 import org.talend.components.marketo.service.I18nMessage;
 import org.talend.components.marketo.service.MarketoService;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.service.http.Response;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,6 +62,14 @@ public class MarketoSourceOrProcessor implements Serializable {
     public void init() {
         nextPageToken = null;
         accessToken = marketoService.retrieveAccessToken(dataSet);
+    }
+
+    protected String getErrors(JsonArray errors) {
+        return marketoService.getErrors(errors);
+    }
+
+    protected JsonObject handleResponse(Response<JsonObject> response) {
+        return marketoService.handleResponse(response);
     }
 
 }
