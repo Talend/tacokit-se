@@ -101,8 +101,8 @@ public class TacoKitRecordToTableRowConverter {
                         break;
                     case DATETIME:
                         tableRow.put(fieldName, input.getArray(ZonedDateTime.class, fieldName).stream()
-                                .filter(Objects::nonNull)
-                                .map(getDateFunction(field.getType())).collect(toList()));
+                                .map(dt -> Optional.ofNullable(dt).map(getDateFunction(field.getType())).orElse(null))
+                                .collect(toList()));
                         break;
                     default:
                         throw new BigQueryConnectorException(i18n.entryTypeNotDefined(entry.getElementSchema().getType().name()));

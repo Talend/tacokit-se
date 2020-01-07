@@ -45,7 +45,7 @@ public class TacoKitRecordToTableRowConverterTest {
         Assertions.assertNotNull(map.get("aString"), "String must not be null");
         Assertions.assertNotNull(map.get("aDateTime"), "DateTime must not be null");
         Assertions.assertNotNull(map.get("aDateTimeArray"), "DateTimeArray must not be null");
-        Assertions.assertEquals(2, ((Collection) map.get("aDateTimeArray")).size(),  "DateTimeArray must have 2 elements");
+        Assertions.assertEquals(3, ((Collection) map.get("aDateTimeArray")).size(),  "DateTimeArray must have 3 elements");
 
         // Values not set at all
         record = rbf.newRecordBuilder(schema)
