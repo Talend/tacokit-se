@@ -42,6 +42,8 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.http.Response;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ACCESS_TOKEN;
@@ -204,26 +206,40 @@ public class UIActionService extends MarketoService {
         }
     }
 
+    @AllArgsConstructor
+    @Getter
+    private class ListsPage {
+
+        String nextPageToken;
+
+        List<Item> lists;
+
+    }
+
+    private ListsPage getListsPage(String token, String nextPage) {
+        List<Item> lists = new ArrayList<>();
+        Consumer<JsonObject> listConsumer = l -> lists.add(new Item(String.valueOf(l.getInt(ATTR_ID)), l.getString(ATTR_NAME)));
+        JsonObject result = handleResponse(listClient.getLists(token, nextPage, null, "", "", ""));
+        String nextPageToken = result.getString(ATTR_NEXT_PAGE_TOKEN, null);
+        if (result.getJsonArray(ATTR_RESULT) != null) {
+            result.getJsonArray(ATTR_RESULT).getValuesAs(JsonObject.class).forEach(listConsumer);
+        }
+        return new ListsPage(nextPageToken, lists);
+    }
+
     @Suggestions(LIST_NAMES)
     public SuggestionValues getListNames(@Option final MarketoDataStore dataStore) {
         log.debug("[getListNames] {}.", dataStore);
         List<Item> lists = new ArrayList<>();
-        String nextPageToken = null;
-        Predicate<JsonObject> hasResults = j -> j.getJsonArray(ATTR_RESULT) != null;
-        Predicate<JsonObject> hasNextPageToken = j -> j.getString(ATTR_NEXT_PAGE_TOKEN, null) != null;
-        Consumer<JsonObject> listConsumer = l -> lists.add(new Item(String.valueOf(l.getInt(ATTR_ID)), l.getString(ATTR_NAME)));
+        Predicate<String> hasNextPageToken = token -> token != null && !token.isEmpty();
         try {
             initClients(dataStore);
             String aToken = authorizationClient.getAccessToken(dataStore);
-            JsonObject result = handleResponse(listClient.getLists(aToken, nextPageToken, null, "", "", ""));
-            nextPageToken = result.getString(ATTR_NEXT_PAGE_TOKEN, null);
-            if (hasResults.test(result)) {
-                result.getJsonArray(ATTR_RESULT).getValuesAs(JsonObject.class).forEach(listConsumer);
-            }
-            while (hasNextPageToken.test(result)) {
-                result = handleResponse(listClient.getLists(aToken, nextPageToken, null, "", "", ""));
-                nextPageToken = result.getString(ATTR_NEXT_PAGE_TOKEN, null);
-                result.getJsonArray(ATTR_RESULT).getValuesAs(JsonObject.class).forEach(listConsumer);
+            ListsPage result = getListsPage(aToken, null);
+            lists.addAll(result.getLists());
+            while (hasNextPageToken.test(result.getNextPageToken())) {
+                result = getListsPage(aToken, result.getNextPageToken());
+                lists.addAll(result.getLists());
             }
             return new SuggestionValues(true, lists);
         } catch (Exception e) {
