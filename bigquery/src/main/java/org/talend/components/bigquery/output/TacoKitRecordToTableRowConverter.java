@@ -24,10 +24,7 @@ import org.talend.sdk.component.api.record.Schema;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -104,6 +101,7 @@ public class TacoKitRecordToTableRowConverter {
                         break;
                     case DATETIME:
                         tableRow.put(fieldName, input.getArray(ZonedDateTime.class, fieldName).stream()
+                                .filter(Objects::nonNull)
                                 .map(getDateFunction(field.getType())).collect(toList()));
                         break;
                     default:

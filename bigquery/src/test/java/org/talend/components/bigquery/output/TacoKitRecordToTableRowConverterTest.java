@@ -11,18 +11,20 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.runtime.internationalization.InternationalizationServiceFactory;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
-import java.util.Date;
-import java.util.Locale;
-import java.util.Map;
+import java.time.ZonedDateTime;
+import java.util.*;
 
 public class TacoKitRecordToTableRowConverterTest {
 
     @Test
-    public void testTDI_43491() {
+    public void testNullDatetime() {
         RecordBuilderFactory rbf = new RecordBuilderFactoryImpl(null);
+        Schema.Entry arrayEntry = rbf.newEntryBuilder().withName("aDateTimeArray").withType(Schema.Type.ARRAY).withNullable(true)
+                .withElementSchema(rbf.newSchemaBuilder(Schema.Type.DATETIME).build()).build();
         Schema schema = rbf.newSchemaBuilder(Schema.Type.RECORD)
                 .withEntry(rbf.newEntryBuilder().withName("aString").withType(Schema.Type.STRING).withNullable(true).build())
                 .withEntry(rbf.newEntryBuilder().withName("aDateTime").withType(Schema.Type.DATETIME).withNullable(true).build())
+                .withEntry(arrayEntry)
                 .build();
 
         com.google.cloud.bigquery.Schema tableSchema = new BigQueryService().convertToGoogleSchema(schema);
@@ -36,11 +38,14 @@ public class TacoKitRecordToTableRowConverterTest {
         Record record = rbf.newRecordBuilder(schema)
                 .withString("aString", "notNull")
                 .withDateTime("aDateTime", new Date())
+                .withArray(arrayEntry, Arrays.asList(ZonedDateTime.now(), null, ZonedDateTime.now()))
                 .build();
         Map<String, ?> map = converter.apply(record);
 
         Assertions.assertNotNull(map.get("aString"), "String must not be null");
         Assertions.assertNotNull(map.get("aDateTime"), "DateTime must not be null");
+        Assertions.assertNotNull(map.get("aDateTimeArray"), "DateTimeArray must not be null");
+        Assertions.assertEquals(2, ((Collection) map.get("aDateTimeArray")).size(),  "DateTimeArray must have 2 elements");
 
         // Values not set at all
         record = rbf.newRecordBuilder(schema)
@@ -49,6 +54,7 @@ public class TacoKitRecordToTableRowConverterTest {
 
         Assertions.assertNull(map.get("aString"), "String must be null");
         Assertions.assertNull(map.get("aDateTime"), "DateTime must be null");
+        Assertions.assertNull(map.get("aDateTimeArray"), "DateTimeArray must be null");
 
         // Values explicitly set at null
         record = rbf.newRecordBuilder(schema)
@@ -59,6 +65,7 @@ public class TacoKitRecordToTableRowConverterTest {
 
         Assertions.assertNull(map.get("aString"), "String must be null (explicit)");
         Assertions.assertNull(map.get("aDateTime"), "DateTime must be null (explicit)");
+        Assertions.assertNull(map.get("aDateTimeArray"), "DateTimeArray must be null");
 
     }
 }
