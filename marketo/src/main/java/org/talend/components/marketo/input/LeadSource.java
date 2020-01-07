@@ -132,8 +132,7 @@ public class LeadSource extends MarketoSource {
             activityTypeIds = configuration.getDataSet().getActivityTypeIds().stream().collect(joining(","));
         }
         String listId = configuration.getDataSet().getListId();
-        return handleResponse(leadClient
-                .getLeadActivities(accessToken, nextPageToken, activityTypeIds, "", listId, ""));
+        return handleResponse(leadClient.getLeadActivities(accessToken, nextPageToken, activityTypeIds, "", listId, ""));
     }
 
     public JsonObject getActivities() {
