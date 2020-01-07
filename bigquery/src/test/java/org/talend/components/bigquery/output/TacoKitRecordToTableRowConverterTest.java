@@ -12,7 +12,12 @@ import org.talend.sdk.component.runtime.internationalization.Internationalizatio
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Map;
+
 
 public class TacoKitRecordToTableRowConverterTest {
 
