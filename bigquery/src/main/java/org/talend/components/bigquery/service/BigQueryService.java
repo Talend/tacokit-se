@@ -430,13 +430,12 @@ public class BigQueryService {
                 .registerTypeAdapter(FieldList.class, subFieldsDeserializer).setLenient().create();
     }
 
-    public static GoogleCredentials getCredentials(String credentials) {
+    public GoogleCredentials getCredentials(String credentials) {
         try {
             return GoogleCredentials.fromStream(new ByteArrayInputStream(credentials.getBytes()))
                     .createScoped(BigqueryScopes.all());
-        } catch (IOException e) {
-            throw new BigQueryConnectorException(
-                    "Exception when read service account file: " + credentials + "\nMessage is:" + e.getMessage());
+        } catch (Exception e) {
+            throw new BigQueryConnectorException(i18n.errorReadingCredentials() + " : " + e.getMessage());
         }
     }
 

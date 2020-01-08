@@ -52,4 +52,6 @@ public interface I18nMessage {
     String projectNameRequired();
 
     String credentialsRequired();
+
+    String errorReadingCredentials();
 }
