@@ -12,14 +12,13 @@
  */
 package org.talend.components.common.text;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Assert;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Function;
 
 class SubstitutorTest {
 
@@ -28,10 +27,7 @@ class SubstitutorTest {
             "((,)),A more ((complex)) example with ((two)) place holders.,A more C_O_M_P_L_E_X example with T_W_O place holders.",
             "${,},Example ${three} with \\${escape} ${place_holder}.,Example 3 with ${escape} P_L_A_C_E_H_O_L_D_E_R.",
             "[,],[one] key with [unknown:-MY_DEFAULT] value,O_N_E key with MY_DEFAULT value",
-            "${,},${one} ${two} ${three},O_N_E T_W_O 3", "${,},${aaa:-AAA} ${bbb:-BBB} ${ccc:-CCC},AAA BBB CCC",
-             "[START[,]STOP],[START[START]STOP] [START[STOP]STOP],begin end",
-             "[[,]],[[START]] [[STOP]],begin end",
-            "[[,]],example without substitution,example without substitution"})
+            "${,},${one} ${two} ${three},O_N_E T_W_O 3", "${,},${aaa:-AAA} ${bbb:-BBB} ${ccc:-CCC},AAA BBB CCC" })
     void testSubstitutor(final String prefix, final String suffix, final String value, final String expected) {
         final Map<String, String> store = new HashMap<>();
         store.put("place_holder", "P_L_A_C_E_H_O_L_D_E_R");
@@ -40,29 +36,18 @@ class SubstitutorTest {
         store.put("two", "T_W_O");
         store.put("escape", "E_S_C_A_P_E");
         store.put("three", "3");
-        store.put("START", "begin");
-        store.put("STOP", "end");
 
-        Substitutor.KeyFinder kf = new Substitutor.KeyFinder(prefix, suffix);
-        final Substitutor substitutor = new Substitutor(kf, store::get);
+        final Substitutor substitutor = new Substitutor(prefix, suffix, new Function<String, String>() {
+
+            @Override
+            public String apply(final String key) {
+                return store.get(key);
+            }
+        });
 
         final String transformed = substitutor.replace(value);
-        Assertions.assertEquals(expected, transformed);
+        Assert.assertEquals(expected, transformed);
 
     }
 
-    @Test
-    public void testFinder() {
-        Substitutor.KeyFinder finder = new Substitutor.KeyFinder("${", "}");
-        Iterator<Substitutor.FindResult> res = finder.search( "${hello} ${world:-tdi}");
-        Assertions.assertTrue(res.hasNext());
-        Assertions.assertTrue(res.hasNext());
-        Assertions.assertTrue(res.hasNext());
-        Assertions.assertTrue(res.hasNext());
-        Substitutor.FindResult r1 =res.next();
-        Substitutor.FindResult r2 =res.next();
-        Assertions.assertEquals("hello", r1.key);
-        Assertions.assertEquals("world:-tdi", r2.key);
-        Assertions.assertFalse(res.hasNext());
-    }
 }
