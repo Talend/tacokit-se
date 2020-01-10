@@ -17,6 +17,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -40,11 +42,15 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.http.Response;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ACCESS_TOKEN;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ID;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_NAME;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_NEXT_PAGE_TOKEN;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_RESULT;
 import static org.talend.components.marketo.service.AuthorizationClient.CLIENT_CREDENTIALS;
 
 @Slf4j
@@ -200,18 +206,42 @@ public class UIActionService extends MarketoService {
         }
     }
 
+    @AllArgsConstructor
+    @Getter
+    private class ListsPage {
+
+        String nextPageToken;
+
+        List<Item> lists;
+
+    }
+
+    private ListsPage getListsPage(String token, String nextPage) {
+        List<Item> lists = new ArrayList<>();
+        Consumer<JsonObject> listConsumer = l -> lists.add(new Item(String.valueOf(l.getInt(ATTR_ID)), l.getString(ATTR_NAME)));
+        JsonObject result = handleResponse(listClient.getLists(token, nextPage, null, "", "", ""));
+        String nextPageToken = result.getString(ATTR_NEXT_PAGE_TOKEN, null);
+        if (result.getJsonArray(ATTR_RESULT) != null) {
+            result.getJsonArray(ATTR_RESULT).getValuesAs(JsonObject.class).forEach(listConsumer);
+        }
+        return new ListsPage(nextPageToken, lists);
+    }
+
     @Suggestions(LIST_NAMES)
     public SuggestionValues getListNames(@Option final MarketoDataStore dataStore) {
         log.debug("[getListNames] {}.", dataStore);
+        List<Item> lists = new ArrayList<>();
+        Predicate<String> hasNextPageToken = token -> token != null && !token.isEmpty();
         try {
             initClients(dataStore);
             String aToken = authorizationClient.getAccessToken(dataStore);
-            List<Item> listNames = new ArrayList<>();
-            for (JsonObject l : parseResultFromResponse(listClient.getLists(aToken, null, null, "", "", ""))
-                    .getValuesAs(JsonObject.class)) {
-                listNames.add(new SuggestionValues.Item(String.valueOf(l.getInt(ATTR_ID)), l.getString(ATTR_NAME)));
+            ListsPage result = getListsPage(aToken, null);
+            lists.addAll(result.getLists());
+            while (hasNextPageToken.test(result.getNextPageToken())) {
+                result = getListsPage(aToken, result.getNextPageToken());
+                lists.addAll(result.getLists());
             }
-            return new SuggestionValues(true, listNames);
+            return new SuggestionValues(true, lists);
         } catch (Exception e) {
             throw new MarketoRuntimeException(e.getMessage());
         }
