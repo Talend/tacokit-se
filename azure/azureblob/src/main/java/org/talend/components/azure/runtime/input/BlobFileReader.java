@@ -104,13 +104,12 @@ public abstract class BlobFileReader {
             case AVRO:
                 return new AvroBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
 
-            case EXCEL: {
+            case EXCEL:
                 if (config.getExcelOptions().getExcelFormat() == ExcelFormat.HTML) {
                     return new ExcelHTMLBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
                 } else {
                     return new ExcelBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
                 }
-            }
             case PARQUET:
                 return new ParquetBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
             default:
