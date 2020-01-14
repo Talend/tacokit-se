@@ -18,7 +18,7 @@
   <parent>
     <groupId>org.talend.components</groupId>
     <artifactId>azure</artifactId>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.6.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>azurecommon</artifactId>
@@ -26,6 +26,13 @@
   <name>Components :: AzureCommon</name>
 
   <dependencies>
+    <!-- traductions -->
+    <dependency>
+      <groupId>org.talend.components</groupId>
+      <artifactId>azurecommon-locales</artifactId>
+      <version>${locales.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>

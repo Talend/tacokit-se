@@ -63,7 +63,7 @@ public class ParquetContentFormatter extends AbstractContentFormatter {
             writer.close();
             return Files.readAllBytes(tempFilePath.toPath());
         } catch (IOException e) {
-            log.warn("[feedContent] {}", e);
+            log.error("[feedContent] {}", e.getMessage());
             throw new AdlsGen2RuntimeException(e.getMessage());
         } finally {
             if (tempFilePath != null) {

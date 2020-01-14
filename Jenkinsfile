@@ -40,7 +40,7 @@ spec:
     containers:
         -
             name: main
-            image: 'khabali/jenkins-java-build-container:latest'
+            image: 'artifactory.datapwn.com/tlnd-docker-dev/talend/common/tsbi/jdk8-svc-springboot-builder:1.14.0-2.1-20191203093421'
             command: [cat]
             tty: true
             volumeMounts: [{name: docker, mountPath: /var/run/docker.sock}, {name: m2main, mountPath: /root/.m2/repository}]
@@ -52,6 +52,8 @@ spec:
         -
             name: m2main
             hostPath: { path: ${m2} }
+    imagePullSecrets:
+        - name: talend-registry
 """
         }
     }
@@ -69,11 +71,12 @@ spec:
 
     triggers {
         cron(env.BRANCH_NAME == "master" ? "@daily" : "")
+        parameterizedCron(env.BRANCH_NAME == "master" ? "0 9 * * 2 %SCA_SCAN=true" : "") // Tuesday temporary at 9am. Only on master
     }
 
     parameters {
         choice(name: 'Action', 
-               choices: [ 'STANDARD', 'PUSH_TO_XTM', 'DEPLOY_FROM_XTM', 'RELEASE' ],
+               choices: [ 'STANDARD', 'PUSH_TO_XTM', 'DEPLOY_FROM_XTM', 'SCAN', 'RELEASE' ],
                description: 'Kind of running : \nSTANDARD (default), normal building\n PUSH_TO_XTM : Export the project i18n resources to Xtm to be translated. This action can be performed from master or maintenance branches only. \nDEPLOY_FROM_XTM: Download and deploy i18n resources from Xtm to nexus for this branch.\nRELEASE : build release')
     }
 
@@ -162,25 +165,19 @@ spec:
             when {
                 anyOf {
                     expression { params.Action == 'PUSH_TO_XTM' }
-//                    allOf{
-//                        triggeredBy 'TimerTrigger'
-//                        expression {
-//                            (calendar.get(Calendar.WEEK_OF_MONTH) == 2 ||  calendar.get(Calendar.WEEK_OF_MONTH) == 4) && calendar.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY
-//                        }
-//                    }
+                    allOf {
+                        triggeredBy 'TimerTrigger'
+                        expression { calendar.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY }
+                    }
                 }
                 anyOf {
                     branch 'master'
-                    expression { BRANCH_NAME.startsWith('maintenance/') }
+                    expression { env.BRANCH_NAME.startsWith('maintenance/') }
                 }
             }
             steps {
                 container('main') {
-                    withCredentials([nexusCredentials,
-                            string(
-                                    credentialsId: 'xtm-token',
-                                    variable: 'XTM_TOKEN')
-                    ]) {
+                    withCredentials([nexusCredentials, string(credentialsId: 'xtm-token', variable: 'XTM_TOKEN')]) {
                         script {
                             sh "mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-export"
                         }
@@ -193,7 +190,7 @@ spec:
                 expression { params.Action == 'DEPLOY_FROM_XTM' }
                 anyOf {
                     branch 'master'
-                    expression { BRANCH_NAME.startsWith('maintenance/') }
+                    expression { env.BRANCH_NAME.startsWith('maintenance/') }
                 }
             }
             steps {
@@ -205,8 +202,22 @@ spec:
                             gitCredentials ]) {
                         script {
                             sh "mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-deploy"
-                            sh "cd tmp/repository && mvn -s ../../.jenkins/settings.xml clean deploy"
+                            sh "cd tmp/repository && mvn -s ../../.jenkins/settings.xml clean deploy -DaltDeploymentRepository=talend_nexus_deployment::default::https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceRelease/"
                         }
+                    }
+                }
+            }
+        }
+        stage("SourceClear analysis") {
+            when {
+                expression { params.Action == 'SCAN' || ${SCA_SCAN} == true }
+            }
+            steps {
+                container('main') {
+                    withCredentials([string(credentialsId: 'veracode-token', variable: 'SRCCLR_API_TOKEN')]) {
+                        sh '''#!/bin/bash
+                          curl -sSL https://download.sourceclear.com/ci.sh | SRCCLR_API_TOKEN=${SRCCLR_API_TOKEN} DEBUG=1 sh -s -- scan --allow-dirty --recursive --skip-collectors npm;
+                        '''
                     }
                 }
             }
@@ -222,22 +233,10 @@ spec:
             steps {
             	withCredentials([gitCredentials, nexusCredentials]) {
 					container('main') {
-                		
-						sh """
-						    mvn -B -s .jenkins/settings.xml release:clean release:prepare
-						    if [[ \$? -eq 0 ]] ; then
-						        PROJECT_VERSION=\$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
-						    	mvn -B -s .jenkins/settings.xml -Darguments='-Dmaven.javadoc.skip=true' release:perform
-						    	git push origin release/\${PROJECT_VERSION}
-						    	git push
-						    fi
-						"""
-						
+                        sh "sh .jenkins/release.sh"
               		}
             	}
             }
-            
-        
         }
     }
     post {

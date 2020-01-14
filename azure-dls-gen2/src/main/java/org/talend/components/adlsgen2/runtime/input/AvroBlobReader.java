@@ -96,7 +96,7 @@ public class AvroBlobReader extends BlobReader {
                     avroItemIterator.close();
                     input.close();
                 } catch (IOException e) {
-                    log.warn("Can't close stream", e);
+                    log.error("Can't close stream: {}.", e.getMessage());
                 }
             }
         }

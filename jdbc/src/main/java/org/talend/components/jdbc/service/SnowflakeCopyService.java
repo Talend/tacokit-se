@@ -10,19 +10,11 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.jdbc.output.statement.operations.snowflake;
-
-import lombok.Data;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.talend.components.jdbc.output.Reject;
-import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
+package org.talend.components.jdbc.service;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,37 +22,45 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static java.nio.file.Files.createTempDirectory;
-import static java.nio.file.Files.createTempFile;
-import static java.nio.file.Files.newBufferedWriter;
-import static java.time.LocalDateTime.now;
-import static java.time.format.DateTimeFormatter.ofPattern;
-import static java.util.Locale.ROOT;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.codec.binary.Hex.encodeHexString;
-import static org.talend.components.jdbc.output.statement.operations.QueryManagerImpl.valueOf;
+import org.apache.commons.codec.binary.Hex;
+import org.talend.components.jdbc.output.Reject;
+import org.talend.components.jdbc.output.statement.operations.QueryManagerImpl;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
+
+import lombok.Data;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class SnowflakeCopy {
+public class SnowflakeCopyService implements Serializable {
 
     private static final long maxChunk = 16 * 1024 * 1024; // 16MB
 
     private static final String TIMESTAMP_FORMAT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
 
-    public static List<Reject> putAndCopy(final Connection connection, final List<Record> records, final String fqStageName,
+    private final List<Path> tmpFiles = new ArrayList<>();
+
+    private Path tmpFolder;
+
+    public List<Reject> putAndCopy(final Connection connection, final List<Record> records, final String fqStageName,
             final String fqTableName, final String fqTmpTableName) throws SQLException {
         try (final Statement statement = connection.createStatement()) {
             statement.execute("create temporary table if not exists " + fqTmpTableName + " like " + fqTableName);
@@ -68,12 +68,12 @@ public class SnowflakeCopy {
         return putAndCopy(connection, records, fqStageName, fqTmpTableName);
     }
 
-    public static List<Reject> putAndCopy(final Connection connection, final List<Record> records, final String fqStageName,
-            final String fqTableName) throws SQLException {
+    public List<Reject> putAndCopy(final Connection connection, final List<Record> records, final String fqStageName,
+            final String fqTableName) {
         final List<RecordChunk> chunks = splitRecords(createWorkDir(), records);
         final List<Reject> rejects = new ArrayList<>();
         final List<RecordChunk> copy = chunks.stream().parallel().map(chunk -> doPUT(fqStageName, connection, chunk, rejects))
-                .filter(Objects::nonNull).collect(toList());
+                .filter(Objects::nonNull).collect(Collectors.toList());
         rejects.addAll(toReject(chunks, doCopy(fqStageName, fqTableName, connection, copy)));
         return rejects;
     }
@@ -83,41 +83,33 @@ public class SnowflakeCopy {
      * @return a tmp table name from the original table name in format tmp_tableName_yyyyMMddHHmmss
      */
 
-    public static String tmpTableName(final String tableName) {
-        final String suffix = now(ZoneOffset.UTC).format(ofPattern("yyyyMMddHHmmss"));
+    public String tmpTableName(final String tableName) {
+        final String suffix = LocalDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String tmpTableName = "tmp_" + tableName + "_" + suffix;
-        return tmpTableName.length() < 256 ? tmpTableName : tmpTableName.substring(0, 256);
+        return tmpTableName.length() < 256 ? tmpTableName : tmpTableName.substring(0, 255);
     }
 
-    private static Path createWorkDir() {
+    private Path createWorkDir() {
         try {
-            final Path tmp = createTempDirectory("talend-jdbc-snowflake-");
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                try {
-                    if (tmp != null && tmp.toFile().exists()) {
-                        Files.walk(tmp).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
-                    }
-                } catch (final IOException e) {
-                    log.error("can't clean tmp files for snowflake put", e);
-                }
-            }));
-            return tmp;
+            tmpFolder = Files.createTempDirectory("talend-jdbc-snowflake-");
+            log.debug("Temp folder {} created.", tmpFolder);
+            return tmpFolder;
         } catch (final IOException e) {
             throw new IllegalStateException(e);
         }
     }
 
-    private static List<Reject> toReject(final List<RecordChunk> chunks, final List<CopyError> errors) {
+    private List<Reject> toReject(final List<RecordChunk> chunks, final List<CopyError> errors) {
         return errors.stream().flatMap(error -> chunks.stream()
                 .filter(chunk -> error.getFile().startsWith(chunk.getChunk().getFileName().toString()))
                 .map(chunk -> new Reject(
                         error.getError() + (error.getErrorColumnName() == null || error.getErrorColumnName().isEmpty() ? ""
                                 : ", columnName=" + error.getErrorColumnName()),
                         chunk.getRecords().get(error.getErrorLine() - 1))))
-                .collect(toList());
+                .collect(Collectors.toList());
     }
 
-    private static RecordChunk doPUT(final String fqStageName, final Connection connection, final RecordChunk chunk,
+    private RecordChunk doPUT(final String fqStageName, final Connection connection, final RecordChunk chunk,
             final List<Reject> rejects) {
         try (final Statement statement = connection.createStatement()) {
             try (final ResultSet result = statement
@@ -136,23 +128,23 @@ public class SnowflakeCopy {
         }
     }
 
-    private static List<Reject> toReject(RecordChunk chunk, String error, final String state, final Integer code) {
+    private List<Reject> toReject(RecordChunk chunk, String error, final String state, final Integer code) {
         return chunk.getRecords().stream().map(record -> new Reject(error, state, code, record)).collect(Collectors.toList());
     }
 
-    private static List<CopyError> doCopy(final String fqStageName, final String fqTableName, final Connection connection,
+    private List<CopyError> doCopy(final String fqStageName, final String fqTableName, final Connection connection,
             final List<RecordChunk> chunks) {
         final List<CopyError> errors = new ArrayList<>();
         try (final Statement statement = connection.createStatement()) {
             try (final ResultSet result = statement
                     .executeQuery("COPY INTO " + fqTableName + " from '@" + fqStageName + "'" + " FILES="
                             + chunks.stream().map(chunk -> chunk.getChunk().getFileName()).map(name -> "'" + name + ".gz'")
-                                    .collect(joining(",", "(", ")"))
+                                    .collect(Collectors.joining(",", "(", ")"))
                             + " FILE_FORMAT=(TYPE=CSV field_delimiter=',' COMPRESSION=GZIP field_optionally_enclosed_by='\"')"
                             + " PURGE=TRUE ON_ERROR='CONTINUE'")) {
                 while (result.next()) {
                     final String status = result.getString("status");
-                    switch (status.toLowerCase(ROOT)) {
+                    switch (status.toLowerCase(Locale.ROOT)) {
                     case "load_failed":
                     case "partially_loaded":
                         final String file = result.getString("file");
@@ -179,7 +171,7 @@ public class SnowflakeCopy {
     }
 
     @Data
-    private static class CopyError {
+    private class CopyError {
 
         private final String file;
 
@@ -200,14 +192,13 @@ public class SnowflakeCopy {
         private final int rowParsed;
     }
 
-    private static List<RecordChunk> splitRecords(final Path directoryPath, final List<Record> records) {
+    private List<RecordChunk> splitRecords(final Path directoryPath, final List<Record> records) {
         final AtomicLong size = new AtomicLong(0);
         final AtomicInteger count = new AtomicInteger(0);
         final AtomicInteger recordCounter = new AtomicInteger(0);
         final Map<Integer, RecordChunk> chunks = new HashMap<>();
-        records.stream()
-                .map(record -> record.getSchema().getEntries().stream().map(entry -> format(record, entry)).collect(joining(",")))
-                .forEach(line -> {
+        records.stream().map(record -> record.getSchema().getEntries().stream().map(entry -> format(record, entry))
+                .collect(Collectors.joining(","))).forEach(line -> {
                     if (size.addAndGet(line.getBytes(StandardCharsets.UTF_8).length) > maxChunk) {
                         // this writer can be closed now. to early free of memory
                         chunks.get(count.getAndIncrement()).close();
@@ -223,7 +214,7 @@ public class SnowflakeCopy {
 
     @Getter
     @RequiredArgsConstructor
-    private static class RecordChunk {
+    private class RecordChunk {
 
         private final List<Record> records;
 
@@ -249,10 +240,12 @@ public class SnowflakeCopy {
         void writer(final String line) {
             if (writer == null) {
                 end = start;
-                final String suffix = now(ZoneOffset.UTC).format(ofPattern("yyyyMMddHHmmss"));
+                final String suffix = LocalDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
                 try {
-                    chunk = createTempFile(tmpDir, "part_" + part + "_", "_" + suffix + ".csv");
-                    writer = newBufferedWriter(chunk, StandardCharsets.UTF_8);
+                    chunk = Files.createTempFile(tmpDir, "part_" + part + "_", "_" + suffix + ".csv");
+                    log.debug("Temp file {} created", chunk);
+                    tmpFiles.add(chunk);
+                    writer = Files.newBufferedWriter(chunk, StandardCharsets.UTF_8);
                 } catch (IOException e) {
                     throw new IllegalStateException(e);
                 }
@@ -277,30 +270,32 @@ public class SnowflakeCopy {
         }
     }
 
-    private static String format(final Record record, final Schema.Entry entry) {
+    private String format(final Record record, final Schema.Entry entry) {
         switch (entry.getType()) {
         case INT:
         case LONG:
         case BOOLEAN:
-            return valueOf(record, entry).map(String::valueOf).orElse("");
+            return QueryManagerImpl.valueOf(record, entry).map(String::valueOf).orElse("");
         case FLOAT:
-            return valueOf(record, entry).map(v -> Float.toHexString((Float) v)).orElse("");
+            return QueryManagerImpl.valueOf(record, entry).map(v -> Float.toHexString((Float) v)).orElse("");
         case DOUBLE:
-            return valueOf(record, entry).map(v -> Double.toHexString((Double) v)).orElse("");
+            return QueryManagerImpl.valueOf(record, entry).map(v -> Double.toHexString((Double) v)).orElse("");
         case BYTES:
-            return valueOf(record, entry).map(v -> encodeHexString((byte[]) v)).orElse("");
+            return QueryManagerImpl.valueOf(record, entry).map(v -> Hex.encodeHexString((byte[]) v)).orElse("");
         case DATETIME:
-            return valueOf(record, entry).map(v -> ((ZonedDateTime) v).format(ofPattern(TIMESTAMP_FORMAT_PATTERN))).orElse("");
+            return QueryManagerImpl.valueOf(record, entry)
+                    .map(v -> ((ZonedDateTime) v).format(DateTimeFormatter.ofPattern(TIMESTAMP_FORMAT_PATTERN))).orElse("");
         case STRING:
             return escape(record.getString(entry.getName()));
         case ARRAY:
         case RECORD:
         default:
-            throw new IllegalArgumentException("unsupported type in " + entry);
+            throw new IllegalArgumentException(
+                    "Unsupported \"" + entry.getType().name() + "\" type for field: " + entry.getName());
         }
     }
 
-    private static String escape(final String value) {
+    private String escape(final String value) {
         if (value == null) {
             return "";
         }
@@ -312,5 +307,18 @@ public class SnowflakeCopy {
         } else {
             return value;
         }
+    }
+
+    public void cleanTmpFiles() {
+        Consumer<Path> deletePath = p -> {
+            try {
+                log.debug("Deleting temp file/forlder: {}", p);
+                Files.deleteIfExists(p);
+            } catch (IOException e) {
+                log.warn("Cannot clean tmp file/forlder '{}'", p);
+            }
+        };
+        tmpFiles.stream().forEach(deletePath);
+        deletePath.accept(tmpFolder);
     }
 }

@@ -21,7 +21,7 @@ import java.util.Set;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.talend.components.adlsgen2.common.converter.RecordConverter;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -137,9 +137,7 @@ public class CsvConverter implements RecordConverter<CSVRecord>, Serializable {
                 builder.withEntry(entryBuilder.withName(finalName).withType(Schema.Type.STRING).withNullable(true).build());
             }
         }
-        Schema inferedSchema = builder.build();
-        log.debug("[inferSchema] {}", inferedSchema);
-        return inferedSchema;
+        return builder.build();
     }
 
     @Override
@@ -151,7 +149,7 @@ public class CsvConverter implements RecordConverter<CSVRecord>, Serializable {
         for (int i = 0; i < schema.getEntries().size(); i++) {
             String value;
             try {
-                value = csvRecord.get(i);
+                value = csvRecord.get(i).isEmpty() ? null : csvRecord.get(i);
             } catch (ArrayIndexOutOfBoundsException e) {
                 value = null;
             }

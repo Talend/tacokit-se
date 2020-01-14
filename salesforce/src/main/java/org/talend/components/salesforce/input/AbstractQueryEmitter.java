@@ -22,11 +22,9 @@ import javax.annotation.PreDestroy;
 
 import org.talend.components.salesforce.commons.BulkResultSet;
 import org.talend.components.salesforce.configuration.InputConfig;
-import org.talend.components.salesforce.dataset.QueryDataSet;
 import org.talend.components.salesforce.service.BulkQueryService;
 import org.talend.components.salesforce.service.Messages;
 import org.talend.components.salesforce.service.SalesforceService;
-import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;

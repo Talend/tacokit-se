@@ -12,7 +12,6 @@
  */
 package org.talend.components.adlsgen2.service;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +32,7 @@ import static org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus
 
 @Slf4j
 @Service
-public class UIActionService implements Serializable {
+public class UIActionService {
 
     public static final String ACTION_HEALTHCHECK = "ACTION_HEALTHCHECK";
 
@@ -67,6 +66,6 @@ public class UIActionService implements Serializable {
         for (String s : service.filesystemList(connection)) {
             items.add(new SuggestionValues.Item(s, s));
         }
-        return new SuggestionValues(true, items);
+        return new SuggestionValues(false, items);
     }
 }

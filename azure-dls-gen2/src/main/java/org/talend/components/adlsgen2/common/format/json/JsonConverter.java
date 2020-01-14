@@ -47,8 +47,6 @@ public class JsonConverter implements RecordConverter<JsonObject>, Serializable 
 
     private Schema schema;
 
-    private JsonObjectBuilder rcd;
-
     public static JsonConverter of(final RecordBuilderFactory factory, final JsonBuilderFactory jsonFactory,
             final @Configuration("jsonConfiguration") JsonConfiguration configuration) {
         return new JsonConverter(factory, jsonFactory, configuration);
@@ -64,13 +62,13 @@ public class JsonConverter implements RecordConverter<JsonObject>, Serializable 
     @Override
     public Schema inferSchema(final JsonObject record) {
         Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Type.RECORD);
-        record.entrySet().stream().map(s -> createEntry(s.getKey(), s.getValue())).forEach(builder::withEntry);
+        populateJsonObjectEntries(builder, record);
         return builder.build();
     }
 
     @Override
     public Record toRecord(final JsonObject record) {
-        if (schema == null) {
+        if (schema == null || record.keySet().size() > schema.getEntries().size()) {
             schema = inferSchema(record);
         }
         return convertJsonObjectToRecord(schema, record);
@@ -84,88 +82,47 @@ public class JsonConverter implements RecordConverter<JsonObject>, Serializable 
     private JsonObject convertRecordToJsonObject(Record record) {
         JsonObjectBuilder json = jsonBuilderFactory.createObjectBuilder();
         for (Entry entry : record.getSchema().getEntries()) {
-            log.debug("[convertRecordToJsonObject] entry:{}; type: {}; value: {}.", entry.getName(), entry.getType(),
-                    record.get(Object.class, entry.getName()));
-
+            String fieldName = entry.getName();
+            Object val = record.get(Object.class, fieldName);
+            log.debug("[convertRecordToJsonObject] entry: {}; type: {}; value: {}.", fieldName, entry.getType(), val);
+            if (null == val) {
+                json.add(fieldName, JsonObject.NULL);
+                continue;
+            }
             switch (entry.getType()) {
             case RECORD:
-                Record subRecord = record.getRecord(entry.getName());
-                json.add(entry.getName(), convertRecordToJsonObject(subRecord));
+                Record subRecord = record.getRecord(fieldName);
+                json.add(fieldName, convertRecordToJsonObject(subRecord));
                 break;
             case ARRAY:
                 break;
             case STRING:
-                json.add(entry.getName(), record.getString(entry.getName()));
+                json.add(fieldName, record.getString(fieldName));
                 break;
             case BYTES:
-                json.add(entry.getName(), record.getBytes(entry.getName()).toString());
+                json.add(fieldName, record.getBytes(fieldName).toString());
                 break;
             case INT:
-                json.add(entry.getName(), record.getInt(entry.getName()));
+                json.add(fieldName, record.getInt(fieldName));
                 break;
             case LONG:
-                json.add(entry.getName(), record.getLong(entry.getName()));
+                json.add(fieldName, record.getLong(fieldName));
                 break;
             case FLOAT:
-                json.add(entry.getName(), record.getFloat(entry.getName()));
+                json.add(fieldName, record.getFloat(fieldName));
                 break;
             case DOUBLE:
-                json.add(entry.getName(), record.getDouble(entry.getName()));
+                json.add(fieldName, record.getDouble(fieldName));
                 break;
             case BOOLEAN:
-                json.add(entry.getName(), record.getBoolean(entry.getName()));
+                json.add(fieldName, record.getBoolean(fieldName));
                 break;
             case DATETIME:
-                json.add(entry.getName(), record.getDateTime(entry.getName()).toString());
+                json.add(fieldName, record.getDateTime(fieldName).toString());
                 break;
             }
         }
         return json.build();
-    }
-
-    private JsonObjectBuilder convertRecordToJsonObject(JsonObjectBuilder json, Entry entry, Record record) {
-        log.warn("[convertRecordToJsonObject] entry:{}; type: {}; value: {}.", entry.getName(), entry.getType(),
-                record.get(Object.class, entry.getName()));
-        switch (entry.getType()) {
-        case RECORD:
-            JsonObjectBuilder rcd = jsonBuilderFactory.createObjectBuilder();
-            Record subRecord = record.getRecord(entry.getName());
-            for (Entry subEntry : entry.getElementSchema().getEntries()) {
-                log.warn("[convertRecordToJsonObject] subentry:{}; type: {}; value: {}.", subEntry.getName(), subEntry.getType(),
-                        subRecord.get(Object.class, subEntry.getName()));
-                rcd.add(subEntry.getName(), convertRecordToJsonObject(rcd, subEntry, subRecord));
-            }
-            log.warn("[.] {}", rcd);
-            json.add(entry.getName(), rcd);
-            break;
-        case ARRAY:
-            break;
-        case STRING:
-            json.add(entry.getName(), record.getString(entry.getName()));
-            break;
-        case BYTES:
-            json.add(entry.getName(), record.getBytes(entry.getName()).toString());
-            break;
-        case INT:
-            json.add(entry.getName(), record.getInt(entry.getName()));
-            break;
-        case LONG:
-            json.add(entry.getName(), record.getLong(entry.getName()));
-            break;
-        case FLOAT:
-            json.add(entry.getName(), record.getFloat(entry.getName()));
-            break;
-        case DOUBLE:
-            json.add(entry.getName(), record.getDouble(entry.getName()));
-            break;
-        case BOOLEAN:
-            json.add(entry.getName(), record.getBoolean(entry.getName()));
-            break;
-        case DATETIME:
-            json.add(entry.getName(), record.getDateTime(entry.getName()).toString());
-            break;
-        }
-        return json;
     }
 
     /**
@@ -203,14 +160,14 @@ public class JsonConverter implements RecordConverter<JsonObject>, Serializable 
             builder.withType(Type.RECORD);
             nestedSchemaBuilder = recordBuilderFactory.newSchemaBuilder(Type.RECORD);
             populateJsonObjectEntries(nestedSchemaBuilder, jsonValue.asJsonObject());
-            builder.withElementSchema(nestedSchemaBuilder.build());
+            builder.withElementSchema(nestedSchemaBuilder.build()).withNullable(true);
             break;
         case STRING:
         case NUMBER:
         case TRUE:
         case FALSE:
         case NULL:
-            builder.withType(translateType(jsonValue));
+            builder.withType(translateType(jsonValue)).withNullable(true);
             break;
         }
         Entry entry = builder.build();
@@ -219,7 +176,8 @@ public class JsonConverter implements RecordConverter<JsonObject>, Serializable 
     }
 
     private void populateJsonObjectEntries(Schema.Builder builder, JsonObject value) {
-        value.entrySet().stream().map(s -> createEntry(s.getKey(), s.getValue())).forEach(builder::withEntry);
+        value.entrySet().stream().filter(e -> e.getValue() != javax.json.JsonValue.NULL)
+                .map(s -> createEntry(s.getKey(), s.getValue())).forEach(builder::withEntry);
     }
 
     public Type translateType(JsonValue value) {

@@ -93,7 +93,7 @@ public class ParquetBlobReader extends BlobReader {
                 reader = AvroParquetReader.<GenericRecord> builder(hdpIn).build();
                 currentRecord = reader.read();
             } catch (IOException e) {
-                log.error("[ParquetIterator] {}", e);
+                log.error("[ParquetIterator] {}", e.getMessage());
                 throw new FileFormatRuntimeException(e.getMessage());
             }
         }
@@ -125,7 +125,7 @@ public class ParquetBlobReader extends BlobReader {
                 try {
                     reader.close();
                 } catch (IOException e) {
-                    log.warn("Can't close stream", e);
+                    log.error("Can't close stream: {}.", e.getMessage());
                 }
             }
         }

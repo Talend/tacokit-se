@@ -108,7 +108,7 @@ public class JsonBlobReader extends BlobReader {
                     }
                 }
             } catch (Exception e) {
-                log.error("[readBlob] {}", e);
+                log.error("[readBlob] {}", e.getMessage());
                 throw new AdlsGen2RuntimeException(e.getMessage());
             }
         }
@@ -145,7 +145,7 @@ public class JsonBlobReader extends BlobReader {
                 try {
                     currentItemInputStream.close();
                 } catch (IOException e) {
-                    log.warn("Can't close stream", e);
+                    log.error("Can't close stream: {}.", e.getMessage());
                 }
             }
         }

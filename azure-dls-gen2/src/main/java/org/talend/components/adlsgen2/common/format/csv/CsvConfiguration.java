@@ -19,7 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.talend.components.adlsgen2.common.format.FileEncoding;
 import org.talend.components.adlsgen2.runtime.AdlsGen2RuntimeException;
 import org.talend.sdk.component.api.configuration.Option;
@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @GridLayout({ //
         @GridLayout.Row({ "fieldDelimiter", "customFieldDelimiter" }), //
         @GridLayout.Row({ "recordSeparator", "customRecordSeparator" }), //
-        @GridLayout.Row({ "escapeCharacter", "textEnclosureCharacter" }), //
+        @GridLayout.Row({ "textEnclosureCharacter", "escapeCharacter" }), //
         @GridLayout.Row("header"), //
         @GridLayout.Row("csvSchema"), //
         @GridLayout.Row({ "fileEncoding", "customFileEncoding" }), //
@@ -99,7 +99,7 @@ public class CsvConfiguration implements Serializable {
                 return getCustomFileEncoding();
             } catch (Exception e) {
                 String msg = String.format("Encoding not supported %s.", customFileEncoding);
-                log.warn("[effectiveFileEncoding] {}", msg);
+                log.error("[effectiveFileEncoding] {}", msg);
                 throw new AdlsGen2RuntimeException(msg);
             }
         } else {

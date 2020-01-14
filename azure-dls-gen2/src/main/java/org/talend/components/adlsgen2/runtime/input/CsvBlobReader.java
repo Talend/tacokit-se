@@ -122,7 +122,7 @@ public class CsvBlobReader extends BlobReader {
                     currentItemInputStream.close();
                     parser.close();
                 } catch (IOException e) {
-                    log.warn("Can't close stream", e);
+                    log.error("Can't close stream: {}.", e.getMessage());
                 }
             }
         }

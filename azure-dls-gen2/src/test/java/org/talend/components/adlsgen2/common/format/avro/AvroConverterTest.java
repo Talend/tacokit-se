@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.apache.avro.LogicalTypes;
 import org.apache.avro.SchemaBuilder;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
@@ -569,6 +570,13 @@ class AvroConverterTest extends AdlsGen2TestBase {
             assertEquals(20.5f, r.getFloat("float"));
             assertEquals(20.5, r.getDouble("double"));
         }
+    }
+
+    @Test
+    void checkLogicalTypes() {
+        assertEquals(LogicalTypes.date().getName(), AvroConverter.AVRO_LOGICAL_TYPE_DATE);
+        assertEquals(LogicalTypes.timeMillis().getName(), AvroConverter.AVRO_LOGICAL_TYPE_TIME_MILLIS);
+        assertEquals(LogicalTypes.timestampMillis().getName(), AvroConverter.AVRO_LOGICAL_TYPE_TIMESTAMP_MILLIS);
     }
 
 }
