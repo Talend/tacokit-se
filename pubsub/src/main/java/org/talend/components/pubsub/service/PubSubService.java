@@ -187,4 +187,10 @@ public class PubSubService {
         }
     }
 
+    public void createTopicIfNeeded(PubSubDataStore dataStore, String topic) {
+        try {
+            TopicAdminSettings adminSettings = TopicAdminSettings.newBuilder().build();
+        }
+    }
+
 }
