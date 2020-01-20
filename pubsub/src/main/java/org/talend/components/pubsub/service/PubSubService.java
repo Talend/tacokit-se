@@ -187,10 +187,35 @@ public class PubSubService {
         }
     }
 
-    public void createTopicIfNeeded(PubSubDataStore dataStore, String topic) {
+    public boolean createTopicIfNeeded(PubSubDataStore dataStore, String topicId) {
         try {
-            TopicAdminSettings adminSettings = TopicAdminSettings.newBuilder().build();
+            TopicAdminSettings adminSettings = TopicAdminSettings.newBuilder()
+                    .setCredentialsProvider(() -> createCredentials(dataStore)).build();
+            TopicAdminClient topicAdminClient = TopicAdminClient.create(adminSettings);
+            ProjectTopicName topicName = ProjectTopicName.of(dataStore.getProjectName(), topicId);
+            Topic topic = topicAdminClient.getTopic(topicName);
+            if (topic == null) {
+                topicAdminClient.createTopic(topicName);
+            }
+            return true;
+        } catch (IOException ioe) {
+            log.warn(i18n.errorCreateAdminSettings(ioe.getMessage()));
+            return false;
         }
     }
 
+    public void removeTopicIfExists(PubSubDataStore dataStore, String topicId) {
+        try {
+            TopicAdminSettings adminSettings = TopicAdminSettings.newBuilder()
+                    .setCredentialsProvider(() -> createCredentials(dataStore)).build();
+            TopicAdminClient topicAdminClient = TopicAdminClient.create(adminSettings);
+            ProjectTopicName topicName = ProjectTopicName.of(dataStore.getProjectName(), topicId);
+            Topic topic = topicAdminClient.getTopic(topicName);
+            if (topic != null) {
+                topicAdminClient.deleteTopic(topicName);
+            }
+        } catch (IOException ioe) {
+            log.warn(i18n.errorCreateAdminSettings(ioe.getMessage()));
+        }
+    }
 }
