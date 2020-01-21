@@ -58,15 +58,11 @@ public class AvroRecordConverter implements Serializable {
     private org.apache.avro.Schema avroSchema;
 
     public static AvroRecordConverter of(final RecordBuilderFactory factory) {
-        return new AvroRecordConverter(factory);
+        return AvroRecordConverter.of(factory, null);
     }
 
     public static AvroRecordConverter of(final RecordBuilderFactory factory, final Schema recordSchema) {
         return new AvroRecordConverter(factory, recordSchema);
-    }
-
-    protected AvroRecordConverter(final RecordBuilderFactory factory) {
-        recordBuilderFactory = factory;
     }
 
     protected AvroRecordConverter(final RecordBuilderFactory factory, Schema recordSchema) {

@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 @Slf4j
 public class PubSubInput implements MessageReceiver, Serializable {
@@ -44,7 +45,7 @@ public class PubSubInput implements MessageReceiver, Serializable {
 
     protected final RecordBuilderFactory builderFactory;
 
-    private final Queue<Record> inbox = new LinkedList<>();
+    private final Queue<Record> inbox = new ConcurrentLinkedDeque<>();
 
     private Subscriber subscriber;
 
@@ -77,10 +78,6 @@ public class PubSubInput implements MessageReceiver, Serializable {
     public Record next() {
         Record record = inbox.poll();
 
-        if (record != null && log.isDebugEnabled()) {
-            log.debug("Message sent to pipeline : " + record);
-        }
-
         return record;
     }
 
@@ -90,10 +87,6 @@ public class PubSubInput implements MessageReceiver, Serializable {
 
         if (record != null) {
             inbox.offer(record);
-
-            if (log.isDebugEnabled()) {
-                log.debug("Message received : " + record);
-            }
 
             if (configuration.isConsumeMsg()) {
                 consumer.ack();

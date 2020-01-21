@@ -51,6 +51,7 @@ public class CSVMessageConverterTest {
 
     private void testFormat(PubSubDataSet.ValueFormat format) {
         dataSet.setValueFormat(format);
+        dataSet.setFieldDelimiter(";");
         beanUnderTest.init(dataSet);
         Assertions.assertEquals(format == PubSubDataSet.ValueFormat.CSV, beanUnderTest.acceptFormat(format),
                 "CVSMessageConverter must accept only CSV");

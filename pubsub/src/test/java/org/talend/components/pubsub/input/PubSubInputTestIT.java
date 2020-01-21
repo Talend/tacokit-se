@@ -13,6 +13,7 @@
 package org.talend.components.pubsub.input;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -43,7 +44,7 @@ import java.util.stream.IntStream;
 @EnvironmentConfiguration(environment = "Contextual", systemProperties = {})
 @WithComponents(value = "org.talend.components.pubsub")
 @Tag("IT")
-public class PubSubInputTest {
+public class PubSubInputTestIT {
 
     @Service
     protected PubSubService service;
@@ -85,6 +86,9 @@ public class PubSubInputTest {
                 .property("streaming.maxDurationMs", 60_000).run();
 
         List<Record> records = componentsHandler.getCollectedData(Record.class);
+
+        Assertions.assertNotNull(records);
+        Assertions.assertNotEquals(0, records.size(), "No record in result");
         log.info(records.toString());
     }
 
@@ -116,6 +120,8 @@ public class PubSubInputTest {
         }
 
         List<Record> records = componentsHandler.getCollectedData(Record.class);
+        Assertions.assertNotNull(records);
+        Assertions.assertNotEquals(0, records.size(), "No record in result");
         log.info(records.toString());
 
     }

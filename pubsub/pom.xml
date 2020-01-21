@@ -43,6 +43,17 @@
             <artifactId>jackson-core-asl</artifactId>
             <version>${jackson-codehaus.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.7.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.talend.sdk.component</groupId>
+            <artifactId>component-runtime-manager</artifactId>
+            <version>${component-runtime.version}</version>
+            <scope>provided</scope>
+        </dependency>
         <!-- Testing -->
         <dependency>
             <groupId>org.talend.components</groupId>

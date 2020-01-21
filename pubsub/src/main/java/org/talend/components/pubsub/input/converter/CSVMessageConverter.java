@@ -13,24 +13,32 @@
 package org.talend.components.pubsub.input.converter;
 
 import com.google.pubsub.v1.PubsubMessage;
-import org.apache.avro.SchemaBuilder;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.talend.components.pubsub.dataset.PubSubDataSet;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.List;
 import java.util.stream.IntStream;
 
+@Slf4j
 public class CSVMessageConverter extends MessageConverter {
 
     public static final String FIELD_PREFIX = "field";
 
     public static final String FIELD_DEFAULT_VALUE = "";
 
-    private String delimiter;
+    private CSVRecordConverter converter;
 
     @Override
     public void init(PubSubDataSet dataset) {
-        this.delimiter = dataset.getFieldDelimiter();
+        String delimiter = dataset.getFieldDelimiter();
+        converter = CSVRecordConverter.of(getRecordBuilderFactory(), delimiter.charAt(0));
     }
 
     @Override
@@ -41,16 +49,20 @@ public class CSVMessageConverter extends MessageConverter {
     @Override
     public Record convertMessage(PubsubMessage message) {
         String messageContent = getMessageContentAsString(message);
-        String[] parts = messageContent.split(delimiter, -1);
 
-        int nbFields = parts.length;
-        Schema.Builder schemaBuilder = getRecordBuilderFactory().newSchemaBuilder(Schema.Type.RECORD);
-        IntStream.range(0, nbFields).mapToObj(i -> FIELD_PREFIX + i)
-                .forEach(f -> schemaBuilder.withEntry(getRecordBuilderFactory().newEntryBuilder().withName(f)
-                        .withType(Schema.Type.STRING).withNullable(true).withDefaultValue(FIELD_DEFAULT_VALUE).build()));
+        try {
+            CSVParser parser = new CSVParser(new StringReader(messageContent), converter.getCsvFormat());
+            List<CSVRecord> records = parser.getRecords();
+            if (records.size() == 1) {
+                return converter.toRecord(records.get(0));
+            } else {
+                log.error(getI18nMessage().errorBadCSV());
+            }
+        } catch (Exception e) {
+            log.error(getI18nMessage().errorReadCSV(e.getMessage()));
+            return null;
+        }
 
-        Record.Builder recordBuilder = getRecordBuilderFactory().newRecordBuilder(schemaBuilder.build());
-        IntStream.range(0, nbFields).forEach(i -> recordBuilder.withString(FIELD_PREFIX + i, parts[i]));
-        return recordBuilder.build();
+        return null;
     }
 }

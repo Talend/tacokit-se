@@ -17,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
@@ -58,7 +57,7 @@ public class AvroMessageConverter extends MessageConverter {
             GenericRecord gr = recordDatumReader.read(null, decoder);
             record = AvroRecordConverter.of(getRecordBuilderFactory()).toRecord(gr);
         } catch (Exception e) {
-            log.error("Cannot rear AVRO record : " + e.getMessage());
+            log.error(getI18nMessage().errorReadAVRO(e.getMessage()));
         }
 
         return record;

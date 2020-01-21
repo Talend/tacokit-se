@@ -32,7 +32,9 @@ public abstract class MessageConverter {
     @Getter(value = AccessLevel.PROTECTED)
     private I18nMessage i18nMessage;
 
-    public abstract void init(PubSubDataSet dataset);
+    public void init(PubSubDataSet dataset) {
+
+    }
 
     public abstract boolean acceptFormat(PubSubDataSet.ValueFormat format);
 

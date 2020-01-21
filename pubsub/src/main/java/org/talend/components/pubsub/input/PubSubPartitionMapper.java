@@ -70,11 +70,6 @@ public class PubSubPartitionMapper implements Serializable {
         this.uuidSubscription = uuidSubscription;
     }
 
-    @PostConstruct
-    public void init() {
-
-    }
-
     @Assessor
     public long estimateSize() {
         return 1l;

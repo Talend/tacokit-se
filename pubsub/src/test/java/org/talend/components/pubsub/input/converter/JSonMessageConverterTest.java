@@ -84,8 +84,8 @@ public class JSonMessageConverterTest {
         Assertions.assertNotNull(record, "Record is null.");
         Assertions.assertNotNull(record.getSchema(), "Record schema is null.");
         Assertions.assertNotNull(record.getArray(String.class, "innerArray"), "innerArray is null");
-        record.getArray(String.class, "innerArray").stream().map(Object::getClass).map(Class::getName)
-                .forEach(System.out::println);
+        record.getArray(String.class, "innerArray").stream().map(Object::getClass)
+                .forEach(c -> Assertions.assertEquals(String.class, c, "Array item must be string"));
         Assertions.assertNotNull(record.getRecord("innerRecord"), "inner record is null.");
         Assertions.assertNotNull(record.getRecord("innerRecord").getRecord("field3"), "inner record field3 is null.");
         Assertions.assertNotNull(record.getRecord("innerRecord").getRecord("field3").getArray(Double.class, "field3_1"),
