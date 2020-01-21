@@ -13,6 +13,7 @@
 package org.talend.components.pubsub.dataset;
 
 import lombok.Data;
+import lombok.Getter;
 import org.talend.components.pubsub.datastore.PubSubDataStore;
 import org.talend.components.pubsub.service.PubSubService;
 import org.talend.sdk.component.api.component.Icon;
@@ -33,7 +34,7 @@ import java.io.Serializable;
 @DataSet("PubSubDataSet")
 @GridLayout({ //
         @GridLayout.Row("dataStore"), @GridLayout.Row("topic"), @GridLayout.Row("subscription"), @GridLayout.Row("valueFormat"),
-        @GridLayout.Row("fieldDelimiter") })
+        @GridLayout.Row("fieldDelimiter"), @GridLayout.Row("otherDelimiter"), @GridLayout.Row("avroSchema") })
 @Documentation("Pub/Sub Dataset Properties")
 public class PubSubDataSet implements Serializable {
 
@@ -59,11 +60,16 @@ public class PubSubDataSet implements Serializable {
     private ValueFormat valueFormat;
 
     @Option
-    @DefaultValue(value = ";")
+    @DefaultValue(value = "SEMICOLON")
     @ActiveIf(target = "valueFormat", value = { "CSV" })
-    @Required
     @Documentation("Field delimiter for CSV")
-    private String fieldDelimiter;
+    private CSVDelimiter fieldDelimiter;
+
+    @Option
+    @DefaultValue(value = ";")
+    @ActiveIf(target = "fieldDelimiter", value = { "OTHER" })
+    @Documentation("Other field delimiter for CSV")
+    private String otherDelimiter;
 
     @Option
     @Code(value = "json")
@@ -76,6 +82,21 @@ public class PubSubDataSet implements Serializable {
         JSON,
         AVRO,
         TEXT
+    }
+
+    public enum CSVDelimiter {
+        COMMA(','),
+        SEMICOLON(';'),
+        TAB('\t'),
+        SPACE(' '),
+        OTHER('\u0000');
+
+        @Getter
+        private final char value;
+
+        CSVDelimiter(char value) {
+            this.value = value;
+        }
     }
 
 }

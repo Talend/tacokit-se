@@ -51,7 +51,7 @@ public class CSVMessageConverterTest {
 
     private void testFormat(PubSubDataSet.ValueFormat format) {
         dataSet.setValueFormat(format);
-        dataSet.setFieldDelimiter(";");
+        dataSet.setFieldDelimiter(PubSubDataSet.CSVDelimiter.SEMICOLON);
         beanUnderTest.init(dataSet);
         Assertions.assertEquals(format == PubSubDataSet.ValueFormat.CSV, beanUnderTest.acceptFormat(format),
                 "CVSMessageConverter must accept only CSV");
@@ -61,7 +61,7 @@ public class CSVMessageConverterTest {
     public void convertTest() {
 
         dataSet.setValueFormat(PubSubDataSet.ValueFormat.CSV);
-        dataSet.setFieldDelimiter(";");
+        dataSet.setFieldDelimiter(PubSubDataSet.CSVDelimiter.SEMICOLON);
         beanUnderTest.init(dataSet);
 
         PubsubMessage message = PubsubMessage.newBuilder().setData(ByteString.copyFromUtf8("1;John Smith;US;1.12356")).build();

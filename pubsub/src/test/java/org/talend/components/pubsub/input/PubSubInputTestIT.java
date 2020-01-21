@@ -77,7 +77,7 @@ public class PubSubInputTestIT {
     @EnvironmentalTest
     public void readMessageCSV() {
         configuration.getDataSet().setValueFormat(PubSubDataSet.ValueFormat.CSV);
-        configuration.getDataSet().setFieldDelimiter(";");
+        configuration.getDataSet().setFieldDelimiter(PubSubDataSet.CSVDelimiter.SEMICOLON);
 
         final String configStr = SimpleFactory.configurationByExample().forInstance(configuration).configured().toQueryString();
 
