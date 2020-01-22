@@ -200,7 +200,7 @@ public class PubSubService {
             }
             return true;
         } catch (IOException ioe) {
-            log.warn(i18n.errorCreateAdminSettings(ioe.getMessage()));
+            log.warn(i18n.errorCreateTopic(ioe.getMessage()));
             return false;
         }
     }
@@ -216,7 +216,7 @@ public class PubSubService {
                 topicAdminClient.deleteTopic(topicName);
             }
         } catch (IOException ioe) {
-            log.warn(i18n.errorCreateAdminSettings(ioe.getMessage()));
+            log.warn(i18n.errorRemoveTopic(ioe.getMessage()));
         }
     }
 }

@@ -1,25 +1,209 @@
+/*
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.talend.components.pubsub.output.message;
 
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.talend.components.pubsub.dataset.PubSubDataSet;
+import org.talend.components.pubsub.service.PubSubConnectorException;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.service.record.RecordService;
+import org.talend.sdk.component.api.service.record.RecordVisitor;
+import org.talend.sdk.component.runtime.manager.service.RecordServiceImpl;
 
+import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
+import java.util.stream.Collectors;
+
+@Slf4j
 public class CSVMessageGenerator extends MessageGenerator {
 
-    private String fieldDelimiter;
+    private char fieldDelimiter;
+
+    private RecordService recordService;
+
+    protected static class CSVRecordVisitor implements RecordVisitor<String> {
+
+        private StringBuilder csv = new StringBuilder();
+
+        private char fieldDelimiter;
+
+        CSVRecordVisitor(char fieldDelimiter) {
+            this.fieldDelimiter = fieldDelimiter;
+        }
+
+        @Override
+        public String get() {
+            if (csv.charAt(csv.length() - 1) == fieldDelimiter) {
+                // Remove last delimiter
+                csv.setLength(csv.length() - 1);
+            }
+
+            return csv.toString();
+        }
+
+        @Override
+        public void onBoolean(Schema.Entry entry, Optional<Boolean> optionalBoolean) {
+            optionalBoolean.ifPresent(b -> csv.append(String.valueOf(b)));
+            csv.append(fieldDelimiter);
+        }
+
+        @Override
+        public void onDouble(Schema.Entry entry, OptionalDouble optionalDouble) {
+            optionalDouble.ifPresent(d -> csv.append(String.valueOf(d)));
+            csv.append(fieldDelimiter);
+        }
+
+        @Override
+        public void onFloat(Schema.Entry entry, OptionalDouble optionalFloat) {
+            optionalFloat.ifPresent(f -> csv.append(String.valueOf(f)));
+            csv.append(fieldDelimiter);
+        }
+
+        @Override
+        public void onInt(Schema.Entry entry, OptionalInt optionalInt) {
+            optionalInt.ifPresent(i -> csv.append(String.valueOf(i)));
+            csv.append(fieldDelimiter);
+        }
+
+        @Override
+        public void onLong(Schema.Entry entry, OptionalLong optionalLong) {
+            optionalLong.ifPresent(l -> csv.append(String.valueOf(l)));
+            csv.append(fieldDelimiter);
+        }
+
+        @Override
+        public void onString(Schema.Entry entry, Optional<String> string) {
+            string.ifPresent(s -> csv.append(String.valueOf(s)));
+            csv.append(fieldDelimiter);
+        }
+
+        @Override
+        public void onBytes(Schema.Entry entry, Optional<byte[]> bytes) {
+            onString(entry, Optional.of(Base64.getEncoder().encodeToString(bytes.orElse(new byte[]{}))));
+        }
+
+        @Override
+        public void onDatetime(Schema.Entry entry, Optional<ZonedDateTime> dateTime) {
+            onString(entry,
+                    Optional.of(dateTime.map(dt -> new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss").format(dt)).orElse(null)));
+        }
+
+        @Override
+        public void onBooleanArray(Schema.Entry entry, Optional<Collection<Boolean>> array) {
+            if (array.isPresent()) {
+                onArray(array.get());
+            } else {
+                csv.append(fieldDelimiter);
+            }
+        }
+
+        @Override
+        public void onBytesArray(Schema.Entry entry, Optional<Collection<byte[]>> array) {
+            if (array.isPresent()) {
+                onArray(array.get().stream().map(b -> String.format("%02x", b)).collect(Collectors.toList()));
+            } else {
+                csv.append(fieldDelimiter);
+            }
+        }
+
+        @Override
+        public void onDatetimeArray(Schema.Entry entry, Optional<Collection<ZonedDateTime>> array) {
+            if (array.isPresent()) {
+                onArray(array.get().stream().map(dt ->  new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss").format(dt)).collect(Collectors.toList()));
+            } else {
+                csv.append(fieldDelimiter);
+            }
+        }
+
+        @Override
+        public void onDoubleArray(Schema.Entry entry, Optional<Collection<Double>> array) {
+            if (array.isPresent()) {
+                onArray(array.get());
+            } else {
+                csv.append(fieldDelimiter);
+            }
+        }
+
+        @Override
+        public void onFloatArray(Schema.Entry entry, Optional<Collection<Float>> array) {
+            if (array.isPresent()) {
+                onArray(array.get());
+            } else {
+                csv.append(fieldDelimiter);
+            }
+        }
+
+        @Override
+        public void onIntArray(Schema.Entry entry, Optional<Collection<Integer>> array) {
+            if (array.isPresent()) {
+                onArray(array.get());
+            } else {
+                csv.append(fieldDelimiter);
+            }
+        }
+
+        @Override
+        public void onLongArray(Schema.Entry entry, Optional<Collection<Long>> array) {
+            if (array.isPresent()) {
+                onArray(array.get());
+            } else {
+                csv.append(fieldDelimiter);
+            }
+        }
+
+        @Override
+        public void onStringArray(Schema.Entry entry, Optional<Collection<String>> array) {
+            if (array.isPresent()) {
+                onArray(array.get());
+            } else {
+                csv.append(fieldDelimiter);
+            }
+        }
+
+        public void onArray(Collection<?> array) {
+            array.stream()
+                    .map(String::valueOf)
+                    .forEach(s -> csv.append(s).append(fieldDelimiter));
+        }
+    }
 
     @Override
     public void init(PubSubDataSet dataset) {
-        this.fieldDelimiter = dataset.getFieldDelimiter();
+        this.fieldDelimiter = dataset.getFieldDelimiter() == PubSubDataSet.CSVDelimiter.OTHER
+                ? dataset.getOtherDelimiter().charAt(0)
+                : dataset.getFieldDelimiter().getValue();
+        recordService = new RecordServiceImpl(null, null);
     }
 
     @Override
     public PubsubMessage generateMessage(Record record) {
-        // TODO
-        return PubsubMessage.newBuilder()
-                .setData(ByteString.copyFromUtf8("csv"))
-                .build();
+        try {
+            String csv = recordService.visit(new CSVRecordVisitor(fieldDelimiter), record);
+            return PubsubMessage.newBuilder().setData(ByteString.copyFromUtf8(csv)).build();
+        } catch (Exception e) {
+            log.error(getI18nMessage().errorWriteCSV(e.getMessage()), e);
+            throw new PubSubConnectorException(getI18nMessage().errorWriteCSV(e.getMessage()));
+        }
     }
 
     @Override
