@@ -16,8 +16,16 @@ import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 import org.talend.components.pubsub.dataset.PubSubDataSet;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+import org.talend.sdk.component.runtime.record.RecordConverters;
 
+import javax.json.Json;
+import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
+import javax.json.bind.Jsonb;
+import javax.json.bind.JsonbBuilder;
+import javax.json.bind.spi.JsonbProvider;
+import javax.json.spi.JsonProvider;
 
 public class JSONMessageGenerator extends MessageGenerator {
 
@@ -28,8 +36,16 @@ public class JSONMessageGenerator extends MessageGenerator {
 
     @Override
     public PubsubMessage generateMessage(Record record) {
-        // TODO
-        return PubsubMessage.newBuilder().setData(ByteString.copyFromUtf8("json")).build();
+        RecordConverters converter = new RecordConverters();
+        JsonBuilderFactory jsonBuilderFactory = Json.createBuilderFactory(null);
+        JsonProvider jsonProvider = JsonProvider.provider();
+        Jsonb jsonb = JsonbBuilder.create();
+        RecordBuilderFactory recordBuilderFactory = null;
+        final JsonObject json = JsonObject.class.cast(converter.toType(
+                new RecordConverters.MappingMetaRegistry(), record, JsonObject.class,
+                () -> jsonBuilderFactory, () -> jsonProvider, () -> jsonb,
+                () -> recordBuilderFactory));
+        return PubsubMessage.newBuilder().setData(ByteString.copyFromUtf8(json.toString())).build();
     }
 
     @Override

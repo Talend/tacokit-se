@@ -1,15 +1,3 @@
-/*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package org.talend.components.pubsub.output.message;
 
 import com.google.pubsub.v1.PubsubMessage;
@@ -28,15 +16,15 @@ import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 import java.util.Arrays;
 import java.util.Locale;
 
-public class CSVMessageGeneratorTest {
+public class JSONMessageGeneratorTest {
 
-    private CSVMessageGenerator beanUnderTest;
+    private JSONMessageGenerator beanUnderTest;
 
     private PubSubDataSet dataSet;
 
     @BeforeEach
     public void init() {
-        beanUnderTest = new CSVMessageGenerator();
+        beanUnderTest = new JSONMessageGenerator();
         beanUnderTest.setI18nMessage(new InternationalizationServiceFactory(() -> Locale.US).create(I18nMessage.class,
                 Thread.currentThread().getContextClassLoader()));
         beanUnderTest.setRecordService(new RecordServiceImpl(null, null));
@@ -51,16 +39,14 @@ public class CSVMessageGeneratorTest {
 
     private void testFormat(PubSubDataSet.ValueFormat format) {
         dataSet.setValueFormat(format);
-        dataSet.setFieldDelimiter(PubSubDataSet.CSVDelimiter.SEMICOLON);
         beanUnderTest.init(dataSet);
-        Assertions.assertEquals(format == PubSubDataSet.ValueFormat.CSV, beanUnderTest.acceptFormat(format),
-                "CSVMessageGenerator must accept only CSV");
+        Assertions.assertEquals(format == PubSubDataSet.ValueFormat.JSON, beanUnderTest.acceptFormat(format),
+                "JSONMessageGenerator must accept only JSON");
     }
 
     @Test
     public void generateTest() {
-        dataSet.setValueFormat(PubSubDataSet.ValueFormat.CSV);
-        dataSet.setFieldDelimiter(PubSubDataSet.CSVDelimiter.SEMICOLON);
+        dataSet.setValueFormat(PubSubDataSet.ValueFormat.JSON);
         beanUnderTest.init(dataSet);
 
         RecordBuilderFactory rbf = new RecordBuilderFactoryImpl(null);
@@ -77,6 +63,5 @@ public class CSVMessageGeneratorTest {
 
         PubsubMessage message = beanUnderTest.generateMessage(record);
         Assertions.assertNotNull(message, "Message is null");
-        System.out.println(message.getData().toStringUtf8());
     }
 }

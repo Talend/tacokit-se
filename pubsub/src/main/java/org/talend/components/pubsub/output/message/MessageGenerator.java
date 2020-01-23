@@ -19,12 +19,17 @@ import lombok.Setter;
 import org.talend.components.pubsub.dataset.PubSubDataSet;
 import org.talend.components.pubsub.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.service.record.RecordService;
 
 public abstract class MessageGenerator {
 
     @Setter
     @Getter(value = AccessLevel.PROTECTED)
     private I18nMessage i18nMessage;
+
+    @Setter
+    @Getter(value = AccessLevel.PROTECTED)
+    private RecordService recordService;
 
     public abstract void init(PubSubDataSet dataset);
 

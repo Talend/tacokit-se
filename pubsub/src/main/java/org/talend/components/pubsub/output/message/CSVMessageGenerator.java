@@ -39,8 +39,6 @@ public class CSVMessageGenerator extends MessageGenerator {
 
     private char fieldDelimiter;
 
-    private RecordService recordService;
-
     protected static class CSVRecordVisitor implements RecordVisitor<String> {
 
         private StringBuilder csv = new StringBuilder();
@@ -99,7 +97,7 @@ public class CSVMessageGenerator extends MessageGenerator {
 
         @Override
         public void onBytes(Schema.Entry entry, Optional<byte[]> bytes) {
-            onString(entry, Optional.of(Base64.getEncoder().encodeToString(bytes.orElse(new byte[]{}))));
+            onString(entry, Optional.of(Base64.getEncoder().encodeToString(bytes.orElse(new byte[] {}))));
         }
 
         @Override
@@ -129,7 +127,8 @@ public class CSVMessageGenerator extends MessageGenerator {
         @Override
         public void onDatetimeArray(Schema.Entry entry, Optional<Collection<ZonedDateTime>> array) {
             if (array.isPresent()) {
-                onArray(array.get().stream().map(dt ->  new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss").format(dt)).collect(Collectors.toList()));
+                onArray(array.get().stream().map(dt -> new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss").format(dt))
+                        .collect(Collectors.toList()));
             } else {
                 csv.append(fieldDelimiter);
             }
@@ -181,9 +180,7 @@ public class CSVMessageGenerator extends MessageGenerator {
         }
 
         public void onArray(Collection<?> array) {
-            array.stream()
-                    .map(String::valueOf)
-                    .forEach(s -> csv.append(s).append(fieldDelimiter));
+            array.stream().map(String::valueOf).forEach(s -> csv.append(s).append(fieldDelimiter));
         }
     }
 
@@ -192,13 +189,12 @@ public class CSVMessageGenerator extends MessageGenerator {
         this.fieldDelimiter = dataset.getFieldDelimiter() == PubSubDataSet.CSVDelimiter.OTHER
                 ? dataset.getOtherDelimiter().charAt(0)
                 : dataset.getFieldDelimiter().getValue();
-        recordService = new RecordServiceImpl(null, null);
     }
 
     @Override
     public PubsubMessage generateMessage(Record record) {
         try {
-            String csv = recordService.visit(new CSVRecordVisitor(fieldDelimiter), record);
+            String csv = getRecordService().visit(new CSVRecordVisitor(fieldDelimiter), record);
             return PubsubMessage.newBuilder().setData(ByteString.copyFromUtf8(csv)).build();
         } catch (Exception e) {
             log.error(getI18nMessage().errorWriteCSV(e.getMessage()), e);

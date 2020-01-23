@@ -15,6 +15,7 @@ package org.talend.components.pubsub.output.message;
 import org.talend.components.pubsub.dataset.PubSubDataSet;
 import org.talend.components.pubsub.input.converter.TextMessageConverter;
 import org.talend.components.pubsub.service.I18nMessage;
+import org.talend.sdk.component.api.service.record.RecordService;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -23,7 +24,7 @@ public class MessageGeneratorFactory {
 
     private static final Class<? extends MessageGenerator>[] IMPLEMENTATIONS = new Class[] { TextMessageConverter.class };
 
-    public MessageGenerator getGenerator(PubSubDataSet dataset, I18nMessage i18n) {
+    public MessageGenerator getGenerator(PubSubDataSet dataset, I18nMessage i18n, RecordService recordService) {
         PubSubDataSet.ValueFormat format = dataset.getValueFormat();
 
         Optional<? extends MessageGenerator> opt = Arrays.stream(IMPLEMENTATIONS).map(c -> {
@@ -37,6 +38,7 @@ public class MessageGeneratorFactory {
         MessageGenerator messageGenerator = opt.isPresent() ? opt.get() : new TextMessageGenerator();
 
         messageGenerator.setI18nMessage(i18n);
+        messageGenerator.setRecordService(recordService);
         messageGenerator.init(dataset);
 
         return messageGenerator;

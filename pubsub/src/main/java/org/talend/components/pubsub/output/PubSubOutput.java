@@ -26,6 +26,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.service.record.RecordService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -42,6 +43,8 @@ public class PubSubOutput implements Serializable {
 
     private final PubSubOutputConfiguration configuration;
 
+    private final RecordService recordService;
+
     private transient boolean init;
 
     private transient Publisher publisher;
@@ -51,10 +54,11 @@ public class PubSubOutput implements Serializable {
     private transient MessageGenerator messageGenerator;
 
     public PubSubOutput(@Option("configuration") final PubSubOutputConfiguration configuration, PubSubService pubSubService,
-            I18nMessage i18n) {
+            I18nMessage i18n, RecordService recordService) {
         this.configuration = configuration;
         this.i18n = i18n;
         this.pubSubService = pubSubService;
+        this.recordService = recordService;
     }
 
     @PostConstruct
@@ -82,7 +86,7 @@ public class PubSubOutput implements Serializable {
         publisher = pubSubService.createPublisher(configuration.getDataset().getDataStore(),
                 configuration.getDataset().getTopic());
 
-        messageGenerator = new MessageGeneratorFactory().getGenerator(configuration.getDataset(), i18n);
+        messageGenerator = new MessageGeneratorFactory().getGenerator(configuration.getDataset(), i18n, recordService);
     }
 
     @PreDestroy
