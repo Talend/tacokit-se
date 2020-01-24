@@ -41,10 +41,8 @@ public class JSONMessageGenerator extends MessageGenerator {
         JsonProvider jsonProvider = JsonProvider.provider();
         Jsonb jsonb = JsonbBuilder.create();
         RecordBuilderFactory recordBuilderFactory = null;
-        final JsonObject json = JsonObject.class.cast(converter.toType(
-                new RecordConverters.MappingMetaRegistry(), record, JsonObject.class,
-                () -> jsonBuilderFactory, () -> jsonProvider, () -> jsonb,
-                () -> recordBuilderFactory));
+        final JsonObject json = JsonObject.class.cast(converter.toType(new RecordConverters.MappingMetaRegistry(), record,
+                JsonObject.class, () -> jsonBuilderFactory, () -> jsonProvider, () -> jsonb, () -> recordBuilderFactory));
         return PubsubMessage.newBuilder().setData(ByteString.copyFromUtf8(json.toString())).build();
     }
 

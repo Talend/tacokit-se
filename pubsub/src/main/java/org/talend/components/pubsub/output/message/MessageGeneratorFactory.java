@@ -22,7 +22,8 @@ import java.util.Optional;
 
 public class MessageGeneratorFactory {
 
-    private static final Class<? extends MessageGenerator>[] IMPLEMENTATIONS = new Class[] { TextMessageConverter.class };
+    private static final Class<? extends MessageGenerator>[] IMPLEMENTATIONS = new Class[] { AvroMessageGenerator.class,
+            CSVMessageGenerator.class, JSONMessageGenerator.class, TextMessageConverter.class };
 
     public MessageGenerator getGenerator(PubSubDataSet dataset, I18nMessage i18n, RecordService recordService) {
         PubSubDataSet.ValueFormat format = dataset.getValueFormat();
