@@ -20,6 +20,7 @@
         <module>stream-csv</module>
         <module>stream-fixed</module>
         <module>stream-json</module>
+        <module>stream-avro</module>
     </modules>
 
     <properties>

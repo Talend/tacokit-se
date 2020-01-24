@@ -12,7 +12,7 @@
  */
 package org.talend.components.common.stream.api.input;
 
-import java.io.Reader;
+import java.io.InputStream;
 import java.util.Iterator;
 
 import org.talend.sdk.component.api.record.Record;
@@ -28,7 +28,7 @@ public interface RecordReader extends AutoCloseable {
      * @param reader : stream reader.
      * @return object iterator.
      */
-    Iterator<Record> read(Reader reader);
+    Iterator<Record> read(InputStream reader);
 
     @Override
     void close();

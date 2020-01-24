@@ -14,16 +14,10 @@ package org.talend.components.common.stream.format;
 
 import java.io.Serializable;
 
-import org.talend.components.common.stream.api.input.RecordReader;
-import org.talend.components.common.stream.api.input.RecordReaderSupplier;
-import org.talend.components.common.stream.format.json.JsonConfiguration;
-import org.talend.components.common.stream.format.line.csv.CSVConfiguration;
-import org.talend.components.common.stream.format.line.fixed.FixedConfiguration;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -33,14 +27,15 @@ import lombok.extern.slf4j.Slf4j;
 @GridLayout({ @GridLayout.Row("contentFormat"),
         @GridLayout.Row({ "csvConfiguration", "fixedConfiguration", "jsonConfiguration" }) })
 @Documentation("stream content configuration")
-public class FormatConfiguration implements Serializable, RecordReaderSupplier {
+public class FormatConfiguration implements Serializable {
 
     private static final long serialVersionUID = -4143993987459031885L;
 
     public enum Type {
         CSV,
         FIXED,
-        JSON_POINTER;
+        JSON_POINTER,
+        AVRO;
     }
 
     @Option
@@ -62,25 +57,25 @@ public class FormatConfiguration implements Serializable, RecordReaderSupplier {
     @Documentation("json format with json path access")
     private JsonConfiguration jsonConfiguration;
 
-    @Override
-    public RecordReader getReader(RecordBuilderFactory factory) {
-        RecordReaderSupplier rs = this.findReader();
-        if (rs != null) {
-            return rs.getReader(factory);
-        }
-        return null;
-    }
+    @Option
+    @ActiveIf(target = "contentFormat", value = "AVRO")
+    @Documentation("avro format")
+    private AvroConfiguration avroConfiguration;
 
-    private RecordReaderSupplier findReader() {
-        if (contentFormat == FormatConfiguration.Type.CSV) {
-            return this.csvConfiguration;
-        }
-        if (contentFormat == FormatConfiguration.Type.FIXED) {
+    public ContentFormat findFormat() {
+        if (this.contentFormat == FormatConfiguration.Type.FIXED) {
             return this.fixedConfiguration;
         }
-        if (contentFormat == FormatConfiguration.Type.JSON_POINTER) {
+        if (this.contentFormat == FormatConfiguration.Type.CSV) {
+            return this.csvConfiguration;
+        }
+        if (this.contentFormat == FormatConfiguration.Type.JSON_POINTER) {
             return this.jsonConfiguration;
         }
-        return null;
+        if (this.contentFormat == FormatConfiguration.Type.AVRO) {
+            return this.avroConfiguration;
+        }
+        throw new IllegalArgumentException(
+                "Wrong value for contentFormat : " + (contentFormat == null ? "null" : this.contentFormat.name()));
     }
 }

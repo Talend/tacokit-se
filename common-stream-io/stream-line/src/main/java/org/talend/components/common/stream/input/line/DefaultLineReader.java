@@ -12,6 +12,7 @@
  */
 package org.talend.components.common.stream.input.line;
 
+import java.io.InputStream;
 import java.io.Reader;
 import java.util.Iterator;
 import java.util.Scanner;
@@ -37,7 +38,7 @@ public class DefaultLineReader implements LineReader {
     }
 
     @Override
-    public Iterator<String> read(Reader reader) {
+    public Iterator<String> read(InputStream reader) {
         this.close();
         this.scanner = new Scanner(reader).useDelimiter(this.regExpSeparator);
         return this.scanner;

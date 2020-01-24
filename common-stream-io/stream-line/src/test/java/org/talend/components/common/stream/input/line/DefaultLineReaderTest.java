@@ -12,6 +12,8 @@
  */
 package org.talend.components.common.stream.input.line;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -30,7 +32,7 @@ class DefaultLineReaderTest {
     void read(String separator, String line, List<String> list) {
         DefaultLineReader reader = new DefaultLineReader(separator);
 
-        StringReader lineReader = new StringReader(line);
+        ByteArrayInputStream lineReader = new ByteArrayInputStream(line.getBytes());
 
         final Iterator<String> lines = reader.read(lineReader);
         int index = 0;

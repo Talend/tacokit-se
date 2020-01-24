@@ -12,51 +12,39 @@
  */
 package org.talend.components.common.stream.api.output;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.channels.WritableByteChannel;
 
+import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.sdk.component.api.record.Record;
 
 /**
- * Help to write record to an output.
+ * Write record to a destination.
  */
-public class RecordWriter {
+public interface RecordWriter extends AutoCloseable {
 
-    /** to serialize record to an array of byte. */
-    private final RecordSerializer serializer;
-
-    public RecordWriter(RecordSerializer serializer) {
-        this.serializer = serializer;
+    default void init(ContentFormat config) {
     }
 
-    public void write(WritableByteChannel out, Record record) throws IOException {
-        final byte[] recordContent = this.serializer.serialize(record);
-        out.write(ByteBuffer.wrap(recordContent));
+    default void end() throws IOException {
     }
 
-    public void write(OutputStream out, Record record) throws IOException {
-        final byte[] recordContent = this.serializer.serialize(record);
-        out.write(recordContent);
-    }
+    /**
+     * add record to writer.
+     * 
+     * @param record : input record.
+     */
+    void add(Record record) throws IOException;
 
-    public void write(WritableByteChannel out, Iterable<Record> records) throws IOException {
-        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-
-        // put records in buffer.
-        for (Record rec : records) {
-            final byte[] recordContent = serializer.serialize(rec);
-            buffer.write(recordContent);
-        }
-        // write buffer
-        out.write(ByteBuffer.wrap(buffer.toByteArray()));
-    }
-
-    public void write(OutputStream out, Iterable<Record> records) throws IOException {
-        for (Record rec : records) {
-            this.write(out, rec);
+    /**
+     * add records to writer.
+     * 
+     * @param records : input record.
+     */
+    default void add(Iterable<Record> records) throws IOException {
+        for (Record record : records) {
+            this.add(record);
         }
     }
+
+    void flush() throws IOException;
 }

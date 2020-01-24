@@ -12,6 +12,7 @@
  */
 package org.talend.components.common.stream.input.line;
 
+import java.io.InputStream;
 import java.io.Reader;
 import java.util.Iterator;
 
@@ -23,7 +24,7 @@ public interface LineReader extends AutoCloseable {
      * @param reader : stream reader.
      * @return object iterator.
      */
-    Iterator<String> read(Reader reader);
+    Iterator<String> read(InputStream reader);
 
     @Override
     void close();

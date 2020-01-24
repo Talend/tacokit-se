@@ -9,22 +9,4 @@
     </parent>
 
     <artifactId>common-io</artifactId>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.talend.components</groupId>
-            <artifactId>stream-csv</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.talend.components</groupId>
-            <artifactId>stream-fixed</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.talend.components</groupId>
-            <artifactId>stream-json</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
-        </dependency>
-    </dependencies>
 </project>

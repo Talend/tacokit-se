@@ -12,9 +12,9 @@
  */
 package org.talend.components.common.stream.input.line;
 
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.Reader;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.stream.Collectors;
@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.talend.components.common.stream.format.line.LineConfiguration;
+import org.talend.components.common.stream.format.LineConfiguration;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
@@ -53,7 +53,7 @@ class DefaultRecordReaderTest {
         LineToRecord toRecord = new LineToRecord(new RecordBuilderFactoryImpl("test"), splitter);
 
         try (DefaultRecordReader recordReader = new DefaultRecordReader(lineReader, toRecord);
-                Reader reader = new FileReader(filePath)) {
+                InputStream reader = new FileInputStream(filePath)) {
             final Iterator<Record> recordIterator = recordReader.read(reader);
             for (int i = 0; i < 5; i++) {
                 Assertions.assertTrue(recordIterator.hasNext()); // hasNext must be re-entrant.

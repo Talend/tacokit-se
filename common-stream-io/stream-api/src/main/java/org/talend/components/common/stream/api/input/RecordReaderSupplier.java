@@ -12,11 +12,12 @@
  */
 package org.talend.components.common.stream.api.input;
 
+import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 @FunctionalInterface
 public interface RecordReaderSupplier {
 
-    RecordReader getReader(RecordBuilderFactory factory);
+    RecordReader getReader(RecordBuilderFactory factory, ContentFormat config);
 
 }

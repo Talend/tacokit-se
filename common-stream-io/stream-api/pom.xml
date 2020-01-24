@@ -25,6 +25,14 @@
 
   <name>Common :: stream-api</name>
 
+  <dependencies>
+    <dependency>
+      <groupId>org.talend.components</groupId>
+      <artifactId>common-io</artifactId>
+      <version>1.6.0-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+
   <build>
     <plugins>
       <plugin>

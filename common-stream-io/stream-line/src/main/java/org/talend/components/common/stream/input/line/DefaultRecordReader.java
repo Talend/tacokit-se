@@ -12,6 +12,7 @@
  */
 package org.talend.components.common.stream.input.line;
 
+import java.io.InputStream;
 import java.io.Reader;
 import java.util.Iterator;
 
@@ -30,7 +31,7 @@ public class DefaultRecordReader implements RecordReader {
     }
 
     @Override
-    public Iterator<Record> read(Reader reader) {
+    public Iterator<Record> read(InputStream reader) {
         final Iterator<String> lines = lineReader.read(reader);
         return new RecordIterator(this.toRecord, lines);
     }
