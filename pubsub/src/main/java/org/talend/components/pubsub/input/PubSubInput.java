@@ -15,7 +15,12 @@ package org.talend.components.pubsub.input;
 import com.google.cloud.pubsub.v1.AckReplyConsumer;
 import com.google.cloud.pubsub.v1.MessageReceiver;
 import com.google.cloud.pubsub.v1.Subscriber;
+import com.google.cloud.pubsub.v1.stub.SubscriberStub;
+import com.google.pubsub.v1.AcknowledgeRequest;
+import com.google.pubsub.v1.ProjectSubscriptionName;
 import com.google.pubsub.v1.PubsubMessage;
+import com.google.pubsub.v1.PullRequest;
+import com.google.pubsub.v1.PullResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.pubsub.input.converter.MessageConverter;
 import org.talend.components.pubsub.input.converter.MessageConverterFactory;
@@ -31,6 +36,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
@@ -49,6 +55,8 @@ public class PubSubInput implements MessageReceiver, Serializable {
 
     private Subscriber subscriber;
 
+    private SubscriberStub subscriberStub;
+
     private MessageConverter messageConverter;
 
     public PubSubInput(final PubSubInputConfiguration configuration, final PubSubService service, final I18nMessage i18n,
@@ -62,9 +70,14 @@ public class PubSubInput implements MessageReceiver, Serializable {
     @PostConstruct
     public void init() {
         messageConverter = new MessageConverterFactory().getConverter(configuration.getDataSet(), builderFactory, i18n);
-        subscriber = service.createSubscriber(configuration.getDataSet().getDataStore(), configuration.getDataSet().getTopic(),
-                configuration.getDataSet().getSubscription(), this);
-        subscriber.startAsync();
+        if (configuration.getPullMode() == PubSubInputConfiguration.PullMode.ASYNCHRONOUS) {
+            subscriber = service.createSubscriber(configuration.getDataSet().getDataStore(),
+                    configuration.getDataSet().getTopic(), configuration.getDataSet().getSubscription(), this);
+            subscriber.startAsync();
+        } else {
+            subscriberStub = service.createSubscriber(configuration.getDataSet().getDataStore(),
+                    configuration.getDataSet().getTopic(), configuration.getDataSet().getSubscription());
+        }
     }
 
     @PreDestroy
@@ -72,13 +85,44 @@ public class PubSubInput implements MessageReceiver, Serializable {
         if (subscriber != null) {
             subscriber.stopAsync();
         }
+        if (subscriberStub != null) {
+            subscriberStub.close();
+        }
     }
 
     @Producer
     public Record next() {
+        if (inbox.isEmpty() && configuration.getPullMode() == PubSubInputConfiguration.PullMode.SYNCHRONOUS) {
+            pull();
+        }
         Record record = inbox.poll();
 
         return record;
+    }
+
+    public void pull() {
+        PullRequest pullRequest = PullRequest.newBuilder().setMaxMessages(configuration.getMaxMsg()).setReturnImmediately(true)
+                .setSubscription(ProjectSubscriptionName.format(configuration.getDataSet().getDataStore().getProjectName(),
+                        configuration.getDataSet().getSubscription()))
+                .build();
+
+        PullResponse pullResponse = subscriberStub.pullCallable().call(pullRequest);
+        List<String> ackIds = new ArrayList<>();
+        pullResponse.getReceivedMessagesList().stream().forEach(rm -> {
+            ackIds.add(rm.getAckId());
+            Record record = messageConverter == null ? null : messageConverter.convertMessage(rm.getMessage());
+            if (record != null) {
+                inbox.offer(record);
+            }
+        });
+
+        if (configuration.isConsumeMsg() && !ackIds.isEmpty()) {
+            AcknowledgeRequest acknowledgeRequest = AcknowledgeRequest.newBuilder()
+                    .setSubscription(ProjectSubscriptionName.format(configuration.getDataSet().getDataStore().getProjectName(),
+                            configuration.getDataSet().getSubscription()))
+                    .addAllAckIds(ackIds).build();
+            subscriberStub.acknowledgeCallable().call(acknowledgeRequest);
+        }
     }
 
     @Override

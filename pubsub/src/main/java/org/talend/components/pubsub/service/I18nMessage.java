@@ -62,4 +62,6 @@ public interface I18nMessage {
     String errorRemoveTopic(String message);
 
     String errorWriteCSV(String message);
+
+    String errorCreateSubscriber(String message);
 }

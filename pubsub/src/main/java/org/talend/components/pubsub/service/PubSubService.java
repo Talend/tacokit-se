@@ -18,6 +18,9 @@ import com.google.api.gax.rpc.ApiException;
 import com.google.auth.Credentials;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.pubsub.v1.*;
+import com.google.cloud.pubsub.v1.stub.GrpcSubscriberStub;
+import com.google.cloud.pubsub.v1.stub.SubscriberStub;
+import com.google.cloud.pubsub.v1.stub.SubscriberStubSettings;
 import com.google.pubsub.v1.*;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.pubsub.datastore.PubSubDataStore;
@@ -124,6 +127,19 @@ public class PubSubService {
         Subscriber subscriber = Subscriber.newBuilder(subscriptionName, receiver)
                 .setCredentialsProvider(() -> createCredentials(dataStore)).build();
         return subscriber;
+    }
+
+    public SubscriberStub createSubscriber(PubSubDataStore dataStore, String topic, String subscriptionId) {
+        try {
+            ProjectSubscriptionName subscriptionName = ProjectSubscriptionName.of(dataStore.getProjectName(), subscriptionId);
+            createSubscriptionIfNeeded(dataStore, topic, subscriptionName);
+            SubscriberStub subscriber = GrpcSubscriberStub.create(
+                    SubscriberStubSettings.newBuilder().setCredentialsProvider(() -> createCredentials(dataStore)).build());
+            return subscriber;
+        } catch (IOException ioe) {
+            log.error(i18n.errorCreateSubscriber(ioe.getMessage()));
+            throw new PubSubConnectorException(i18n.errorCreateSubscriber(ioe.getMessage()), ioe);
+        }
     }
 
     /**

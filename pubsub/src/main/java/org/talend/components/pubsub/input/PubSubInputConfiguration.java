@@ -15,6 +15,7 @@ package org.talend.components.pubsub.input;
 import lombok.Data;
 import org.talend.components.pubsub.dataset.PubSubDataSet;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -23,7 +24,7 @@ import java.io.Serializable;
 
 @Data
 @GridLayout({ //
-        @GridLayout.Row("dataSet"), @GridLayout.Row("consumeMsg") })
+        @GridLayout.Row("dataSet"), @GridLayout.Row("consumeMsg"), @GridLayout.Row("pullMode"), @GridLayout.Row("maxMsg") })
 @Documentation("Configuration for Subscriber")
 public class PubSubInputConfiguration implements Serializable {
 
@@ -34,4 +35,20 @@ public class PubSubInputConfiguration implements Serializable {
     @Option
     @Documentation("Deliver message to the subscriber only once")
     private boolean consumeMsg = false;
+
+    @Option
+    @Documentation(("Pull mode : synchronous or asynchronous"))
+    @DefaultValue("ASYNCHRONOUS")
+    private PullMode pullMode = PullMode.ASYNCHRONOUS;
+
+    @Option
+    @ActiveIf(target = "pullMode", value = "SYNCHRONOUS")
+    @DefaultValue("100")
+    @Documentation("Maximum number of messages received per request")
+    private int maxMsg = 100;
+
+    public static enum PullMode {
+        SYNCHRONOUS,
+        ASYNCHRONOUS
+    }
 }
