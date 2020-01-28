@@ -38,6 +38,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 @Slf4j
@@ -51,13 +52,18 @@ public class PubSubInput implements MessageReceiver, Serializable {
 
     protected final RecordBuilderFactory builderFactory;
 
-    private final Queue<Record> inbox = new ConcurrentLinkedDeque<>();
+    private transient final Queue<PubsubMessage> inbox = new ConcurrentLinkedDeque<>();
 
-    private Subscriber subscriber;
+    /** Subscriber (asynchronous mode only) */
+    private transient Subscriber subscriber;
 
-    private SubscriberStub subscriberStub;
+    /** Subscriber (synchronous mode only) */
+    private transient SubscriberStub subscriberStub;
 
-    private MessageConverter messageConverter;
+    /** Map storing, for each message ID, a reference to the object responsible for the ack */
+    private transient Map<String, AckReplyConsumer> msgToAck;
+
+    private transient MessageConverter messageConverter;
 
     public PubSubInput(final PubSubInputConfiguration configuration, final PubSubService service, final I18nMessage i18n,
             final RecordBuilderFactory builderFactory) {
@@ -65,6 +71,9 @@ public class PubSubInput implements MessageReceiver, Serializable {
         this.service = service;
         this.i18n = i18n;
         this.builderFactory = builderFactory;
+        if (configuration.isConsumeMsg()) {
+            msgToAck = new ConcurrentHashMap<>();
+        }
     }
 
     @PostConstruct
@@ -77,6 +86,7 @@ public class PubSubInput implements MessageReceiver, Serializable {
         } else {
             subscriberStub = service.createSubscriber(configuration.getDataSet().getDataStore(),
                     configuration.getDataSet().getTopic(), configuration.getDataSet().getSubscription());
+
         }
     }
 
@@ -95,7 +105,16 @@ public class PubSubInput implements MessageReceiver, Serializable {
         if (inbox.isEmpty() && configuration.getPullMode() == PubSubInputConfiguration.PullMode.SYNCHRONOUS) {
             pull();
         }
-        Record record = inbox.poll();
+
+        PubsubMessage message = inbox.poll();
+
+        Record record = null;
+        if (message != null) {
+            record = messageConverter == null ? null : messageConverter.convertMessage(message);
+            if (configuration.isConsumeMsg()) {
+                msgToAck.get(message.getMessageId()).ack();
+            }
+        }
 
         return record;
     }
@@ -107,34 +126,31 @@ public class PubSubInput implements MessageReceiver, Serializable {
                 .build();
 
         PullResponse pullResponse = subscriberStub.pullCallable().call(pullRequest);
-        List<String> ackIds = new ArrayList<>();
         pullResponse.getReceivedMessagesList().stream().forEach(rm -> {
-            ackIds.add(rm.getAckId());
-            Record record = messageConverter == null ? null : messageConverter.convertMessage(rm.getMessage());
-            if (record != null) {
-                inbox.offer(record);
+            inbox.offer(rm.getMessage());
+            if (configuration.isConsumeMsg()) {
+                msgToAck.put(rm.getMessage().getMessageId(), new AckReplyConsumer() {
+
+                    @Override
+                    public void ack() {
+                        service.ackMessage(subscriberStub, configuration.getDataSet().getDataStore(),
+                                configuration.getDataSet().getSubscription(), rm.getAckId());
+                    }
+
+                    @Override
+                    public void nack() {
+
+                    }
+                });
             }
         });
-
-        if (configuration.isConsumeMsg() && !ackIds.isEmpty()) {
-            AcknowledgeRequest acknowledgeRequest = AcknowledgeRequest.newBuilder()
-                    .setSubscription(ProjectSubscriptionName.format(configuration.getDataSet().getDataStore().getProjectName(),
-                            configuration.getDataSet().getSubscription()))
-                    .addAllAckIds(ackIds).build();
-            subscriberStub.acknowledgeCallable().call(acknowledgeRequest);
-        }
     }
 
     @Override
     public void receiveMessage(PubsubMessage message, AckReplyConsumer consumer) {
-        Record record = messageConverter == null ? null : messageConverter.convertMessage(message);
-
-        if (record != null) {
-            inbox.offer(record);
-
-            if (configuration.isConsumeMsg()) {
-                consumer.ack();
-            }
+        inbox.offer(message);
+        if (configuration.isConsumeMsg()) {
+            msgToAck.put(message.getMessageId(), consumer);
         }
     }
 }

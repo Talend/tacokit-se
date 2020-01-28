@@ -21,6 +21,7 @@ import com.google.cloud.pubsub.v1.*;
 import com.google.cloud.pubsub.v1.stub.GrpcSubscriberStub;
 import com.google.cloud.pubsub.v1.stub.SubscriberStub;
 import com.google.cloud.pubsub.v1.stub.SubscriberStubSettings;
+import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.*;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.pubsub.datastore.PubSubDataStore;
@@ -238,4 +239,13 @@ public class PubSubService {
             log.warn(i18n.errorRemoveTopic(ioe.getMessage()));
         }
     }
+
+    public void ackMessage(SubscriberStub subscriberStub, PubSubDataStore dataStore, String subscriptionId, String ackId) {
+        AcknowledgeRequest acknowledgeRequest = AcknowledgeRequest.newBuilder()
+                .setSubscription(ProjectSubscriptionName.format(dataStore.getProjectName(), subscriptionId))
+                .addAckIdsBytes(ByteString.copyFromUtf8(ackId)).build();
+        subscriberStub.acknowledgeCallable().call(acknowledgeRequest);
+    }
+
+
 }
