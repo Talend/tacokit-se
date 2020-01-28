@@ -45,7 +45,7 @@ public class AvroTarget implements WritableTarget<GenericRecord> {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         if (dataFileWriter != null) {
             this.flush();
             this.dataFileWriter.close();

@@ -12,19 +12,24 @@
  */
 package org.talend.components.common.stream.output.csv;
 
-import org.talend.components.common.stream.CSVHelper;
-import org.talend.components.common.stream.api.output.RecordByteWriter;
+import org.talend.components.common.stream.api.output.RecordWriter;
 import org.talend.components.common.stream.api.output.RecordWriterRepository;
+import org.talend.components.common.stream.api.output.RecordWriterSupplier;
 import org.talend.components.common.stream.api.output.WritableTarget;
 import org.talend.components.common.stream.format.CSVConfiguration;
+import org.talend.components.common.stream.format.ContentFormat;
 
-import lombok.extern.slf4j.Slf4j;
+public class CSVWriterSupplier implements RecordWriterSupplier<byte[]> {
 
-@Slf4j
-public class CSVRecordWriter extends RecordByteWriter {
-
-    public CSVRecordWriter(CSVConfiguration config, WritableTarget<byte[]> out) {
-        super(new CSVRecordConverter(CSVHelper.getCsvFormat(config)), new CSVFormatWriter(), config, out);
+    static {
+        RecordWriterRepository.getInstance().put(CSVConfiguration.class, new CSVWriterSupplier());
     }
 
+    @Override
+    public RecordWriter getWriter(WritableTarget<byte[]> target, ContentFormat config) {
+        assert config instanceof CSVConfiguration : "csv reader not with csv config";
+        CSVConfiguration csvConfig = (CSVConfiguration) config;
+
+        return new CSVRecordWriter(csvConfig, target);
+    }
 }

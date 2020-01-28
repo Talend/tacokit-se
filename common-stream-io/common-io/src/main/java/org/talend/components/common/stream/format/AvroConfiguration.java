@@ -14,4 +14,12 @@ package org.talend.components.common.stream.format;
 
 public class AvroConfiguration implements ContentFormat {
 
+    static {
+        try {
+            Class.forName("org.talend.components.common.stream.input.avro.AvroReaderSupplier");
+            Class.forName("org.talend.components.common.stream.output.avro.AvroWriterSupplier");
+        } catch (ClassNotFoundException e) {
+            // not exist if no dependencies to stream-csv, csv format is not used.
+        }
+    }
 }

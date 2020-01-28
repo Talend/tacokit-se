@@ -26,6 +26,8 @@ public interface RecordWriter extends AutoCloseable {
     }
 
     default void end() throws IOException {
+        this.flush();
+        this.close();
     }
 
     /**
@@ -47,4 +49,6 @@ public interface RecordWriter extends AutoCloseable {
     }
 
     void flush() throws IOException;
+
+    void close() throws IOException;
 }

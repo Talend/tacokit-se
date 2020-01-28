@@ -34,6 +34,16 @@ public class CSVRecordConverter implements RecordConverter<byte[], byte[]> {
     @Override
     public byte[] fromRecord(Record record) {
         final List<String> values = RecordSerializerLineHelper.valuesFrom(record);
+        return this.concat(values);
+    }
+
+    @Override
+    public byte[] fromRecordSchema(Schema schema) {
+        final List<String> values = RecordSerializerLineHelper.schemaFrom(schema);
+        return this.concat(values);
+    }
+
+    private byte[] concat(List<String> values) {
         final StringBuilder builder = new StringBuilder();
 
         try {
@@ -42,10 +52,5 @@ public class CSVRecordConverter implements RecordConverter<byte[], byte[]> {
         } catch (IOException exIO) {
             throw new UncheckedIOException("Unable to transform record in CSV " + exIO.getMessage(), exIO);
         }
-    }
-
-    @Override
-    public byte[] fromRecordSchema(Schema record) {
-        return new byte[0];
     }
 }

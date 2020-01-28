@@ -49,6 +49,8 @@ class AvroRecordWriterTest {
         writer.flush();
         String res = out.toString();
         Assertions.assertFalse(res.isEmpty());
+
+        writer.close();
     }
 
     private void prepareTestRecords() {

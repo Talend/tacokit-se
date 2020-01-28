@@ -14,11 +14,8 @@ package org.talend.components.common.stream.output.json;
 
 import org.talend.components.common.stream.api.output.FormatWriter;
 import org.talend.components.common.stream.api.output.RecordByteWriter;
-import org.talend.components.common.stream.api.output.RecordWriter;
 import org.talend.components.common.stream.api.output.RecordWriterRepository;
-import org.talend.components.common.stream.api.output.RecordWriterSupplier;
 import org.talend.components.common.stream.api.output.WritableTarget;
-import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.components.common.stream.format.JsonConfiguration;
 import org.talend.sdk.component.api.record.Record;
 
@@ -26,10 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class JsonWriter extends RecordByteWriter<JsonConfiguration> {
-
-    static {
-        RecordWriterRepository.getInstance().put(JsonConfiguration.class, new JsonWriterSupplier());
-    }
 
     public JsonWriter(JsonConfiguration config, WritableTarget<byte[]> target) {
         super(new RecordToByte(), new JsonFormatWriter(), config, target);
@@ -66,14 +59,4 @@ public class JsonWriter extends RecordByteWriter<JsonConfiguration> {
         }
     }
 
-    public static class JsonWriterSupplier implements RecordWriterSupplier<byte[]> {
-
-        @Override
-        public RecordWriter getWriter(WritableTarget<byte[]> target, ContentFormat config) {
-            assert config instanceof JsonConfiguration : "json reader not with json config";
-            final JsonConfiguration jsonConfig = (JsonConfiguration) config;
-
-            return new JsonWriter(jsonConfig, target);
-        }
-    }
 }

@@ -13,8 +13,6 @@
 package org.talend.components.common.stream.input.line;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -24,13 +22,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.talend.components.common.stream.input.line.schema.HeaderHandler;
 
 class DefaultLineReaderTest {
 
     @ParameterizedTest
     @MethodSource("lineProvider")
     void read(String separator, String line, List<String> list) {
-        DefaultLineReader reader = new DefaultLineReader(separator);
+        HeaderHandler handler = new HeaderHandler(0, null);
+        DefaultLineReader reader = new DefaultLineReader(separator, "UTF-8", handler);
 
         ByteArrayInputStream lineReader = new ByteArrayInputStream(line.getBytes());
 

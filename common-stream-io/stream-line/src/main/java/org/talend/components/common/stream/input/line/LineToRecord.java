@@ -20,10 +20,15 @@ import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
+/**
+ * Translate line from source to record.
+ */
 public class LineToRecord implements LineTranslator<Record> {
 
+    /** record factory */
     private final RecordBuilderFactory recordBuilderFactory;
 
+    /** split line in serie of values. */
     private final LineSplitter splitter;
 
     private final SchemaBuilder schemaBuilder = new SchemaBuilder();
@@ -33,8 +38,14 @@ public class LineToRecord implements LineTranslator<Record> {
         this.splitter = splitter;
     }
 
-    public SchemaBuilder getSchemaBuilder() {
-        return schemaBuilder;
+    /**
+     * Build schema with header line.
+     * 
+     * @param headersLine header from header line.
+     */
+    public void withHeaders(String headersLine) {
+        final Iterable<String> headers = splitter.translate(headersLine);
+        this.schemaBuilder.get(this.recordBuilderFactory, headers, true);
     }
 
     @Override
@@ -44,7 +55,7 @@ public class LineToRecord implements LineTranslator<Record> {
     }
 
     private Record build(Iterable<String> fields) {
-        final Schema schema = this.schemaBuilder.get(this.recordBuilderFactory, fields);
+        final Schema schema = this.schemaBuilder.get(this.recordBuilderFactory, fields, false);
         final Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder(schema);
 
         final List<Entry> entries = schema.getEntries();

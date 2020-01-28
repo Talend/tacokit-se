@@ -36,7 +36,7 @@ public class OutputStreamTarget implements WritableTarget<byte[]> {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         this.out.close();
     }
 }

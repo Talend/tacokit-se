@@ -21,18 +21,18 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.talend.components.common.stream.CSVHelper;
+import org.talend.components.common.stream.input.line.schema.HeaderHandler;
 import org.talend.components.common.stream.api.input.RecordReader;
 import org.talend.components.common.stream.api.input.RecordReaderRepository;
 import org.talend.components.common.stream.api.input.RecordReaderSupplier;
 import org.talend.components.common.stream.format.CSVConfiguration;
 import org.talend.components.common.stream.format.ContentFormat;
+import org.talend.components.common.stream.format.LineConfiguration;
 import org.talend.components.common.stream.input.line.DefaultLineReader;
 import org.talend.components.common.stream.input.line.DefaultRecordReader;
 import org.talend.components.common.stream.input.line.LineReader;
 import org.talend.components.common.stream.input.line.LineSplitter;
 import org.talend.components.common.stream.input.line.LineToRecord;
-import org.talend.components.common.stream.input.line.LineTranslator;
-import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 public class CSVReaderSupplier implements RecordReaderSupplier {
@@ -44,16 +44,11 @@ public class CSVReaderSupplier implements RecordReaderSupplier {
     @Override
     public RecordReader getReader(RecordBuilderFactory factory, ContentFormat config) {
         assert config instanceof CSVConfiguration : "csv reader not with csv config";
-        CSVConfiguration csvConfig = (CSVConfiguration) config;
-        String lineSep = csvConfig.getLineConfiguration().getLineSeparator();
-        final LineReader lineReader = new DefaultLineReader(lineSep);
-
+        final CSVConfiguration csvConfig = (CSVConfiguration) config;
         final CSVFormat csvFormat = CSVHelper.getCsvFormat(csvConfig);
-
         final LineSplitter splitter = new CSVLineSplitter(csvFormat);
-        final LineTranslator<Record> toRecord = new LineToRecord(factory, splitter);
 
-        return new DefaultRecordReader(lineReader, toRecord);
+        return DefaultRecordReader.of(factory, csvConfig.getLineConfiguration(), splitter);
     }
 
     static class CSVLineSplitter implements LineSplitter {

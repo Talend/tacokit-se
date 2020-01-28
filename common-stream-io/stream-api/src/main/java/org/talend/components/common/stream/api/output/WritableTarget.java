@@ -19,4 +19,7 @@ public interface WritableTarget<T> extends AutoCloseable {
     void write(T data) throws IOException;
 
     void flush() throws IOException;
+
+    @Override
+    void close() throws IOException;
 }

@@ -23,6 +23,14 @@ import lombok.Data;
 @Documentation("Json Configuration with json pointer rules")
 public class JsonConfiguration implements ContentFormat {
 
+    static {
+        try {
+            Class.forName("org.talend.components.common.stream.format.json.JsonPointerParser");
+        } catch (ClassNotFoundException e) {
+            // not exist if no dependencies to stream-json, json format is not used.
+        }
+    }
+
     @Option
     @Documentation("json pointer expression")
     private String jsonPointer;

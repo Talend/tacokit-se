@@ -23,10 +23,6 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 public class JsonReaderSupplier implements RecordReaderSupplier {
 
-    static {
-        RecordReaderRepository.getInstance().put(JsonConfiguration.class, new JsonReaderSupplier());
-    }
-
     @Override
     public RecordReader getReader(RecordBuilderFactory factory, ContentFormat config) {
         assert config instanceof JsonConfiguration : "json reader not with json config";

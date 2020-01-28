@@ -22,26 +22,12 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 public class Headers {
 
-    private final List<String> headers = new ArrayList<>();
-
-    public Headers addHeaders(String... args) {
-        for (String arg : args) {
-            this.headers.add(arg);
-        }
-        return this;
-    }
-
-    public Headers addHeaders(Iterable<String> args) {
-        args.forEach(this.headers::add);
-        return this;
-    }
-
-    public Schema build(RecordBuilderFactory factory, Iterable<String> fields) {
+    public Schema build(RecordBuilderFactory factory, Iterable<String> fields, boolean isheader) {
         Schema.Builder builder = factory.newSchemaBuilder(Schema.Type.RECORD);
         Set<String> existNames = new HashSet<>();
 
         int index = 0;
-        Iterable<String> realHeaders = findHeaders(fields);
+        Iterable<String> realHeaders = findHeaders(fields, isheader);
         for (String header : realHeaders) {
             String finalName = this.getCorrectSchemaFieldName(header, index++, existNames);
             existNames.add(finalName);
@@ -101,16 +87,16 @@ public class Headers {
         return currentName;
     }
 
-    private Iterable<String> findHeaders(final Iterable<String> fields) {
-
-        if (this.headers.size() > 0) {
-            return this.headers;
-        }
+    private Iterable<String> findHeaders(final Iterable<String> fields, boolean isHeader) {
 
         List<String> generateHeaders = new ArrayList<>();
         int i = 1;
         for (String field : fields) {
-            generateHeaders.add("field_" + i);
+            if (isHeader) {
+                generateHeaders.add(field);
+            } else {
+                generateHeaders.add("field_" + i);
+            }
             i++;
         }
         return generateHeaders;

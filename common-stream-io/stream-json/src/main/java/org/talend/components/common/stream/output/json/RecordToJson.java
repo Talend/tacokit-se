@@ -27,6 +27,12 @@ import org.talend.sdk.component.api.record.Schema.Entry;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Transform record to json object.
+ * here, currently no need of json schema.
+ * if needed, could use https://github.com/leadpony/justify
+ * (java lib for json schema, can be used with johnzon lib.
+ */
 @Slf4j
 public class RecordToJson implements RecordConverter<JsonObject, Void> {
 

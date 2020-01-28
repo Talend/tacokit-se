@@ -42,6 +42,9 @@ public class IteratorMap<T, U> implements Iterator<U> {
     @Override
     public U next() {
         final T primaryObject = this.primaryIterator.next();
-        return this.mapFunction.apply(primaryObject);
+        if (primaryObject != null) {
+            return this.mapFunction.apply(primaryObject);
+        }
+        return null;
     }
 }

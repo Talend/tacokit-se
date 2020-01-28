@@ -10,22 +10,20 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.common.stream.input.line.schema;
+package org.talend.components.common.stream.format;
 
-import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+public enum Encoding {
+    UFT8("UTF-8"),
+    ISO_8859_15("ISO-8859-15"),
+    OTHER("");
 
-public class SchemaBuilder {
-
-    private Schema schema = null;
-
-    private final Headers headers = new Headers();
-
-    public Schema get(RecordBuilderFactory factory, Iterable<String> fields, boolean header) {
-        if (this.schema == null) {
-            this.schema = this.headers.build(factory, fields, header);
-        }
-        return this.schema;
+    Encoding(String encodingCharsetValue) {
+        this.encodingCharsetValue = encodingCharsetValue;
     }
 
+    private String encodingCharsetValue;
+
+    public String getEncodingValue() {
+        return encodingCharsetValue;
+    }
 }

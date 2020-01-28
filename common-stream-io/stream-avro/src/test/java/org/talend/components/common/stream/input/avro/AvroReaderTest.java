@@ -20,6 +20,8 @@ import java.util.Iterator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.talend.components.common.stream.api.input.RecordReader;
+import org.talend.components.common.stream.format.AvroConfiguration;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
@@ -30,10 +32,21 @@ class AvroReaderTest {
 
     private static AvroToRecord toRecord;
 
+    private static RecordBuilderFactory factory;
+
     @BeforeAll
     public static void init() {
-        final RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");
-        AvroReaderTest.toRecord = new AvroToRecord(factory);
+        AvroReaderTest.factory = new RecordBuilderFactoryImpl("test");
+        AvroReaderTest.toRecord = new AvroToRecord(AvroReaderTest.factory);
+    }
+
+    @Test
+    public void testSupplier() {
+        final AvroReaderSupplier supplier = new AvroReaderSupplier();
+        final RecordReader reader = supplier.getReader(AvroReaderTest.factory, new AvroConfiguration());
+
+        Assertions.assertNotNull(reader);
+        reader.close();
     }
 
     @Test

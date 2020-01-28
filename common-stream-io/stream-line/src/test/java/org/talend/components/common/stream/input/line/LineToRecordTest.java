@@ -13,6 +13,7 @@
 package org.talend.components.common.stream.input.line;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
@@ -42,16 +43,12 @@ class LineToRecordTest {
 
     @Test
     void translateWithHeaders() {
-        final List<String> testListe = new ArrayList<>();
-        final LineSplitter splitter = (String line) -> testListe;
+        final LineSplitter splitter = (String line) -> Arrays.asList(line.split(";"));
 
         LineToRecord toRecord = new LineToRecord(factory, splitter);
-        toRecord.getSchemaBuilder().getHeaders().addHeaders("greetings", "who");
+        toRecord.withHeaders("greetings;who");
 
-        testListe.clear();
-        testListe.add("Hello");
-        testListe.add("World");
-        final Record record = toRecord.translate("");
+        final Record record = toRecord.translate("Hello;World");
         Assertions.assertEquals("Hello", record.getString("greetings"));
         Assertions.assertEquals("World", record.getString("who"));
     }

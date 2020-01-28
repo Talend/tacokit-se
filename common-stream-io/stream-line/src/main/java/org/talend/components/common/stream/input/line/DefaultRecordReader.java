@@ -16,14 +16,34 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.util.Iterator;
 
+import org.talend.components.common.collections.IteratorMap;
 import org.talend.components.common.stream.api.input.RecordReader;
+import org.talend.components.common.stream.format.LineConfiguration;
+import org.talend.components.common.stream.input.line.schema.HeaderHandler;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
+/**
+ * default class to read source composed of line (csv, fixed length ...) to records.
+ */
 public class DefaultRecordReader implements RecordReader {
 
+    /** line reader */
     private final LineReader lineReader;
 
+    /** translate line to record */
     private final LineTranslator<Record> toRecord;
+
+    public static DefaultRecordReader of(RecordBuilderFactory factory, LineConfiguration lineConfig, LineSplitter splitter) {
+
+        final LineToRecord toRecord = new LineToRecord(factory, splitter);
+        final HeaderHandler headerHandler = new HeaderHandler(lineConfig.getHeader(), toRecord::withHeaders);
+
+        final LineReader lineReader = new DefaultLineReader(lineConfig.getLineSeparator(), lineConfig.getEncoding(),
+                headerHandler);
+
+        return new DefaultRecordReader(lineReader, toRecord);
+    }
 
     public DefaultRecordReader(LineReader lineReader, LineTranslator<Record> toRecord) {
         this.lineReader = lineReader;
@@ -33,7 +53,7 @@ public class DefaultRecordReader implements RecordReader {
     @Override
     public Iterator<Record> read(InputStream reader) {
         final Iterator<String> lines = lineReader.read(reader);
-        return new RecordIterator(this.toRecord, lines);
+        return new IteratorMap<>(lines, this.toRecord::translate);
     }
 
     @Override
@@ -41,29 +61,4 @@ public class DefaultRecordReader implements RecordReader {
         this.lineReader.close();
     }
 
-    static class RecordIterator implements Iterator<Record> {
-
-        private final LineTranslator<Record> toRecord;
-
-        private final Iterator<String> lines;
-
-        public RecordIterator(LineTranslator<Record> toRecord, Iterator<String> lines) {
-            this.toRecord = toRecord;
-            this.lines = lines;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return this.lines.hasNext();
-        }
-
-        @Override
-        public Record next() {
-            String line = this.lines.next();
-            if (line != null) {
-                return this.toRecord.translate(line);
-            }
-            return null;
-        }
-    }
 }

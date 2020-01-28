@@ -21,7 +21,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@GridLayout(@GridLayout.Row({ "lineSeparatorType", "lineSeparator" }))
+@GridLayout({ @GridLayout.Row({ "lineSeparatorType", "lineSeparator" }), @GridLayout.Row({ "encodingType", "encoding" }),
+        @GridLayout.Row({ "useHeader", "header" }) })
 public class LineConfiguration implements ContentFormat {
 
     private static final long serialVersionUID = 6614704115891739018L;
@@ -49,5 +50,37 @@ public class LineConfiguration implements ContentFormat {
             return this.lineSeparator;
         }
         return this.lineSeparatorType.separator;
+    }
+
+    @Option
+    @Documentation("Encoding")
+    private Encoding encodingType = Encoding.UFT8;
+
+    @Option
+    @ActiveIf(target = "encodingType", value = "OTHER")
+    @Documentation("Your custom file encoding format")
+    private String encoding;
+
+    public String getEncoding() {
+        if (encodingType == Encoding.OTHER) {
+            return this.encoding;
+        }
+        return this.encodingType.getEncodingValue();
+    }
+
+    @Option
+    @Documentation("Set header size")
+    private boolean useHeader;
+
+    @Option
+    @ActiveIf(target = "useHeader", value = "true")
+    @Documentation("Header size")
+    private int header = 1;
+
+    public int getHeader() {
+        if (!this.useHeader) {
+            return 0;
+        }
+        return header;
     }
 }

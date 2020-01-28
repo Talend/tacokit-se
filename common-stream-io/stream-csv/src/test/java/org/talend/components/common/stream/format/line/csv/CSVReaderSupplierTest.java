@@ -22,7 +22,6 @@ import org.talend.components.common.stream.api.input.RecordReader;
 import org.talend.components.common.stream.format.CSVConfiguration;
 import org.talend.components.common.stream.format.LineConfiguration;
 import org.talend.components.common.stream.input.csv.CSVReaderSupplier;
-import org.talend.components.common.stream.input.csv.CSVRecordReader;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;

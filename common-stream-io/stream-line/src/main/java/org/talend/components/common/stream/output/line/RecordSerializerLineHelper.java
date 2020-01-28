@@ -28,18 +28,34 @@ import lombok.extern.slf4j.Slf4j;
 public class RecordSerializerLineHelper {
 
     public static List<String> valuesFrom(Record record) {
-        List<String> result = new ArrayList<>();
+        final List<String> result = new ArrayList<>();
 
         for (Entry entry : record.getSchema().getEntries()) {
             if (entry.getType() == Schema.Type.RECORD) {
                 record.getOptionalRecord(entry.getName()).map(RecordSerializerLineHelper::valuesFrom)
                         .orElse(Collections.emptyList()).forEach(result::add);
             } else if (entry.getType() == Type.ARRAY) {
-                // can't translate array to CSV.
-                log.warn("Can't translate array in csv ({})", entry.getName());
+                // can't translate array to Line.
+                log.warn("Can't translate array in line format ({})", entry.getName());
             } else {
                 Object obj = record.get(SchemaHelper.getFrom(entry.getType()), entry.getName());
                 result.add(obj.toString());
+            }
+        }
+        return result;
+    }
+
+    public static List<String> schemaFrom(Schema schema) {
+        final List<String> result = new ArrayList<>();
+        for (Entry entry : schema.getEntries()) {
+            if (entry.getType() == Schema.Type.RECORD) {
+                final List<String> subSchema = RecordSerializerLineHelper.schemaFrom(entry.getElementSchema());
+                subSchema.stream().map((String name) -> entry.getName() + "." + name).forEach(result::add);
+            } else if (entry.getType() == Type.ARRAY) {
+                // can't translate array to Line.
+                log.warn("Can't translate array in line format ({})", entry.getName());
+            } else {
+                result.add(entry.getName());
             }
         }
         return result;

@@ -20,14 +20,8 @@ import org.talend.components.common.stream.api.input.RecordReaderRepository;
 import org.talend.components.common.stream.api.input.RecordReaderSupplier;
 import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.components.common.stream.format.FixedConfiguration;
-import org.talend.components.common.stream.format.JsonConfiguration;
-import org.talend.components.common.stream.input.line.DefaultLineReader;
 import org.talend.components.common.stream.input.line.DefaultRecordReader;
-import org.talend.components.common.stream.input.line.LineReader;
 import org.talend.components.common.stream.input.line.LineSplitter;
-import org.talend.components.common.stream.input.line.LineToRecord;
-import org.talend.components.common.stream.input.line.LineTranslator;
-import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 public class FixedReaderSupplier implements RecordReaderSupplier {
@@ -39,13 +33,10 @@ public class FixedReaderSupplier implements RecordReaderSupplier {
     @Override
     public RecordReader getReader(RecordBuilderFactory factory, ContentFormat config) {
         assert config instanceof FixedConfiguration : "fixed reader not with fixed config";
-        FixedConfiguration fixedConfig = (FixedConfiguration) config;
-        String lineSep = fixedConfig.getLineConfiguration().getLineSeparator();
-        final LineReader lineReader = new DefaultLineReader(lineSep);
+        final FixedConfiguration fixedConfig = (FixedConfiguration) config;
         final LineSplitter splitter = new FixedLineSplitter(fixedConfig.getRealLengthFields());
-        final LineTranslator<Record> toRecord = new LineToRecord(factory, splitter);
 
-        return new DefaultRecordReader(lineReader, toRecord);
+        return DefaultRecordReader.of(factory, fixedConfig.getLineConfiguration(), splitter);
     }
 
     static class FixedLineSplitter implements LineSplitter {

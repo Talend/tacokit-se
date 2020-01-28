@@ -13,6 +13,8 @@
 package org.talend.components.common.stream.format;
 
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.constraint.Min;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
@@ -24,6 +26,15 @@ import lombok.Data;
 public class CSVConfiguration implements ContentFormat {
 
     private static final long serialVersionUID = -6803208558417743486L;
+
+    static {
+        try {
+            Class.forName("org.talend.components.common.stream.input.csv.CSVReaderSupplier");
+            Class.forName("org.talend.components.common.stream.output.csv.CSVWriterSupplier");
+        } catch (ClassNotFoundException e) {
+            // not exist if no dependencies to stream-csv, csv format is not used.
+        }
+    }
 
     @Option
     @Documentation("line delimiter")

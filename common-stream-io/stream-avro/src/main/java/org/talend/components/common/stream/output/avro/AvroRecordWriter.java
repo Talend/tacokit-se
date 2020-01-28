@@ -44,7 +44,7 @@ public class AvroRecordWriter implements RecordWriter {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         this.destination.close();
     }
 }

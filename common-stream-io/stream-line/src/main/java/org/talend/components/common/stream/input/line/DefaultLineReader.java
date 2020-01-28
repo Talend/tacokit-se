@@ -13,10 +13,11 @@
 package org.talend.components.common.stream.input.line;
 
 import java.io.InputStream;
-import java.io.Reader;
 import java.util.Iterator;
 import java.util.Scanner;
 import java.util.regex.Pattern;
+
+import org.talend.components.common.stream.input.line.schema.HeaderHandler;
 
 /**
  * Default implementation for line reader.
@@ -26,21 +27,30 @@ public class DefaultLineReader implements LineReader {
     /** line separator in reg exp form */
     private final Pattern regExpSeparator;
 
+    /** charset name. */
+    private final String chartSetName;
+
+    /** headers treatment. */
+    private final HeaderHandler headers;
+
     /** current scanner */
     private Scanner scanner = null;
 
-    public DefaultLineReader(String recordSeparator) {
-        this(Pattern.compile(DefaultLineReader.escapeChars(recordSeparator)));
+    public DefaultLineReader(String recordSeparator, String chartSetName, HeaderHandler headers) {
+        this(Pattern.compile(DefaultLineReader.escapeChars(recordSeparator)), chartSetName, headers);
     }
 
-    public DefaultLineReader(Pattern regExpSeparator) {
+    public DefaultLineReader(Pattern regExpSeparator, String chartSetName, HeaderHandler headers) {
         this.regExpSeparator = regExpSeparator;
+        this.chartSetName = chartSetName;
+        this.headers = headers;
     }
 
     @Override
     public Iterator<String> read(InputStream reader) {
         this.close();
         this.scanner = new Scanner(reader).useDelimiter(this.regExpSeparator);
+        this.headers.treat(this.scanner);
         return this.scanner;
     }
 

@@ -19,12 +19,23 @@ import javax.json.JsonValue;
 import javax.json.stream.JsonParser;
 import javax.json.stream.JsonParser.Event;
 
+import org.talend.components.common.stream.api.input.RecordReaderRepository;
+import org.talend.components.common.stream.api.output.RecordWriterRepository;
+import org.talend.components.common.stream.format.JsonConfiguration;
+import org.talend.components.common.stream.input.json.JsonReaderSupplier;
+import org.talend.components.common.stream.output.json.JsonWriterSupplier;
+
 /**
  * Parse a json object with json pointer syntax.
  * This class allow to parse a json source progressivly
  * (low memory consuming / start quicly).
  */
 public class JsonPointerParser {
+
+    static {
+        RecordWriterRepository.getInstance().put(JsonConfiguration.class, new JsonWriterSupplier());
+        RecordReaderRepository.getInstance().put(JsonConfiguration.class, new JsonReaderSupplier());
+    }
 
     /** root of json pointer */
     private final JsonGetter rootGetter;

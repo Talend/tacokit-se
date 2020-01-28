@@ -40,6 +40,7 @@ public class RecordByteWriter<T> implements RecordWriter {
     @Override
     public void end() throws IOException {
         this.write(this.format.end(this.config));
+        this.close();
     }
 
     @Override
@@ -61,7 +62,7 @@ public class RecordByteWriter<T> implements RecordWriter {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         this.target.close();
     }
 

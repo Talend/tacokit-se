@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.talend.components.common.stream.input.line.schema.HeaderHandler;
 import org.talend.components.common.stream.format.LineConfiguration;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
@@ -43,12 +44,13 @@ class DefaultRecordReaderTest {
      * Test function.
      * 
      * @param filePath : path for source file.
-     * @param splitter
-     * @param lineSeparator
+     * @param splitter : split line in fields.
+     * @param lineSeparator : line separator.
      * @throws IOException
      */
     private void testContent(String filePath, LineSplitter splitter, String lineSeparator) throws IOException {
-        LineReader lineReader = new DefaultLineReader(lineSeparator);
+        HeaderHandler handler = new HeaderHandler(0, null);
+        LineReader lineReader = new DefaultLineReader(lineSeparator, "UTF-8", handler);
 
         LineToRecord toRecord = new LineToRecord(new RecordBuilderFactoryImpl("test"), splitter);
 

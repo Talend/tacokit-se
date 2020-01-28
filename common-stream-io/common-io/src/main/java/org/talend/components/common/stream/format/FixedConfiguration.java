@@ -23,6 +23,14 @@ import lombok.Data;
 @GridLayout({ @GridLayout.Row("lineConfiguration"), @GridLayout.Row("lengthFields") })
 public class FixedConfiguration implements ContentFormat {
 
+    static {
+        try {
+            Class.forName("org.talend.components.common.stream.input.fixed.FixedReaderSupplier");
+        } catch (ClassNotFoundException e) {
+            // not exist if no dependencies to stream-fixed, fixed format is not used.
+        }
+    }
+
     /** Serialization */
     private static final long serialVersionUID = -7116638194610358461L;
 
