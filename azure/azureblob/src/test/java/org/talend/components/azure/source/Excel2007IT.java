@@ -313,4 +313,22 @@ class Excel2007IT extends BaseIT {
         Assert.assertEquals("Record's schema is different", columnSizeForFullRecord, fullRecord.getSchema().getEntries().size());
         Assert.assertEquals("Record's schema is different", columnSizeForRecordsWithNulls, recordWithEmptyCells.getSchema().getEntries().size());
     }
+
+    @Test
+    void testSkipFileWithoutSpecifiedSheetName() throws StorageException, IOException, URISyntaxException {
+        final int recordSize = 2; //3 files, 1 with another sheet name (should be skipped)
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excel2007/excel_2007_1_record_no_header.xlsx",
+                "excel_2007_1_record_no_header.xlsx");
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excel2007/excel_2007_1_record_another_sheet_name.xlsx",
+                "excel_2007_1_record_another_sheet_name.xlsx");
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excel2007/excel_2007_1_record_no_header.xlsx",
+                "excel_2007_1_record_no_header2.xlsx");
+
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("azureInput").to("collector").build().run();
+        List<Record> records = componentsHandler.getCollectedData(Record.class);
+
+        Assert.assertEquals("Records amount is different", recordSize, records.size());
+    }
 }
