@@ -15,13 +15,19 @@ package org.talend.components.common.stream.input.json;
 import org.talend.components.common.stream.api.input.RecordReader;
 import org.talend.components.common.stream.api.input.RecordReaderRepository;
 import org.talend.components.common.stream.api.input.RecordReaderSupplier;
+import org.talend.components.common.stream.api.output.RecordWriterRepository;
 import org.talend.components.common.stream.format.CSVConfiguration;
 import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.components.common.stream.format.JsonConfiguration;
 import org.talend.components.common.stream.format.json.JsonPointerParser;
+import org.talend.components.common.stream.output.json.JsonWriterSupplier;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 public class JsonReaderSupplier implements RecordReaderSupplier {
+
+    static {
+        RecordReaderRepository.getInstance().put(JsonConfiguration.class, new JsonReaderSupplier());
+    }
 
     @Override
     public RecordReader getReader(RecordBuilderFactory factory, ContentFormat config) {

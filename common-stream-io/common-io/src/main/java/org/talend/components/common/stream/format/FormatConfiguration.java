@@ -35,7 +35,8 @@ public class FormatConfiguration implements Serializable {
         CSV,
         FIXED,
         JSON_POINTER,
-        AVRO;
+        AVRO,
+        EXCEL;
     }
 
     @Option
@@ -62,6 +63,11 @@ public class FormatConfiguration implements Serializable {
     @Documentation("avro format")
     private AvroConfiguration avroConfiguration;
 
+    @Option
+    @ActiveIf(target = "contentFormat", value = "EXCEL")
+    @Documentation("excel format")
+    private ExcelConfiguration excelConfiguration;
+
     public ContentFormat findFormat() {
         if (this.contentFormat == FormatConfiguration.Type.FIXED) {
             return this.fixedConfiguration;
@@ -74,6 +80,9 @@ public class FormatConfiguration implements Serializable {
         }
         if (this.contentFormat == FormatConfiguration.Type.AVRO) {
             return this.avroConfiguration;
+        }
+        if (this.contentFormat == FormatConfiguration.Type.EXCEL) {
+            return this.excelConfiguration;
         }
         throw new IllegalArgumentException(
                 "Wrong value for contentFormat : " + (contentFormat == null ? "null" : this.contentFormat.name()));

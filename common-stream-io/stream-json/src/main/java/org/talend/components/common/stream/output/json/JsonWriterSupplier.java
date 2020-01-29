@@ -13,12 +13,17 @@
 package org.talend.components.common.stream.output.json;
 
 import org.talend.components.common.stream.api.output.RecordWriter;
+import org.talend.components.common.stream.api.output.RecordWriterRepository;
 import org.talend.components.common.stream.api.output.RecordWriterSupplier;
 import org.talend.components.common.stream.api.output.WritableTarget;
 import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.components.common.stream.format.JsonConfiguration;
 
 public class JsonWriterSupplier implements RecordWriterSupplier<byte[]> {
+
+    static {
+        RecordWriterRepository.getInstance().put(JsonConfiguration.class, new JsonWriterSupplier());
+    }
 
     @Override
     public RecordWriter getWriter(WritableTarget<byte[]> target, ContentFormat config) {
