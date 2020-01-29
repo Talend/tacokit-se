@@ -36,7 +36,7 @@ public class FormatConfiguration implements Serializable {
         FIXED,
         JSON_POINTER,
         AVRO,
-        EXCEL;
+        EXCEL
     }
 
     @Option

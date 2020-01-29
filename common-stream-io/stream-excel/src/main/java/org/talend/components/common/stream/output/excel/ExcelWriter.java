@@ -43,7 +43,7 @@ public class ExcelWriter implements RecordWriter {
     }
 
     @Override
-    public void add(Record record) throws IOException {
+    public void add(Record record) {
         if (this.first) {
             this.appendHeader(record);
             this.first = false;
@@ -52,7 +52,7 @@ public class ExcelWriter implements RecordWriter {
     }
 
     @Override
-    public void flush() throws IOException {
+    public void flush() {
     }
 
     @Override

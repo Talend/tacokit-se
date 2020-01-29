@@ -43,7 +43,6 @@ public class RecordToExcel {
     public Row buildHeader(Supplier<Row> constructor, Schema schema) {
         final Row headerRow = constructor.get();
         schema.getEntries()
-                .stream()
                 .forEach((Entry e) -> this.buildHeaderCell(headerRow, e));
         return headerRow;
     }
