@@ -1,3 +1,15 @@
+/*
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.talend.components.common.stream.input.excel;
 
 import java.io.IOException;
@@ -18,7 +30,6 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
 class ExcelReaderSupplierTest {
-
 
     private double idValue = 1.0;
 
@@ -60,12 +71,9 @@ class ExcelReaderSupplierTest {
     }
 
     private void testOneValueFile(String path) throws IOException {
-        try (final InputStream stream = Thread.currentThread()
-                .getContextClassLoader()
-                .getResourceAsStream(path);
-                final RecordReader reader = RecordReaderRepository.getInstance()
-                        .get(ExcelConfiguration.class)
-                        .getReader(factory, config)) {
+        try (final InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
+                final RecordReader reader = RecordReaderRepository.getInstance().get(ExcelConfiguration.class).getReader(factory,
+                        config)) {
 
             final Iterator<Record> records = reader.read(stream);
             for (int i = 0; i < 4; i++) {
@@ -81,8 +89,7 @@ class ExcelReaderSupplierTest {
                 Assert.assertEquals(doubleValue, firstRecord.getDouble("doubleValue"), 0.01);
                 Assert.assertEquals(dateValue, firstRecord.getDouble("dateValue"), 0.01);
                 Assert.assertEquals(booleanValue, firstRecord.getBoolean("booleanValue"));
-            }
-            else {
+            } else {
                 Assert.assertEquals(idValue, firstRecord.getDouble("field0"), 0.01);
                 Assert.assertEquals(nameValue, firstRecord.getString("field1"));
                 Assert.assertEquals(longValue, firstRecord.getDouble("field2"), 0.01);
@@ -95,12 +102,9 @@ class ExcelReaderSupplierTest {
     }
 
     private void testRecordsSize(String path, int nbeRecord) throws IOException {
-        try (final InputStream stream = Thread.currentThread()
-                .getContextClassLoader()
-                .getResourceAsStream(path);
-                final RecordReader reader = RecordReaderRepository.getInstance()
-                        .get(ExcelConfiguration.class)
-                        .getReader(factory, config)) {
+        try (final InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
+                final RecordReader reader = RecordReaderRepository.getInstance().get(ExcelConfiguration.class).getReader(factory,
+                        config)) {
 
             final Iterator<Record> records = reader.read(stream);
             for (int i = 0; i < 4; i++) {
@@ -112,7 +116,6 @@ class ExcelReaderSupplierTest {
             Assertions.assertFalse(records.hasNext(), "more than " + nbeRecord + " records");
         }
     }
-
 
     @Test
     void test1File5RecordsWithoutHeader() throws IOException {
@@ -126,7 +129,7 @@ class ExcelReaderSupplierTest {
     }
 
     private Record ensureNext(Iterator<Record> records, int number) {
-        Assertions.assertTrue(records.hasNext(), "no more record (" + (number+1) + ")");
+        Assertions.assertTrue(records.hasNext(), "no more record (" + (number + 1) + ")");
         final Record record = records.next();
         Assertions.assertNotNull(record);
         return record;
@@ -153,7 +156,6 @@ class ExcelReaderSupplierTest {
         this.testRecordsSize("excel97/excel_97_5_records_with_header.xls", 5);
     }
 
-
     @Test
     void test1File1RecordWithBigHeader() throws IOException {
         this.config.setUseHeader(true);
@@ -176,7 +178,6 @@ class ExcelReaderSupplierTest {
         this.testRecordsSize("excel97/excel_97_5_records_with_big_header.xls", 5);
 
     }
-
 
     @Test
     void test1FileWithFooter() throws IOException {

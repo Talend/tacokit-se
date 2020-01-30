@@ -28,6 +28,15 @@ import lombok.Data;
 @Data
 public class ExcelConfiguration implements ContentFormat {
 
+    static {
+        try {
+            Class.forName("org.talend.components.common.stream.input.excel.ExcelReaderSupplier");
+            Class.forName("org.talend.components.common.stream.output.excel.ExcelWriterSupplier");
+        } catch (ClassNotFoundException e) {
+            // not exist if no dependencies to stream-csv, csv format is not used.
+        }
+    }
+
     public enum ExcelFormat {
         EXCEL2007,
         EXCEL97,

@@ -1,3 +1,15 @@
+/*
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.talend.components.common.stream.output.excel;
 
 import java.sql.Date;
@@ -19,6 +31,7 @@ public class RecordToExcel {
 
     /**
      * Build excel row from record.
+     * 
      * @param constructor : row builder.
      * @param record : record for read values.
      * @return excel row.
@@ -36,19 +49,20 @@ public class RecordToExcel {
 
     /**
      * build excel header from record schema.
+     * 
      * @param constructor : row builder.
      * @param schema: input schema.
      * @return excel row with title.
      */
     public Row buildHeader(Supplier<Row> constructor, Schema schema) {
         final Row headerRow = constructor.get();
-        schema.getEntries()
-                .forEach((Entry e) -> this.buildHeaderCell(headerRow, e));
+        schema.getEntries().forEach((Entry e) -> this.buildHeaderCell(headerRow, e));
         return headerRow;
     }
 
     /**
      * build cell from row & entry.
+     * 
      * @param headerRow : excel row for header.
      * @param entry : record schema entry.
      */
@@ -59,6 +73,7 @@ public class RecordToExcel {
 
     /**
      * Simply add a cell to a row.
+     * 
      * @param row : row it add a cell.
      * @return added cell.
      */
@@ -66,9 +81,7 @@ public class RecordToExcel {
         return row.createCell(row.getPhysicalNumberOfCells());
     }
 
-    private void majCellValue(Cell cell,
-            Record record,
-            Schema.Entry entry) {
+    private void majCellValue(Cell cell, Record record, Schema.Entry entry) {
 
         final String entityName = entry.getName();
         switch (entry.getType()) {
@@ -102,8 +115,7 @@ public class RecordToExcel {
             break;
         default:
             cell.setCellType(CellType.STRING);
-            cell.setCellValue(String
-                    .valueOf(record.get(Object.class, entry.getName())));
+            cell.setCellValue(String.valueOf(record.get(Object.class, entry.getName())));
         }
     }
 }

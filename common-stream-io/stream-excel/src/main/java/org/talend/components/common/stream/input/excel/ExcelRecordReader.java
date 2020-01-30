@@ -1,3 +1,15 @@
+/*
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.talend.components.common.stream.input.excel;
 
 import java.io.IOException;
@@ -31,8 +43,7 @@ public class ExcelRecordReader implements RecordReader {
     /** current reading workbook */
     private Workbook currentWorkBook = null;
 
-    public ExcelRecordReader(ExcelConfiguration configuration,
-            RecordBuilderFactory factory) {
+    public ExcelRecordReader(ExcelConfiguration configuration, RecordBuilderFactory factory) {
         this.configuration = configuration;
         this.toRecord = new ExcelToRecord(factory);
     }
@@ -45,13 +56,10 @@ public class ExcelRecordReader implements RecordReader {
             final Sheet sheet = this.currentWorkBook.getSheet(this.configuration.getSheetName());
             passHeaderRow(sheet);
 
-            return StreamSupport.stream(sheet.spliterator(), false)
-                    .skip(this.configuration.headerSize())
+            return StreamSupport.stream(sheet.spliterator(), false).skip(this.configuration.headerSize())
                     .filter((Row row) -> row.getRowNum() <= sheet.getLastRowNum() - configuration.footerSize())
-                    .map(this.toRecord::toRecord)
-                    .iterator();
-        }
-        catch (IOException exIO) {
+                    .map(this.toRecord::toRecord).iterator();
+        } catch (IOException exIO) {
             log.error("Error while reading excel input", exIO);
             throw new UncheckedIOException("Error while reading excel input", exIO);
         }
@@ -72,8 +80,7 @@ public class ExcelRecordReader implements RecordReader {
             try {
                 this.currentWorkBook.close();
                 this.currentWorkBook = null;
-            }
-            catch (IOException exIO) {
+            } catch (IOException exIO) {
                 log.error("Error while closing excel input", exIO);
                 throw new UncheckedIOException("Error while closing excel input", exIO);
             }

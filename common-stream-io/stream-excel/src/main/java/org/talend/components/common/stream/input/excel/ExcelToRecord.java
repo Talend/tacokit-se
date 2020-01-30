@@ -1,3 +1,15 @@
+/*
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.talend.components.common.stream.input.excel;
 
 import java.util.List;
@@ -20,6 +32,7 @@ public class ExcelToRecord {
     private Schema schema;
 
     static class Column {
+
         final String name;
 
         CellType type;
@@ -96,19 +109,20 @@ public class ExcelToRecord {
                 CellType cellType = column.getRealCellType(record);
 
                 switch (cellType) {
-                    case ERROR:
-                        throw new UnsupportedOperationException("Error cell exists in excel document in the " + (column.index + 1) + " column");
-                    case STRING:
-                        entryBuilder.withType(Schema.Type.STRING);
-                        break;
-                    case NUMERIC:
-                        entryBuilder.withType(Schema.Type.DOUBLE);
-                        break;
-                    case BOOLEAN:
-                        entryBuilder.withType(Schema.Type.BOOLEAN);
-                        break;
-                    default:
-                        throw new IllegalStateException(String.format("Unexpected cell type:%s", cellType.name()));
+                case ERROR:
+                    throw new UnsupportedOperationException(
+                            "Error cell exists in excel document in the " + (column.index + 1) + " column");
+                case STRING:
+                    entryBuilder.withType(Schema.Type.STRING);
+                    break;
+                case NUMERIC:
+                    entryBuilder.withType(Schema.Type.DOUBLE);
+                    break;
+                case BOOLEAN:
+                    entryBuilder.withType(Schema.Type.BOOLEAN);
+                    break;
+                default:
+                    throw new IllegalStateException(String.format("Unexpected cell type:%s", cellType.name()));
                 }
                 schemaBuilder.withEntry(entryBuilder.build());
             }
@@ -117,12 +131,9 @@ public class ExcelToRecord {
         return schema;
     }
 
-
     public List<Column> inferSchemaColumns(Row excelRecord, boolean isHeader) {
-        return StreamSupport.stream(excelRecord.spliterator(), false)
-                .filter(Objects::nonNull)
-                .map((Cell cell) -> this.buildColumn(cell, isHeader))
-                .collect(Collectors.toList());
+        return StreamSupport.stream(excelRecord.spliterator(), false).filter(Objects::nonNull)
+                .map((Cell cell) -> this.buildColumn(cell, isHeader)).collect(Collectors.toList());
     }
 
     private Column buildColumn(Cell cell, boolean isHeader) {

@@ -1,3 +1,15 @@
+/*
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.talend.components.common.stream.output.excel;
 
 import java.io.File;
@@ -50,31 +62,21 @@ class ExcelWriterTest {
         try (ExcelWriter writer = new ExcelWriter(cfg, target)) {
             writer.add(this.buildRecords());
         }
-        Assertions.assertTrue( excelFile.length() > 20,
-                () -> "Length " + excelFile.length() + " is to small");
+        Assertions.assertTrue(excelFile.length() > 20, () -> "Length " + excelFile.length() + " is to small");
     }
 
     Iterable<Record> buildRecords() {
         List<Record> records = new ArrayList<>(3);
-        Record rec1 = this.factory.newRecordBuilder()
-                .withString("firstname", "peter")
-                .withString("lastname", "falker")
-                .withInt("age", 75)
-                .build();
+        Record rec1 = this.factory.newRecordBuilder().withString("firstname", "peter").withString("lastname", "falker")
+                .withInt("age", 75).build();
         records.add(rec1);
 
-        Record rec2 = this.factory.newRecordBuilder()
-                .withString("firstname", "steve")
-                .withString("lastname", "jobs")
-                .withInt("age", 70)
-                .build();
+        Record rec2 = this.factory.newRecordBuilder().withString("firstname", "steve").withString("lastname", "jobs")
+                .withInt("age", 70).build();
         records.add(rec2);
 
-        Record rec3 = this.factory.newRecordBuilder()
-                .withString("firstname", "grigori")
-                .withString("lastname", "perelman")
-                .withInt("age", 55)
-                .build();
+        Record rec3 = this.factory.newRecordBuilder().withString("firstname", "grigori").withString("lastname", "perelman")
+                .withInt("age", 55).build();
         records.add(rec3);
 
         return records;

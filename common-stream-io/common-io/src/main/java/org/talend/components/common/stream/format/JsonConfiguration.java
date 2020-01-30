@@ -27,4 +27,13 @@ public class JsonConfiguration implements ContentFormat {
     @Documentation("json pointer expression")
     private String jsonPointer;
 
+    static {
+        try {
+            Class.forName("org.talend.components.common.stream.input.json.JsonReaderSupplier");
+            Class.forName("org.talend.components.common.stream.output.json.JsonWriterSupplier");
+        } catch (ClassNotFoundException e) {
+            // not exist if no dependencies to stream-csv, csv format is not used.
+        }
+    }
+
 }
