@@ -316,8 +316,8 @@ class Excel97IT extends BaseIT {
         Assert.assertEquals("Records amount is different", recordSize, records.size());
         Record fullRecord = records.get(0);
         Record recordWithEmptyCells = records.get(1);
-        Assert.assertEquals("Record's schema is different", columnSizeForFullRecord, fullRecord.getSchema().getEntries().size());
-        Assert.assertEquals("Record's schema is different", columnSizeForRecordsWithNulls, recordWithEmptyCells.getSchema().getEntries().size());
+        Assert.assertEquals("Column number for row without empty cells is different", columnSizeForFullRecord, fullRecord.getSchema().getEntries().size());
+        Assert.assertEquals("Column number for row with empty cells is different", columnSizeForRecordsWithNulls, recordWithEmptyCells.getSchema().getEntries().size());
     }
 
     @Test
