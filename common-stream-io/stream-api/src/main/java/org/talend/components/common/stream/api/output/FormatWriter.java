@@ -16,15 +16,13 @@ import org.talend.sdk.component.api.record.Record;
 
 public interface FormatWriter<T> {
 
-    default byte[] start(T config) {
-        return this.start(config, null);
-    }
-
     default byte[] start(T config, Record first) {
         return null;
     }
 
-    byte[] between(T config);
+    default byte[] between(T config) {
+        return null;
+    }
 
     default byte[] end(T config) {
         return null;

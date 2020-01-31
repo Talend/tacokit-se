@@ -13,13 +13,9 @@
 package org.talend.components.common.stream.api.output;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
-public interface WritableTarget<T> extends AutoCloseable {
+public interface TargetFinder {
 
-    void write(T data) throws IOException;
-
-    void flush() throws IOException;
-
-    @Override
-    void close() throws IOException;
+    OutputStream find() throws IOException;
 }

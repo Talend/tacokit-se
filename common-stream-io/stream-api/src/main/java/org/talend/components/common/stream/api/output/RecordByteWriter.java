@@ -13,6 +13,8 @@
 package org.talend.components.common.stream.api.output;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 
 import org.talend.sdk.component.api.record.Record;
 
@@ -25,16 +27,23 @@ public class RecordByteWriter<T> implements RecordWriter {
 
     private final T config;
 
-    private final WritableTarget<byte[]> target;
+    private final TargetFinder target;
+
+    private final OutputStream out;
 
     protected boolean first = true;
 
-    public RecordByteWriter(RecordConverter<byte[], byte[]> converter, FormatWriter<T> format, T config,
-            WritableTarget<byte[]> target) {
+    public RecordByteWriter(RecordConverter<byte[], byte[]> converter, FormatWriter<T> format, T config, TargetFinder target) {
         this.converter = converter;
         this.format = format;
         this.config = config;
         this.target = target;
+
+        try {
+            this.out = this.target.find();
+        } catch (IOException ex) {
+            throw new UncheckedIOException("", ex);
+        }
     }
 
     @Override
@@ -52,18 +61,18 @@ public class RecordByteWriter<T> implements RecordWriter {
 
     protected void write(byte[] data) throws IOException {
         if (data != null && data.length > 0) {
-            this.target.write(data);
+            this.out.write(data);
         }
     }
 
     @Override
     public void flush() throws IOException {
-        this.target.flush();
+        this.out.flush();
     }
 
     @Override
     public void close() throws IOException {
-        this.target.close();
+        this.out.close();
     }
 
     protected byte[] firstOrBetween(Record record) {

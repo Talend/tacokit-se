@@ -14,8 +14,7 @@ package org.talend.components.common.stream.output.csv;
 
 import org.talend.components.common.stream.CSVHelper;
 import org.talend.components.common.stream.api.output.RecordByteWriter;
-import org.talend.components.common.stream.api.output.RecordWriterRepository;
-import org.talend.components.common.stream.api.output.WritableTarget;
+import org.talend.components.common.stream.api.output.TargetFinder;
 import org.talend.components.common.stream.format.CSVConfiguration;
 
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CSVRecordWriter extends RecordByteWriter {
 
-    public CSVRecordWriter(CSVConfiguration config, WritableTarget<byte[]> out) {
+    public CSVRecordWriter(CSVConfiguration config, TargetFinder out) {
         super(new CSVRecordConverter(CSVHelper.getCsvFormat(config)), new CSVFormatWriter(), config, out);
     }
 

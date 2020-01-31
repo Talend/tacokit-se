@@ -18,18 +18,18 @@ import org.talend.components.common.stream.api.output.RecordConverter;
 import org.talend.components.common.stream.api.output.RecordWriter;
 import org.talend.components.common.stream.api.output.RecordWriterRepository;
 import org.talend.components.common.stream.api.output.RecordWriterSupplier;
-import org.talend.components.common.stream.api.output.WritableTarget;
+import org.talend.components.common.stream.api.output.TargetFinder;
 import org.talend.components.common.stream.format.AvroConfiguration;
 import org.talend.components.common.stream.format.ContentFormat;
 
-public class AvroWriterSupplier implements RecordWriterSupplier<GenericRecord> {
+public class AvroWriterSupplier implements RecordWriterSupplier {
 
     static {
         RecordWriterRepository.getInstance().put(AvroConfiguration.class, new AvroWriterSupplier());
     }
 
     @Override
-    public RecordWriter getWriter(WritableTarget<GenericRecord> target, ContentFormat config) {
+    public RecordWriter getWriter(TargetFinder target, ContentFormat config) {
 
         final RecordConverter<GenericRecord, Schema> converter = new RecordToAvro("records");
         return new AvroRecordWriter(converter, target);

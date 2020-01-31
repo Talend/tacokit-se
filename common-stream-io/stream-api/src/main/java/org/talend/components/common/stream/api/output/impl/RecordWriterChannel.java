@@ -12,6 +12,7 @@
  */
 package org.talend.components.common.stream.api.output.impl;
 
+import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 
 import org.talend.components.common.stream.api.output.FormatWriter;
@@ -25,7 +26,7 @@ public class RecordWriterChannel<T> extends RecordByteWriter<T> {
 
     public RecordWriterChannel(RecordConverter<byte[], byte[]> converter, WritableByteChannel out, FormatWriter<T> format,
             T config) {
-        super(converter, format, config, new ChannelTarget(out));
+        super(converter, format, config, () -> Channels.newOutputStream(out));
     }
 
 }

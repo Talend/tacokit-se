@@ -21,6 +21,10 @@ import java.util.Arrays;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.talend.components.common.stream.api.output.RecordWriter;
+import org.talend.components.common.stream.api.output.RecordWriterRepository;
+import org.talend.components.common.stream.api.output.RecordWriterSupplier;
+import org.talend.components.common.stream.format.AvroConfiguration;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.record.Schema.Type;
@@ -39,9 +43,12 @@ class AvroRecordWriterTest {
 
     @Test
     void add() throws IOException {
-        AvroTarget target = new AvroTarget(out);
+        AvroConfiguration cfg = new AvroConfiguration();
+        final RecordWriterSupplier writerSupplier = RecordWriterRepository.getInstance().get(AvroConfiguration.class);
+
         RecordToAvro toAvro = new RecordToAvro("test");
-        AvroRecordWriter writer = new AvroRecordWriter(toAvro, target);
+
+        RecordWriter writer = writerSupplier.getWriter(() -> out, cfg);
         prepareTestRecords();
         writer.add(versatileRecord);
         writer.add(complexRecord);
@@ -61,7 +68,7 @@ class AvroRecordWriterTest {
                 .withInt("int", 71) //
                 .withBoolean("boolean", true) //
                 .withLong("long", 1971L) //
-                .withDateTime("datetime", LocalDateTime.of(2019, 04, 22, 0, 0).atZone(ZoneOffset.UTC)) //
+                .withDateTime("datetime", LocalDateTime.of(2019, 4, 22, 0, 0).atZone(ZoneOffset.UTC)) //
                 .withFloat("float", 20.5f) //
                 .withDouble("double", 20.5) //
                 .build();

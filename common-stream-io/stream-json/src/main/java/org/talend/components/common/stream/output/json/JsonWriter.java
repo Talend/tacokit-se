@@ -14,8 +14,7 @@ package org.talend.components.common.stream.output.json;
 
 import org.talend.components.common.stream.api.output.FormatWriter;
 import org.talend.components.common.stream.api.output.RecordByteWriter;
-import org.talend.components.common.stream.api.output.RecordWriterRepository;
-import org.talend.components.common.stream.api.output.WritableTarget;
+import org.talend.components.common.stream.api.output.TargetFinder;
 import org.talend.components.common.stream.format.JsonConfiguration;
 import org.talend.sdk.component.api.record.Record;
 
@@ -24,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class JsonWriter extends RecordByteWriter<JsonConfiguration> {
 
-    public JsonWriter(JsonConfiguration config, WritableTarget<byte[]> target) {
+    public JsonWriter(JsonConfiguration config, TargetFinder target) {
         super(new RecordToByte(), new JsonFormatWriter(), config, target);
     }
 

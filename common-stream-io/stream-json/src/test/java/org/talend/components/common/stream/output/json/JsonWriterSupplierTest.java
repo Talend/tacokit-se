@@ -19,14 +19,11 @@ import java.io.IOException;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonStructure;
-import javax.json.JsonValue;
 import javax.json.JsonValue.ValueType;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.output.RecordWriter;
-import org.talend.components.common.stream.api.output.WritableTarget;
-import org.talend.components.common.stream.api.output.impl.OutputStreamTarget;
 import org.talend.components.common.stream.format.JsonConfiguration;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -41,8 +38,7 @@ class JsonWriterSupplierTest {
         final JsonConfiguration configuration = new JsonConfiguration();
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        WritableTarget<byte[]> target = new OutputStreamTarget(out);
-        final RecordWriter writer = supplier.getWriter(target, configuration);
+        final RecordWriter writer = supplier.getWriter(() -> out, configuration);
         writer.init(configuration);
 
         RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");

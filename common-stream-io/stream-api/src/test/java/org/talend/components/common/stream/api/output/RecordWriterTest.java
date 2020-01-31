@@ -17,68 +17,90 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.talend.components.common.stream.api.output.impl.RecordWriterChannel;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 
 class RecordWriterTest {
 
     private static final String recordString = "unusefull tests datas [...............]\n";
 
-    /*
-     * @Test
-     * void writeOutputStream() throws IOException {
-     * final RecordWriterChannel writer = new RecordWriterChannel(this::serialize);
-     * final ByteArrayOutputStream out = new ByteArrayOutputStream();
-     * writer.write(out, (Record) null);
-     * 
-     * String res = out.toString();
-     * Assertions.assertEquals(RecordWriterTest.recordString, res);
-     * }
-     */
+    @Test
+    void testCollectionOutputStream() throws IOException {
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        FormatWriter<String> fw = new FormatWriter<String>() {
+        };
 
-    /*
-     * @Test
-     * void testCollectionOutputStream() throws IOException {
-     * final RecordWriterChannel writer = new RecordWriterChannel(this::serialize);
-     * final List<Record> records = Arrays.asList((Record) null, (Record) null, (Record) null);
-     * final ByteArrayOutputStream out = new ByteArrayOutputStream();
-     * writer.write(out, records);
-     * 
-     * String res = out.toString();
-     * Assertions.assertEquals(res.length(), RecordWriterTest.recordString.length() * 3);
-     * }
-     */
+        final RecordByteWriter writer = new RecordByteWriter<>(new TestRecConverter(), fw, "", () -> out);
 
-    /*
-     * @Test
-     * void testWriteChannel() throws IOException {
-     * final RecordWriterChannel writer = new RecordWriterChannel(this::serialize);
-     * TestWritableChannel out = new TestWritableChannel();
-     * writer.write(out, (Record) null);
-     * 
-     * String res = out.getContent();
-     * Assertions.assertEquals(RecordWriterTest.recordString, res);
-     * }
-     */
+        final List<Record> records = Arrays.asList((Record) null, (Record) null, (Record) null);
+        writer.add(records);
 
-    /*
-     * @Test
-     * void testWriteCollectionChannel() throws IOException {
-     * final List<Record> records = new ArrayList<>(1000); // sure to over default limit.
-     * for (int i = 0; i < 1000; i++) {
-     * records.add(null);
-     * }
-     * 
-     * final RecordWriterChannel writer = new RecordWriterChannel(this::serialize);
-     * TestWritableChannel out = new TestWritableChannel();
-     * writer.write(out, records);
-     * String res = out.getContent();
-     * Assertions.assertEquals(res.length(), RecordWriterTest.recordString.length() * 1000);
-     * }
-     */
+        String res = out.toString();
+        Assertions.assertEquals(res.length(), RecordWriterTest.recordString.length() * 3);
+    }
+
+    @Test
+    void testSpecific() throws IOException {
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        FormatWriter<String> fw = new FormatWriter<String>() {
+
+            @Override
+            public byte[] start(String config, Record record) {
+                return "{".getBytes();
+            }
+
+            @Override
+            public byte[] between(String config) {
+                return ",".getBytes();
+            }
+
+            @Override
+            public byte[] end(String config) {
+                return "}".getBytes();
+            }
+        };
+
+        final RecordByteWriter writer = new RecordByteWriter<>(new TestRecConverter("record"), fw, "", () -> out);
+
+        final List<Record> records = Arrays.asList((Record) null, (Record) null, (Record) null);
+        writer.add(records);
+        writer.end();
+        String res = out.toString();
+        Assertions.assertEquals("{record,record,record}", res);
+    }
 
     private byte[] serialize(Record record) {
         return RecordWriterTest.recordString.getBytes(Charset.defaultCharset());
+    }
+
+    static class TestRecConverter implements RecordConverter<byte[], byte[]> {
+
+        final String data;
+
+        public TestRecConverter() {
+            this(RecordWriterTest.recordString);
+        }
+
+        public TestRecConverter(String data) {
+            this.data = data;
+        }
+
+        @Override
+        public byte[] fromRecord(Record record) {
+            return data.getBytes();
+        }
+
+        @Override
+        public byte[] fromRecordSchema(Schema record) {
+            return "Schema".getBytes();
+        }
     }
 
     static class TestWritableChannel implements WritableByteChannel {

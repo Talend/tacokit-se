@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.output.RecordWriter;
 import org.talend.components.common.stream.api.output.RecordWriterRepository;
 import org.talend.components.common.stream.api.output.RecordWriterSupplier;
-import org.talend.components.common.stream.api.output.impl.OutputStreamTarget;
 import org.talend.components.common.stream.format.CSVConfiguration;
 import org.talend.components.common.stream.format.LineConfiguration;
 import org.talend.sdk.component.api.record.Record;
@@ -33,10 +32,7 @@ class CSVRecordWriterTest {
 
     @Test
     public void writeCSV() throws IOException {
-        CSVWriterSupplier supplier = new CSVWriterSupplier();
-
-        final RecordWriterSupplier<byte[]> recordWriterSupplier = (RecordWriterSupplier<byte[]>) RecordWriterRepository
-                .getInstance().get(CSVConfiguration.class);
+        final RecordWriterSupplier recordWriterSupplier = RecordWriterRepository.getInstance().get(CSVConfiguration.class);
 
         final CSVConfiguration config = new CSVConfiguration();
         config.setLineConfiguration(new LineConfiguration());
@@ -46,8 +42,7 @@ class CSVRecordWriterTest {
         config.setQuotedValue('"');
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        final OutputStreamTarget target = new OutputStreamTarget(out);
-        final RecordWriter writer = recordWriterSupplier.getWriter(target, config);
+        final RecordWriter writer = recordWriterSupplier.getWriter(() -> out, config);
 
         writer.init(config);
 

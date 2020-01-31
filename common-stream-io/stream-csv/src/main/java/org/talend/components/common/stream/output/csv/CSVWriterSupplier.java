@@ -15,20 +15,20 @@ package org.talend.components.common.stream.output.csv;
 import org.talend.components.common.stream.api.output.RecordWriter;
 import org.talend.components.common.stream.api.output.RecordWriterRepository;
 import org.talend.components.common.stream.api.output.RecordWriterSupplier;
-import org.talend.components.common.stream.api.output.WritableTarget;
+import org.talend.components.common.stream.api.output.TargetFinder;
 import org.talend.components.common.stream.format.CSVConfiguration;
 import org.talend.components.common.stream.format.ContentFormat;
 
-public class CSVWriterSupplier implements RecordWriterSupplier<byte[]> {
+public class CSVWriterSupplier implements RecordWriterSupplier {
 
     static {
         RecordWriterRepository.getInstance().put(CSVConfiguration.class, new CSVWriterSupplier());
     }
 
     @Override
-    public RecordWriter getWriter(WritableTarget<byte[]> target, ContentFormat config) {
+    public RecordWriter getWriter(TargetFinder target, ContentFormat config) {
         assert config instanceof CSVConfiguration : "csv reader not with csv config";
-        CSVConfiguration csvConfig = (CSVConfiguration) config;
+        final CSVConfiguration csvConfig = (CSVConfiguration) config;
 
         return new CSVRecordWriter(csvConfig, target);
     }

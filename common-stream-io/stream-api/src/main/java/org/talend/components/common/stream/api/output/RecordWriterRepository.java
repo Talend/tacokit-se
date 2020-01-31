@@ -19,7 +19,7 @@ import org.talend.components.common.stream.format.ContentFormat;
 
 public class RecordWriterRepository {
 
-    private ConcurrentMap<Class<? extends ContentFormat>, RecordWriterSupplier<?>> suppliers = new ConcurrentHashMap<>();
+    private ConcurrentMap<Class<? extends ContentFormat>, RecordWriterSupplier> suppliers = new ConcurrentHashMap<>();
 
     private RecordWriterRepository() {
     }
@@ -36,11 +36,11 @@ public class RecordWriterRepository {
         return RecordWriterRepository.RepositoryHolder.instance;
     }
 
-    public <T extends ContentFormat, U> void put(Class<T> configClazz, RecordWriterSupplier<U> factory) {
+    public <T extends ContentFormat> void put(Class<T> configClazz, RecordWriterSupplier factory) {
         this.suppliers.put(configClazz, factory);
     }
 
-    public <T extends ContentFormat> RecordWriterSupplier<?> get(Class<T> configClazz) {
+    public <T extends ContentFormat> RecordWriterSupplier get(Class<T> configClazz) {
         return this.suppliers.get(configClazz);
     }
 

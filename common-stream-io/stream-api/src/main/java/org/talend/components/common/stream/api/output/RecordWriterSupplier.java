@@ -14,8 +14,11 @@ package org.talend.components.common.stream.api.output;
 
 import org.talend.components.common.stream.format.ContentFormat;
 
-public interface RecordWriterSupplier<U> {
+public interface RecordWriterSupplier {
 
-    RecordWriter getWriter(WritableTarget<U> target, ContentFormat config);
+    RecordWriter getWriter(TargetFinder target, ContentFormat config);
 
+    default RecordWriter getWriter(TargetFinder target, ContentFormat config, Object extraParameter) {
+        return this.getWriter(target, config);
+    }
 }

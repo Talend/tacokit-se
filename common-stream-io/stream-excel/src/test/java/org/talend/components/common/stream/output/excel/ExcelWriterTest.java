@@ -19,18 +19,15 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.talend.components.common.stream.api.output.WritableTarget;
+import org.talend.components.common.stream.api.output.TargetFinder;
 import org.talend.components.common.stream.format.Encoding;
 import org.talend.components.common.stream.format.ExcelConfiguration;
 import org.talend.components.common.stream.format.ExcelConfiguration.ExcelFormat;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class ExcelWriterTest {
 
@@ -56,8 +53,7 @@ class ExcelWriterTest {
             excelFile.delete();
         }
         excelFile.createNewFile();
-        final FileOutputStream out = new FileOutputStream(excelFile);
-        final WritableTarget<Workbook> target = new ExcelTarget(out);
+        final TargetFinder target = () -> new FileOutputStream(excelFile);
 
         try (ExcelWriter writer = new ExcelWriter(cfg, target)) {
             writer.add(this.buildRecords());

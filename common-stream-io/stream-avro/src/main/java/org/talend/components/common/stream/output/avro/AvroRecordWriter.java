@@ -14,37 +14,50 @@ package org.talend.components.common.stream.output.avro;
 
 import java.io.IOException;
 
+import org.apache.avro.file.DataFileWriter;
+import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.DatumWriter;
 import org.talend.components.common.stream.api.output.RecordConverter;
 import org.talend.components.common.stream.api.output.RecordWriter;
-import org.talend.components.common.stream.api.output.WritableTarget;
+import org.talend.components.common.stream.api.output.TargetFinder;
 import org.talend.sdk.component.api.record.Record;
 
 public class AvroRecordWriter implements RecordWriter {
 
     private final RecordConverter<GenericRecord, org.apache.avro.Schema> converter;
 
-    private final WritableTarget<GenericRecord> destination;
+    private final TargetFinder destination;
 
-    public AvroRecordWriter(RecordConverter<GenericRecord, org.apache.avro.Schema> converter,
-            WritableTarget<GenericRecord> destination) {
+    private final DataFileWriter<GenericRecord> dataFileWriter;
+
+    private boolean first = true;
+
+    public AvroRecordWriter(RecordConverter<GenericRecord, org.apache.avro.Schema> converter, TargetFinder destination) {
         this.converter = converter;
         this.destination = destination;
+
+        final DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>();
+        this.dataFileWriter = new DataFileWriter<>(datumWriter);
     }
 
     @Override
     public void add(Record record) throws IOException {
         final GenericRecord avroRecord = converter.fromRecord(record);
-        this.destination.write(avroRecord);
+        if (this.first) {
+            this.dataFileWriter.create(avroRecord.getSchema(), this.destination.find());
+            this.first = false;
+        }
+        this.dataFileWriter.append(avroRecord);
     }
 
     @Override
     public void flush() throws IOException {
-        this.destination.flush();
+        this.dataFileWriter.flush();
     }
 
     @Override
     public void close() throws IOException {
-        this.destination.close();
+        this.dataFileWriter.close();
     }
 }

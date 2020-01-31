@@ -20,4 +20,7 @@ public interface RecordReaderSupplier {
 
     RecordReader getReader(RecordBuilderFactory factory, ContentFormat config);
 
+    default RecordReader getReader(RecordBuilderFactory factory, ContentFormat config, Object extraParameter) {
+        return this.getReader(factory, config);
+    }
 }

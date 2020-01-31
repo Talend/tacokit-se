@@ -13,6 +13,7 @@
 package org.talend.components.common.stream.output.excel;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -20,14 +21,14 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.talend.components.common.stream.ExcelUtils;
 import org.talend.components.common.stream.api.output.RecordWriter;
-import org.talend.components.common.stream.api.output.WritableTarget;
+import org.talend.components.common.stream.api.output.TargetFinder;
 import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.components.common.stream.format.ExcelConfiguration;
 import org.talend.sdk.component.api.record.Record;
 
 public class ExcelWriter implements RecordWriter {
 
-    private final WritableTarget<Workbook> target;
+    private final TargetFinder target;
 
     private final RecordToExcel toExcel;
 
@@ -39,7 +40,8 @@ public class ExcelWriter implements RecordWriter {
 
     private boolean first = true;
 
-    public ExcelWriter(ExcelConfiguration configuration, WritableTarget<Workbook> target) {
+    public ExcelWriter(ExcelConfiguration configuration,
+                       TargetFinder target) {
 
         this.target = target;
         this.toExcel = new RecordToExcel();
@@ -69,8 +71,9 @@ public class ExcelWriter implements RecordWriter {
     @Override
     public void close() throws IOException {
         this.appendFooter();
-        this.target.write(this.excelWorkbook);
-        this.target.close();
+        try (final OutputStream outputStream = this.target.find()) {
+            this.excelWorkbook.write(outputStream);
+        }
     }
 
     private void appendHeader(Record firstDataRecord) {

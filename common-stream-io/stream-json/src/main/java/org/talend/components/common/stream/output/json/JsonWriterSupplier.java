@@ -15,18 +15,18 @@ package org.talend.components.common.stream.output.json;
 import org.talend.components.common.stream.api.output.RecordWriter;
 import org.talend.components.common.stream.api.output.RecordWriterRepository;
 import org.talend.components.common.stream.api.output.RecordWriterSupplier;
-import org.talend.components.common.stream.api.output.WritableTarget;
+import org.talend.components.common.stream.api.output.TargetFinder;
 import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.components.common.stream.format.JsonConfiguration;
 
-public class JsonWriterSupplier implements RecordWriterSupplier<byte[]> {
+public class JsonWriterSupplier implements RecordWriterSupplier {
 
     static {
         RecordWriterRepository.getInstance().put(JsonConfiguration.class, new JsonWriterSupplier());
     }
 
     @Override
-    public RecordWriter getWriter(WritableTarget<byte[]> target, ContentFormat config) {
+    public RecordWriter getWriter(TargetFinder target, ContentFormat config) {
         assert config instanceof JsonConfiguration : "json reader not with json config";
         final JsonConfiguration jsonConfig = (JsonConfiguration) config;
 

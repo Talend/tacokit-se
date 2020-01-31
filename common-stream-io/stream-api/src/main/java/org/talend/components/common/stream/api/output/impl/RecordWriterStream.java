@@ -21,8 +21,7 @@ import org.talend.components.common.stream.api.output.RecordConverter;
 public class RecordWriterStream<T> extends RecordByteWriter<T> {
 
     public RecordWriterStream(RecordConverter<byte[], byte[]> converter, OutputStream out, FormatWriter<T> format, T config) {
-        super(converter, format, config, new OutputStreamTarget(out));
-
+        super(converter, format, config, () -> out);
     }
 
 }
