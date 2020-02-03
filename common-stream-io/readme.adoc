@@ -9,11 +9,8 @@ This module enable to treat content file format and separate this logic from fil
 First step is to define a configuration class for each schema our module will treat. Most common schema (fixed, csv, excel, json, avro) are already defined on common-io module (each configuration class must implements ContentFormat interface).
 
 Then, defined a global format class that integrate all formats treat by your module, like for FormatConfiguration class.
-[source,java]
-----
-include::./common-io/src/main/java/org/talend/components/common/stream/format/FormatConfiguration.java[]
-----
 
+link:common-io/src/main/java/org/talend/components/common/stream/format/FormatConfiguration.java[FormatConfiguration]
 
 
 ==== Input data.
@@ -43,13 +40,7 @@ public interface RecordReader extends AutoCloseable {
 }
 ----
 
-- Define an implemantation of RecordReaderSupplier interface, that is a builder for RecordReader implementation, and register it to RecordReaderRepository (here, example for json).
-[source,java]
-----
-static {
-    RecordReaderRepository.getInstance().put(JsonConfiguration.class, new JsonReaderSupplier());
-}
-----
+- Define an implemantation of RecordReaderSupplier interface, that is a builder for RecordReader instance
 
 [source,java]
 ----
@@ -64,6 +55,14 @@ public interface RecordReaderSupplier {
 }
 ----
 
+and register it to RecordReaderRepository (here, example for json).
+[source,java]
+----
+static {
+    RecordReaderRepository.getInstance().put(JsonConfiguration.class, new JsonReaderSupplier());
+}
+----
+
 Then, on defined configuration class, register the RecordReaderSupplier class
 
 [source,java]
@@ -71,9 +70,7 @@ Then, on defined configuration class, register the RecordReaderSupplier class
 static {
     try {
         Class.forName("org.talend.components...MyReaderSupplier");
-    } catch (ClassNotFoundException e) {
-            
-    }
+    } catch (ClassNotFoundException e) { }
 }
 ----
 
@@ -86,9 +83,7 @@ Find the content format chose by user and get the corresponding record reader :
 [source,java]
 ----
     ContentFormat format = dataset.....findFormat();
-
     final RecordReaderSupplier recordReaderSupplier = RecordReaderRepository.getInstance().get(format.getClass());
-
     this.recordReader = recordReaderSupplier.getReader(this.factory, format);
 ----
 
@@ -121,9 +116,7 @@ include::./stream-json/src/main/java/org/talend/components/common/stream/output/
 static {
     try {
         Class.forName("org.talend.components...MyWriterSupplier");
-    } catch (ClassNotFoundException e) {
-            
-    }
+    } catch (ClassNotFoundException e) { }
 }
 ----
 
