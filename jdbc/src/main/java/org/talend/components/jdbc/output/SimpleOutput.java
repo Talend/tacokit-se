@@ -33,7 +33,7 @@ import java.io.Serializable;
 @Getter
 @Version
 @Processor(name = "Output")
-@Icon(value = Icon.IconType.DATASTORE)
+@Icon(value = Icon.IconType.CUSTOM, custom = "datastore")
 @Documentation("JDBC Output component")
 public class SimpleOutput extends Output implements Serializable {
 

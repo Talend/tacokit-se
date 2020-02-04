@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Version
-@Icon(value = Icon.IconType.FILE_SALESFORCE)
+@Icon(value = Icon.IconType.CUSTOM, custom = "file-salesforce-in")
 @Emitter(name = "ModuleQueryInput")
 @Documentation("Salesforce module query input ")
 public class ModuleQueryEmitter extends AbstractQueryEmitter implements Serializable {

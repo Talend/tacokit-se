@@ -28,7 +28,7 @@ import java.util.stream.LongStream;
 import static java.util.stream.Collectors.toList;
 
 @Version
-@Icon(Icon.IconType.SAMPLE)
+@Icon(value = Icon.IconType.CUSTOM, custom = "sample")
 @PartitionMapper(name = "RowGenerator", family = "jdbcTest")
 public class RowGeneratorMapper implements Serializable {
 

@@ -110,6 +110,9 @@
         <!-- The XTM customer id that manage the translation of this project-->
         <xtm.customer.id>12240076</xtm.customer.id>
         <xtm.api.url>https://www.xtm-cloud.com/rest-api</xtm.api.url>
+
+        <!-- needed workaround for generate png icons from svg ones -->
+        <talend.icons.workaround>true</talend.icons.workaround>
     </properties>
 
     <dependencyManagement>
@@ -401,6 +404,13 @@
                 <artifactId>talend-component-maven-plugin</artifactId>
                 <version>${component-runtime.version}</version>
                 <executions>
+                    <execution>
+                        <id>talend-svg2png</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>svg2png</goal>
+                        </goals>
+                    </execution>
                     <execution>
                         <id>talend-dita-documentation</id>
                         <phase>process-classes</phase>
