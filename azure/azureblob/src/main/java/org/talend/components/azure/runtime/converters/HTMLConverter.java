@@ -59,8 +59,8 @@ public class HTMLConverter implements RecordConverter<Element> {
 
         Record.Builder builder = recordBuilderFactory.newRecordBuilder();
         Elements rowColumns = record.getAllElements();
-        for (int i = 0; i < rowColumns.size(); i++) {
-            builder.withString(columns.getEntries().get(i).getName(), rowColumns.get(i).text());
+        for (int i = 1; i < rowColumns.size(); i++) {
+            builder.withString(columns.getEntries().get(i - 1).getName(), rowColumns.get(i).text());
         }
         return builder.build();
     }
@@ -75,10 +75,10 @@ public class HTMLConverter implements RecordConverter<Element> {
         Set<String> existNames = new HashSet<>();
         int index = 0;
         Elements columns = row.getAllElements();
-        for (int i = 0; i < columns.size(); i++) {
+        for (int i = 1; i < columns.size(); i++) { //skip first element since it would be the whole row
             String fieldName = columns.get(i).ownText();
             if (useDefaultFieldName || StringUtils.isEmpty(fieldName)) {
-                fieldName = "field" + i;
+                fieldName = "field" + (i - 1);
             }
 
             String finalName = SchemaUtils.correct(fieldName, index++, existNames);

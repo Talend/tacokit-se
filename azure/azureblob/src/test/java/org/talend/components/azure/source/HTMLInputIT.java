@@ -116,6 +116,8 @@ class HTMLInputIT extends BaseIT {
 
     @Test
     void testInputHTMLExportedFromSalesforce() throws StorageException, IOException, URISyntaxException {
+        final int recordSize = 7;
+        final int columnSize = 7;
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excelHTML/realSalesforceExportedHTML.html",
                 "realSalesforceExportedHTML.html");
 
@@ -124,6 +126,7 @@ class HTMLInputIT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        System.out.println(records);
+        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assert.assertEquals("Record's column amount is different", columnSize, records.get(0).getSchema().getEntries().size());
     }
 }
