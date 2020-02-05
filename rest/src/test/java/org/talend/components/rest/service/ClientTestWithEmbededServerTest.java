@@ -29,6 +29,8 @@ import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestBody;
 import org.talend.components.rest.configuration.RequestConfig;
+import org.talend.components.rest.service.client.ContentType;
+import org.talend.components.rest.virtual.ComplexRestConfiguration;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
@@ -80,7 +82,7 @@ public class ClientTestWithEmbededServerTest {
     @Service
     RestService service;
 
-    private RequestConfig config;
+    private ComplexRestConfiguration config;
 
     private boolean followRedirects_backup;
 
@@ -94,10 +96,10 @@ public class ClientTestWithEmbededServerTest {
         HttpURLConnection.setFollowRedirects(false);
 
         config = RequestConfigBuilderTest.getEmptyRequestConfig();
-        config.getDataset().getDatastore().setBase("http://localhost");
+        config.getRestConfiguration().getDataset().getDatastore().setBase("http://localhost");
 
-        config.getDataset().getDatastore().setReadTimeout(CONNECTION_TIMEOUT);
-        config.getDataset().getDatastore().setReadTimeout(READ_TIMEOUT);
+        config.getRestConfiguration().getDataset().getDatastore().setReadTimeout(CONNECTION_TIMEOUT);
+        config.getRestConfiguration().getDataset().getDatastore().setReadTimeout(READ_TIMEOUT);
 
         // start server
         server = HttpServer.create(new InetSocketAddress(0), 0);
@@ -127,14 +129,14 @@ public class ClientTestWithEmbededServerTest {
         Path resourceDirectory = Paths.get(filename);
         String content = Files.lines(resourceDirectory).collect(Collectors.joining("\n"));
 
-        config.getDataset().getDatastore().setBase("http://localhost:" + port);
-        config.getDataset().setResource("post");
-        config.getDataset().setMethodType(HttpMethod.valueOf(method));
-        config.getDataset().setHasBody(true);
+        config.getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getRestConfiguration().getDataset().setResource("post");
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.valueOf(method));
+        config.getRestConfiguration().getDataset().setHasBody(true);
 
         RequestBody.Type bodyType = RequestBody.Type.valueOf(type);
-        config.getDataset().getBody().setType(bodyType);
-        config.getDataset().getBody().setTextContent(content);
+        config.getRestConfiguration().getDataset().getBody().setType(bodyType);
+        config.getRestConfiguration().getDataset().getBody().setTextContent(content);
 
         final AtomicReference<String> requestContentType = new AtomicReference<>();
         this.setServerContextAndStart(httpExchange -> {
@@ -155,7 +157,7 @@ public class ClientTestWithEmbededServerTest {
             os.close();
         });
 
-        Record resp = service.execute(config);
+        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
 
         Collection<Record> headers = resp.getArray(Record.class, "headers");
         String requestMethod = headers.stream().filter(e -> "Method".equals(e.getString("key"))).findFirst()
@@ -180,17 +182,18 @@ public class ClientTestWithEmbededServerTest {
 
         final String forcedContentType = "text/forced; charset=utf8";
 
-        config.getDataset().getDatastore().setBase("http://localhost:" + port);
-        config.getDataset().setResource("post");
-        config.getDataset().setMethodType(HttpMethod.valueOf(method));
-        config.getDataset().setHasBody(true);
+        config.getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getRestConfiguration().getDataset().setResource("post");
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.valueOf(method));
+        config.getRestConfiguration().getDataset().setHasBody(true);
 
-        config.getDataset().setHasHeaders(true);
-        config.getDataset().setHeaders(Collections.singletonList(new Param("Content-Type", forcedContentType)));
+        config.getRestConfiguration().getDataset().setHasHeaders(true);
+        config.getRestConfiguration().getDataset()
+                .setHeaders(Collections.singletonList(new Param("Content-Type", forcedContentType)));
 
         RequestBody.Type bodyType = RequestBody.Type.valueOf(type);
-        config.getDataset().getBody().setType(bodyType);
-        config.getDataset().getBody().setTextContent(content);
+        config.getRestConfiguration().getDataset().getBody().setType(bodyType);
+        config.getRestConfiguration().getDataset().getBody().setTextContent(content);
 
         final AtomicReference<String> requestContentType = new AtomicReference<>();
         this.setServerContextAndStart(httpExchange -> {
@@ -211,7 +214,7 @@ public class ClientTestWithEmbededServerTest {
             os.close();
         });
 
-        Record resp = service.execute(config);
+        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
 
         Collection<Record> headers = resp.getArray(Record.class, "headers");
         String requestMethod = headers.stream().filter(e -> "Method".equals(e.getString("key"))).findFirst()
@@ -256,13 +259,13 @@ public class ClientTestWithEmbededServerTest {
             os.close();
         });
 
-        config.getDataset().getDatastore().setBase("http://localhost:" + port);
-        config.getDataset().setResource("redirection");
-        config.getDataset().setMethodType(HttpMethod.valueOf(method));
-        config.getDataset().setMaxRedirect(-1);
-        config.getDataset().setForce_302_redirect(forceGet);
+        config.getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getRestConfiguration().getDataset().setResource("redirection");
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.valueOf(method));
+        config.getRestConfiguration().getDataset().setMaxRedirect(-1);
+        config.getRestConfiguration().getDataset().setForce_302_redirect(forceGet);
 
-        Record resp = service.execute(config);
+        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
 
         assertEquals(200, resp.getInt("status"));
         assertEquals(method, calls.get(0).getMethod());
@@ -301,18 +304,19 @@ public class ClientTestWithEmbededServerTest {
             os.close();
         });
 
-        config.getDataset().getDatastore().setBase("http://localhost:" + port);
-        config.getDataset().setMethodType(HttpMethod.POST);
+        config.getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.POST);
 
-        config.getDataset().setHasBody(true);
-        config.getDataset().getBody().setType(RequestBody.Type.TEXT);
+        config.getRestConfiguration().getDataset().setHasBody(true);
+        config.getRestConfiguration().getDataset().getBody().setType(RequestBody.Type.TEXT);
 
-        config.getDataset().getBody().setTextContent(requestBody);
+        config.getRestConfiguration().getDataset().getBody().setTextContent(requestBody);
 
-        config.getDataset().setHasHeaders(true);
-        config.getDataset().setHeaders(Collections.singletonList(new Param(ContentType.HEADER_KEY, contentType)));
+        config.getRestConfiguration().getDataset().setHasHeaders(true);
+        config.getRestConfiguration().getDataset()
+                .setHeaders(Collections.singletonList(new Param(ContentType.HEADER_KEY, contentType)));
 
-        Record resp = service.execute(config);
+        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
         String body = resp.getString("body");
 
         assertEquals(200, resp.getInt("status"));
@@ -340,13 +344,13 @@ public class ClientTestWithEmbededServerTest {
             os.close();
         });
 
-        config.getDataset().getDatastore().setBase("http://localhost:" + port);
-        config.getDataset().setMethodType(HttpMethod.POST);
-        config.getDataset().setHasBody(true);
-        config.getDataset().getBody().setType(RequestBody.Type.valueOf(type));
-        config.getDataset().getBody().setTextContent(content);
+        config.getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.POST);
+        config.getRestConfiguration().getDataset().setHasBody(true);
+        config.getRestConfiguration().getDataset().getBody().setType(RequestBody.Type.valueOf(type));
+        config.getRestConfiguration().getDataset().getBody().setTextContent(content);
 
-        Record resp = service.execute(config);
+        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
         assertEquals(200, resp.getInt("status"));
         assertEquals(expected, contentType.get());
     }
@@ -366,15 +370,16 @@ public class ClientTestWithEmbededServerTest {
             os.close();
         });
 
-        config.getDataset().getDatastore().setBase("http://localhost:" + port);
-        config.getDataset().setMethodType(HttpMethod.POST);
-        config.getDataset().getBody().setType(RequestBody.Type.TEXT);
-        config.getDataset().getBody().setTextContent("Not empty");
-        config.getDataset().setHasBody(parametersActivated);
-        config.getDataset().setHeaders(Collections.singletonList(new Param(ContentType.HEADER_KEY, "text/plain")));
-        config.getDataset().setHasHeaders(parametersActivated);
+        config.getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.POST);
+        config.getRestConfiguration().getDataset().getBody().setType(RequestBody.Type.TEXT);
+        config.getRestConfiguration().getDataset().getBody().setTextContent("Not empty");
+        config.getRestConfiguration().getDataset().setHasBody(parametersActivated);
+        config.getRestConfiguration().getDataset()
+                .setHeaders(Collections.singletonList(new Param(ContentType.HEADER_KEY, "text/plain")));
+        config.getRestConfiguration().getDataset().setHasHeaders(parametersActivated);
 
-        Record resp = service.execute(config);
+        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
         assertEquals(200, resp.getInt("status"));
         assertEquals(parametersActivated, hasContentType.get());
     }
@@ -398,21 +403,21 @@ public class ClientTestWithEmbededServerTest {
             os.close();
         });
 
-        config.getDataset().getDatastore().setBase("http://localhost:" + port);
-        config.getDataset().setMethodType(HttpMethod.POST);
-        config.getDataset().getBody().setType(RequestBody.Type.TEXT);
-        config.getDataset().getBody().setTextContent("Not empty");
-        config.getDataset().setHasBody(true);
+        config.getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.POST);
+        config.getRestConfiguration().getDataset().getBody().setType(RequestBody.Type.TEXT);
+        config.getRestConfiguration().getDataset().getBody().setTextContent("Not empty");
+        config.getRestConfiguration().getDataset().setHasBody(true);
 
         List<Param> headers = new ArrayList<>();
         headers.add(new Param("header1", "value1"));
         if (alreadyHasContentTypeHeader) {
             headers.add(new Param(ContentType.HEADER_KEY, "text/forced_type"));
         }
-        config.getDataset().setHeaders(headers);
-        config.getDataset().setHasHeaders(true);
+        config.getRestConfiguration().getDataset().setHeaders(headers);
+        config.getRestConfiguration().getDataset().setHasHeaders(true);
 
-        Record resp = service.execute(config);
+        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
         assertEquals(200, resp.getInt("status"));
 
         assertEquals(alreadyHasContentTypeHeader ? "text/forced_type" : RequestBody.Type.TEXT.getContentType(),
@@ -481,21 +486,21 @@ public class ClientTestWithEmbededServerTest {
             os.close();
         });
 
-        config.getDataset().getDatastore().setReadTimeout(300);
-        config.getDataset().getDatastore().setBase("http://localhost:" + port);
-        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().getDatastore().setReadTimeout(300);
+        config.getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
 
         try {
-            service.execute(config);
+            service.buildFixedRecord(service.execute(config.getRestConfiguration()));
             fail("Timeout exception should be raised");
         } catch (IllegalStateException e) {
             Throwable cause = e.getCause();
             assertTrue(SocketTimeoutException.class.isInstance(cause));
         }
 
-        config.getDataset().getDatastore().setReadTimeout(1000);
-        config.getDataset().setMethodType(HttpMethod.GET);
-        Record resp = service.execute(config);
+        config.getRestConfiguration().getDataset().getDatastore().setReadTimeout(1000);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
         assertEquals(200, resp.getInt("status"));
     }
 
@@ -508,26 +513,26 @@ public class ClientTestWithEmbededServerTest {
             os.close();
         });
 
-        config.getDataset().getDatastore().setBase("http://localhost:" + port);
-        config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setResource("get");
+        config.getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setResource("get");
 
-        config.getDataset().setHasHeaders(true);
-        config.getDataset().setHeaders(null);
+        config.getRestConfiguration().getDataset().setHasHeaders(true);
+        config.getRestConfiguration().getDataset().setHeaders(null);
 
-        config.getDataset().setHasQueryParams(true);
-        config.getDataset().setQueryParams(null);
+        config.getRestConfiguration().getDataset().setHasQueryParams(true);
+        config.getRestConfiguration().getDataset().setQueryParams(null);
 
-        config.getDataset().setHasPathParams(true);
-        config.getDataset().setPathParams(null);
+        config.getRestConfiguration().getDataset().setHasPathParams(true);
+        config.getRestConfiguration().getDataset().setPathParams(null);
 
-        config.getDataset().setHasBody(true);
+        config.getRestConfiguration().getDataset().setHasBody(true);
         RequestBody body = new RequestBody();
         body.setType(RequestBody.Type.FORM_DATA);
         body.setParams(null);
-        config.getDataset().setBody(body);
+        config.getRestConfiguration().getDataset().setBody(body);
 
-        Record resp = service.execute(config);
+        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
         assertEquals(200, resp.getInt("status"));
 
     }
@@ -541,15 +546,15 @@ public class ClientTestWithEmbededServerTest {
             os.close();
         });
 
-        config.getDataset().getDatastore().setBase("http://localhost:" + port);
-        config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setResource("get");
+        config.getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setResource("get");
 
-        config.getDataset().setHasPathParams(true);
-        config.getDataset().setPathParams(Arrays.asList(new Param("aaaa", null), new Param("aaaa", "val"), new Param(null, "val"),
-                new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getRestConfiguration().getDataset().setHasPathParams(true);
+        config.getRestConfiguration().getDataset().setPathParams(Arrays.asList(new Param("aaaa", null), new Param("aaaa", "val"),
+                new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
 
-        assertThrows(IllegalStateException.class, () -> service.execute(config));
+        assertThrows(IllegalStateException.class, () -> service.buildFixedRecord(service.execute(config.getRestConfiguration())));
     }
 
     @Test
@@ -561,15 +566,15 @@ public class ClientTestWithEmbededServerTest {
             os.close();
         });
 
-        config.getDataset().getDatastore().setBase("http://localhost:" + port);
-        config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setResource("get");
+        config.getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setResource("get");
 
-        config.getDataset().setHasQueryParams(true);
-        config.getDataset().setQueryParams(Arrays.asList(new Param("aaa", null), new Param("key1", "val"),
+        config.getRestConfiguration().getDataset().setHasQueryParams(true);
+        config.getRestConfiguration().getDataset().setQueryParams(Arrays.asList(new Param("aaa", null), new Param("key1", "val"),
                 new Param("aaa", "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
 
-        assertThrows(IllegalStateException.class, () -> service.execute(config));
+        assertThrows(IllegalStateException.class, () -> service.buildFixedRecord(service.execute(config.getRestConfiguration())));
     }
 
     @Test
@@ -581,15 +586,15 @@ public class ClientTestWithEmbededServerTest {
             os.close();
         });
 
-        config.getDataset().getDatastore().setBase("http://localhost:" + port);
-        config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setResource("get");
+        config.getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setResource("get");
 
-        config.getDataset().setHasHeaders(true);
-        config.getDataset().setHeaders(Arrays.asList(new Param("xxx1", null), new Param("aaa", "val"), new Param(null, "val"),
-                new Param("key2", "val"), new Param("aaa", ""), new Param("key3", "")));
+        config.getRestConfiguration().getDataset().setHasHeaders(true);
+        config.getRestConfiguration().getDataset().setHeaders(Arrays.asList(new Param("xxx1", null), new Param("aaa", "val"),
+                new Param(null, "val"), new Param("key2", "val"), new Param("aaa", ""), new Param("key3", "")));
 
-        assertThrows(IllegalStateException.class, () -> service.execute(config));
+        assertThrows(IllegalStateException.class, () -> service.buildFixedRecord(service.execute(config.getRestConfiguration())));
     }
 
     @Test
@@ -601,18 +606,18 @@ public class ClientTestWithEmbededServerTest {
             os.close();
         });
 
-        config.getDataset().getDatastore().setBase("http://localhost:" + port);
-        config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setResource("get");
+        config.getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setResource("get");
 
-        config.getDataset().setHasBody(true);
+        config.getRestConfiguration().getDataset().setHasBody(true);
         RequestBody body = new RequestBody();
         body.setType(RequestBody.Type.FORM_DATA);
         body.setParams(Arrays.asList(new Param("xxx1", null), new Param("aaa", "val"), new Param(null, "val"),
                 new Param("key2", "val"), new Param("aaa", ""), new Param("key3", "")));
-        config.getDataset().setBody(body);
+        config.getRestConfiguration().getDataset().setBody(body);
 
-        assertThrows(IllegalStateException.class, () -> service.execute(config));
+        assertThrows(IllegalStateException.class, () -> service.buildFixedRecord(service.execute(config.getRestConfiguration())));
     }
 
     @Test
@@ -630,18 +635,18 @@ public class ClientTestWithEmbededServerTest {
             os.close();
         });
 
-        config.getDataset().getDatastore().setBase("http://localhost:" + port);
-        config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setResource("get");
+        config.getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setResource("get");
 
-        config.getDataset().setHasBody(true);
+        config.getRestConfiguration().getDataset().setHasBody(true);
         RequestBody body = new RequestBody();
         body.setType(RequestBody.Type.FORM_DATA);
         body.setParams(Arrays.asList(new Param("key1", null), new Param("key2", "val2"), new Param(null, "val"),
                 new Param("key3", "val3"), new Param("", ""), new Param("key4", "val4")));
-        config.getDataset().setBody(body);
+        config.getRestConfiguration().getDataset().setBody(body);
 
-        Record resp = service.execute(config);
+        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
 
         Path expectedFormaDataFile = Paths.get("src/test/resources/org/talend/components/rest/body/formData.txt");
         String expectedFormaData = Files.lines(expectedFormaDataFile).collect(Collectors.joining("\n"));
@@ -665,18 +670,18 @@ public class ClientTestWithEmbededServerTest {
             os.close();
         });
 
-        config.getDataset().getDatastore().setBase("http://localhost:" + port);
-        config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setResource("get");
+        config.getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setResource("get");
 
-        config.getDataset().setHasBody(true);
+        config.getRestConfiguration().getDataset().setHasBody(true);
         RequestBody body = new RequestBody();
         body.setType(RequestBody.Type.X_WWW_FORM_URLENCODED);
         body.setParams(Arrays.asList(new Param("key1", null), new Param("key2", "val2"), new Param(null, "val"),
                 new Param("key3", "val3"), new Param("", ""), new Param("key4", "val4")));
-        config.getDataset().setBody(body);
+        config.getRestConfiguration().getDataset().setBody(body);
 
-        Record resp = service.execute(config);
+        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
 
         Path expectedFormaDataFile = Paths.get("src/test/resources/org/talend/components/rest/body/xxxFormUrlEncoded.txt");
         String expectedFormaData = Files.lines(expectedFormaDataFile).collect(Collectors.joining("\n"));

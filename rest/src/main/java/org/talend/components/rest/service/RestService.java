@@ -24,6 +24,9 @@ import org.talend.components.rest.configuration.Datastore;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.configuration.auth.Authorization;
+import org.talend.components.rest.service.client.Body;
+import org.talend.components.rest.service.client.Client;
+import org.talend.components.rest.service.client.ContentType;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.RecordPointerFactory;
@@ -34,6 +37,12 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
+import javax.json.JsonBuilderFactory;
+import javax.json.JsonNumber;
+import javax.json.JsonObject;
+import javax.json.JsonString;
+import javax.json.JsonValue;
+import javax.json.stream.JsonParserFactory;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -46,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -80,15 +90,21 @@ public class RestService {
     @Service
     private RecordPointerFactory recordPointerFactory;
 
-    public Record execute(final RequestConfig config, final Record record) {
+    @Service
+    private JsonBuilderFactory jsonBuilderFactory;
+
+    @Service
+    private JsonParserFactory jsonParser;
+
+    public Response<byte[]> execute(final RequestConfig config, final Record record) {
         return _execute(config, record);
     }
 
-    public Record execute(final RequestConfig config) {
+    public Response<byte[]> execute(final RequestConfig config) {
         return _execute(config, null);
     }
 
-    private Record _execute(final RequestConfig config, final Record record) {
+    private Response<byte[]> _execute(final RequestConfig config, final Record record) {
         final Substitutor substitutor = new RecordSubstitutor(PARAMETERS_SUBSTITUTOR_PREFIX, PARAMETERS_SUBSTITUTOR_SUFFIX,
                 record, recordPointerFactory);
 
@@ -115,16 +131,14 @@ public class RestService {
         final Substitutor bodySubstitutor = new RecordSubstitutor(BODY_SUBSTITUTOR_PREFIX, BODY_SUBSTITUTOR_SUFFIX, record,
                 recordPointerFactory, substitutor.getCache());
 
-        // Has body has to be check here to set body = null if needed, the body encoder should not return null
+        // Has body has to be checked here to set body = null if needed, the body encoder should not return null
         Body body = config.getDataset().isHasBody() ? new Body(config, bodySubstitutor) : null;
 
         RedirectContext redirectContext = new RedirectContext(config.getDataset().getDatastore().getBase(),
                 config.getDataset().getMaxRedirect(), config.getDataset().getForce_302_redirect(),
                 config.getDataset().getMethodType().name(), config.getDataset().getOnly_same_host());
 
-        Response<byte[]> resp = this.call(config, headers, queryParams, body, this.buildUrl(config, pathParams), redirectContext);
-
-        return this.buildRecord(resp);
+        return this.call(config, headers, queryParams, body, this.buildUrl(config, pathParams), redirectContext);
     }
 
     private Response<byte[]> call(final RequestConfig config, final Map<String, String> headers,
@@ -218,7 +232,7 @@ public class RestService {
         return params.entrySet().stream().collect(toMap(e -> e.getKey(), e -> substitute(e.getValue(), substitutor)));
     }
 
-    private Record buildRecord(Response<byte[]> resp) {
+    public Record buildFixedRecord(final Response<byte[]> resp) {
         Record.Builder builder = recordBuilderFactory.newRecordBuilder();
 
         final int status = resp.status();
@@ -244,13 +258,18 @@ public class RestService {
                     .withElementSchema(headerElementSchema).build(), headers);
         }
 
+        String receivedBody = getBody(resp);
+        builder.withString("body", receivedBody);
+
+        return builder.build();
+    }
+
+    private static String getBody(final Response<byte[]> resp) {
         String encoding = ContentType.getCharsetName(resp);
         String receivedBody = (encoding == null) ? //
                 new String(Optional.ofNullable(resp.body()).orElse(new byte[0])) : //
                 new String(Optional.ofNullable(resp.body()).orElse(new byte[0]), Charset.forName(encoding));
-        builder.withString("body", receivedBody);
-
-        return builder.build();
+        return receivedBody;
     }
 
     private String substitute(final String value, final Substitutor substitutor) {
@@ -282,8 +301,44 @@ public class RestService {
         return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.healthCheckFailed(datastore.getBase()));
     }
 
+    /*
+     * public List<JsonObject> json2records(final String json, final String path) {
+     * List<>
+     * if(this.records == null) {
+     * JsonParser parser = jsonParser.createParser(new StringReader(json));
+     * JsonValue value = parser.getValue();
+     * JsonPointer pointer = Json.createPointer(Optional.ofNullable(path).orElse(""));
+     * 
+     * records = flatMap(value, jsonBuilderFactory)
+     * .map(pointer::getValue)
+     * .flatMap(v -> flatMap(v, jsonBuilderFactory))
+     * .collect(Collectors.toList());
+     * }
+     * 
+     * return this.records;
+     * }
+     */
+
+    private Stream<JsonObject> flatMap(final JsonValue jsonValue, final JsonBuilderFactory jsonBuilderFactory) {
+        switch (jsonValue.getValueType()) {
+        case NULL:
+            return Stream.empty();
+        case ARRAY:
+            return jsonValue.asJsonArray().stream().map(JsonValue::asJsonObject);
+        case OBJECT:
+            return Stream.of(jsonValue.asJsonObject());
+        case NUMBER:
+            return Stream.of(jsonBuilderFactory.createObjectBuilder().add("number", JsonNumber.class.cast(jsonValue)).build());
+        case TRUE:
+        case FALSE:
+        case STRING:
+        default:
+            return Stream.of(jsonBuilderFactory.createObjectBuilder().add("string", JsonString.class.cast(jsonValue)).build());
+
+        }
+    }
+
     /**
-     *
      * @param params
      * @return true is no duplicates, false if any duplicates
      */

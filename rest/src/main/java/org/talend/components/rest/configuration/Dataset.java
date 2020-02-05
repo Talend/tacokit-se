@@ -13,6 +13,7 @@
 package org.talend.components.rest.configuration;
 
 import lombok.Data;
+import org.apache.beam.sdk.options.Validation;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -107,6 +108,15 @@ public class Dataset implements Serializable {
     @ActiveIf(target = "hasBody", value = "true")
     @Documentation("Request body")
     private RequestBody body;
+
+    /*
+     * @Option
+     * 
+     * @Documentation("Pointer to the element from which generates records")
+     * 
+     * @ActiveIf(target = "computeBody", value = "true")
+     * private String pointer;
+     */
 
     public boolean supportRedirect() {
         return this.getMaxRedirect() != 0;

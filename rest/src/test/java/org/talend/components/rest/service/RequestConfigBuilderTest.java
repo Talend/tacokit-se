@@ -18,6 +18,8 @@ import org.talend.components.rest.configuration.RequestBody;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.configuration.auth.Authentication;
 import org.talend.components.rest.configuration.auth.Authorization;
+import org.talend.components.rest.processor.JSonExtractorConfiguration;
+import org.talend.components.rest.virtual.ComplexRestConfiguration;
 
 import java.util.Collections;
 
@@ -26,7 +28,7 @@ public class RequestConfigBuilderTest {
     private RequestConfigBuilderTest() {
     }
 
-    public static RequestConfig getEmptyRequestConfig() {
+    public static ComplexRestConfiguration getEmptyRequestConfig() {
         RequestConfig config = new RequestConfig();
 
         Authentication authent = new Authentication();
@@ -53,7 +55,12 @@ public class RequestConfigBuilderTest {
 
         config.setDataset(dataset);
 
-        return config;
+        ComplexRestConfiguration complexRestConfiguration = new ComplexRestConfiguration();
+        complexRestConfiguration.setRestConfiguration(config);
+        complexRestConfiguration.setComputeBody(false);
+        complexRestConfiguration.setJSonExtractorConfiguration(new JSonExtractorConfiguration());
+
+        return complexRestConfiguration;
     }
 
 }

@@ -24,10 +24,10 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestBody;
-import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.configuration.auth.Authentication;
 import org.talend.components.rest.configuration.auth.Authorization;
 import org.talend.components.rest.configuration.auth.Basic;
+import org.talend.components.rest.virtual.ComplexRestConfiguration;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
@@ -35,7 +35,6 @@ import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import javax.json.JsonObject;
@@ -78,7 +77,7 @@ public class ClientTestWithHttpbinTest {
     @Injected
     private BaseComponentsHandler handler;
 
-    private RequestConfig config;
+    private ComplexRestConfiguration config;
 
     private boolean followRedirects_backup;
 
@@ -105,9 +104,9 @@ public class ClientTestWithHttpbinTest {
 
         config = RequestConfigBuilderTest.getEmptyRequestConfig();
 
-        config.getDataset().getDatastore().setBase(HTTPBIN_BASE.get());
-        config.getDataset().getDatastore().setConnectionTimeout(CONNECT_TIMEOUT);
-        config.getDataset().getDatastore().setReadTimeout(READ_TIMEOUT);
+        config.getRestConfiguration().getDataset().getDatastore().setBase(HTTPBIN_BASE.get());
+        config.getRestConfiguration().getDataset().getDatastore().setConnectionTimeout(CONNECT_TIMEOUT);
+        config.getRestConfiguration().getDataset().getDatastore().setReadTimeout(READ_TIMEOUT);
     }
 
     @AfterEach
@@ -117,10 +116,10 @@ public class ClientTestWithHttpbinTest {
 
     @Test
     void httpbinGet() throws MalformedURLException {
-        config.getDataset().setResource("get");
-        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setResource("get");
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
 
-        Record resp = service.execute(config);
+        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
 
         assertEquals(200, resp.getInt("status"));
 
@@ -128,7 +127,7 @@ public class ClientTestWithHttpbinTest {
         JsonObject bodyJson = jsonReaderFactory.createReader(new ByteArrayInputStream((body == null ? "" : body).getBytes()))
                 .readObject();
 
-        assertEquals(service.buildUrl(config, Collections.emptyMap()), bodyJson.getString("url"));
+        assertEquals(service.buildUrl(config.getRestConfiguration(), Collections.emptyMap()), bodyJson.getString("url"));
 
         JsonObject headersJson = bodyJson.getJsonObject("headers");
         URL base = new URL(HTTPBIN_BASE.get());
@@ -143,20 +142,20 @@ public class ClientTestWithHttpbinTest {
     @Test
     void testParamsDisabled() throws MalformedURLException {
         HttpMethod[] verbs = { HttpMethod.DELETE, HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT };
-        config.getDataset().setResource("get");
-        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setResource("get");
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
 
         List<Param> queryParams = new ArrayList<>();
         queryParams.add(new Param("params1", "value1"));
-        config.getDataset().setHasQueryParams(false);
-        config.getDataset().setQueryParams(queryParams);
+        config.getRestConfiguration().getDataset().setHasQueryParams(false);
+        config.getRestConfiguration().getDataset().setQueryParams(queryParams);
 
         List<Param> headerParams = new ArrayList<>();
         headerParams.add(new Param("Header1", "simple value"));
-        config.getDataset().setHasHeaders(false);
-        config.getDataset().setHeaders(headerParams);
+        config.getRestConfiguration().getDataset().setHasHeaders(false);
+        config.getRestConfiguration().getDataset().setHeaders(headerParams);
 
-        Record resp = service.execute(config);
+        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
 
         assertEquals(200, resp.getInt("status"));
 
@@ -173,22 +172,22 @@ public class ClientTestWithHttpbinTest {
     void testQueryAndHeaderParams() {
         HttpMethod[] verbs = { HttpMethod.DELETE, HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT };
         for (HttpMethod m : verbs) {
-            config.getDataset().setResource(m.name().toLowerCase());
-            config.getDataset().setMethodType(m);
+            config.getRestConfiguration().getDataset().setResource(m.name().toLowerCase());
+            config.getRestConfiguration().getDataset().setMethodType(m);
 
             List<Param> queryParams = new ArrayList<>();
             queryParams.add(new Param("params1", "value1"));
             queryParams.add(new Param("params2", "<name>Dupont & Dupond</name>"));
-            config.getDataset().setHasQueryParams(true);
-            config.getDataset().setQueryParams(queryParams);
+            config.getRestConfiguration().getDataset().setHasQueryParams(true);
+            config.getRestConfiguration().getDataset().setQueryParams(queryParams);
 
             List<Param> headerParams = new ArrayList<>();
             headerParams.add(new Param("Header1", "simple value"));
             headerParams.add(new Param("Header2", "<name>header Dupont & Dupond</name>"));
-            config.getDataset().setHasHeaders(true);
-            config.getDataset().setHeaders(headerParams);
+            config.getRestConfiguration().getDataset().setHasHeaders(true);
+            config.getRestConfiguration().getDataset().setHeaders(headerParams);
 
-            Record resp = service.execute(config);
+            Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
 
             assertEquals(200, resp.getInt("status"));
 
@@ -215,15 +214,15 @@ public class ClientTestWithHttpbinTest {
         auth.setType(Authorization.AuthorizationType.Basic);
         auth.setBasic(basic);
 
-        config.getDataset().getDatastore().setAuthentication(auth);
-        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().getDatastore().setAuthentication(auth);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
 
-        config.getDataset().setResource("/basic-auth/" + user + "/wrong_" + pwd);
-        Record respForbidden = service.execute(config);
+        config.getRestConfiguration().getDataset().setResource("/basic-auth/" + user + "/wrong_" + pwd);
+        Record respForbidden = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
         assertEquals(401, respForbidden.getInt("status"));
 
-        config.getDataset().setResource("/basic-auth/" + user + "/" + pwd);
-        Record respOk = service.execute(config);
+        config.getRestConfiguration().getDataset().setResource("/basic-auth/" + user + "/" + pwd);
+        Record respOk = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
         assertEquals(200, respOk.getInt("status"));
     }
 
@@ -232,17 +231,17 @@ public class ClientTestWithHttpbinTest {
         Authentication auth = new Authentication();
         auth.setType(Authorization.AuthorizationType.Bearer);
 
-        config.getDataset().getDatastore().setBase(HTTPBIN_BASE.get());
-        config.getDataset().getDatastore().setAuthentication(auth);
-        config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setResource("/bearer");
+        config.getRestConfiguration().getDataset().getDatastore().setBase(HTTPBIN_BASE.get());
+        config.getRestConfiguration().getDataset().getDatastore().setAuthentication(auth);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setResource("/bearer");
 
         auth.setBearerToken("");
-        Record respKo = service.execute(config);
+        Record respKo = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
         assertEquals(401, respKo.getInt("status"));
 
         auth.setBearerToken("token-123456789");
-        Record respOk = service.execute(config);
+        Record respOk = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
         assertEquals(200, respOk.getInt("status"));
     }
 
@@ -251,11 +250,11 @@ public class ClientTestWithHttpbinTest {
     void testRedirect(final String method) {
 
         String redirect_url = HTTPBIN_BASE.get() + "/" + method.toLowerCase() + "?redirect=ok";
-        config.getDataset().setResource("redirect-to?url=" + redirect_url);
-        config.getDataset().setMethodType(HttpMethod.valueOf(method));
-        config.getDataset().setMaxRedirect(1);
+        config.getRestConfiguration().getDataset().setResource("redirect-to?url=" + redirect_url);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.valueOf(method));
+        config.getRestConfiguration().getDataset().setMaxRedirect(1);
 
-        Record resp = service.execute(config);
+        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
         assertEquals(200, resp.getInt("status"));
 
         JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(resp.getString("body")));
@@ -269,13 +268,14 @@ public class ClientTestWithHttpbinTest {
     void testRedirectOnlySameHost(final String method, final String redirect_url) throws MalformedURLException {
         String mainHost = new URL(HTTPBIN_BASE.get()).getHost();
 
-        config.getDataset().setResource("redirect-to?url=" + ("".equals(redirect_url) ? mainHost : redirect_url));
-        config.getDataset().setMethodType(HttpMethod.valueOf(method));
-        config.getDataset().setMaxRedirect(1);
-        config.getDataset().setOnly_same_host(true);
+        config.getRestConfiguration().getDataset()
+                .setResource("redirect-to?url=" + ("".equals(redirect_url) ? mainHost : redirect_url));
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.valueOf(method));
+        config.getRestConfiguration().getDataset().setMaxRedirect(1);
+        config.getRestConfiguration().getDataset().setOnly_same_host(true);
 
         if ("".equals(redirect_url)) {
-            Record resp = service.execute(config);
+            Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
             assertEquals(200, resp.getInt("status"));
 
             JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(resp.getString("body")));
@@ -283,35 +283,37 @@ public class ClientTestWithHttpbinTest {
 
             assertEquals("ok", payload.getJsonObject("args").getString("redirect"));
         } else {
-            assertThrows(IllegalArgumentException.class, () -> service.execute(config));
+            assertThrows(IllegalArgumentException.class,
+                    () -> service.buildFixedRecord(service.execute(config.getRestConfiguration())));
         }
     }
 
     @ParameterizedTest
     @CsvSource(value = { "6,-1", "3,3", "3,5" })
     void testRedirectNOk(final int nbRedirect, final int maxRedict) {
-        config.getDataset().setResource("redirect/" + nbRedirect);
-        config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setMaxRedirect(maxRedict);
+        config.getRestConfiguration().getDataset().setResource("redirect/" + nbRedirect);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setMaxRedirect(maxRedict);
 
-        Record resp = service.execute(config);
+        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
         assertEquals(200, resp.getInt("status"));
     }
 
     @ParameterizedTest
     @CsvSource(value = { "3,0", "3,1", "3,2", "5,4" })
     void testRedirectNko(final int nbRedirect, final int maxRedict) {
-        config.getDataset().setResource("redirect/" + nbRedirect);
-        config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setMaxRedirect(maxRedict);
+        config.getRestConfiguration().getDataset().setResource("redirect/" + nbRedirect);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setMaxRedirect(maxRedict);
 
         if (maxRedict == 0) {
             // When maxRedirect == 0 then redirect is disabled
             // we only return the response
-            Record resp = service.execute(config);
+            Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
             assertEquals(302, resp.getInt("status"));
         } else {
-            Exception e = assertThrows(IllegalArgumentException.class, () -> service.execute(config));
+            Exception e = assertThrows(IllegalArgumentException.class,
+                    () -> service.buildFixedRecord(service.execute(config.getRestConfiguration())));
         }
     }
 
@@ -339,21 +341,21 @@ public class ClientTestWithHttpbinTest {
 
     private void testDigestAuthWithQop(final int expected, final String user, final String pwd, final Authentication auth,
             final String qop) {
-        config.getDataset().getDatastore().setAuthentication(auth);
-        config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setResource("digest-auth/" + qop + "/" + user + "/" + pwd);
+        config.getRestConfiguration().getDataset().getDatastore().setAuthentication(auth);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setResource("digest-auth/" + qop + "/" + user + "/" + pwd);
 
-        Record resp = service.execute(config);
+        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
         assertEquals(expected, resp.getInt("status"));
     }
 
     private void testDigestAuthWithQopAlgo(final int expected, final String user, final String pwd, final Authentication auth,
             final String qop, final String algo) {
-        config.getDataset().getDatastore().setAuthentication(auth);
-        config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setResource("digest-auth/" + qop + "/" + user + "/" + pwd + "/" + algo);
+        config.getRestConfiguration().getDataset().getDatastore().setAuthentication(auth);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setResource("digest-auth/" + qop + "/" + user + "/" + pwd + "/" + algo);
 
-        Record resp = service.execute(config);
+        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
         assertEquals(expected, resp.getInt("status"));
     }
 
@@ -361,26 +363,26 @@ public class ClientTestWithHttpbinTest {
     @CsvSource(value = { "json", "xml", "html" })
     void testformats(final String type) {
         // Currently return body as String
-        config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setResource(type);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setResource(type);
 
-        Record resp = service.execute(config);
+        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
 
         assertEquals(200, resp.getInt("status"));
     }
 
     @Test
     void testBodyFormData() {
-        config.getDataset().setHasBody(true);
+        config.getRestConfiguration().getDataset().setHasBody(true);
 
         RequestBody body = new RequestBody();
         body.setType(RequestBody.Type.FORM_DATA);
         body.setParams(Arrays.asList(new Param("form_data_1", "<000 001"), new Param("form_data_2", "<000 002")));
-        config.getDataset().setBody(body);
-        config.getDataset().setMethodType(HttpMethod.POST);
-        config.getDataset().setResource("post");
+        config.getRestConfiguration().getDataset().setBody(body);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.POST);
+        config.getRestConfiguration().getDataset().setResource("post");
 
-        Record resp = service.execute(config);
+        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
         JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(resp.getString("body")));
         JsonObject payload = payloadReader.readObject();
         JsonObject form = payload.getJsonObject("form");
@@ -391,16 +393,16 @@ public class ClientTestWithHttpbinTest {
 
     @Test
     void testBodyXwwwformURLEncoded() {
-        config.getDataset().setHasBody(true);
+        config.getRestConfiguration().getDataset().setHasBody(true);
 
         RequestBody body = new RequestBody();
         body.setType(RequestBody.Type.X_WWW_FORM_URLENCODED);
         body.setParams(Arrays.asList(new Param("form_data_1", "<000 001"), new Param("form_data_2", "<000 002")));
-        config.getDataset().setBody(body);
-        config.getDataset().setMethodType(HttpMethod.POST);
-        config.getDataset().setResource("post");
+        config.getRestConfiguration().getDataset().setBody(body);
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.POST);
+        config.getRestConfiguration().getDataset().setResource("post");
 
-        Record resp = service.execute(config);
+        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
         JsonReader payloadReader = jsonReaderFactory.createReader(new StringReader(resp.getString("body")));
         JsonObject payload = payloadReader.readObject();
         JsonObject form = payload.getJsonObject("form");

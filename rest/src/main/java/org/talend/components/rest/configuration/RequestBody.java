@@ -13,7 +13,7 @@
 package org.talend.components.rest.configuration;
 
 import lombok.Data;
-import org.talend.components.rest.service.Body;
+import org.talend.components.rest.service.client.Body;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;

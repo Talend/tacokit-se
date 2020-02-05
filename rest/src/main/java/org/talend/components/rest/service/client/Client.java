@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.rest.service;
+package org.talend.components.rest.service.client;
 
 import org.talend.components.common.service.http.common.UserNamePassword;
 import org.talend.components.common.service.http.basic.BasicAuthConfigurer;
@@ -18,6 +18,7 @@ import org.talend.components.common.service.http.bearer.BearerAuthConfigurer;
 import org.talend.components.common.service.http.digest.DigestAuthConfigurer;
 import org.talend.components.common.service.http.digest.DigestAuthContext;
 import org.talend.components.rest.configuration.RequestConfig;
+import org.talend.components.rest.service.I18n;
 import org.talend.sdk.component.api.service.http.Codec;
 import org.talend.sdk.component.api.service.http.ConfigurerOption;
 import org.talend.sdk.component.api.service.http.Headers;
