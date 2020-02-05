@@ -295,7 +295,7 @@ class Excel2007IT extends BaseIT {
     }
 
     @Test
-    void testReadFileWithEmptyCells() throws StorageException,IOException,URISyntaxException {
+    void testReadFileWithEmptyCells() throws StorageException, IOException, URISyntaxException {
         final int recordSize = 2;
         final int columnSizeForFullRecord = 5;
         final int columnSizeForRecordsWithNulls = 2;
@@ -310,13 +310,15 @@ class Excel2007IT extends BaseIT {
         Assert.assertEquals("Records amount is different", recordSize, records.size());
         Record fullRecord = records.get(0);
         Record recordWithEmptyCells = records.get(1);
-        Assert.assertEquals("Column number for row without empty cells is different", columnSizeForFullRecord, fullRecord.getSchema().getEntries().size());
-        Assert.assertEquals("Column number for row with empty cells is different", columnSizeForRecordsWithNulls, recordWithEmptyCells.getSchema().getEntries().size());
+        Assert.assertEquals("Column number for row without empty cells is different", columnSizeForFullRecord,
+                fullRecord.getSchema().getEntries().size());
+        Assert.assertEquals("Column number for row with empty cells is different", columnSizeForRecordsWithNulls,
+                recordWithEmptyCells.getSchema().getEntries().size());
     }
 
     @Test
     void testSkipFileWithoutSpecifiedSheetName() throws StorageException, IOException, URISyntaxException {
-        final int recordSize = 2; //3 files, 1 with another sheet name (should be skipped)
+        final int recordSize = 2; // 3 files, 1 with another sheet name (should be skipped)
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excel2007/excel_2007_1_record_no_header.xlsx",
                 "excel_2007_1_record_no_header.xlsx");
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excel2007/excel_2007_1_record_another_sheet_name.xlsx",

@@ -58,7 +58,7 @@ public class HTMLConverter implements RecordConverter<Element> {
         }
 
         Record.Builder builder = recordBuilderFactory.newRecordBuilder();
-        Elements rowColumns = record.getElementsByTag("td");
+        Elements rowColumns = record.getAllElements();
         for (int i = 0; i < rowColumns.size(); i++) {
             builder.withString(columns.getEntries().get(i).getName(), rowColumns.get(i).text());
         }
@@ -67,14 +67,14 @@ public class HTMLConverter implements RecordConverter<Element> {
 
     @Override
     public Element fromRecord(Record record) {
-        throw new UnsupportedOperationException("HTML Output are not supporter");
+        throw new UnsupportedOperationException("HTML Output are not supported");
     }
 
     private List<String> inferSchemaInfo(Element row, boolean useDefaultFieldName) {
         List<String> result = new ArrayList<>();
         Set<String> existNames = new HashSet<>();
         int index = 0;
-        Elements columns = row.getElementsByTag("td");
+        Elements columns = row.getAllElements();
         for (int i = 0; i < columns.size(); i++) {
             String fieldName = columns.get(i).ownText();
             if (useDefaultFieldName || StringUtils.isEmpty(fieldName)) {
