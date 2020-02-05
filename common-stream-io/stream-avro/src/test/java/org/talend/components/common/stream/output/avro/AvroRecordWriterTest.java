@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -22,9 +22,8 @@ import java.util.Arrays;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.output.RecordWriter;
-import org.talend.components.common.stream.api.output.RecordWriterRepository;
 import org.talend.components.common.stream.api.output.RecordWriterSupplier;
-import org.talend.components.common.stream.format.AvroConfiguration;
+import org.talend.components.common.stream.format.avro.AvroConfiguration;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.record.Schema.Type;
@@ -44,9 +43,7 @@ class AvroRecordWriterTest {
     @Test
     void add() throws IOException {
         AvroConfiguration cfg = new AvroConfiguration();
-        final RecordWriterSupplier writerSupplier = RecordWriterRepository.getInstance().get(AvroConfiguration.class);
-
-        RecordToAvro toAvro = new RecordToAvro("test");
+        final RecordWriterSupplier writerSupplier = new AvroWriterSupplier();
 
         RecordWriter writer = writerSupplier.getWriter(() -> out, cfg);
         prepareTestRecords();

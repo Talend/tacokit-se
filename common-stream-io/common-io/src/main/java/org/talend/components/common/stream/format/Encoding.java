@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,18 +12,50 @@
  */
 package org.talend.components.common.stream.format;
 
-public enum Encoding {
-    UFT8("UTF-8"),
-    ISO_8859_15("ISO-8859-15"),
-    OTHER("");
+import java.io.Serializable;
 
-    Encoding(String encodingCharsetValue) {
-        this.encodingCharsetValue = encodingCharsetValue;
+import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.meta.Documentation;
+
+import lombok.Data;
+
+@Data
+@GridLayout(@GridLayout.Row({ "encodingType", "encoding" }))
+public class Encoding implements Serializable {
+
+    private static final long serialVersionUID = -332572169846419496L;
+
+    public enum Type {
+        UFT8("UTF-8"), //
+        ISO_8859_15("ISO-8859-15"), //
+        OTHER("");
+
+        Type(String encodingCharsetValue) {
+            this.encodingCharsetValue = encodingCharsetValue;
+        }
+
+        private String encodingCharsetValue;
+
+        public String getEncodingValue() {
+            return encodingCharsetValue;
+        }
     }
 
-    private String encodingCharsetValue;
+    @Option
+    @Documentation("content encoding")
+    private Encoding.Type encodingType = Encoding.Type.UFT8;
 
-    public String getEncodingValue() {
-        return encodingCharsetValue;
+    @Option
+    @ActiveIf(target = "encoding", value = "OTHER")
+    @Documentation("custom content encoding")
+    private String encoding;
+
+    public String getEncoding() {
+        if (encodingType == Encoding.Type.OTHER) {
+            return this.encoding;
+        }
+        return this.encodingType.getEncodingValue();
     }
 }

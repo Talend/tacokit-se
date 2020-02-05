@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -23,12 +23,18 @@ import org.talend.components.common.stream.api.output.RecordWriter;
 import org.talend.components.common.stream.api.output.TargetFinder;
 import org.talend.sdk.component.api.record.Record;
 
+/**
+ * Write Avro record to a destination.
+ */
 public class AvroRecordWriter implements RecordWriter {
 
+    /** convert talend record to Avro. */
     private final RecordConverter<GenericRecord, org.apache.avro.Schema> converter;
 
+    /** output stream finder */
     private final TargetFinder destination;
 
+    /** avro writer */
     private final DataFileWriter<GenericRecord> dataFileWriter;
 
     private boolean first = true;

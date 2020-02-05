@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,21 +13,19 @@
 package org.talend.components.common.stream.output.json;
 
 import org.talend.components.common.stream.api.output.RecordWriter;
-import org.talend.components.common.stream.api.output.RecordWriterRepository;
 import org.talend.components.common.stream.api.output.RecordWriterSupplier;
 import org.talend.components.common.stream.api.output.TargetFinder;
 import org.talend.components.common.stream.format.ContentFormat;
-import org.talend.components.common.stream.format.JsonConfiguration;
+import org.talend.components.common.stream.format.json.JsonConfiguration;
 
 public class JsonWriterSupplier implements RecordWriterSupplier {
 
-    static {
-        RecordWriterRepository.getInstance().put(JsonConfiguration.class, new JsonWriterSupplier());
-    }
-
     @Override
     public RecordWriter getWriter(TargetFinder target, ContentFormat config) {
-        assert config instanceof JsonConfiguration : "json reader not with json config";
+
+        if (!JsonConfiguration.class.isInstance(config)) {
+            throw new IllegalArgumentException("try to get json-writer with other than json config");
+        }
         final JsonConfiguration jsonConfig = (JsonConfiguration) config;
 
         return new JsonWriter(jsonConfig, target);

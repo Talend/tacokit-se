@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,21 +13,19 @@
 package org.talend.components.common.stream.output.excel;
 
 import org.talend.components.common.stream.api.output.RecordWriter;
-import org.talend.components.common.stream.api.output.RecordWriterRepository;
 import org.talend.components.common.stream.api.output.RecordWriterSupplier;
 import org.talend.components.common.stream.api.output.TargetFinder;
 import org.talend.components.common.stream.format.ContentFormat;
-import org.talend.components.common.stream.format.ExcelConfiguration;
+import org.talend.components.common.stream.format.excel.ExcelConfiguration;
 
 public class ExcelWriterSupplier implements RecordWriterSupplier {
 
-    static {
-        RecordWriterRepository.getInstance().put(ExcelConfiguration.class, new ExcelWriterSupplier());
-    }
-
     @Override
     public RecordWriter getWriter(TargetFinder target, ContentFormat config) {
-        assert config instanceof ExcelConfiguration : "excel writer not with excel config";
+        if (!ExcelConfiguration.class.isInstance(config)) {
+            throw new IllegalArgumentException("try to get excel-writer with other than excel config");
+        }
+
         final ExcelConfiguration excelConfig = (ExcelConfiguration) config;
 
         return new ExcelWriter(excelConfig, target);

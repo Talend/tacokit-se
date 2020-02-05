@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,11 +13,13 @@
 package org.talend.components.common.stream;
 
 import org.apache.commons.csv.CSVFormat;
-import org.talend.components.common.stream.format.CSVConfiguration;
+import org.talend.components.common.stream.format.csv.CSVConfiguration;
 
 public class CSVHelper {
 
     public static CSVFormat getCsvFormat(CSVConfiguration config) {
-        return CSVFormat.newFormat(config.getFieldSeparator()).withQuote(config.getQuotedValue()).withEscape(config.getEscape());
+        return CSVFormat.newFormat(config.findFieldSeparator()).withQuote(config.getQuotedValue()) //
+                .withEscape(config.getEscape()); //
     }
+
 }

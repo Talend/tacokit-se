@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,23 +16,21 @@ import java.util.Collections;
 import java.util.Iterator;
 
 import org.talend.components.common.stream.api.input.RecordReader;
-import org.talend.components.common.stream.api.input.RecordReaderRepository;
 import org.talend.components.common.stream.api.input.RecordReaderSupplier;
 import org.talend.components.common.stream.format.ContentFormat;
-import org.talend.components.common.stream.format.FixedConfiguration;
+import org.talend.components.common.stream.format.fixed.FixedConfiguration;
 import org.talend.components.common.stream.input.line.DefaultRecordReader;
 import org.talend.components.common.stream.input.line.LineSplitter;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 public class FixedReaderSupplier implements RecordReaderSupplier {
 
-    static {
-        RecordReaderRepository.getInstance().put(FixedConfiguration.class, new FixedReaderSupplier());
-    }
-
     @Override
     public RecordReader getReader(RecordBuilderFactory factory, ContentFormat config) {
-        assert config instanceof FixedConfiguration : "fixed reader not with fixed config";
+        if (!FixedConfiguration.class.isInstance(config)) {
+            throw new IllegalArgumentException("try to get fixed-reader with other than fixed-config");
+        }
+
         final FixedConfiguration fixedConfig = (FixedConfiguration) config;
         final LineSplitter splitter = new FixedLineSplitter(fixedConfig.getRealLengthFields());
 

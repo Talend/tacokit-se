@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -21,29 +21,22 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.talend.components.common.stream.CSVHelper;
-import org.talend.components.common.stream.input.line.schema.HeaderHandler;
 import org.talend.components.common.stream.api.input.RecordReader;
-import org.talend.components.common.stream.api.input.RecordReaderRepository;
 import org.talend.components.common.stream.api.input.RecordReaderSupplier;
-import org.talend.components.common.stream.format.CSVConfiguration;
+import org.talend.components.common.stream.format.csv.CSVConfiguration;
 import org.talend.components.common.stream.format.ContentFormat;
-import org.talend.components.common.stream.format.LineConfiguration;
-import org.talend.components.common.stream.input.line.DefaultLineReader;
 import org.talend.components.common.stream.input.line.DefaultRecordReader;
-import org.talend.components.common.stream.input.line.LineReader;
 import org.talend.components.common.stream.input.line.LineSplitter;
-import org.talend.components.common.stream.input.line.LineToRecord;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 public class CSVReaderSupplier implements RecordReaderSupplier {
 
-    static {
-        RecordReaderRepository.getInstance().put(CSVConfiguration.class, new CSVReaderSupplier());
-    }
-
     @Override
     public RecordReader getReader(RecordBuilderFactory factory, ContentFormat config) {
-        assert config instanceof CSVConfiguration : "csv reader not with csv config";
+        if (!CSVConfiguration.class.isInstance(config)) {
+            throw new IllegalArgumentException("try to get csv-reader with other than csv config");
+        }
+
         final CSVConfiguration csvConfig = (CSVConfiguration) config;
         final CSVFormat csvFormat = CSVHelper.getCsvFormat(csvConfig);
         final LineSplitter splitter = new CSVLineSplitter(csvFormat);

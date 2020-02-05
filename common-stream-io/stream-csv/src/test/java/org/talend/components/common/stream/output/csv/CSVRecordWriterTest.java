@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -20,10 +20,10 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.output.RecordWriter;
-import org.talend.components.common.stream.api.output.RecordWriterRepository;
 import org.talend.components.common.stream.api.output.RecordWriterSupplier;
-import org.talend.components.common.stream.format.CSVConfiguration;
+import org.talend.components.common.stream.format.csv.CSVConfiguration;
 import org.talend.components.common.stream.format.LineConfiguration;
+import org.talend.components.common.stream.format.csv.FieldSeparator;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
@@ -32,13 +32,15 @@ class CSVRecordWriterTest {
 
     @Test
     public void writeCSV() throws IOException {
-        final RecordWriterSupplier recordWriterSupplier = RecordWriterRepository.getInstance().get(CSVConfiguration.class);
+        final RecordWriterSupplier recordWriterSupplier = new CSVWriterSupplier();
 
         final CSVConfiguration config = new CSVConfiguration();
         config.setLineConfiguration(new LineConfiguration());
         config.getLineConfiguration().setLineSeparator("\n");
         config.setEscape('\\');
-        config.setFieldSeparator(';');
+        config.setFieldSeparator(new FieldSeparator());
+        config.getFieldSeparator().setFieldSeparatorType(FieldSeparator.Type.SEMICOLON);
+
         config.setQuotedValue('"');
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,21 +13,19 @@
 package org.talend.components.common.stream.output.csv;
 
 import org.talend.components.common.stream.api.output.RecordWriter;
-import org.talend.components.common.stream.api.output.RecordWriterRepository;
 import org.talend.components.common.stream.api.output.RecordWriterSupplier;
 import org.talend.components.common.stream.api.output.TargetFinder;
-import org.talend.components.common.stream.format.CSVConfiguration;
+import org.talend.components.common.stream.format.csv.CSVConfiguration;
 import org.talend.components.common.stream.format.ContentFormat;
 
 public class CSVWriterSupplier implements RecordWriterSupplier {
 
-    static {
-        RecordWriterRepository.getInstance().put(CSVConfiguration.class, new CSVWriterSupplier());
-    }
-
     @Override
     public RecordWriter getWriter(TargetFinder target, ContentFormat config) {
-        assert config instanceof CSVConfiguration : "csv reader not with csv config";
+        if (!CSVConfiguration.class.isInstance(config)) {
+            throw new IllegalArgumentException("try to get csv-writer with other than csv config");
+        }
+
         final CSVConfiguration csvConfig = (CSVConfiguration) config;
 
         return new CSVRecordWriter(csvConfig, target);

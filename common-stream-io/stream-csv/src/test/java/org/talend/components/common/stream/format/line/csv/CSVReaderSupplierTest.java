@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -19,8 +19,9 @@ import java.util.Iterator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.input.RecordReader;
-import org.talend.components.common.stream.format.CSVConfiguration;
+import org.talend.components.common.stream.format.csv.CSVConfiguration;
 import org.talend.components.common.stream.format.LineConfiguration;
+import org.talend.components.common.stream.format.csv.FieldSeparator;
 import org.talend.components.common.stream.input.csv.CSVReaderSupplier;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -33,7 +34,9 @@ class CSVReaderSupplierTest {
         final CSVConfiguration configuration = new CSVConfiguration();
         configuration.setQuotedValue('"');
         configuration.setEscape('\\');
-        configuration.setFieldSeparator(';');
+        configuration.setFieldSeparator(new FieldSeparator());
+        configuration.getFieldSeparator().setFieldSeparatorType(FieldSeparator.Type.SEMICOLON);
+
         configuration.setLineConfiguration(new LineConfiguration());
         configuration.getLineConfiguration().setLineSeparator("\n");
 

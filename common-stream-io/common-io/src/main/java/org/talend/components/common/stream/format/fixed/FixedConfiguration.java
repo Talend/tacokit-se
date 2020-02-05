@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -10,8 +10,10 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.common.stream.format;
+package org.talend.components.common.stream.format.fixed;
 
+import org.talend.components.common.stream.format.ContentFormat;
+import org.talend.components.common.stream.format.LineConfiguration;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.constraint.Pattern;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -22,14 +24,6 @@ import lombok.Data;
 @Data
 @GridLayout({ @GridLayout.Row("lineConfiguration"), @GridLayout.Row("lengthFields") })
 public class FixedConfiguration implements ContentFormat {
-
-    static {
-        try {
-            Class.forName("org.talend.components.common.stream.input.fixed.FixedReaderSupplier");
-        } catch (ClassNotFoundException e) {
-            // not exist if no dependencies to stream-fixed, fixed format is not used.
-        }
-    }
 
     /** Serialization */
     private static final long serialVersionUID = -7116638194610358461L;

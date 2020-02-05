@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -21,14 +21,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@GridLayout({ @GridLayout.Row({ "lineSeparatorType", "lineSeparator" }), @GridLayout.Row({ "encodingType", "encoding" }),
+@GridLayout({ @GridLayout.Row({ "lineSeparatorType", "lineSeparator" }), //
+        @GridLayout.Row({ "encoding" }), //
         @GridLayout.Row({ "useHeader", "header" }) })
 public class LineConfiguration implements ContentFormat {
 
     private static final long serialVersionUID = 6614704115891739018L;
 
     @AllArgsConstructor
-    public enum Type {
+    public enum LineSeparatorType {
         LF("\n"),
         CRLF("\r\n"),
         OTHER("");
@@ -38,7 +39,7 @@ public class LineConfiguration implements ContentFormat {
 
     @Option
     @Documentation("Type of symbol(s) used to separate lines")
-    private Type lineSeparatorType = Type.LF;
+    private LineSeparatorType lineSeparatorType = LineSeparatorType.LF;
 
     @Option
     @ActiveIf(target = "lineSeparatorType", value = "OTHER")
@@ -46,7 +47,7 @@ public class LineConfiguration implements ContentFormat {
     private String lineSeparator = "\n";
 
     public String getLineSeparator() {
-        if (this.lineSeparatorType == Type.OTHER) {
+        if (this.lineSeparatorType == LineSeparatorType.OTHER) {
             return this.lineSeparator;
         }
         return this.lineSeparatorType.separator;
@@ -54,19 +55,7 @@ public class LineConfiguration implements ContentFormat {
 
     @Option
     @Documentation("Encoding")
-    private Encoding encodingType = Encoding.UFT8;
-
-    @Option
-    @ActiveIf(target = "encodingType", value = "OTHER")
-    @Documentation("Your custom file encoding format")
-    private String encoding;
-
-    public String getEncoding() {
-        if (encodingType == Encoding.OTHER) {
-            return this.encoding;
-        }
-        return this.encodingType.getEncodingValue();
-    }
+    private Encoding encoding = new Encoding();
 
     @Option
     @Documentation("Set header size")

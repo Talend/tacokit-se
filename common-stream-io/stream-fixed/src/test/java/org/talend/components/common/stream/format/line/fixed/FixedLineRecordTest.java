@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -18,7 +18,9 @@ import java.util.Iterator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.input.RecordReader;
-import org.talend.components.common.stream.format.FixedConfiguration;
+import org.talend.components.common.stream.format.Encoding;
+import org.talend.components.common.stream.format.Encoding.Type;
+import org.talend.components.common.stream.format.fixed.FixedConfiguration;
 import org.talend.components.common.stream.format.LineConfiguration;
 import org.talend.components.common.stream.input.fixed.FixedReaderSupplier;
 import org.talend.sdk.component.api.record.Record;
@@ -33,6 +35,8 @@ class FixedLineRecordTest {
         cfg.setLengthFields("3;4;5");
         cfg.setLineConfiguration(new LineConfiguration());
         cfg.getLineConfiguration().setLineSeparator(System.lineSeparator());
+        cfg.getLineConfiguration().setEncoding(new Encoding());
+        cfg.getLineConfiguration().getEncoding().setEncodingType(Type.UFT8);
 
         FixedReaderSupplier recordReaderSupplier = new FixedReaderSupplier();
         RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");

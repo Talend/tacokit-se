@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -21,47 +21,30 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.input.RecordReader;
-import org.talend.components.common.stream.api.input.RecordReaderRepository;
 import org.talend.components.common.stream.format.Encoding;
-import org.talend.components.common.stream.format.ExcelConfiguration;
-import org.talend.components.common.stream.format.ExcelConfiguration.ExcelFormat;
+import org.talend.components.common.stream.format.excel.ExcelConfiguration;
+import org.talend.components.common.stream.format.excel.ExcelConfiguration.ExcelFormat;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
 class ExcelReaderSupplierTest {
 
-    private double idValue = 1.0;
-
-    private final String nameValue = "a";
-
-    private final double longValue = 10000000000000.0;
-
-    private final double doubleValue = 2.5;
-
-    private final double dateValue = 43501.0;
-
-    private final boolean booleanValue = true;
-
     private final RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");
 
     private final ExcelConfiguration config = new ExcelConfiguration();
-
-    ExcelReaderSupplier supplier = new ExcelReaderSupplier();
 
     @BeforeEach
     void initDataSet() {
         config.setSheetName("Sheet1");
         config.setExcelFormat(ExcelFormat.EXCEL2007);
-        config.setEncoding(Encoding.UFT8);
+        config.setEncoding(new Encoding());
         config.setUseFooter(false);
         config.setUseHeader(false);
     }
 
     @Test
     void test1File1RecordsWithoutHeader() throws IOException {
-
-        ExcelReaderSupplier supplier;
         config.setUseHeader(false);
 
         this.testOneValueFile("excel2007/excel_2007_1_record_no_header.xlsx");
@@ -71,9 +54,16 @@ class ExcelReaderSupplierTest {
     }
 
     private void testOneValueFile(String path) throws IOException {
+
+        double idValue = 1.0;
+        final String nameValue = "a";
+        final double longValue = 10000000000000.0;
+        final double doubleValue = 2.5;
+        final double dateValue = 43501.0;
+        final boolean booleanValue = true;
+
         try (final InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
-                final RecordReader reader = RecordReaderRepository.getInstance().get(ExcelConfiguration.class).getReader(factory,
-                        config)) {
+                final RecordReader reader = new ExcelReaderSupplier().getReader(factory, config)) {
 
             final Iterator<Record> records = reader.read(stream);
             for (int i = 0; i < 4; i++) {
@@ -103,8 +93,7 @@ class ExcelReaderSupplierTest {
 
     private void testRecordsSize(String path, int nbeRecord) throws IOException {
         try (final InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
-                final RecordReader reader = RecordReaderRepository.getInstance().get(ExcelConfiguration.class).getReader(factory,
-                        config)) {
+                final RecordReader reader = new ExcelReaderSupplier().getReader(factory, config)) {
 
             final Iterator<Record> records = reader.read(stream);
             for (int i = 0; i < 4; i++) {
@@ -119,7 +108,6 @@ class ExcelReaderSupplierTest {
 
     @Test
     void test1File5RecordsWithoutHeader() throws IOException {
-        ExcelReaderSupplier supplier;
         config.setUseHeader(false);
 
         this.testRecordsSize("excel2007/excel_2007_5_records_no_header.xlsx", 5);
@@ -128,11 +116,10 @@ class ExcelReaderSupplierTest {
         this.testRecordsSize("excel97/excel_97_5_records_no_header.xls", 5);
     }
 
-    private Record ensureNext(Iterator<Record> records, int number) {
+    private void ensureNext(Iterator<Record> records, int number) {
         Assertions.assertTrue(records.hasNext(), "no more record (" + (number + 1) + ")");
         final Record record = records.next();
         Assertions.assertNotNull(record);
-        return record;
     }
 
     @Test

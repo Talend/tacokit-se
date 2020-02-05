@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.csv.CSVFormat;
 import org.talend.components.common.stream.CSVHelper;
 import org.talend.components.common.stream.api.output.FormatWriter;
-import org.talend.components.common.stream.format.CSVConfiguration;
+import org.talend.components.common.stream.format.csv.CSVConfiguration;
 import org.talend.sdk.component.api.record.Record;
 
 public class CSVFormatWriter implements FormatWriter<CSVConfiguration> {
@@ -30,7 +30,8 @@ public class CSVFormatWriter implements FormatWriter<CSVConfiguration> {
         String[] headers = csvFormat.getHeader();
 
         if (headers != null && headers.length > 0) {
-            final String header = Arrays.asList(headers).stream().collect(Collectors.joining(config.getFieldSeparator() + ""));
+            final String header = Arrays.stream(headers) //
+                    .collect(Collectors.joining(config.getFieldSeparator() + ""));
             return header.getBytes(Charset.defaultCharset());
         }
         return null;
@@ -41,8 +42,4 @@ public class CSVFormatWriter implements FormatWriter<CSVConfiguration> {
         return config.getLineConfiguration().getLineSeparator().getBytes();
     }
 
-    @Override
-    public byte[] end(CSVConfiguration config) {
-        return null;
-    }
 }

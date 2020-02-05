@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,21 +13,18 @@
 package org.talend.components.common.stream.input.avro;
 
 import org.talend.components.common.stream.api.input.RecordReader;
-import org.talend.components.common.stream.api.input.RecordReaderRepository;
 import org.talend.components.common.stream.api.input.RecordReaderSupplier;
-import org.talend.components.common.stream.format.AvroConfiguration;
+import org.talend.components.common.stream.format.avro.AvroConfiguration;
 import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 public class AvroReaderSupplier implements RecordReaderSupplier {
 
-    static {
-        RecordReaderRepository.getInstance().put(AvroConfiguration.class, new AvroReaderSupplier());
-    }
-
     @Override
     public RecordReader getReader(RecordBuilderFactory factory, ContentFormat config) {
-        assert config instanceof AvroConfiguration : "avro reader not with avro config";
+        if (!AvroConfiguration.class.isInstance(config)) {
+            throw new IllegalArgumentException("try to get avro-reader with other than avro config");
+        }
 
         final AvroToRecord toRecord = new AvroToRecord(factory);
         return new AvroReader(toRecord);

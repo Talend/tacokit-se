@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,7 +15,7 @@ package org.talend.components.common.stream.output.json;
 import org.talend.components.common.stream.api.output.FormatWriter;
 import org.talend.components.common.stream.api.output.RecordByteWriter;
 import org.talend.components.common.stream.api.output.TargetFinder;
-import org.talend.components.common.stream.format.JsonConfiguration;
+import org.talend.components.common.stream.format.json.JsonConfiguration;
 import org.talend.sdk.component.api.record.Record;
 
 import lombok.extern.slf4j.Slf4j;

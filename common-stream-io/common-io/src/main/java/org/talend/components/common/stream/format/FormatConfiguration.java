@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,6 +14,11 @@ package org.talend.components.common.stream.format;
 
 import java.io.Serializable;
 
+import org.talend.components.common.stream.format.avro.AvroConfiguration;
+import org.talend.components.common.stream.format.csv.CSVConfiguration;
+import org.talend.components.common.stream.format.excel.ExcelConfiguration;
+import org.talend.components.common.stream.format.fixed.FixedConfiguration;
+import org.talend.components.common.stream.format.json.JsonConfiguration;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -24,8 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Data
 @Slf4j
-@GridLayout({ @GridLayout.Row("contentFormat"),
-        @GridLayout.Row({ "csvConfiguration", "fixedConfiguration", "jsonConfiguration" }) })
+@GridLayout({ @GridLayout.Row("contentFormat"), @GridLayout.Row({ "csvConfiguration", "fixedConfiguration", "jsonConfiguration",
+        "avroConfiguration", "excelConfiguration" }) })
 @Documentation("stream content configuration")
 public class FormatConfiguration implements Serializable {
 

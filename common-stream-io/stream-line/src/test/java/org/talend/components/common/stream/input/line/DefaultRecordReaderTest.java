@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -22,8 +22,8 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.talend.components.common.stream.input.line.schema.HeaderHandler;
 import org.talend.components.common.stream.format.LineConfiguration;
+import org.talend.components.common.stream.input.line.schema.HeaderHandler;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
@@ -33,10 +33,13 @@ class DefaultRecordReaderTest {
     void readLineFile() throws IOException {
         final URL sourceURL = Thread.currentThread().getContextClassLoader().getResource("./data.txt");
 
-        LineConfiguration config = new LineConfiguration();
-        LineSplitter splitter = (String line) -> {
-            return Stream.of(line.substring(0, 3), line.substring(3, 6), line.substring(6)).collect(Collectors.toList());
-        };
+        final LineConfiguration config = new LineConfiguration();
+
+        final LineSplitter splitter = (String line) -> Stream.of(line.substring(0, 3), //
+                line.substring(3, 6), //
+                line.substring(6)) //
+                .collect(Collectors.toList());
+
         testContent(sourceURL.getPath(), splitter, config.getLineSeparator());
     }
 
@@ -46,7 +49,7 @@ class DefaultRecordReaderTest {
      * @param filePath : path for source file.
      * @param splitter : split line in fields.
      * @param lineSeparator : line separator.
-     * @throws IOException
+     * @throws IOException : if fails.
      */
     private void testContent(String filePath, LineSplitter splitter, String lineSeparator) throws IOException {
         HeaderHandler handler = new HeaderHandler(0, null);

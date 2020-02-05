@@ -8,9 +8,10 @@ This module enable to treat content file format and separate this logic from fil
 
 First step is to define a configuration class for each schema our module will treat. Most common schema (fixed, csv, excel, json, avro) are already defined on common-io module (each configuration class must implements ContentFormat interface).
 
-Then, defined a global format class that integrate all formats treat by your module, like for FormatConfiguration class.
+Then, defined a global format class that integrate all formats treated by your module, like for FormatConfiguration class.
 
-link:common-io/src/main/java/org/talend/components/common/stream/format/FormatConfiguration.java[FormatConfiguration]
+link:common-io/src/main/java/org/talend/components/common/stream/format/FormatConfiguration.java[format config]
+
 
 
 ==== Input data.
@@ -40,7 +41,9 @@ public interface RecordReader extends AutoCloseable {
 }
 ----
 
-- Define an implemantation of RecordReaderSupplier interface, that is a builder for RecordReader instance
+- Define an implemantation of RecordReaderSupplier interface, that is a builder for RecordReader implementation, and register it to format.json file (here, example for json).
+
+link:stream-csv/src/main/resources/TALEND-INF/components/format.json[format declaration]
 
 [source,java]
 ----
@@ -55,24 +58,6 @@ public interface RecordReaderSupplier {
 }
 ----
 
-and register it to RecordReaderRepository (here, example for json).
-[source,java]
-----
-static {
-    RecordReaderRepository.getInstance().put(JsonConfiguration.class, new JsonReaderSupplier());
-}
-----
-
-Then, on defined configuration class, register the RecordReaderSupplier class
-
-[source,java]
-----
-static {
-    try {
-        Class.forName("org.talend.components...MyReaderSupplier");
-    } catch (ClassNotFoundException e) { }
-}
-----
 
 For all already defined format, you just have to add dependencies with corresponding module (stream-json for json format).
 
@@ -80,14 +65,22 @@ For all already defined format, you just have to add dependencies with correspon
 - Integration with source.
 
 Find the content format chose by user and get the corresponding record reader :
+inject repository with @Service annotation.
+[source,java]
+----
+    @Service
+    private final RecordIORepository ioRepository;
+----
+
+Then retrieve record reader supplier
 [source,java]
 ----
     ContentFormat format = dataset.....findFormat();
-    final RecordReaderSupplier recordReaderSupplier = RecordReaderRepository.getInstance().get(format.getClass());
+    final RecordReaderSupplier recordReaderSupplier = this.ioRepository.findReader(format.getClass());
     this.recordReader = recordReaderSupplier.getReader(this.factory, format);
 ----
 
-Then, after geting intputstream instance, return this iterator :
+Then, after getting intputstream instance, return this iterator :
 
 [source,java]
 ----
@@ -110,30 +103,11 @@ like with this json class.
 include::./stream-json/src/main/java/org/talend/components/common/stream/output/json/JsonWriterSupplier.java[]
 ----
 
-- on corresponding configuration class, load RecordWriterSupplier class
-[source,java]
-----
-static {
-    try {
-        Class.forName("org.talend.components...MyWriterSupplier");
-    } catch (ClassNotFoundException e) { }
-}
-----
+declare it to format.json file
 
 - For Writer, step are similar to reader :
 
-build a writer
-[source,java]
-----
-    final ContentFormat contentFormat = this.getDataSet()....findFormat();
-    final RecordWriterRepository repository = RecordWriterRepository.getInstance();
-    final RecordWriterSupplier recordWriterSupplier = repository.get(contentFormat.getClass());
-
-    final RecordWriter writer = recordWriterSupplier.getWriter(myOutputStream, contentFormat);
-    writer.init(contentFormat); // if needed.
-----
-
-then use it in tocokit method :
+then use writer in tacokit method :
 [source,java]
 ----
 @AfterGroup
