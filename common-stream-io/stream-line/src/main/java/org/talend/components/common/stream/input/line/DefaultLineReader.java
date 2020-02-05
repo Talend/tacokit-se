@@ -49,7 +49,7 @@ public class DefaultLineReader implements LineReader {
     @Override
     public Iterator<String> read(InputStream reader) {
         this.close();
-        this.scanner = new Scanner(reader).useDelimiter(this.regExpSeparator);
+        this.scanner = new Scanner(reader, this.chartSetName).useDelimiter(this.regExpSeparator);
         this.headers.treat(this.scanner);
         return this.scanner;
     }

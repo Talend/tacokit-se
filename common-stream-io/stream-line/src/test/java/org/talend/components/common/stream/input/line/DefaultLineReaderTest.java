@@ -13,6 +13,7 @@
 package org.talend.components.common.stream.input.line;
 
 import java.io.ByteArrayInputStream;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -32,7 +33,7 @@ class DefaultLineReaderTest {
         HeaderHandler handler = new HeaderHandler(0, null);
         DefaultLineReader reader = new DefaultLineReader(separator, "UTF-8", handler);
 
-        ByteArrayInputStream lineReader = new ByteArrayInputStream(line.getBytes());
+        ByteArrayInputStream lineReader = new ByteArrayInputStream(line.getBytes(Charset.forName("UTF-8")));
 
         final Iterator<String> lines = reader.read(lineReader);
         int index = 0;
