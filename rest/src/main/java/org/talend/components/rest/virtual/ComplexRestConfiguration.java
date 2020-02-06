@@ -15,16 +15,21 @@ package org.talend.components.rest.virtual;
 import lombok.Data;
 import org.talend.components.rest.processor.JSonExtractorConfiguration;
 import org.talend.components.rest.configuration.RequestConfig;
+import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.type.DataSet;
+import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 
 @Data
+@Version
+@DataSet("Dataset")
 @GridLayout({ @GridLayout.Row({ "restConfiguration" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "computeBody" }),
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "restConfiguration" }),
         @GridLayout.Row({ "jSonExtractorConfiguration" }) })
 public class ComplexRestConfiguration implements Serializable {
 
@@ -33,12 +38,7 @@ public class ComplexRestConfiguration implements Serializable {
     private RequestConfig restConfiguration;
 
     @Option
-    @Documentation("Compute input and generate records")
-    private boolean computeBody;
-
-    @Option
     @Documentation("Json extractor")
-    @ActiveIf(target = "computeBody", value = "true")
-    private JSonExtractorConfiguration jSonExtractorConfiguration;
+    private JSonExtractorConfiguration jSonExtractorConfiguration = new JSonExtractorConfiguration();
 
 }

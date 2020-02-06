@@ -18,6 +18,7 @@ import org.talend.sdk.component.api.processor.OutputEmitter;
 import javax.json.JsonObject;
 import javax.json.JsonPointer;
 import javax.json.JsonValue;
+import java.util.Optional;
 
 /**
  * Processor
@@ -27,7 +28,7 @@ import javax.json.JsonValue;
  * 
  * @Processor
  * 
- * @Icon(Icon.IconType.CUSTOM, "myicon")
+ * @Icon(Icon.IconType.CUSTOM, "talend-jsonExtractor")
  */
 @RequiredArgsConstructor
 public class JSonExtractor {
@@ -37,26 +38,10 @@ public class JSonExtractor {
     private final JsonExtractorService jsonExtractorService;
 
     // @ElementListener
-    public void onElement(final JsonObject input, final OutputEmitter<JsonObject> out) {
-        JsonPointer pointer = jsonExtractorService.getJsonProvider().createPointer(configuration.getPointer());
-        JsonValue value = pointer.getValue(input);
+    public JsonValue onElement(final JsonObject input) {
+        String p = Optional.ofNullable(configuration.getPointer()).orElse("");
 
-        switch (value.getValueType()) {
-        case OBJECT:
-            out.emit(value.asJsonObject());
-            break;
-        case ARRAY:
-            value.asJsonArray().stream().peek(it -> {
-                if (it.getValueType() != JsonValue.ValueType.OBJECT) {
-                    throw new IllegalArgumentException(
-                            jsonExtractorService.getJsonExtractorI18n().notSupportedJsonValueType(it.getValueType().name()));
-                }
-            }).map(JsonValue::asJsonObject).forEach(out::emit);
-            break;
-        default:
-            throw new IllegalArgumentException(
-                    jsonExtractorService.getJsonExtractorI18n().notSupportedJsonValueType(value.getValueType().name()));
-        }
-
+        JsonPointer pointer = jsonExtractorService.getJsonProvider().createPointer(p);
+        return pointer.getValue(input);
     }
 }

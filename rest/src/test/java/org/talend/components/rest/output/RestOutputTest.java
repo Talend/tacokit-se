@@ -89,25 +89,24 @@ class RestOutputTest {
     @Injected
     private BaseComponentsHandler handler;
 
-    private RequestConfig outputConfig;
+    private ComplexRestConfiguration outputConfig;
 
     @BeforeEach
     void buildConfig() throws IOException {
         // Inject needed services
         handler.injectServices(this);
 
-        ComplexRestConfiguration inputConfig = RequestConfigBuilderTest.getEmptyRequestConfig();
+        outputConfig = RequestConfigBuilderTest.getEmptyRequestConfig();
 
-        inputConfig.getRestConfiguration().getDataset().getDatastore().setConnectionTimeout(5000);
-        inputConfig.getRestConfiguration().getDataset().getDatastore().setReadTimeout(5000);
+        outputConfig.getRestConfiguration().getDataset().getDatastore().setConnectionTimeout(5000);
+        outputConfig.getRestConfiguration().getDataset().getDatastore().setReadTimeout(5000);
 
         // start server
         server = HttpServer.create(new InetSocketAddress(0), 0);
         port = server.getAddress().getPort();
 
-        inputConfig.getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
+        outputConfig.getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
 
-        outputConfig = inputConfig.getRestConfiguration();
     }
 
     @AfterEach
@@ -123,28 +122,28 @@ class RestOutputTest {
 
     @EnvironmentalTest
     void testOutput() throws IOException {
-        outputConfig.getDataset().setMethodType(HttpMethod.POST);
-        outputConfig.getDataset().setResource("post/{module}/{id}");
+        outputConfig.getRestConfiguration().getDataset().setMethodType(HttpMethod.POST);
+        outputConfig.getRestConfiguration().getDataset().setResource("post/{module}/{id}");
 
-        outputConfig.getDataset().setHasPathParams(true);
+        outputConfig.getRestConfiguration().getDataset().setHasPathParams(true);
         List<Param> pathParams = Arrays.asList(new Param[] { new Param("module", "{/module}"), new Param("id", "{/id}") });
-        outputConfig.getDataset().setPathParams(pathParams);
+        outputConfig.getRestConfiguration().getDataset().setPathParams(pathParams);
 
-        outputConfig.getDataset().setHasHeaders(true);
+        outputConfig.getRestConfiguration().getDataset().setHasHeaders(true);
         List<Param> headers = Arrays.asList(new Param[] { new Param("head_1", "header/{/id}"),
                 new Param("head_2", "page:{/pagination/page} on {/pagination/total}") });
-        outputConfig.getDataset().setHeaders(headers);
+        outputConfig.getRestConfiguration().getDataset().setHeaders(headers);
 
-        outputConfig.getDataset().setHasQueryParams(true);
+        outputConfig.getRestConfiguration().getDataset().setHasQueryParams(true);
         List<Param> params = Arrays
                 .asList(new Param[] { new Param("param_1", "param{/id}&/encoded < >"), new Param("param_2", "{/user_name}") });
-        outputConfig.getDataset().setQueryParams(params);
+        outputConfig.getRestConfiguration().getDataset().setQueryParams(params);
 
-        outputConfig.getDataset().setHasBody(true);
+        outputConfig.getRestConfiguration().getDataset().setHasBody(true);
         Path resourceDirectory = Paths.get("src/test/resources/org/talend/components/rest/body/BodyWithParams.json");
         final String content = Files.lines(resourceDirectory).collect(Collectors.joining("\n"));
-        outputConfig.getDataset().getBody().setType(RequestBody.Type.JSON);
-        outputConfig.getDataset().getBody().setJsonValue(content);
+        outputConfig.getRestConfiguration().getDataset().getBody().setType(RequestBody.Type.JSON);
+        outputConfig.getRestConfiguration().getDataset().getBody().setJsonValue(content);
 
         final List<Record> data = createData(NB_RECORDS);
         final AtomicInteger index = new AtomicInteger(0);
@@ -225,24 +224,24 @@ class RestOutputTest {
 
     @EnvironmentalTest
     void testOptionsFlags() throws IOException {
-        outputConfig.getDataset().setMethodType(HttpMethod.POST);
-        outputConfig.getDataset().setResource("post/path1/path2");
+        outputConfig.getRestConfiguration().getDataset().setMethodType(HttpMethod.POST);
+        outputConfig.getRestConfiguration().getDataset().setResource("post/path1/path2");
 
-        outputConfig.getDataset().setHasHeaders(false);
+        outputConfig.getRestConfiguration().getDataset().setHasHeaders(false);
         List<Param> headers = Arrays.asList(new Param[] { new Param("head_1", "header/{/id}"),
                 new Param("head_2", "page:{/pagination/page} on {/pagination/total}") });
-        outputConfig.getDataset().setHeaders(headers);
+        outputConfig.getRestConfiguration().getDataset().setHeaders(headers);
 
-        outputConfig.getDataset().setHasQueryParams(false);
+        outputConfig.getRestConfiguration().getDataset().setHasQueryParams(false);
         List<Param> params = Arrays
                 .asList(new Param[] { new Param("param_1", "param{/id}&/encoded < >"), new Param("param_2", "{/user_name}") });
-        outputConfig.getDataset().setQueryParams(params);
+        outputConfig.getRestConfiguration().getDataset().setQueryParams(params);
 
-        outputConfig.getDataset().setHasBody(false);
+        outputConfig.getRestConfiguration().getDataset().setHasBody(false);
         Path resourceDirectory = Paths.get("src/test/resources/org/talend/components/rest/body/BodyWithParams.json");
         String content = Files.lines(resourceDirectory).collect(Collectors.joining("\n"));
-        outputConfig.getDataset().getBody().setType(RequestBody.Type.JSON);
-        outputConfig.getDataset().getBody().setJsonValue(content);
+        outputConfig.getRestConfiguration().getDataset().getBody().setType(RequestBody.Type.JSON);
+        outputConfig.getRestConfiguration().getDataset().getBody().setJsonValue(content);
 
         final List<Record> data = createData(NB_RECORDS);
 

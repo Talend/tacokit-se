@@ -20,6 +20,7 @@ import org.talend.components.rest.configuration.auth.Authorization;
 import org.talend.components.rest.configuration.auth.Basic;
 import org.talend.components.rest.virtual.ComplexRestConfiguration;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit.environment.Environment;
@@ -32,6 +33,7 @@ import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.junit5.environment.EnvironmentalTest;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -78,11 +80,9 @@ public class ClientTestWithMockProxy {
     @BeforeEach
     void before() {
         config = RequestConfigBuilderTest.getEmptyRequestConfig();
-        // config.getRestConfiguration().getDataset().getDatastore().setReadTimeout(50000);
-        // config.getRestConfiguration().getDataset().getDatastore().setConnectionTimeout(50000);
     }
 
-    // @Test
+    // @EnvironmentalTest
     public void testDigestAuthWithQopPostMan() {
 
         String user = "postman";
@@ -102,8 +102,84 @@ public class ClientTestWithMockProxy {
         config.getRestConfiguration().getDataset().getDatastore().setAuthentication(auth);
         config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
 
-        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
-        assertEquals(200, resp.getInt("status"));
+        CompletePayload resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
+        assertEquals(200, resp.getStatus());
+    }
+
+    @EnvironmentalTest
+    void testFactsCompletePayload() {
+        config.getRestConfiguration().getDataset().getDatastore().setBase("https://fakefacts.com/");
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setResource("facts");
+        config.getRestConfiguration().getDataset().setCompletePayload(true);
+        config.getJSonExtractorConfiguration().setPointer("/one_element");
+
+        final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
+        Job.components() //
+                .component("emitter", "REST://Input?" + configStr) //
+                .component("out", "test://collector") //
+                .connections() //
+                .from("emitter") //
+                .to("out") //
+                .build() //
+                .run();
+
+        final List<Record> records = handler.getCollectedData(Record.class);
+
+        assertEquals(1, records.size());
+        Record record = records.get(0);
+        valideCompletePayloadSchema(record, Schema.Type.ARRAY);
+    }
+
+    @EnvironmentalTest
+    void testFactsRootCompletePayload() {
+        config.getRestConfiguration().getDataset().getDatastore().setBase("https://fakefacts.com/");
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setResource("facts");
+        config.getRestConfiguration().getDataset().setCompletePayload(true);
+        config.getJSonExtractorConfiguration().setPointer("");
+
+        final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
+        Job.components() //
+                .component("emitter", "REST://Input?" + configStr) //
+                .component("out", "test://collector") //
+                .connections() //
+                .from("emitter") //
+                .to("out") //
+                .build() //
+                .run();
+
+        final List<Record> records = handler.getCollectedData(Record.class);
+
+        assertEquals(1, records.size());
+        Record record = records.get(0);
+        valideCompletePayloadSchema(record, Schema.Type.ARRAY);
+    }
+
+    @EnvironmentalTest
+    void testFactsRoot() {
+        config.getRestConfiguration().getDataset().getDatastore().setBase("https://fakefacts.com/");
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setResource("facts");
+        config.getRestConfiguration().getDataset().setCompletePayload(false);
+        config.getJSonExtractorConfiguration().setPointer("");
+
+        final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
+        Job.components() //
+                .component("emitter", "REST://Input?" + configStr) //
+                .component("out", "test://collector") //
+                .connections() //
+                .from("emitter") //
+                .to("out") //
+                .build() //
+                .run();
+
+        final List<Record> records = handler.getCollectedData(Record.class);
+        assertEquals(1, records.size());
+        assertEquals(1, records.get(0).getSchema().getEntries().size());
+        assertEquals(Schema.Type.ARRAY, records.get(0).getSchema().getEntries().get(0).getType());
+        assertEquals("all", records.get(0).getSchema().getEntries().get(0).getName());
+        assertEquals("000001", ((ArrayList<Record>) records.get(0).getArray(Record.class, "all")).get(0).getString("_id"));
     }
 
     @EnvironmentalTest
@@ -111,7 +187,7 @@ public class ClientTestWithMockProxy {
         config.getRestConfiguration().getDataset().getDatastore().setBase("https://fakefacts.com/");
         config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
         config.getRestConfiguration().getDataset().setResource("facts");
-        config.setComputeBody(true);
+        config.getRestConfiguration().getDataset().setCompletePayload(false);
         config.getJSonExtractorConfiguration().setPointer("/all");
 
         final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
@@ -138,7 +214,105 @@ public class ClientTestWithMockProxy {
         assertEquals("Last fact.", record.getString("text"));
         assertEquals("fact", record.getString("type"));
         assertEquals(5.0d, record.getDouble("upvotes"));
+    }
 
+    @EnvironmentalTest
+    void testPlainText() {
+        config.getRestConfiguration().getDataset().getDatastore().setBase("https://fakefacts.com/");
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setResource("facts");
+        config.getRestConfiguration().getDataset().setCompletePayload(false);
+        config.getJSonExtractorConfiguration().setPointer("/all");
+
+        final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
+        Job.components() //
+                .component("emitter", "REST://Input?" + configStr) //
+                .component("out", "test://collector") //
+                .connections() //
+                .from("emitter") //
+                .to("out") //
+                .build() //
+                .run();
+
+        final List<Record> records = handler.getCollectedData(Record.class);
+        assertEquals(1, records.size());
+
+        Record record = records.get(0);
+        assertEquals("This is the plain text body.", record.getString("body"));
+
+        assertEquals(1, record.getSchema().getEntries().size());
+        assertEquals("body", record.getSchema().getEntries().get(0).getName());
+        assertEquals(Schema.Type.STRING, record.getSchema().getEntries().get(0).getType());
+
+    }
+
+    @EnvironmentalTest
+    void testPlainTextCompletePayload() {
+        config.getRestConfiguration().getDataset().getDatastore().setBase("https://fakefacts.com/");
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setResource("facts");
+        config.getRestConfiguration().getDataset().setCompletePayload(true);
+        config.getJSonExtractorConfiguration().setPointer("");
+
+        final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
+        Job.components() //
+                .component("emitter", "REST://Input?" + configStr) //
+                .component("out", "test://collector") //
+                .connections() //
+                .from("emitter") //
+                .to("out") //
+                .build() //
+                .run();
+
+        final List<Record> records = handler.getCollectedData(Record.class);
+        assertEquals(1, records.size());
+
+        Record record = records.get(0);
+        assertEquals("This is the plain text body.", record.getString("body"));
+
+        valideCompletePayloadSchema(record, Schema.Type.STRING);
+    }
+
+    @EnvironmentalTest
+    void testXML() {
+        config.getRestConfiguration().getDataset().getDatastore().setBase("https://fakefacts.com/");
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setResource("facts");
+        config.getRestConfiguration().getDataset().setCompletePayload(false);
+        config.getJSonExtractorConfiguration().setPointer("/all");
+
+        final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
+        Job.components() //
+                .component("emitter", "REST://Input?" + configStr) //
+                .component("out", "test://collector") //
+                .connections() //
+                .from("emitter") //
+                .to("out") //
+                .build() //
+                .run();
+
+        final List<Record> records = handler.getCollectedData(Record.class);
+        assertEquals(1, records.size());
+
+        Record record = records.get(0);
+        assertEquals("<xml><books><book id=\"1\"><title>Romeo and Juliet</title><isbn>21321321</isbn></book></books></xml>",
+                record.getString("body"));
+    }
+
+    private void valideCompletePayloadSchema(final Record record, final Schema.Type bodyType) {
+        assertEquals(3, record.getSchema().getEntries().size());
+
+        Schema.Entry body = record.getSchema().getEntries().get(0);
+        assertEquals("body", body.getName());
+        assertEquals(bodyType, body.getType());
+
+        Schema.Entry headers = record.getSchema().getEntries().get(1);
+        assertEquals("headers", headers.getName());
+        assertEquals(Schema.Type.RECORD, headers.getType());
+
+        Schema.Entry status = record.getSchema().getEntries().get(2);
+        assertEquals("status", status.getName());
+        assertEquals(Schema.Type.DOUBLE, status.getType());
     }
 
 }

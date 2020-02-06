@@ -29,7 +29,7 @@ public class RestConfigurer implements Configurer {
         final I18n i18n = configuration.get("i18n", I18n.class);
 
         // Deactivate support of redirection of the underlying client
-        connection.withoutFollowRedirects();
+        // connection.withoutFollowRedirects();
 
         // Set timeout
         if (config.getDataset().getDatastore().getConnectionTimeout() != null) {

@@ -13,6 +13,7 @@
 package org.talend.components.rest.source;
 
 import org.talend.components.rest.configuration.RequestConfig;
+import org.talend.components.rest.service.CompletePayload;
 import org.talend.components.rest.service.RestService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -42,7 +43,7 @@ public class RestEmitter implements Serializable {
     }
 
     @Producer
-    public Record next() {
+    public CompletePayload next() {
         if (!done) {
             done = true;
             return client.buildFixedRecord(client.execute(config));

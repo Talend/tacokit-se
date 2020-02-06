@@ -30,32 +30,26 @@ import org.talend.components.rest.service.client.ContentType;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.RecordPointerFactory;
-import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.http.Response;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import javax.json.JsonBuilderFactory;
-import javax.json.JsonNumber;
-import javax.json.JsonObject;
-import javax.json.JsonString;
-import javax.json.JsonValue;
-import javax.json.stream.JsonParserFactory;
+import javax.json.JsonReader;
+import javax.json.JsonReaderFactory;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -85,16 +79,10 @@ public class RestService {
     private I18n i18n;
 
     @Service
-    RecordBuilderFactory recordBuilderFactory;
-
-    @Service
     private RecordPointerFactory recordPointerFactory;
 
     @Service
-    private JsonBuilderFactory jsonBuilderFactory;
-
-    @Service
-    private JsonParserFactory jsonParser;
+    private JsonReaderFactory jsonReaderFactory;
 
     public Response<byte[]> execute(final RequestConfig config, final Record record) {
         return _execute(config, record);
@@ -232,36 +220,26 @@ public class RestService {
         return params.entrySet().stream().collect(toMap(e -> e.getKey(), e -> substitute(e.getValue(), substitutor)));
     }
 
-    public Record buildFixedRecord(final Response<byte[]> resp) {
-        Record.Builder builder = recordBuilderFactory.newRecordBuilder();
-
-        final int status = resp.status();
+    public CompletePayload buildFixedRecord(final Response<byte[]> resp) {
+        int status = resp.status();
         log.info(i18n.requestStatus(status));
-        builder.withInt("status", status);
 
-        if (resp.headers() == null) {
-            builder.withString("headers", "{}");
-        } else {
-            Schema.Entry headerKeyEntry = recordBuilderFactory.newEntryBuilder().withName("key").withType(Schema.Type.STRING)
-                    .withNullable(false).build();
-            Schema.Entry headerValueEntry = recordBuilderFactory.newEntryBuilder().withName("value").withType(Schema.Type.STRING)
-                    .withNullable(false).build();
-            Schema.Builder schemaBuilderHeader = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD);
-            Schema headerElementSchema = schemaBuilderHeader.withEntry(headerKeyEntry).withEntry(headerValueEntry).build();
-            List<Record> headers = resp
-                    .headers().entrySet().stream().map(e -> recordBuilderFactory.newRecordBuilder(headerElementSchema)
-                            .withString("key", e.getKey()).withString("value", String.join(",", e.getValue())).build())
-                    .collect(Collectors.toList());
-
-            Schema.Entry.Builder arrayEntryBuilder = recordBuilderFactory.newEntryBuilder();
-            builder.withArray(arrayEntryBuilder.withName("headers").withType(Schema.Type.ARRAY).withNullable(false)
-                    .withElementSchema(headerElementSchema).build(), headers);
+        Map<String, List<String>> responseHeaders = resp.headers();
+        Map<String, String> headers = new HashMap<>();
+        if (responseHeaders != null) {
+            responseHeaders.entrySet().stream().forEach(e -> headers.put(e.getKey(), String.join(",", e.getValue())));
         }
 
-        String receivedBody = getBody(resp);
-        builder.withString("body", receivedBody);
+        final String receivedBody = getBody(resp);
+        Object body;
+        try (final JsonReader reader = jsonReaderFactory.createReader(new StringReader(receivedBody))) {
+            body = reader.readObject();
+        } catch (Exception e) {
+            // It is not a json, we return the raw String payload
+            body = receivedBody;
+        }
 
-        return builder.build();
+        return new CompletePayload(status, headers, body);
     }
 
     private static String getBody(final Response<byte[]> resp) {
@@ -299,43 +277,6 @@ public class RestService {
         }
 
         return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.healthCheckFailed(datastore.getBase()));
-    }
-
-    /*
-     * public List<JsonObject> json2records(final String json, final String path) {
-     * List<>
-     * if(this.records == null) {
-     * JsonParser parser = jsonParser.createParser(new StringReader(json));
-     * JsonValue value = parser.getValue();
-     * JsonPointer pointer = Json.createPointer(Optional.ofNullable(path).orElse(""));
-     * 
-     * records = flatMap(value, jsonBuilderFactory)
-     * .map(pointer::getValue)
-     * .flatMap(v -> flatMap(v, jsonBuilderFactory))
-     * .collect(Collectors.toList());
-     * }
-     * 
-     * return this.records;
-     * }
-     */
-
-    private Stream<JsonObject> flatMap(final JsonValue jsonValue, final JsonBuilderFactory jsonBuilderFactory) {
-        switch (jsonValue.getValueType()) {
-        case NULL:
-            return Stream.empty();
-        case ARRAY:
-            return jsonValue.asJsonArray().stream().map(JsonValue::asJsonObject);
-        case OBJECT:
-            return Stream.of(jsonValue.asJsonObject());
-        case NUMBER:
-            return Stream.of(jsonBuilderFactory.createObjectBuilder().add("number", JsonNumber.class.cast(jsonValue)).build());
-        case TRUE:
-        case FALSE:
-        case STRING:
-        default:
-            return Stream.of(jsonBuilderFactory.createObjectBuilder().add("string", JsonString.class.cast(jsonValue)).build());
-
-        }
     }
 
     /**

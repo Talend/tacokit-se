@@ -15,6 +15,7 @@ package org.talend.components.rest.virtual;
 import lombok.RequiredArgsConstructor;
 import org.talend.components.rest.processor.JSonExtractor;
 import org.talend.components.rest.processor.JsonExtractorService;
+import org.talend.components.rest.service.CompletePayload;
 import org.talend.components.rest.service.RestService;
 import org.talend.components.rest.source.RestEmitter;
 import org.talend.sdk.component.api.component.Icon;
@@ -22,14 +23,13 @@ import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.input.Emitter;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
-import org.talend.sdk.component.api.record.Record;
 
 import javax.json.JsonObject;
-import javax.json.JsonReader;
-import javax.json.JsonReaderFactory;
+import javax.json.JsonValue;
 import java.io.Serializable;
-import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 @Version(1)
 @Icon(value = Icon.IconType.CUSTOM, custom = "talend-rest")
@@ -42,8 +42,6 @@ public class ComplexRestEmitter implements Serializable {
 
     private final RestService client;
 
-    private final JsonReaderFactory jsonReaderFactory;
-
     private final JsonExtractorService jsonExtractorService;
 
     private transient LinkedList<Object> items = null;
@@ -53,23 +51,34 @@ public class ComplexRestEmitter implements Serializable {
         if (items == null) {
             items = new LinkedList<>();
             final RestEmitter delegateSource = new RestEmitter(configuration.getRestConfiguration(), client);
-            final Record global = delegateSource.next();
-            if (!configuration.isComputeBody()) {
-                items.add(global);
-            } else {
-                final JsonObject body = getBodyFromSource(global);
+            final CompletePayload global = delegateSource.next();
+
+            final boolean isJson = !String.class.isInstance(global.getBody());
+            final boolean isCompletePayload = configuration.getRestConfiguration().getDataset().isCompletePayload();
+
+            if (isJson) {
+                final JsonObject body = (JsonObject) global.getBody();
                 final JSonExtractor extractor = new JSonExtractor(configuration.getJSonExtractorConfiguration(),
                         jsonExtractorService);
-                extractor.onElement(body, value -> items.add(value));
+                if (isCompletePayload) {
+                    items.add(new CompletePayload(global.getStatus(), global.getHeaders(), extractor.onElement(body)));
+                } else {
+                    JsonValue jsonValue = extractor.onElement(body);
+
+                    if (jsonValue.getValueType() == JsonValue.ValueType.ARRAY) {
+                        items.addAll(jsonValue.asJsonArray());
+                    } else {
+                        items.add(jsonValue);
+                    }
+                }
+            } else {
+                if (isCompletePayload) {
+                    items.add(global);
+                } else {
+                    items.add(new StringBody((String) global.getBody()));
+                }
             }
         }
         return items.isEmpty() ? null : items.removeFirst();
-    }
-
-    private JsonObject getBodyFromSource(final Record record) {
-        final String body = record.getString("body");
-        try (final JsonReader reader = jsonReaderFactory.createReader(new StringReader(body))) {
-            return reader.readObject();
-        }
     }
 }

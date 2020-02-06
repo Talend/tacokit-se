@@ -31,17 +31,19 @@ import org.talend.components.rest.configuration.RequestBody;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.service.client.ContentType;
 import org.talend.components.rest.virtual.ComplexRestConfiguration;
-import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.junit5.WithComponents;
 
+import javax.json.JsonReader;
+import javax.json.JsonReaderFactory;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
@@ -51,12 +53,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -81,6 +83,9 @@ public class ClientTestWithEmbededServerTest {
 
     @Service
     RestService service;
+
+    @Service
+    private JsonReaderFactory jsonReaderFactory;
 
     private ComplexRestConfiguration config;
 
@@ -127,7 +132,7 @@ public class ClientTestWithEmbededServerTest {
             "POST,XML,src/test/resources/org/talend/components/rest/body/Example.xml" })
     void testBody(final String method, final String type, final String filename) throws IOException {
         Path resourceDirectory = Paths.get(filename);
-        String content = Files.lines(resourceDirectory).collect(Collectors.joining("\n"));
+        Object content = Files.lines(resourceDirectory).collect(Collectors.joining("\n"));
 
         config.getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
         config.getRestConfiguration().getDataset().setResource("post");
@@ -136,7 +141,7 @@ public class ClientTestWithEmbededServerTest {
 
         RequestBody.Type bodyType = RequestBody.Type.valueOf(type);
         config.getRestConfiguration().getDataset().getBody().setType(bodyType);
-        config.getRestConfiguration().getDataset().getBody().setTextContent(content);
+        config.getRestConfiguration().getDataset().getBody().setTextContent(content.toString());
 
         final AtomicReference<String> requestContentType = new AtomicReference<>();
         this.setServerContextAndStart(httpExchange -> {
@@ -157,17 +162,24 @@ public class ClientTestWithEmbededServerTest {
             os.close();
         });
 
-        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
+        CompletePayload resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
 
-        Collection<Record> headers = resp.getArray(Record.class, "headers");
-        String requestMethod = headers.stream().filter(e -> "Method".equals(e.getString("key"))).findFirst()
-                .map(h -> h.getString("value")).orElse("");
+        Set<Map.Entry<String, String>> headers = resp.getHeaders().entrySet();
+        String requestMethod = headers.stream().filter(e -> "Method".equals(e.getKey())).findFirst().map(h -> h.getValue())
+                .orElse("");
 
-        String requestBody = resp.getString("body");
+        Object requestBody = resp.getBody();
 
-        assertEquals(200, resp.getInt("status"));
+        assertEquals(200, resp.getStatus());
         assertEquals(method, requestMethod);
+
+        if ("JSON".equals(type)) {
+            final JsonReader reader = jsonReaderFactory.createReader(new StringReader(content.toString()));
+            content = reader.readObject();
+            reader.close();
+        }
         assertEquals(content, requestBody);
+
         assertEquals(bodyType.getContentType(), requestContentType.get());
     }
 
@@ -178,7 +190,7 @@ public class ClientTestWithEmbededServerTest {
             "POST,XML,src/test/resources/org/talend/components/rest/body/Example.xml" })
     void testBodyForceContentType(final String method, final String type, final String filename) throws IOException {
         Path resourceDirectory = Paths.get(filename);
-        String content = Files.lines(resourceDirectory).collect(Collectors.joining("\n"));
+        Object content = Files.lines(resourceDirectory).collect(Collectors.joining("\n"));
 
         final String forcedContentType = "text/forced; charset=utf8";
 
@@ -193,7 +205,7 @@ public class ClientTestWithEmbededServerTest {
 
         RequestBody.Type bodyType = RequestBody.Type.valueOf(type);
         config.getRestConfiguration().getDataset().getBody().setType(bodyType);
-        config.getRestConfiguration().getDataset().getBody().setTextContent(content);
+        config.getRestConfiguration().getDataset().getBody().setTextContent(content.toString());
 
         final AtomicReference<String> requestContentType = new AtomicReference<>();
         this.setServerContextAndStart(httpExchange -> {
@@ -214,17 +226,24 @@ public class ClientTestWithEmbededServerTest {
             os.close();
         });
 
-        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
+        CompletePayload resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
 
-        Collection<Record> headers = resp.getArray(Record.class, "headers");
-        String requestMethod = headers.stream().filter(e -> "Method".equals(e.getString("key"))).findFirst()
-                .map(h -> h.getString("value")).orElse("");
+        Set<Map.Entry<String, String>> headers = resp.getHeaders().entrySet();
+        String requestMethod = headers.stream().filter(e -> "Method".equals(e.getKey())).findFirst().map(h -> h.getValue())
+                .orElse("");
 
-        String requestBody = resp.getString("body");
+        Object requestBody = resp.getBody();
 
-        assertEquals(200, resp.getInt("status"));
+        assertEquals(200, resp.getStatus());
         assertEquals(method, requestMethod);
+
+        if ("JSON".equals(type)) {
+            final JsonReader reader = jsonReaderFactory.createReader(new StringReader(content.toString()));
+            content = reader.readObject();
+            reader.close();
+        }
         assertEquals(content, requestBody);
+
         assertEquals(forcedContentType, requestContentType.get());
     }
 
@@ -265,9 +284,9 @@ public class ClientTestWithEmbededServerTest {
         config.getRestConfiguration().getDataset().setMaxRedirect(-1);
         config.getRestConfiguration().getDataset().setForce_302_redirect(forceGet);
 
-        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
+        CompletePayload resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
 
-        assertEquals(200, resp.getInt("status"));
+        assertEquals(200, resp.getStatus());
         assertEquals(method, calls.get(0).getMethod());
 
         assertEquals(nbRedirect, calls.size());
@@ -316,10 +335,10 @@ public class ClientTestWithEmbededServerTest {
         config.getRestConfiguration().getDataset()
                 .setHeaders(Collections.singletonList(new Param(ContentType.HEADER_KEY, contentType)));
 
-        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
-        String body = resp.getString("body");
+        CompletePayload resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
+        Object body = resp.getBody();
 
-        assertEquals(200, resp.getInt("status"));
+        assertEquals(200, resp.getStatus());
         assertEquals(requestBody, receivedBody.get());
         assertEquals(requestBody, body);
     }
@@ -350,8 +369,8 @@ public class ClientTestWithEmbededServerTest {
         config.getRestConfiguration().getDataset().getBody().setType(RequestBody.Type.valueOf(type));
         config.getRestConfiguration().getDataset().getBody().setTextContent(content);
 
-        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
-        assertEquals(200, resp.getInt("status"));
+        CompletePayload resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
+        assertEquals(200, resp.getStatus());
         assertEquals(expected, contentType.get());
     }
 
@@ -379,8 +398,8 @@ public class ClientTestWithEmbededServerTest {
                 .setHeaders(Collections.singletonList(new Param(ContentType.HEADER_KEY, "text/plain")));
         config.getRestConfiguration().getDataset().setHasHeaders(parametersActivated);
 
-        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
-        assertEquals(200, resp.getInt("status"));
+        CompletePayload resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
+        assertEquals(200, resp.getStatus());
         assertEquals(parametersActivated, hasContentType.get());
     }
 
@@ -417,8 +436,8 @@ public class ClientTestWithEmbededServerTest {
         config.getRestConfiguration().getDataset().setHeaders(headers);
         config.getRestConfiguration().getDataset().setHasHeaders(true);
 
-        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
-        assertEquals(200, resp.getInt("status"));
+        CompletePayload resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
+        assertEquals(200, resp.getStatus());
 
         assertEquals(alreadyHasContentTypeHeader ? "text/forced_type" : RequestBody.Type.TEXT.getContentType(),
                 receivedContentType.get());
@@ -500,8 +519,8 @@ public class ClientTestWithEmbededServerTest {
 
         config.getRestConfiguration().getDataset().getDatastore().setReadTimeout(1000);
         config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
-        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
-        assertEquals(200, resp.getInt("status"));
+        CompletePayload resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
+        assertEquals(200, resp.getStatus());
     }
 
     @Test
@@ -532,8 +551,8 @@ public class ClientTestWithEmbededServerTest {
         body.setParams(null);
         config.getRestConfiguration().getDataset().setBody(body);
 
-        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
-        assertEquals(200, resp.getInt("status"));
+        CompletePayload resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
+        assertEquals(200, resp.getStatus());
 
     }
 
@@ -646,12 +665,12 @@ public class ClientTestWithEmbededServerTest {
                 new Param("key3", "val3"), new Param("", ""), new Param("key4", "val4")));
         config.getRestConfiguration().getDataset().setBody(body);
 
-        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
+        CompletePayload resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
 
         Path expectedFormaDataFile = Paths.get("src/test/resources/org/talend/components/rest/body/formData.txt");
         String expectedFormaData = Files.lines(expectedFormaDataFile).collect(Collectors.joining("\n"));
 
-        assertEquals(200, resp.getInt("status"));
+        assertEquals(200, resp.getStatus());
         assertEquals(expectedFormaData, receivedBody.get());
     }
 
@@ -681,12 +700,12 @@ public class ClientTestWithEmbededServerTest {
                 new Param("key3", "val3"), new Param("", ""), new Param("key4", "val4")));
         config.getRestConfiguration().getDataset().setBody(body);
 
-        Record resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
+        CompletePayload resp = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
 
         Path expectedFormaDataFile = Paths.get("src/test/resources/org/talend/components/rest/body/xxxFormUrlEncoded.txt");
         String expectedFormaData = Files.lines(expectedFormaDataFile).collect(Collectors.joining("\n"));
 
-        assertEquals(200, resp.getInt("status"));
+        assertEquals(200, resp.getStatus());
         assertEquals(expectedFormaData, receivedBody.get());
     }
 

@@ -57,7 +57,7 @@ public class RequestConfigBuilderTest {
 
         ComplexRestConfiguration complexRestConfiguration = new ComplexRestConfiguration();
         complexRestConfiguration.setRestConfiguration(config);
-        complexRestConfiguration.setComputeBody(false);
+        complexRestConfiguration.getRestConfiguration().getDataset().setCompletePayload(true); // setComputeBody(false);
         complexRestConfiguration.setJSonExtractorConfiguration(new JSonExtractorConfiguration());
 
         return complexRestConfiguration;

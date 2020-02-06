@@ -10,20 +10,15 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.rest.processor;
+package org.talend.components.rest.virtual;
 
 import lombok.Data;
-import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.ui.DefaultValue;
-import org.talend.sdk.component.api.meta.Documentation;
-
-import java.io.Serializable;
+import lombok.RequiredArgsConstructor;
 
 @Data
-public class JSonExtractorConfiguration implements Serializable {
+@RequiredArgsConstructor
+public class StringBody {
 
-    @Option
-    @Documentation("Pointer to the element from which generates records")
-    private String pointer = "";
+    final String body;
 
 }
