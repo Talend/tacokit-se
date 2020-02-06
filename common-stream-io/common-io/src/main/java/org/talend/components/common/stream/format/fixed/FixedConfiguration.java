@@ -41,21 +41,16 @@ public class FixedConfiguration implements ContentFormat {
     /** all fields length separate by ';' */
     private String lengthFields;
 
-    /** fields length in table format */
-    private int[] realLengthFields = new int[] {};
-
     /**
-     * Redefine lengthFields setter to update realLengthFields.
+     * Get array of lengths from this.lengthFields ("23;12;3" -> [23, 12, 3]) if field is valid.
      * 
-     * @param lengthFields : new fields length string.
+     * @return array of lengths
      */
-    public void setLengthFields(String lengthFields) {
-        this.lengthFields = lengthFields;
+    public int[] getRealLengthFields() {
         if (this.isValid()) {
-            realLengthFields = this.translateFields();
-        } else {
-            realLengthFields = new int[] {};
+            return this.translateFields();
         }
+        return new int[] {};
     }
 
     /**

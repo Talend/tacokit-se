@@ -15,6 +15,8 @@ package org.talend.components.common.stream.output.csv;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.csv.CSVFormat;
@@ -40,10 +42,17 @@ public class CSVRecordWriter implements RecordWriter {
     }
 
     private void firstRecord(Record record) throws IOException {
-        final CSVFormat csvFormat = CSVHelper.getCsvFormat(config);
-        if (config.getLineConfiguration().isUseHeader()) {
+        CSVFormat csvFormat = CSVHelper.getCsvFormat(config);
+
+        int nbeHeaderLine = this.config.getLineConfiguration().calcHeader();
+        if (nbeHeaderLine > 0) {
+            csvFormat = csvFormat.withCommentMarker(' ');
+            if (nbeHeaderLine > 2) {
+                final String headers = String.join("", Collections.nCopies(nbeHeaderLine - 2, "\n"));
+                csvFormat = csvFormat.withHeaderComments(headers);
+            }
             final List<String> headers = RecordSerializerLineHelper.schemaFrom(record.getSchema());
-            csvFormat.withHeader(headers.toArray(new String[] {}));
+            csvFormat = csvFormat.withHeader(headers.toArray(new String[] {}));
         }
 
         final OutputStream outputStream = this.target.find();

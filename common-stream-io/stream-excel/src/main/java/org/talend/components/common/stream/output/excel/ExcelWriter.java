@@ -72,9 +72,10 @@ public class ExcelWriter implements RecordWriter {
     }
 
     private void appendHeader(Record firstDataRecord) {
-        if (this.config.headerSize() > 0) {
+        int header = this.config.calcHeader();
+        if (header > 0) {
             // if more than one header.
-            for (int i = 1; i < config.headerSize(); i++) {
+            for (int i = 1; i < header; i++) {
                 this.buildRow();
             }
             this.toExcel.buildHeader(this::buildRow, firstDataRecord.getSchema());
@@ -82,8 +83,9 @@ public class ExcelWriter implements RecordWriter {
     }
 
     private void appendFooter() {
-        for (int i = 0; i < config.footerSize(); i++) {
-            final Row footerRow = buildRow();
+        int footer = this.config.calcFooter();
+        for (int i = 0; i < footer; i++) {
+            final Row footerRow = this.buildRow();
             final Cell footerCell = footerRow.createCell(0);
             footerCell.setCellValue("//footer line");
         }

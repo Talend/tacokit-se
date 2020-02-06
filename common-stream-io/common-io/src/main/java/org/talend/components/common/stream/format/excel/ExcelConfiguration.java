@@ -12,8 +12,11 @@
  */
 package org.talend.components.common.stream.format.excel;
 
+import java.util.Optional;
+
 import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.components.common.stream.format.Encoding;
+import org.talend.components.common.stream.format.OptionalLine;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.condition.ActiveIfs;
@@ -23,11 +26,13 @@ import org.talend.sdk.component.api.meta.Documentation;
 import lombok.Data;
 
 @GridLayout({ @GridLayout.Row("excelFormat"), @GridLayout.Row("sheetName"), @GridLayout.Row("encoding"),
-        @GridLayout.Row({ "useHeader", "header" }), // headers
-        @GridLayout.Row({ "useFooter", "footer" }) // footers
+        @GridLayout.Row({ "header" }), // headers
+        @GridLayout.Row({ "footer" }) // footers
 })
 @Data
 public class ExcelConfiguration implements ContentFormat {
+
+    private static final long serialVersionUID = -4004242251704350965L;
 
     public enum ExcelFormat {
         EXCEL2007,
@@ -51,37 +56,20 @@ public class ExcelConfiguration implements ContentFormat {
 
     @Option
     @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" })
-    @Documentation("true if some header is present")
-    private boolean useHeader;
-
-    @Option
-    @ActiveIfs(operator = ActiveIfs.Operator.AND, value = { @ActiveIf(target = "useHeader", value = "true"),
-            @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" }) })
-    @Documentation("number of header line")
-    private int header = 1;
-
-    public int headerSize() {
-        if (this.useHeader) {
-            return this.header;
-        }
-        return 0;
-    }
+    @Documentation("header")
+    private OptionalLine header;
 
     @Option
     @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" })
-    @Documentation("true if some footer is present")
-    private boolean useFooter;
+    @Documentation("footer")
+    private OptionalLine footer;
 
-    @Option
-    @ActiveIfs(operator = ActiveIfs.Operator.AND, value = { @ActiveIf(target = "useFooter", value = "true"),
-            @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" }) })
-    @Documentation("number of footer line")
-    private int footer = 1;
-
-    public int footerSize() {
-        if (this.useFooter) {
-            return this.footer;
-        }
-        return 0;
+    public int calcHeader() {
+        return Optional.ofNullable(this.header).map(OptionalLine::getSize).orElse(0);
     }
+
+    public int calcFooter() {
+        return Optional.ofNullable(this.footer).map(OptionalLine::getSize).orElse(0);
+    }
+
 }

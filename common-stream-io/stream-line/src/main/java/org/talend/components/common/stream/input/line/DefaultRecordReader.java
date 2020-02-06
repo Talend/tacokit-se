@@ -36,7 +36,7 @@ public class DefaultRecordReader implements RecordReader {
     public static DefaultRecordReader of(RecordBuilderFactory factory, LineConfiguration lineConfig, LineSplitter splitter) {
 
         final LineToRecord toRecord = new LineToRecord(factory, splitter);
-        final HeaderHandler headerHandler = new HeaderHandler(lineConfig.getHeader(), toRecord::withHeaders);
+        final HeaderHandler headerHandler = new HeaderHandler(lineConfig.calcHeader(), toRecord::withHeaders);
 
         final LineReader lineReader = new DefaultLineReader(lineConfig.getLineSeparator(), lineConfig.getEncoding().getEncoding(),
                 headerHandler);

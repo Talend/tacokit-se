@@ -53,19 +53,27 @@ public class ExcelRecordReader implements RecordReader {
             this.close();
             this.currentWorkBook = ExcelUtils.readWorkBook(configuration.getExcelFormat(), in);
             final Sheet sheet = this.currentWorkBook.getSheet(this.configuration.getSheetName());
-            passHeaderRow(sheet);
+            parseHeaderRow(sheet);
 
-            return StreamSupport.stream(sheet.spliterator(), false).skip(this.configuration.headerSize())
-                    .filter((Row row) -> row.getRowNum() <= sheet.getLastRowNum() - configuration.footerSize())
-                    .map(this.toRecord::toRecord).iterator();
+            return StreamSupport.stream(sheet.spliterator(), false) // iteration on excel lines
+                    .skip(this.configuration.calcHeader()) // skip header
+                    .filter((Row row) -> row.getRowNum() <= sheet.getLastRowNum() - configuration.calcFooter()) // skip footer
+                    .map(this.toRecord::toRecord) // Excel Row to Record.
+                    .iterator();
         } catch (IOException exIO) {
             log.error("Error while reading excel input", exIO);
             throw new UncheckedIOException("Error while reading excel input", exIO);
         }
     }
 
-    private Schema passHeaderRow(Sheet sheet) {
-        final int size = this.configuration.headerSize();
+    /**
+     * Read header row to retrive schema.
+     * 
+     * @param sheet : excel sheet.
+     * @return Record Schema.
+     */
+    private Schema parseHeaderRow(Sheet sheet) {
+        final int size = this.configuration.calcHeader();
         if (size >= 1) {
             final Row headerRow = sheet.getRow(size - 1);
             return this.toRecord.inferSchema(headerRow, true);

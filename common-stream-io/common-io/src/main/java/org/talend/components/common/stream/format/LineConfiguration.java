@@ -12,6 +12,8 @@
  */
 package org.talend.components.common.stream.format;
 
+import java.util.Optional;
+
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -23,7 +25,7 @@ import lombok.Data;
 @Data
 @GridLayout({ @GridLayout.Row({ "lineSeparatorType", "lineSeparator" }), //
         @GridLayout.Row({ "encoding" }), //
-        @GridLayout.Row({ "useHeader", "header" }) })
+        @GridLayout.Row({ "header" }) })
 public class LineConfiguration implements ContentFormat {
 
     private static final long serialVersionUID = 6614704115891739018L;
@@ -58,18 +60,11 @@ public class LineConfiguration implements ContentFormat {
     private Encoding encoding = new Encoding();
 
     @Option
-    @Documentation("Set header size")
-    private boolean useHeader;
+    @Documentation("header")
+    private OptionalLine header;
 
-    @Option
-    @ActiveIf(target = "useHeader", value = "true")
-    @Documentation("Header size")
-    private int header = 1;
-
-    public int getHeader() {
-        if (!this.useHeader) {
-            return 0;
-        }
-        return header;
+    public int calcHeader() {
+        return Optional.ofNullable(this.header).map(OptionalLine::getSize).orElse(0);
     }
+
 }

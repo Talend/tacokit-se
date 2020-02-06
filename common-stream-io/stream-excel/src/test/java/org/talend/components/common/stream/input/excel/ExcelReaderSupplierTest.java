@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.input.RecordReader;
 import org.talend.components.common.stream.format.Encoding;
+import org.talend.components.common.stream.format.OptionalLine;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration.ExcelFormat;
 import org.talend.sdk.component.api.record.Record;
@@ -39,13 +40,16 @@ class ExcelReaderSupplierTest {
         config.setSheetName("Sheet1");
         config.setExcelFormat(ExcelFormat.EXCEL2007);
         config.setEncoding(new Encoding());
-        config.setUseFooter(false);
-        config.setUseHeader(false);
+        config.setHeader(new OptionalLine());
+        config.getHeader().setActiv(false);
+
+        config.setFooter(new OptionalLine());
+        config.getFooter().setActiv(false);
     }
 
     @Test
     void test1File1RecordsWithoutHeader() throws IOException {
-        config.setUseHeader(false);
+        config.getHeader().setActiv(false);
 
         this.testOneValueFile("excel2007/excel_2007_1_record_no_header.xlsx");
 
@@ -71,7 +75,7 @@ class ExcelReaderSupplierTest {
             }
             final Record firstRecord = records.next();
 
-            if (config.isUseHeader()) {
+            if (config.getHeader().isActiv()) {
 
                 Assert.assertEquals(idValue, firstRecord.getDouble("id"), 0.01);
                 Assert.assertEquals(nameValue, firstRecord.getString("name"));
@@ -108,7 +112,7 @@ class ExcelReaderSupplierTest {
 
     @Test
     void test1File5RecordsWithoutHeader() throws IOException {
-        config.setUseHeader(false);
+        config.getHeader().setActiv(false);
 
         this.testRecordsSize("excel2007/excel_2007_5_records_no_header.xlsx", 5);
 
@@ -124,8 +128,8 @@ class ExcelReaderSupplierTest {
 
     @Test
     void testInput1FileWithHeader1Row() throws IOException {
-        this.config.setUseHeader(true);
-        this.config.setHeader(1);
+        config.getHeader().setActiv(true);
+        config.getHeader().setSize(1);
         this.testOneValueFile("excel2007/excel_2007_1_record_with_header.xlsx");
 
         config.setExcelFormat(ExcelFormat.EXCEL97);
@@ -134,8 +138,8 @@ class ExcelReaderSupplierTest {
 
     @Test
     void testInput1FileMultipleRows() throws IOException {
-        this.config.setUseHeader(true);
-        this.config.setHeader(1);
+        config.getHeader().setActiv(true);
+        config.getHeader().setSize(1);
 
         this.testRecordsSize("excel2007/excel_2007_5_records_with_header.xlsx", 5);
 
@@ -145,8 +149,8 @@ class ExcelReaderSupplierTest {
 
     @Test
     void test1File1RecordWithBigHeader() throws IOException {
-        this.config.setUseHeader(true);
-        this.config.setHeader(2);
+        config.getHeader().setActiv(true);
+        config.getHeader().setSize(2);
 
         this.testOneValueFile("excel2007/excel_2007_1_record_with_big_header.xlsx");
 
@@ -156,8 +160,8 @@ class ExcelReaderSupplierTest {
 
     @Test
     void test1File5RecordsWithBigHeader() throws IOException {
-        this.config.setUseHeader(true);
-        this.config.setHeader(2);
+        config.getHeader().setActiv(true);
+        config.getHeader().setSize(2);
 
         this.testRecordsSize("excel2007/excel_2007_5_records_with_big_header.xlsx", 5);
 
@@ -169,14 +173,13 @@ class ExcelReaderSupplierTest {
     @Test
     void test1FileWithFooter() throws IOException {
 
-        this.config.setUseFooter(true);
-        this.config.setFooter(1);
+        config.getFooter().setActiv(true);
+        config.getFooter().setSize(1);
 
         this.testOneValueFile("excel2007/excel_2007_1_record_footer.xlsx");
 
         config.setExcelFormat(ExcelFormat.EXCEL97);
         this.testOneValueFile("excel97/excel_97_1_record_footer.xls");
-
     }
 
 }
