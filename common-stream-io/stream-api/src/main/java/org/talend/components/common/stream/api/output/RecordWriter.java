@@ -22,7 +22,7 @@ import org.talend.sdk.component.api.record.Record;
  */
 public interface RecordWriter extends AutoCloseable {
 
-    default void init(ContentFormat config) {
+    default void init(ContentFormat config) throws IOException {
     }
 
     default void end() throws IOException {

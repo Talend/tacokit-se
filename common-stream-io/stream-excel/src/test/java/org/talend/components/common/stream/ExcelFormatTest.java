@@ -29,8 +29,7 @@ class ExcelFormatTest {
 
     @Test
     void format() {
-        RecordIORepository repo = new RecordIORepository();
-        repo.setJsonReaderFactory(Json.createReaderFactory(Collections.emptyMap()));
+        final RecordIORepository repo = new RecordIORepository(Json.createReaderFactory(Collections.emptyMap()));
         repo.init();
 
         final RecordReaderSupplier reader = repo.findReader(ExcelConfiguration.class);

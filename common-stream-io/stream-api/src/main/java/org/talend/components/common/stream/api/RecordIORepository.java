@@ -39,7 +39,7 @@ import org.talend.sdk.component.api.service.Service;
 public class RecordIORepository {
 
     @Service
-    private JsonReaderFactory jsonReaderFactory;
+    private final JsonReaderFactory jsonReaderFactory;
 
     /** all readers suppliers */
     private final ConcurrentMap<Class<? extends ContentFormat>, RecordReaderSupplier> readers = new ConcurrentHashMap<>();
@@ -47,24 +47,42 @@ public class RecordIORepository {
     /** all writers suppliers */
     private final ConcurrentMap<Class<? extends ContentFormat>, RecordWriterSupplier> writers = new ConcurrentHashMap<>();
 
+    public RecordIORepository(JsonReaderFactory jsonReaderFactory) {
+        this.jsonReaderFactory = jsonReaderFactory;
+    }
+
     @PostConstruct
     public void init() {
         final ClassLoader loader = Thread.currentThread().getContextClassLoader();
         try {
             Collections.list(loader.getResources("TALEND-INF/components/format.json")).stream() //
-                    .map(this::readJson) //
-                    .forEach((JsonObject json) -> this.loadJson(loader, json)); //
+                    .map(this::readJson) // url -> json object
+                    .forEach((JsonObject json) -> this.loadJson(loader, json)); // load json to update readers & writers
         } catch (IOException exIO) {
             throw new UncheckedIOException("Unable to load 'TALEND-INF/components/format.json'", exIO);
         }
     }
 
+    /**
+     * Load json content that config a reader/writer.
+     * 
+     * @param loader : current class loader.
+     * @param json : json content for a reader/writers declaration << { "<config class name>": {
+     * "reader": "<ReaderSupplierClassName>", "writer": "<WriterSupplierClassName>" } }
+     */
     private void loadJson(ClassLoader loader, JsonObject json) {
         json.entrySet().forEach((Entry<String, JsonValue> e) -> {
             this.loadClasses(loader, e.getKey(), e.getValue());
         });
     }
 
+    /**
+     * Load a reader & writer.
+     * 
+     * @param loader : class loader.
+     * @param contentFormatClasses : format class name.
+     * @param value : reader & writer class
+     */
     private void loadClasses(ClassLoader loader, String contentFormatClasses, JsonValue value) {
 
         final Class<? extends ContentFormat> contentFormatClass = this.loadClass(ContentFormat.class, loader,
@@ -87,6 +105,15 @@ public class RecordIORepository {
         }
     }
 
+    /**
+     * Build new instance of a class (assuming there's a no arg constructor.
+     * 
+     * @param baseClazz
+     * @param loader
+     * @param name
+     * @param <T>
+     * @return
+     */
     private <T> T newInstance(Class<T> baseClazz, ClassLoader loader, String name) {
         try {
             final Class<? extends T> clazz = this.loadClass(baseClazz, loader, name);
@@ -109,7 +136,8 @@ public class RecordIORepository {
     }
 
     private JsonObject readJson(URL urlFormat) {
-        try (InputStream input = urlFormat.openStream(); final JsonReader reader = jsonReaderFactory.createReader(input)) {
+        try (final InputStream input = urlFormat.openStream(); //
+                final JsonReader reader = jsonReaderFactory.createReader(input)) {
             return reader.readObject();
         } catch (final IOException exIO) {
             throw new UncheckedIOException("unable to read " + urlFormat.getPath(), exIO);
@@ -124,11 +152,4 @@ public class RecordIORepository {
         return this.writers.get(clazz);
     }
 
-    public JsonReaderFactory getJsonReaderFactory() {
-        return jsonReaderFactory;
-    }
-
-    public void setJsonReaderFactory(JsonReaderFactory jsonReaderFactory) {
-        this.jsonReaderFactory = jsonReaderFactory;
-    }
 }

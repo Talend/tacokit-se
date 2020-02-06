@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.talend.components.common.stream.api.output.RecordWriter;
 import org.talend.components.common.stream.api.output.TargetFinder;
 import org.talend.components.common.stream.format.Encoding;
 import org.talend.components.common.stream.format.Encoding.Type;
@@ -57,7 +58,8 @@ class ExcelWriterTest {
         excelFile.createNewFile();
         final TargetFinder target = () -> new FileOutputStream(excelFile);
 
-        try (ExcelWriter writer = new ExcelWriter(cfg, target)) {
+        final ExcelWriterSupplier writerSupplier = new ExcelWriterSupplier();
+        try (RecordWriter writer = writerSupplier.getWriter(target, cfg)) {
             writer.add(this.buildRecords());
         }
         Assertions.assertTrue(excelFile.length() > 20, () -> "Length " + excelFile.length() + " is to small");

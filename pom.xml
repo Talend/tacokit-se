@@ -44,8 +44,8 @@
 
         <module>azure-dls-gen2</module>
         <module>marketo</module>
-	<module>common</module>
-	<module>common-stream-io</module>
+        <module>common</module>
+        <module>common-stream-io</module>
         <module>connectors-test-bom</module>
         <module>bigquery</module>
         <module>workday</module>

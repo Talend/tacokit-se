@@ -10,22 +10,11 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.common.stream.api.output;
+package org.talend.components.common.stream.api;
 
-import org.talend.sdk.component.api.record.Record;
+import org.talend.components.common.stream.format.ContentFormat;
 
-public interface FormatWriter<T> {
+public class FakeConfig implements ContentFormat {
 
-    default byte[] start(T config, Record first) {
-        return null;
-    }
-
-    default byte[] between(T config) {
-        return null;
-    }
-
-    default byte[] end(T config) {
-        return null;
-    }
-
+    private static final long serialVersionUID = 1184331928288668028L;
 }

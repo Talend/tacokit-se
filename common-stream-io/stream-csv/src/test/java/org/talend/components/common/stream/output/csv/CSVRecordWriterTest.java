@@ -54,7 +54,7 @@ class CSVRecordWriterTest {
         writer.flush();
         writer.end();
 
-        Assertions.assertEquals("mike;45\nbob;11\n\"ice;peak\";13", out.toString());
+        Assertions.assertEquals("mike;45\nbob;11\n\"ice;peak\";13\n", out.toString());
     }
 
     private List<Record> buildRecords() {

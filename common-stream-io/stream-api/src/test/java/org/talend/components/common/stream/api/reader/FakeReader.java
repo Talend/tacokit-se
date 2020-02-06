@@ -10,31 +10,23 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.common.stream.output.json;
+package org.talend.components.common.stream.api.reader;
 
-import java.nio.charset.Charset;
+import java.io.InputStream;
+import java.util.Iterator;
 
-import javax.json.JsonObject;
-
-import org.talend.components.common.stream.api.output.RecordConverter;
+import org.talend.components.common.stream.api.input.RecordReader;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
 
-public class RecordToByte implements RecordConverter<byte[], byte[]> {
-
-    private final RecordToJson toJson = new RecordToJson();
+public class FakeReader implements RecordReader {
 
     @Override
-    public byte[] fromRecord(Record record) {
-        final JsonObject json = this.toJson.fromRecord(record);
-        if (json != null) {
-            return json.toString().getBytes(Charset.defaultCharset());
-        }
-        return new byte[] {};
+    public Iterator<Record> read(InputStream reader) {
+        return null;
     }
 
     @Override
-    public byte[] fromRecordSchema(Schema record) {
-        return new byte[0];
+    public void close() {
+
     }
 }

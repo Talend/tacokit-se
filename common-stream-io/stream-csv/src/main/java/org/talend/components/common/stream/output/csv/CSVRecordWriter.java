@@ -12,18 +12,61 @@
  */
 package org.talend.components.common.stream.output.csv;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.List;
+
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.talend.components.common.stream.CSVHelper;
-import org.talend.components.common.stream.api.output.RecordByteWriter;
+import org.talend.components.common.stream.api.output.RecordWriter;
 import org.talend.components.common.stream.api.output.TargetFinder;
 import org.talend.components.common.stream.format.csv.CSVConfiguration;
+import org.talend.components.common.stream.output.line.RecordSerializerLineHelper;
+import org.talend.sdk.component.api.record.Record;
 
-import lombok.extern.slf4j.Slf4j;
+public class CSVRecordWriter implements RecordWriter {
 
-@Slf4j
-public class CSVRecordWriter extends RecordByteWriter {
+    private final TargetFinder target;
 
-    public CSVRecordWriter(CSVConfiguration config, TargetFinder out) {
-        super(new CSVRecordConverter(CSVHelper.getCsvFormat(config)), new CSVFormatWriter(), config, out);
+    private final CSVConfiguration config;
+
+    private CSVPrinter printer = null;
+
+    public CSVRecordWriter(CSVConfiguration config, TargetFinder target) {
+        this.target = target;
+        this.config = config;
     }
 
+    private void firstRecord(Record record) throws IOException {
+        final CSVFormat csvFormat = CSVHelper.getCsvFormat(config);
+        if (config.getLineConfiguration().isUseHeader()) {
+            final List<String> headers = RecordSerializerLineHelper.schemaFrom(record.getSchema());
+            csvFormat.withHeader(headers.toArray(new String[] {}));
+        }
+
+        final OutputStream outputStream = this.target.find();
+        final PrintStream ps = new PrintStream(outputStream);
+        this.printer = csvFormat.print(ps);
+    }
+
+    @Override
+    public void add(Record record) throws IOException {
+        if (this.printer == null) {
+            this.firstRecord(record);
+        }
+        final List<String> values = RecordSerializerLineHelper.valuesFrom(record);
+        this.printer.printRecord(values);
+    }
+
+    @Override
+    public void flush() throws IOException {
+        this.printer.flush();
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.printer.close(true);
+    }
 }

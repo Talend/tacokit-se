@@ -51,10 +51,6 @@ public class ExcelWriter implements RecordWriter {
     }
 
     @Override
-    public void init(ContentFormat config) {
-    }
-
-    @Override
     public void add(Record record) {
         if (this.first) {
             this.appendHeader(record);

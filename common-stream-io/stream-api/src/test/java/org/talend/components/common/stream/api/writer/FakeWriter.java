@@ -10,18 +10,24 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.common.stream.api.output.impl;
+package org.talend.components.common.stream.api.writer;
 
-import java.io.OutputStream;
+import java.io.IOException;
 
-import org.talend.components.common.stream.api.output.FormatWriter;
-import org.talend.components.common.stream.api.output.RecordByteWriter;
-import org.talend.components.common.stream.api.output.RecordConverter;
+import org.talend.components.common.stream.api.output.RecordWriter;
+import org.talend.sdk.component.api.record.Record;
 
-public class RecordWriterStream<T> extends RecordByteWriter<T> {
+public class FakeWriter implements RecordWriter {
 
-    public RecordWriterStream(RecordConverter<byte[], byte[]> converter, OutputStream out, FormatWriter<T> format, T config) {
-        super(converter, format, config, () -> out);
+    @Override
+    public void add(Record record) throws IOException {
     }
 
+    @Override
+    public void flush() throws IOException {
+    }
+
+    @Override
+    public void close() throws IOException {
+    }
 }

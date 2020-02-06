@@ -1,0 +1,6 @@
+{
+  "org.talend.components.common.stream.api.FakeConfig": {
+    "reader": "org.talend.components.common.stream.api.reader.FakeReaderSupplier",
+    "writer": "org.talend.components.common.stream.api.writer.FakeWriterSupplier"
+  }
+}
