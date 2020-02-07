@@ -9,7 +9,7 @@ fi
 
 echo "Fixing locales to lang only and not lang_COUNTRY"
 cd tmp/repository
-arr=("fr_FR:fr" "ja_JP:ja" "cn_CZ:cz_CN" "en_US:en") && for aa in ${arr[@]}; do
+arr=("fr_FR:fr" "ja_JP:ja" "cn_CZ:cn_CZ" "en_US:en") && for aa in ${arr[@]}; do
   i18n=${aa%%:*} && tck=${aa#*:}
   (find . -name "Messages_${i18n}.properties" | sed -e "s,\(.*\),mv \1 \1," | sed -e "s,${i18n},${tck},2") | /bin/bash
 done
