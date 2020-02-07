@@ -5,7 +5,7 @@
   "author": "Anas Khabali <akhabali@talend.com>",
   "license": "Apache-2.0",
   "dependencies": {
-    "@talend/i18n-scripts": "0.7.0"
+    "@talend/i18n-scripts": "0.7.1"
   }
 
 }

@@ -37,7 +37,7 @@ public class SalesforceServiceTest {
     void testGetEndpoint() {
         // 1. if endpoint is not be set, then get endpoint from local configuration file
         // maybe this would be not set in configuration file, use default endpoint would be enough
-        final String defualtConfigEndpoint = "https://login.salesforce.com/services/Soap/u/45.0";
+        final String defualtConfigEndpoint = "https://login.salesforce.com/services/Soap/u/47.0";
 
         final BasicDataStore ds_1 = new BasicDataStore();
         ds_1.setEndpoint("");

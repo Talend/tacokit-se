@@ -58,27 +58,27 @@ public class HTMLConverter implements RecordConverter<Element> {
         }
 
         Record.Builder builder = recordBuilderFactory.newRecordBuilder();
-        Elements rowColumns = record.getElementsByTag("td");
-        for (int i = 0; i < rowColumns.size(); i++) {
-            builder.withString(columns.getEntries().get(i).getName(), rowColumns.get(i).text());
+        Elements rowColumns = record.getAllElements();
+        for (int i = 1; i < rowColumns.size(); i++) {
+            builder.withString(columns.getEntries().get(i - 1).getName(), rowColumns.get(i).text());
         }
         return builder.build();
     }
 
     @Override
     public Element fromRecord(Record record) {
-        throw new UnsupportedOperationException("HTML Output are not supporter");
+        throw new UnsupportedOperationException("HTML Output are not supported");
     }
 
     private List<String> inferSchemaInfo(Element row, boolean useDefaultFieldName) {
         List<String> result = new ArrayList<>();
         Set<String> existNames = new HashSet<>();
         int index = 0;
-        Elements columns = row.getElementsByTag("td");
-        for (int i = 0; i < columns.size(); i++) {
+        Elements columns = row.getAllElements();
+        for (int i = 1; i < columns.size(); i++) { //skip first element since it would be the whole row
             String fieldName = columns.get(i).ownText();
             if (useDefaultFieldName || StringUtils.isEmpty(fieldName)) {
-                fieldName = "field" + i;
+                fieldName = "field" + (i - 1);
             }
 
             String finalName = SchemaUtils.correct(fieldName, index++, existNames);

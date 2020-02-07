@@ -48,6 +48,7 @@
         <module>connectors-test-bom</module>
         <module>bigquery</module>
         <module>workday</module>
+        <module>pubsub</module>
     </modules>
 
     <scm>
@@ -103,8 +104,8 @@
         <frontend.version>1.7.5</frontend.version>
         <node.version>v12.13.1</node.version>
         <yarn.version>v1.15.2</yarn.version>
-        <spotbugs.version>3.1.12</spotbugs.version>
-
+        <spotbugs.version>4.0.0-RC1</spotbugs.version>
+        <spotbugs-maven-plugin.version>3.1.12.2</spotbugs-maven-plugin.version>
         <spotless.version>1.24.0</spotless.version>
 
         <!-- The XTM customer id that manage the translation of this project-->
@@ -167,6 +168,21 @@
                 <artifactId>jackson-databind</artifactId>
                 <version>${jackson.version}</version>
                 <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.module</groupId>
+                <artifactId>jackson-module-jaxb-annotations</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                <artifactId>jackson-jaxrs-json-provider</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                <artifactId>jackson-jaxrs-base</artifactId>
+                <version>${jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.thoughtworks.paranamer</groupId>
@@ -538,6 +554,7 @@
                             https://artifacts-zl.talend.com/nexus/content/groups/public
                         </talend.component.junit.maven.repositories>
                     </systemPropertyVariables>
+                    <argLine>-Dfile.encoding=UTF-8</argLine>
                 </configuration>
             </plugin>
             <plugin>
@@ -618,19 +635,31 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>${spotbugs.version}</version>
+                <version>${spotbugs-maven-plugin.version}</version>
                 <executions>
                     <execution>
-                        <phase>compile</phase>
+                        <!--
+                        Late late late, this is so slow that it shouldn't even be.
+                        To ensure it is still seen by dev we put it before "package" but ultimately it should be at "verify" phase.
+                        -->
+                        <phase>prepare-package</phase>
                         <goals>
                             <goal>check</goal>
                         </goals>
-                        <configuration>
-                            <effort>Max</effort>
-                            <failOnError>false</failOnError>
-                        </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <effort>Max</effort>
+                    <failOnError>false</failOnError>
+                    <jvmArgs>-Dspotbugs.experimental.multiThread=false</jvmArgs> <!-- for now it is buggy -->
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.github.spotbugs</groupId>
+                        <artifactId>spotbugs</artifactId>
+                        <version>${spotbugs.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             <!-- to push to gihub pages if desired
             <plugin>
@@ -687,7 +716,7 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>${spotbugs.version}</version>
+                <version>${spotbugs-maven-plugin.version}</version>
             </plugin>
         </plugins>
     </reporting>
@@ -884,8 +913,8 @@
                                             ${maven.multiModuleProjectDirectory}/target/documentation_resources/resources/html
                                         </stylesdir>
                                         <stylesheet>talend.css</stylesheet>
-                                        <data-uri />
-                                        <toc />
+                                        <data-uri/>
+                                        <toc/>
                                     </attributes>
                                 </configuration>
                             </execution>
