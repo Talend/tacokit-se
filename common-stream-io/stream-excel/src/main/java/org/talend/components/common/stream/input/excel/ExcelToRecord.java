@@ -17,11 +17,14 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import org.apache.poi.ss.formula.FormulaType;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.FormulaError;
 import org.apache.poi.ss.usermodel.Row;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 public class ExcelToRecord {
@@ -49,7 +52,9 @@ public class ExcelToRecord {
             // update type if null (init with header)
             if (this.type == null) {
                 final Cell currentCell = record.getCell(this.index);
-                this.type = currentCell.getCellType();
+                if (currentCell != null) {
+                    this.type = currentCell.getCellType();
+                }
             }
 
             // return real cell type (in case of formula);
@@ -73,20 +78,30 @@ public class ExcelToRecord {
             inferSchema(record, false);
         }
 
-        Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder();
+        final Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder();
 
         for (int i = 0; i < schema.getEntries().size(); i++) {
             final Cell recordCell = record.getCell(i);
             final String colName = this.columns.get(i).name;
-            switch (schema.getEntries().get(i).getType()) {
-            case BOOLEAN:
-                recordBuilder.withBoolean(colName, recordCell.getBooleanCellValue());
-                break;
-            case DOUBLE:
-                recordBuilder.withDouble(colName, recordCell.getNumericCellValue());
-                break;
-            default:
+            final Entry entry = schema.getEntries().get(i);
+
+            if (recordCell != null && entry.getType() == null) {
                 recordBuilder.withString(colName, recordCell.getStringCellValue());
+            } else if (recordCell != null) {
+                try {
+                    switch (entry.getType()) {
+                    case BOOLEAN:
+                        recordBuilder.withBoolean(colName, recordCell.getBooleanCellValue());
+                        break;
+                    case DOUBLE:
+                        recordBuilder.withDouble(colName, recordCell.getNumericCellValue());
+                        break;
+                    default:
+                        recordBuilder.withString(colName, recordCell.getStringCellValue());
+                    }
+                } catch (RuntimeException ex) {
+                    recordBuilder.withString(colName, recordCell.getStringCellValue());
+                }
             }
         }
 
@@ -104,31 +119,34 @@ public class ExcelToRecord {
 
             Schema.Builder schemaBuilder = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD);
             for (Column column : this.columns) {
-                Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
+                final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
                 entryBuilder.withName(column.name);
-                CellType cellType = column.getRealCellType(record);
+                final CellType cellType = column.getRealCellType(record);
 
-                switch (cellType) {
-                case ERROR:
-                    throw new UnsupportedOperationException(
-                            "Error cell exists in excel document in the " + (column.index + 1) + " column");
-                case STRING:
-                    entryBuilder.withType(Schema.Type.STRING);
-                    break;
-                case NUMERIC:
-                    entryBuilder.withType(Schema.Type.DOUBLE);
-                    break;
-                case BOOLEAN:
-                    entryBuilder.withType(Schema.Type.BOOLEAN);
-                    break;
-                default:
-                    throw new IllegalStateException(String.format("Unexpected cell type:%s", cellType.name()));
-                }
+                final Schema.Type st = toRecordType(cellType, column.index + 1);
+                entryBuilder.withType(st);
+
                 schemaBuilder.withEntry(entryBuilder.build());
             }
             schema = schemaBuilder.build();
         }
         return schema;
+    }
+
+    private Schema.Type toRecordType(CellType cellType, int indexCol) {
+
+        if (cellType == CellType.ERROR) {
+            throw new UnsupportedOperationException("Error cell exists in excel document in the " + indexCol + " column");
+        }
+
+        if (cellType == CellType.STRING || cellType == CellType.BLANK || cellType == null) {
+            return Schema.Type.STRING;
+        } else if (cellType == CellType.NUMERIC) {
+            return Schema.Type.DOUBLE;
+        } else if (cellType == CellType.BOOLEAN) {
+            return Schema.Type.BOOLEAN;
+        }
+        throw new IllegalStateException(String.format("Unexpected cell type:%s", cellType.name()));
     }
 
     public List<Column> inferSchemaColumns(Row excelRecord, boolean isHeader) {

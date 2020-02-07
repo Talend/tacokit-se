@@ -16,11 +16,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.Iterator;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.stream.StreamSupport;
 
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.talend.components.common.collections.IteratorComposer;
 import org.talend.components.common.stream.ExcelUtils;
 import org.talend.components.common.stream.api.input.RecordReader;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration;
@@ -53,11 +56,15 @@ public class ExcelRecordReader implements RecordReader {
             this.close();
             this.currentWorkBook = ExcelUtils.readWorkBook(configuration.getExcelFormat(), in);
             final Sheet sheet = this.currentWorkBook.getSheet(this.configuration.getSheetName());
-            parseHeaderRow(sheet);
+            Iterator<Row> rowIterator = sheet.iterator();
+            this.parseHeaderRow(rowIterator);
+            rowIterator = IteratorComposer.of(rowIterator).skipFooter(this.configuration.calcFooter()).build();
 
-            return StreamSupport.stream(sheet.spliterator(), false) // iteration on excel lines
-                    .skip(this.configuration.calcHeader()) // skip header
-                    .filter((Row row) -> row.getRowNum() <= sheet.getLastRowNum() - configuration.calcFooter()) // skip footer
+            final Spliterator<Row> rowSpliterator = Spliterators.spliteratorUnknownSize(rowIterator, 0);
+
+            return StreamSupport.stream(rowSpliterator, false) // iteration on excel lines
+                    // .skip(this.configuration.calcHeader()) // skip header
+                    // .filter((Row row) -> row.getRowNum() <= sheet.getLastRowNum() - configuration.calcFooter()) // skip footer
                     .map(this.toRecord::toRecord) // Excel Row to Record.
                     .iterator();
         } catch (IOException exIO) {
@@ -69,13 +76,16 @@ public class ExcelRecordReader implements RecordReader {
     /**
      * Read header row to retrive schema.
      * 
-     * @param sheet : excel sheet.
+     * @param rows : excel rows.
      * @return Record Schema.
      */
-    private Schema parseHeaderRow(Sheet sheet) {
+    private Schema parseHeaderRow(Iterator<Row> rows) {
         final int size = this.configuration.calcHeader();
         if (size >= 1) {
-            final Row headerRow = sheet.getRow(size - 1);
+            for (int i = 1; i < size && rows.hasNext(); i++) {
+                rows.next();
+            }
+            final Row headerRow = rows.next();
             return this.toRecord.inferSchema(headerRow, true);
         }
         return null;

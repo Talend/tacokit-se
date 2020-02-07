@@ -53,6 +53,14 @@ public class IteratorComposer<T> {
         return IteratorComposer.of(composedIterator);
     }
 
+    public IteratorComposer<T> skipFooter(int footerSize) {
+        if (footerSize <= 0) {
+            return this;
+        }
+        final Iterator<T> delayedIterator = new DelayedIterator<>(this.iterator, footerSize);
+        return IteratorComposer.of(delayedIterator);
+    }
+
     /**
      * Composed iterator with flat map function.
      * 

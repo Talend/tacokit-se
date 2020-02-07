@@ -54,6 +54,22 @@ class IteratorComposerTest {
         this.checkNext(iterator, "later", i++);
     }
 
+    @Test
+    public void footer() {
+        final List<String> strings = Arrays.asList("Hello", "all", "of", "you");
+        final Iterator<String> it1 = IteratorComposer.of(strings.iterator()).skipFooter(0).build();
+        for (int i = 0; i < 4; i++) {
+            this.checkNext(it1, strings.get(i), i);
+        }
+        Assertions.assertFalse(it1.hasNext());
+
+        final Iterator<String> it2 = IteratorComposer.of(strings.iterator()).skipFooter(2).build();
+        for (int i = 0; i < 2; i++) {
+            this.checkNext(it2, strings.get(i), i);
+        }
+        Assertions.assertFalse(it2.hasNext());
+    }
+
     private Iterable<String> cut(String data) {
         return Arrays.asList(data.split(";"));
     }

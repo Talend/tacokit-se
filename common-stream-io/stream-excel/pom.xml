@@ -12,6 +12,7 @@
 
     <properties>
         <apache.poi.version>4.0.1</apache.poi.version>
+        <excel.streamer.version>2.1.0</excel.streamer.version>
     </properties>
 
     <dependencies>
@@ -20,12 +21,22 @@
             <artifactId>stream-api</artifactId>
             <version>1.6.0-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>org.talend.components</groupId>
+            <artifactId>common</artifactId>
+            <version>1.6.0-SNAPSHOT</version>
+        </dependency>
 
         <!-- Excel -->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
             <version>${apache.poi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.monitorjbl</groupId>
+            <artifactId>xlsx-streamer</artifactId>
+            <version>${excel.streamer.version}</version>
         </dependency>
 
     </dependencies>
