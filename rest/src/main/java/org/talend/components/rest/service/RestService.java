@@ -234,9 +234,11 @@ public class RestService {
         Object body;
         try (final JsonReader reader = jsonReaderFactory.createReader(new StringReader(receivedBody))) {
             body = reader.readObject();
+            log.info(i18n.parseJsonOk());
         } catch (Exception e) {
             // It is not a json, we return the raw String payload
             body = receivedBody;
+            log.info(i18n.parseJsonKo());
         }
 
         return new CompletePayload(status, headers, body);

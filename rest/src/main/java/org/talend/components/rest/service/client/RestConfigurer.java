@@ -31,7 +31,7 @@ public class RestConfigurer implements Configurer {
         // Deactivate support of redirection of the underlying client
         try {
             connection.withoutFollowRedirects();
-        } catch (Exception e) {
+        } catch (NoSuchMethodError e) {
             log.info(i18n.withoutFollowRedirectsDegradedMode());
         }
 

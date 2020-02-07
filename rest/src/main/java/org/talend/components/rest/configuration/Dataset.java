@@ -33,8 +33,7 @@ import java.util.List;
         @GridLayout.Row({ "queryParams" }), @GridLayout.Row({ "hasPathParams" }), @GridLayout.Row({ "pathParams" }),
         @GridLayout.Row({ "hasBody" }), @GridLayout.Row({ "body" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "datastore" }),
-        @GridLayout.Row({ "completePayload" }), @GridLayout.Row({ "maxRedirect" }), @GridLayout.Row({ "only_same_host" }),
-        @GridLayout.Row({ "force_302_redirect" }) })
+        @GridLayout.Row({ "completePayload" }) })
 @Documentation("Dataset configuration.")
 public class Dataset implements Serializable {
 

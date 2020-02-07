@@ -57,4 +57,8 @@ public interface I18n {
 
     String withoutFollowRedirectsDegradedMode();
 
+    String parseJsonOk();
+
+    String parseJsonKo();
+
 }
