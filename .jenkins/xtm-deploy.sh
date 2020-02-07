@@ -1,0 +1,26 @@
+#! /bin/bash
+
+echo "Packaging locales"
+mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-deploy
+if [[ ! $? -eq 0 ]] ; then
+    echo mvn error during xtm packaging
+    exit 123
+fi
+
+echo "Fixing locales for tacokit"
+cd tmp/repository
+arr=("fr_FR:fr" "ja_JP:ja" "cn_CZ:cz_CN" "en_US:en") && for aa in ${arr[@]}; do
+  i18n=${aa%%:*} && tck=${aa#*:}
+  (find . -name "Messages_${i18n}.properties" | sed -e "s,\(.*\),mv \1 \1," | sed -e "s,${i18n},${tck},2") | /bin/bash
+done
+
+git add --ignore-removal .
+git commit -m"fix(locales): rename locales for tacokit"
+git push
+
+echo "Deploying locales"
+mvn -s ../../.jenkins/settings.xml clean deploy -DaltDeploymentRepository=talend_nexus_deployment::default::https://artifacts-zl.talend.com/nexus/content/repositories/releases/
+if [[ ! $? -eq 0 ]] ; then
+    echo mvn error during xtm deploying
+    exit 123
+fi
