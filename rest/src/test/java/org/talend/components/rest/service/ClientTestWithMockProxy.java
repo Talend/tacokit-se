@@ -315,4 +315,33 @@ public class ClientTestWithMockProxy {
         assertEquals(Schema.Type.DOUBLE, status.getType());
     }
 
+    @EnvironmentalTest
+    void testJSONArray() {
+        config.getRestConfiguration().getDataset().getDatastore().setBase("https://fakefacts.com/");
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().setResource("facts");
+        config.getRestConfiguration().getDataset().setCompletePayload(false);
+
+        final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
+        Job.components() //
+                .component("emitter", "REST://Input?" + configStr) //
+                .component("out", "test://collector") //
+                .connections() //
+                .from("emitter") //
+                .to("out") //
+                .build() //
+                .run();
+
+        final List<Record> records = handler.getCollectedData(Record.class);
+        assertEquals(7, records.size());
+
+        Record record = records.get(0);
+        assertEquals("red", record.getString("color"));
+        assertEquals("#f00", record.getString("value"));
+
+        record = records.get(6);
+        assertEquals("black", record.getString("color"));
+        assertEquals("#000", record.getString("value"));
+    }
+
 }

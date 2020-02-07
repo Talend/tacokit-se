@@ -17,6 +17,7 @@ import org.talend.sdk.component.api.processor.OutputEmitter;
 
 import javax.json.JsonObject;
 import javax.json.JsonPointer;
+import javax.json.JsonStructure;
 import javax.json.JsonValue;
 import java.util.Optional;
 
@@ -38,7 +39,7 @@ public class JSonExtractor {
     private final JsonExtractorService jsonExtractorService;
 
     // @ElementListener
-    public JsonValue onElement(final JsonObject input) {
+    public JsonValue onElement(final JsonStructure input) {
         String p = Optional.ofNullable(configuration.getPointer()).orElse("");
 
         JsonPointer pointer = jsonExtractorService.getJsonProvider().createPointer(p);

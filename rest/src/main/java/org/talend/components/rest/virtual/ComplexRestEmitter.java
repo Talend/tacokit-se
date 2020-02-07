@@ -25,6 +25,7 @@ import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import javax.json.JsonObject;
+import javax.json.JsonStructure;
 import javax.json.JsonValue;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -57,7 +58,7 @@ public class ComplexRestEmitter implements Serializable {
             final boolean isCompletePayload = configuration.getRestConfiguration().getDataset().isCompletePayload();
 
             if (isJson) {
-                final JsonObject body = (JsonObject) global.getBody();
+                final JsonStructure body = (JsonStructure) global.getBody();
                 final JSonExtractor extractor = new JSonExtractor(configuration.getJSonExtractorConfiguration(),
                         jsonExtractorService);
                 if (isCompletePayload) {

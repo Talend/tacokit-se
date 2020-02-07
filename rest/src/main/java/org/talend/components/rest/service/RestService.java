@@ -233,7 +233,7 @@ public class RestService {
         final String receivedBody = getBody(resp);
         Object body;
         try (final JsonReader reader = jsonReaderFactory.createReader(new StringReader(receivedBody))) {
-            body = reader.readObject();
+            body = reader.read();
             log.info(i18n.parseJsonOk());
         } catch (Exception e) {
             // It is not a json, we return the raw String payload
