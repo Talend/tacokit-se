@@ -23,6 +23,7 @@ git push
 
 echo "Deploying locales"
 ls -al
+cat ../../.jenkins/settings.xml
 mvn -X -s ../../.jenkins/settings.xml clean deploy -DaltDeploymentRepository=talend_nexus_deployment::default::https://artifacts-zl.talend.com/nexus/content/repositories/releases/
 if [[ ! $? -eq 0 ]]; then
   echo   mvn error during xtm deploying
