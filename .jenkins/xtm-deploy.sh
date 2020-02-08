@@ -1,6 +1,6 @@
 #! /bin/bash
 
-echo "Packaging locales"
+echo "Packaging locales - fake step"
 mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-deploy
 if [[ ! $? -eq 0 ]]; then
   echo   mvn error during xtm packaging
@@ -18,7 +18,19 @@ git add --ignore-removal .
 git commit -m"fix(locales): rename locales to lang only"
 git push
 
+echo "Cleaning repository"
+cd ../..
+rm -rf tmp/repository
+
+echo "Packaging locales"
+mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-deploy
+if [[ ! $? -eq 0 ]]; then
+  echo   mvn error during xtm packaging
+  exit   123
+fi
+
 echo "Deploying locales"
+cd tmp/repository
 mvn -s ../../.jenkins/settings.xml clean deploy -DaltDeploymentRepository=talend_nexus_deployment::default::https://artifacts-zl.talend.com/nexus/content/repositories/releases/
 if [[ ! $? -eq 0 ]]; then
   echo   mvn error during xtm deploying
