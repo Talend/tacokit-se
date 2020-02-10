@@ -34,6 +34,7 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.stream.StreamSupport;
 
 import static java.util.Collections.emptyList;
@@ -161,12 +162,12 @@ public class PubSubService {
                     log.info(i18n.subscriptionNotFound());
                     ProjectTopicName topicName = ProjectTopicName.of(dataStore.getProjectName(), topic);
                     Subscription subscription = subscriptionAdminClient.createSubscription(subscriptionName, topicName,
-                            PushConfig.getDefaultInstance(), 0);
+                            PushConfig.getDefaultInstance(), 10);
                     log.info(i18n.subscriptionCreated(subscription.toString()));
                 }
             }
-        } catch (IOException ioe) {
-            log.warn(i18n.errorCreateSubscription(ioe.getMessage()));
+        } catch (Exception e) {
+            log.warn(i18n.errorCreateSubscription(e.getMessage()));
         }
     }
 
@@ -181,8 +182,8 @@ public class PubSubService {
             } catch (ApiException apiEx) {
                 log.error(i18n.cannotDeleteSubscription(apiEx.getMessage()), apiEx);
             }
-        } catch (IOException ioe) {
-            log.warn(i18n.errorRemoveSubscription(ioe.getMessage()));
+        } catch (Exception e) {
+            log.warn(i18n.errorRemoveSubscription(e.getMessage()));
         }
     }
 
@@ -240,12 +241,7 @@ public class PubSubService {
         }
     }
 
-    public void ackMessage(SubscriberStub subscriberStub, PubSubDataStore dataStore, String subscriptionId, String ackId) {
-        AcknowledgeRequest acknowledgeRequest = AcknowledgeRequest.newBuilder()
-                .setSubscription(ProjectSubscriptionName.format(dataStore.getProjectName(), subscriptionId))
-                .addAckIdsBytes(ByteString.copyFromUtf8(ackId)).build();
-        subscriberStub.acknowledgeCallable().call(acknowledgeRequest);
-    }
+
 
 
 }

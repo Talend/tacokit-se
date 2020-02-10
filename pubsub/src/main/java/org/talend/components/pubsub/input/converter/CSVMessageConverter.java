@@ -37,7 +37,7 @@ public class CSVMessageConverter extends MessageConverter {
 
     @Override
     public void init(PubSubDataSet dataset) {
-        char delimiter = dataset.getFieldDelimiter() == PubSubDataSet.CSVDelimiter.OTHER ? dataset.getOtherDelimiter().charAt(0)
+        char delimiter = dataset.getFieldDelimiter() == PubSubDataSet.CSVDelimiter.OTHER ? dataset.getOtherDelimiter()
                 : dataset.getFieldDelimiter().getValue();
         converter = CSVRecordConverter.of(getRecordBuilderFactory(), delimiter);
     }

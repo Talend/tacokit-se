@@ -74,8 +74,8 @@ public class CSVInputIT extends BaseIT {
     void selectFromNotExistingDirectory() {
         blobInputProperties.getDataset().setDirectory("notExistingDir");
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
-        Job.ExecutorBuilder job = Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
-                .connections().from("azureInput").to("collector").build();
+        Job.ExecutorBuilder job = Job.components().component("azureInput", "Azure://Input?" + inputConfig)
+                .component("collector", "test://collector").connections().from("azureInput").to("collector").build();
         Assertions.assertThrows(InvocationExceptionWrapper.ComponentException.class, job::run,
                 "Can't start reading blob items: Specified directory doesn't exist");
     }

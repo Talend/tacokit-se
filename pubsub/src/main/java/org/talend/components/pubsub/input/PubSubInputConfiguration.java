@@ -23,8 +23,8 @@ import org.talend.sdk.component.api.meta.Documentation;
 import java.io.Serializable;
 
 @Data
-@GridLayout({ //
-        @GridLayout.Row("dataSet"), @GridLayout.Row("consumeMsg"), @GridLayout.Row("pullMode"), @GridLayout.Row("maxMsg") })
+@GridLayout(names = GridLayout.FormType.MAIN, value = { @GridLayout.Row("dataSet"), @GridLayout.Row("consumeMsg") })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("pullMode"), @GridLayout.Row("maxMsg") })
 @Documentation("Configuration for Subscriber")
 public class PubSubInputConfiguration implements Serializable {
 
@@ -38,8 +38,8 @@ public class PubSubInputConfiguration implements Serializable {
 
     @Option
     @Documentation(("Pull mode : synchronous or asynchronous"))
-    @DefaultValue("ASYNCHRONOUS")
-    private PullMode pullMode = PullMode.ASYNCHRONOUS;
+    @DefaultValue("SYNCHRONOUS")
+    private PullMode pullMode = PullMode.SYNCHRONOUS;
 
     @Option
     @ActiveIf(target = "pullMode", value = "SYNCHRONOUS")

@@ -24,6 +24,8 @@ import com.google.pubsub.v1.PullResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.pubsub.input.converter.MessageConverter;
 import org.talend.components.pubsub.input.converter.MessageConverterFactory;
+import org.talend.components.pubsub.service.AckMessageService;
+import org.talend.components.pubsub.service.DefaultAckReplyConsumer;
 import org.talend.components.pubsub.service.I18nMessage;
 import org.talend.components.pubsub.service.PubSubService;
 import org.talend.sdk.component.api.input.Producer;
@@ -48,6 +50,8 @@ public class PubSubInput implements MessageReceiver, Serializable {
 
     protected final PubSubService service;
 
+    private final AckMessageService ackMessageService;
+
     protected final I18nMessage i18n;
 
     protected final RecordBuilderFactory builderFactory;
@@ -60,20 +64,15 @@ public class PubSubInput implements MessageReceiver, Serializable {
     /** Subscriber (synchronous mode only) */
     private transient SubscriberStub subscriberStub;
 
-    /** Map storing, for each message ID, a reference to the object responsible for the ack */
-    private transient Map<String, AckReplyConsumer> msgToAck;
-
     private transient MessageConverter messageConverter;
 
-    public PubSubInput(final PubSubInputConfiguration configuration, final PubSubService service, final I18nMessage i18n,
-            final RecordBuilderFactory builderFactory) {
+    public PubSubInput(final PubSubInputConfiguration configuration, final PubSubService service,
+            final AckMessageService ackMessageService, final I18nMessage i18n, final RecordBuilderFactory builderFactory) {
         this.configuration = configuration;
         this.service = service;
+        this.ackMessageService = ackMessageService;
         this.i18n = i18n;
         this.builderFactory = builderFactory;
-        if (configuration.isConsumeMsg()) {
-            msgToAck = new ConcurrentHashMap<>();
-        }
     }
 
     @PostConstruct
@@ -92,6 +91,10 @@ public class PubSubInput implements MessageReceiver, Serializable {
 
     @PreDestroy
     public void release() {
+        if (!inbox.isEmpty()) {
+            log.info(i18n.inputReleaseWithMessageInbox(inbox.size()));
+            inbox.stream().map(PubsubMessage::getMessageId).forEach(ackMessageService::removeMessage);
+        }
         if (subscriber != null) {
             subscriber.stopAsync();
         }
@@ -109,10 +112,15 @@ public class PubSubInput implements MessageReceiver, Serializable {
         PubsubMessage message = inbox.poll();
 
         Record record = null;
-        if (message != null) {
-            record = messageConverter == null ? null : messageConverter.convertMessage(message);
+        if (message != null && (!configuration.isConsumeMsg() || ackMessageService.messageExists(message.getMessageId()))) {
+            try {
+                record = messageConverter == null ? null : messageConverter.convertMessage(message);
+            } catch (Exception e) {
+                log.warn(i18n.warnReadMessage(message.getMessageId(), e.getMessage()), e);
+            }
+
             if (configuration.isConsumeMsg()) {
-                msgToAck.get(message.getMessageId()).ack();
+                ackMessageService.ackMessage(message.getMessageId());
             }
         }
 
@@ -129,19 +137,11 @@ public class PubSubInput implements MessageReceiver, Serializable {
         pullResponse.getReceivedMessagesList().stream().forEach(rm -> {
             inbox.offer(rm.getMessage());
             if (configuration.isConsumeMsg()) {
-                msgToAck.put(rm.getMessage().getMessageId(), new AckReplyConsumer() {
-
-                    @Override
-                    public void ack() {
-                        service.ackMessage(subscriberStub, configuration.getDataSet().getDataStore(),
-                                configuration.getDataSet().getSubscription(), rm.getAckId());
-                    }
-
-                    @Override
-                    public void nack() {
-
-                    }
-                });
+                ackMessageService.addMessage(rm.getMessage(),
+                        new DefaultAckReplyConsumer.Builder().setAckMessageService(ackMessageService)
+                                .setSubscriberStub(subscriberStub).setDataStore(configuration.getDataSet().getDataStore())
+                                .setTopic(configuration.getDataSet().getTopic())
+                                .setSubscriptionId(configuration.getDataSet().getSubscription()).setAckId(rm.getAckId()).build());
             }
         });
     }
@@ -150,7 +150,7 @@ public class PubSubInput implements MessageReceiver, Serializable {
     public void receiveMessage(PubsubMessage message, AckReplyConsumer consumer) {
         inbox.offer(message);
         if (configuration.isConsumeMsg()) {
-            msgToAck.put(message.getMessageId(), consumer);
+            ackMessageService.addMessage(message, consumer);
         }
     }
 }

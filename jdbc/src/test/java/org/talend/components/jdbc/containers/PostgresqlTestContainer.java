@@ -21,7 +21,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 public class PostgresqlTestContainer implements JdbcTestContainer {
 
     @Delegate(types = { JdbcDatabaseContainer.class, GenericContainer.class, ContainerState.class })
-    private final JdbcDatabaseContainer container = new PostgreSQLContainer("postgres:11.1");
+    private final JdbcDatabaseContainer container = new PostgreSQLContainer("postgres:12.1");
 
     @Override
     public String getDatabaseType() {

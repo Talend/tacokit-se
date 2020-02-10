@@ -20,6 +20,7 @@ import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.condition.ActiveIfs;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.DefaultValue;
@@ -67,9 +68,10 @@ public class PubSubDataSet implements Serializable {
 
     @Option
     @DefaultValue(value = ";")
-    @ActiveIf(target = "fieldDelimiter", value = { "OTHER" })
+    @ActiveIfs(operator = ActiveIfs.Operator.AND, value = { @ActiveIf(target = "fieldDelimiter", value = { "OTHER" }),
+            @ActiveIf(target = "valueFormat", value = { "CSV" }) })
     @Documentation("Other field delimiter for CSV")
-    private String otherDelimiter;
+    private Character otherDelimiter;
 
     @Option
     @Code(value = "json")

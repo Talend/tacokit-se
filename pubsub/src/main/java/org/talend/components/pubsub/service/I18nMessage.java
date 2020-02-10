@@ -64,4 +64,8 @@ public interface I18nMessage {
     String errorWriteCSV(String message);
 
     String errorCreateSubscriber(String message);
+
+    String warnReadMessage(String messageId, String errMessage);
+
+    String inputReleaseWithMessageInbox(int size);
 }
