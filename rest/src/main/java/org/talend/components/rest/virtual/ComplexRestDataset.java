@@ -13,19 +13,29 @@
 package org.talend.components.rest.virtual;
 
 import lombok.Data;
+import org.talend.components.rest.configuration.RequestConfig;
+import org.talend.components.rest.processor.JSonExtractorConfiguration;
+import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 
 @Data
-@GridLayout({ @GridLayout.Row({ "dataset" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataset" }) })
-public class ComplexRestConfiguration implements Serializable {
+@Version
+@DataSet("Dataset")
+@GridLayout({ @GridLayout.Row({ "restConfiguration" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "restConfiguration" }) })
+public class ComplexRestDataset implements Serializable {
 
     @Option
-    @Documentation("Main dataset for REST")
-    private ComplexRestDataset dataset;
+    @Documentation("REST connector configuration")
+    private RequestConfig restConfiguration;
+
+    @Option
+    @Documentation("Json extractor")
+    private JSonExtractorConfiguration jSonExtractorConfiguration = new JSonExtractorConfiguration();
 
 }

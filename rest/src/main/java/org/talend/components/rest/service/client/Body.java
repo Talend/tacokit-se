@@ -45,7 +45,7 @@ public class Body {
         this.conf = config.getDataset().getBody();
         this.substitutor = substitutor;
 
-        if (config.getDataset().getHasHeaders()) {
+        if (config.getDataset().isHasHeaders()) {
             Map<String, List<String>> headers = config.headers().entrySet().stream()
                     .collect(Collectors.toMap(Map.Entry::getKey, e -> Collections.singletonList(e.getValue())));
             charsetName = ContentType.getCharsetName(headers);

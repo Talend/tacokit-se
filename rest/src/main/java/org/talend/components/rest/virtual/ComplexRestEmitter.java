@@ -51,35 +51,43 @@ public class ComplexRestEmitter implements Serializable {
     public Object next() {
         if (items == null) {
             items = new LinkedList<>();
-            final RestEmitter delegateSource = new RestEmitter(configuration.getRestConfiguration(), client);
+            final RestEmitter delegateSource = new RestEmitter(configuration.getDataset().getRestConfiguration(), client);
             final CompletePayload global = delegateSource.next();
 
             final boolean isJson = !String.class.isInstance(global.getBody());
-            final boolean isCompletePayload = configuration.getRestConfiguration().getDataset().isCompletePayload();
+            final boolean isCompletePayload = configuration.getDataset().getRestConfiguration().getDataset().isCompletePayload();
 
             if (isJson) {
-                final JsonStructure body = (JsonStructure) global.getBody();
-                final JSonExtractor extractor = new JSonExtractor(configuration.getJSonExtractorConfiguration(),
-                        jsonExtractorService);
-                if (isCompletePayload) {
-                    items.add(new CompletePayload(global.getStatus(), global.getHeaders(), extractor.onElement(body)));
-                } else {
-                    JsonValue jsonValue = extractor.onElement(body);
-
-                    if (jsonValue.getValueType() == JsonValue.ValueType.ARRAY) {
-                        items.addAll(jsonValue.asJsonArray());
-                    } else {
-                        items.add(jsonValue);
-                    }
-                }
+                processJsonResponse(global, isCompletePayload);
             } else {
-                if (isCompletePayload) {
-                    items.add(global);
-                } else {
-                    items.add(new StringBody((String) global.getBody()));
-                }
+                processOtherResponse(global, isCompletePayload);
             }
         }
         return items.isEmpty() ? null : items.removeFirst();
+    }
+
+    private void processOtherResponse(CompletePayload global, boolean isCompletePayload) {
+        if (isCompletePayload) {
+            items.add(global);
+        } else {
+            items.add(new StringBody((String) global.getBody()));
+        }
+    }
+
+    private void processJsonResponse(CompletePayload global, boolean isCompletePayload) {
+        final JsonStructure body = (JsonStructure) global.getBody();
+        final JSonExtractor extractor = new JSonExtractor(configuration.getDataset().getJSonExtractorConfiguration(),
+                jsonExtractorService);
+        if (isCompletePayload) {
+            items.add(new CompletePayload(global.getStatus(), global.getHeaders(), extractor.onElement(body)));
+        } else {
+            JsonValue jsonValue = extractor.onElement(body);
+
+            if (jsonValue.getValueType() == JsonValue.ValueType.ARRAY) {
+                items.addAll(jsonValue.asJsonArray());
+            } else {
+                items.add(jsonValue);
+            }
+        }
     }
 }

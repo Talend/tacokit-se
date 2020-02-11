@@ -62,17 +62,17 @@ public class Dataset implements Serializable {
     @Documentation("Redirect only if same host.")
     @DefaultValue("false")
     @ActiveIf(target = "maxRedirect", value = "0", negate = true)
-    private Boolean only_same_host = false;
+    private boolean only_same_host = false;
 
     @Option
     @Documentation("Force a GET on a 302 redirection.")
     @DefaultValue("false")
     @ActiveIf(target = "maxRedirect", value = "0", negate = true)
-    private Boolean force_302_redirect = false;
+    private boolean force_302_redirect = false;
 
     @Option
     @Documentation("Does the request have parameters in URL ?")
-    private Boolean hasPathParams = false;
+    private boolean hasPathParams = false;
 
     @Option
     @ActiveIf(target = "hasPathParams", value = "true")
@@ -81,7 +81,7 @@ public class Dataset implements Serializable {
 
     @Option
     @Documentation("Does the request have headers ?")
-    private Boolean hasHeaders = false;
+    private boolean hasHeaders = false;
 
     @Option
     @ActiveIf(target = "hasHeaders", value = "true")
@@ -90,7 +90,7 @@ public class Dataset implements Serializable {
 
     @Option
     @Documentation("Does the request have query paramters ?")
-    private Boolean hasQueryParams = false;
+    private boolean hasQueryParams = false;
 
     @Option
     @ActiveIf(target = "hasQueryParams", value = "true")

@@ -46,6 +46,7 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -123,8 +124,8 @@ public class RestService {
         Body body = config.getDataset().isHasBody() ? new Body(config, bodySubstitutor) : null;
 
         RedirectContext redirectContext = new RedirectContext(config.getDataset().getDatastore().getBase(),
-                config.getDataset().getMaxRedirect(), config.getDataset().getForce_302_redirect(),
-                config.getDataset().getMethodType().name(), config.getDataset().getOnly_same_host());
+                config.getDataset().getMaxRedirect(), config.getDataset().isForce_302_redirect(),
+                config.getDataset().getMethodType().name(), config.getDataset().isOnly_same_host());
 
         return this.call(config, headers, queryParams, body, this.buildUrl(config, pathParams), redirectContext);
     }
@@ -194,7 +195,7 @@ public class RestService {
 
     String buildUrl(final RequestConfig config, final Map<String, String> params) {
         String base = config.getDataset().getDatastore().getBase().trim();
-        String segments = this.setPathParams(config.getDataset().getResource().trim(), config.getDataset().getHasPathParams(),
+        String segments = this.setPathParams(config.getDataset().getResource().trim(), config.getDataset().isHasPathParams(),
                 params);
 
         if (segments.isEmpty()) {
@@ -224,11 +225,8 @@ public class RestService {
         int status = resp.status();
         log.info(i18n.requestStatus(status));
 
-        Map<String, List<String>> responseHeaders = resp.headers();
-        Map<String, String> headers = new HashMap<>();
-        if (responseHeaders != null) {
-            responseHeaders.entrySet().stream().forEach(e -> headers.put(e.getKey(), String.join(",", e.getValue())));
-        }
+        Map<String, String> headers = Optional.ofNullable(resp.headers()).orElseGet(Collections::emptyMap).entrySet().stream()
+                .collect(toMap((Map.Entry<String, List<String>> e) -> e.getKey(), e -> String.join(",", e.getValue())));
 
         final String receivedBody = getBody(resp);
         Object body;
@@ -246,9 +244,10 @@ public class RestService {
 
     private static String getBody(final Response<byte[]> resp) {
         String encoding = ContentType.getCharsetName(resp);
+        byte[] bytes = Optional.ofNullable(resp.body()).orElse(new byte[0]);
         String receivedBody = (encoding == null) ? //
-                new String(Optional.ofNullable(resp.body()).orElse(new byte[0])) : //
-                new String(Optional.ofNullable(resp.body()).orElse(new byte[0]), Charset.forName(encoding));
+                new String(bytes) : //
+                new String(bytes, Charset.forName(encoding));
         return receivedBody;
     }
 

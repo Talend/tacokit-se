@@ -80,14 +80,14 @@ class RestEmitterTest {
 
         config = RequestConfigBuilderTest.getEmptyRequestConfig();
 
-        config.getRestConfiguration().getDataset().getDatastore().setConnectionTimeout(5000);
-        config.getRestConfiguration().getDataset().getDatastore().setReadTimeout(5000);
+        config.getDataset().getRestConfiguration().getDataset().getDatastore().setConnectionTimeout(5000);
+        config.getDataset().getRestConfiguration().getDataset().getDatastore().setReadTimeout(5000);
 
         // start server
         server = HttpServer.create(new InetSocketAddress(0), 0);
         port = server.getAddress().getPort();
 
-        config.getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getDataset().getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
     }
 
     @AfterEach
@@ -104,11 +104,11 @@ class RestEmitterTest {
     @EnvironmentalTest
     void testInput() {
 
-        config.getRestConfiguration().getDataset().setResource("get");
-        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().getRestConfiguration().getDataset().setResource("get");
+        config.getDataset().getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
 
-        config.getRestConfiguration().getDataset().setHasQueryParams(true);
-        config.getRestConfiguration().getDataset()
+        config.getDataset().getRestConfiguration().getDataset().setHasQueryParams(true);
+        config.getDataset().getRestConfiguration().getDataset()
                 .setQueryParams(Arrays.asList(new Param("param1", "param1_value"), new Param("param2", "param1_value2")));
 
         final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
@@ -151,15 +151,15 @@ class RestEmitterTest {
     }
 
     private void testOptionsPathFlags(final boolean hasOptions) throws IOException {
-        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.POST);
-        config.getRestConfiguration().getDataset().setResource("post/{module}/{id}");
+        config.getDataset().getRestConfiguration().getDataset().setMethodType(HttpMethod.POST);
+        config.getDataset().getRestConfiguration().getDataset().setResource("post/{module}/{id}");
 
         // Can't be tested the same way has other option since
         // when path param are not substituted the url contains "{...}"
         // and a 400 error is returned
-        config.getRestConfiguration().getDataset().setHasPathParams(hasOptions);
+        config.getDataset().getRestConfiguration().getDataset().setHasPathParams(hasOptions);
         List<Param> pathParams = Arrays.asList(new Param[] { new Param("module", "myModule"), new Param("id", "myId") });
-        config.getRestConfiguration().getDataset().setPathParams(pathParams);
+        config.getDataset().getRestConfiguration().getDataset().setPathParams(pathParams);
 
         this.setServerContextAndStart(httpExchange -> {
 
