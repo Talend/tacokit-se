@@ -217,6 +217,40 @@ public class ClientTestWithMockProxy {
     }
 
     @EnvironmentalTest
+    void testFactsWithTRACE () {
+        config.getRestConfiguration().getDataset().getDatastore().setBase("https://fakefacts.com/");
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.TRACE);
+        config.getRestConfiguration().getDataset().setResource("facts");
+        config.getRestConfiguration().getDataset().setCompletePayload(false);
+        config.getJSonExtractorConfiguration().setPointer("/all");
+
+        final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
+        Job.components() //
+                .component("emitter", "REST://Input?" + configStr) //
+                .component("out", "test://collector") //
+                .connections() //
+                .from("emitter") //
+                .to("out") //
+                .build() //
+                .run();
+
+        final List<Record> records = handler.getCollectedData(Record.class);
+        assertEquals(4, records.size());
+
+        Record record = records.get(0);
+        assertEquals("000001", record.getString("_id"));
+        assertEquals("First fact.", record.getString("text"));
+        assertEquals("fact", record.getString("type"));
+        assertEquals(6.0d, record.getDouble("upvotes"));
+
+        record = records.get(3);
+        assertEquals("64654654", record.getString("_id"));
+        assertEquals("Last fact.", record.getString("text"));
+        assertEquals("fact", record.getString("type"));
+        assertEquals(5.0d, record.getDouble("upvotes"));
+    }
+
+    @EnvironmentalTest
     void testPlainText() {
         config.getRestConfiguration().getDataset().getDatastore().setBase("https://fakefacts.com/");
         config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);

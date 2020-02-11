@@ -33,10 +33,12 @@ import org.talend.components.rest.service.client.ContentType;
 import org.talend.components.rest.virtual.ComplexRestConfiguration;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
+import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.junit5.WithComponents;
 
 import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
+import javax.net.ssl.SSLContext;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -125,6 +127,41 @@ public class ClientTestWithEmbededServerTest {
         HttpURLConnection.setFollowRedirects(followRedirects_backup);
     }
 
+    /**
+     * TRACE must be used with HTTPS :
+     * https://github.com/JetBrains/jdk8u_jdk/blob/ab6ffad025a3ebe8c83816834b0c68a235ab38a3/src/share/classes/sun/net/www/protocol/http/HttpURLConnection.java#L1329
+     */
+    @Test
+    void testTrace(){
+        config.getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getRestConfiguration().getDataset().setResource("post");
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.TRACE);
+        config.getRestConfiguration().getDataset().setHasBody(false);
+
+        this.setServerContextAndStart(httpExchange -> {
+            byte[] answerBody = new byte[0];
+            final int code = 200;
+
+            httpExchange.sendResponseHeaders(code, answerBody.length);
+            OutputStream os = httpExchange.getResponseBody();
+            os.write(answerBody);
+            os.close();
+        });
+
+        // If body is empty no exception
+        CompletePayload completePayload = service.buildFixedRecord(service.execute(config.getRestConfiguration()));
+        assertEquals(200, completePayload.getStatus());
+
+
+        // TRACE must be used with https
+        config.getRestConfiguration().getDataset().setHasBody(true);
+        config.getRestConfiguration().getDataset().getBody().setType(RequestBody.Type.TEXT);
+        // Some data in body is needed to raise the exception : https://github.com/Talend/component-runtime/blob/7a4f24e0c876d6b0cd9d2686b6740cb960bc39ce/component-runtime-manager/src/main/java/org/talend/sdk/component/runtime/manager/service/http/ExecutionContext.java#L75
+        config.getRestConfiguration().getDataset().getBody().setTextContent("Must be not empty to have TRACE exception");
+
+        assertThrows(java.lang.IllegalStateException.class, () -> service.execute(config.getRestConfiguration()));
+    }
+
     @ParameterizedTest
     @CsvSource(value = { "POST,TEXT,src/test/resources/org/talend/components/rest/body/empty.txt",
             "POST,TEXT,src/test/resources/org/talend/components/rest/body/Multilines.txt",
@@ -144,6 +181,7 @@ public class ClientTestWithEmbededServerTest {
         config.getRestConfiguration().getDataset().getBody().setTextContent(content.toString());
 
         final AtomicReference<String> requestContentType = new AtomicReference<>();
+
         this.setServerContextAndStart(httpExchange -> {
             BufferedReader br = new BufferedReader(new InputStreamReader(httpExchange.getRequestBody(), "UTF-8"));
             byte[] answerBody = br.lines().collect(Collectors.joining("\n")).getBytes();
