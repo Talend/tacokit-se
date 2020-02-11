@@ -41,7 +41,7 @@ public class RestOutput implements Serializable {
     private final RestService client;
 
     public RestOutput(@Option("configuration") final ComplexRestConfiguration config, final RestService client) {
-        this.config = config.getDataset().getRestConfiguration();
+        this.config = config.getRestConfiguration();
         this.client = client;
     }
 

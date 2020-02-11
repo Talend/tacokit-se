@@ -65,15 +65,14 @@ public class RestServiceTest {
 
     @Test
     void setPathParams() {
-        config.getDataset().getRestConfiguration().getDataset().getDatastore().setBase("");
-        config.getDataset().getRestConfiguration().getDataset().getDatastore().setConnectionTimeout(5000);
-        config.getDataset().getRestConfiguration().getDataset().getDatastore().setReadTimeout(5000);
-        config.getDataset().getRestConfiguration().getDataset()
-                .setResource("get/{resource}/{id}/{field}/id/{id}/resource/{resource}/end");
-        config.getDataset().getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getRestConfiguration().getDataset().getDatastore().setBase("");
+        config.getRestConfiguration().getDataset().getDatastore().setConnectionTimeout(5000);
+        config.getRestConfiguration().getDataset().getDatastore().setReadTimeout(5000);
+        config.getRestConfiguration().getDataset().setResource("get/{resource}/{id}/{field}/id/{id}/resource/{resource}/end");
+        config.getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
 
-        config.getDataset().getRestConfiguration().getDataset().setHasQueryParams(false);
-        config.getDataset().getRestConfiguration().getDataset().setHasHeaders(false);
+        config.getRestConfiguration().getDataset().setHasQueryParams(false);
+        config.getRestConfiguration().getDataset().setHasHeaders(false);
 
         List<String[]> paramList = new ArrayList<>();
         paramList.add(new String[] { "leads", "124", "name" });
@@ -84,12 +83,11 @@ public class RestServiceTest {
             pathParams.add(new Param("resource", params[0]));
             pathParams.add(new Param("id", params[1]));
             pathParams.add(new Param("field", params[2]));
-            config.getDataset().getRestConfiguration().getDataset().setHasPathParams(true);
-            config.getDataset().getRestConfiguration().getDataset().setPathParams(pathParams);
+            config.getRestConfiguration().getDataset().setHasPathParams(true);
+            config.getRestConfiguration().getDataset().setPathParams(pathParams);
 
-            String finalResource = service.setPathParams(config.getDataset().getRestConfiguration().getDataset().getResource(),
-                    config.getDataset().getRestConfiguration().getDataset().isHasPathParams(),
-                    config.getDataset().getRestConfiguration().pathParams());
+            String finalResource = service.setPathParams(config.getRestConfiguration().getDataset().getResource(),
+                    config.getRestConfiguration().getDataset().isHasPathParams(), config.getRestConfiguration().pathParams());
 
             assertEquals("get/" + params[0] + "/" + params[1] + "/" + params[2] + "/id/" + params[1] + "/resource/" + params[0]
                     + "/end", finalResource);
@@ -117,13 +115,13 @@ public class RestServiceTest {
         queryParams.add(new Param("complexe3",
                 "<name>${/name}</name><id>${/id}</id><unexists>${/unexists:-default}</unexists><escaped>\\${escaped:-none}<escaped>"));
 
-        config.getDataset().getRestConfiguration().getDataset().setHasQueryParams(true);
-        config.getDataset().getRestConfiguration().getDataset().setQueryParams(queryParams);
+        config.getRestConfiguration().getDataset().setHasQueryParams(true);
+        config.getRestConfiguration().getDataset().setQueryParams(queryParams);
 
         Substitutor substitutor = new RecordSubstitutor("${", "}", record, new RecordPointerFactoryImpl(null));
 
-        Map<String, String> updatedQueryParams = service
-                .updateParamsFromRecord(config.getDataset().getRestConfiguration().queryParams(), substitutor);
+        Map<String, String> updatedQueryParams = service.updateParamsFromRecord(config.getRestConfiguration().queryParams(),
+                substitutor);
 
         assertEquals("" + id, updatedQueryParams.get("id"));
         assertEquals("<name>" + name + "</name>", updatedQueryParams.get("name"));
@@ -140,86 +138,80 @@ public class RestServiceTest {
             "http://www.domain.com,/get,http://www.domain.com/get",
             "   http://www.domain.com/ ,  /get ,http://www.domain.com//get", })
     void buildUrl(final String base, final String resource, final String expected) {
-        config.getDataset().getRestConfiguration().getDataset().getDatastore().setBase(base);
-        config.getDataset().getRestConfiguration().getDataset().setResource(resource == null ? "   " : resource);
-        config.getDataset().getRestConfiguration().getDataset().setHasPathParams(false);
-        assertEquals(expected, service.buildUrl(config.getDataset().getRestConfiguration(), Collections.emptyMap()));
+        config.getRestConfiguration().getDataset().getDatastore().setBase(base);
+        config.getRestConfiguration().getDataset().setResource(resource == null ? "   " : resource);
+        config.getRestConfiguration().getDataset().setHasPathParams(false);
+        assertEquals(expected, service.buildUrl(config.getRestConfiguration(), Collections.emptyMap()));
     }
 
     @Test
     void paramsFilterEmpty() {
-        config.getDataset().getRestConfiguration().getDataset().setHasPathParams(true);
-        config.getDataset().getRestConfiguration().getDataset()
-                .setPathParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"),
-                        new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
-        config.getDataset().getRestConfiguration().getDataset().setHasQueryParams(true);
-        config.getDataset().getRestConfiguration().getDataset()
-                .setQueryParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"),
-                        new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
-        config.getDataset().getRestConfiguration().getDataset().setHasHeaders(true);
-        config.getDataset().getRestConfiguration().getDataset()
-                .setHeaders(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"),
-                        new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
-        config.getDataset().getRestConfiguration().getDataset().setHasBody(true);
-        config.getDataset().getRestConfiguration().getDataset().getBody().setType(RequestBody.Type.FORM_DATA);
-        config.getDataset().getRestConfiguration().getDataset().getBody()
+        config.getRestConfiguration().getDataset().setHasPathParams(true);
+        config.getRestConfiguration().getDataset().setPathParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"),
+                new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getRestConfiguration().getDataset().setHasQueryParams(true);
+        config.getRestConfiguration().getDataset().setQueryParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"),
+                new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getRestConfiguration().getDataset().setHasHeaders(true);
+        config.getRestConfiguration().getDataset().setHeaders(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"),
+                new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getRestConfiguration().getDataset().setHasBody(true);
+        config.getRestConfiguration().getDataset().getBody().setType(RequestBody.Type.FORM_DATA);
+        config.getRestConfiguration().getDataset().getBody()
                 .setParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"),
                         new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
 
-        config.getDataset().getRestConfiguration().pathParams().forEach((k, v) -> {
+        config.getRestConfiguration().pathParams().forEach((k, v) -> {
             assertTrue(k != null);
             assertFalse(k.isEmpty());
             assertFalse(v == null);
         });
-        assertEquals(4, config.getDataset().getRestConfiguration().pathParams().size());
+        assertEquals(4, config.getRestConfiguration().pathParams().size());
 
-        config.getDataset().getRestConfiguration().queryParams().forEach((k, v) -> {
+        config.getRestConfiguration().queryParams().forEach((k, v) -> {
             assertTrue(k != null);
             assertFalse(k.isEmpty());
             assertFalse(v == null);
         });
-        assertEquals(4, config.getDataset().getRestConfiguration().queryParams().size());
+        assertEquals(4, config.getRestConfiguration().queryParams().size());
 
-        config.getDataset().getRestConfiguration().headers().forEach((k, v) -> {
+        config.getRestConfiguration().headers().forEach((k, v) -> {
             assertTrue(k != null);
             assertFalse(k.isEmpty());
             assertFalse(v == null);
         });
-        assertEquals(4, config.getDataset().getRestConfiguration().headers().size());
+        assertEquals(4, config.getRestConfiguration().headers().size());
 
-        config.getDataset().getRestConfiguration().getDataset().getBody().getParams().forEach(p -> {
+        config.getRestConfiguration().getDataset().getBody().getParams().forEach(p -> {
             assertTrue(p != null);
             assertFalse(p.getKey().isEmpty());
             assertFalse(p.getValue() == null);
         });
-        assertEquals(4, config.getDataset().getRestConfiguration().getDataset().getBody().getParams().size());
+        assertEquals(4, config.getRestConfiguration().getDataset().getBody().getParams().size());
     }
 
     @Test
     void paramsTransformNullToEmpty() {
-        config.getDataset().getRestConfiguration().getDataset().setHasPathParams(true);
-        config.getDataset().getRestConfiguration().getDataset()
-                .setPathParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"),
-                        new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
-        config.getDataset().getRestConfiguration().getDataset().setHasQueryParams(true);
-        config.getDataset().getRestConfiguration().getDataset()
-                .setQueryParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"),
-                        new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
-        config.getDataset().getRestConfiguration().getDataset().setHasHeaders(true);
-        config.getDataset().getRestConfiguration().getDataset()
-                .setHeaders(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"),
-                        new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
-        config.getDataset().getRestConfiguration().getDataset().setHasBody(true);
-        config.getDataset().getRestConfiguration().getDataset().getBody().setType(RequestBody.Type.FORM_DATA);
-        config.getDataset().getRestConfiguration().getDataset().getBody()
+        config.getRestConfiguration().getDataset().setHasPathParams(true);
+        config.getRestConfiguration().getDataset().setPathParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"),
+                new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getRestConfiguration().getDataset().setHasQueryParams(true);
+        config.getRestConfiguration().getDataset().setQueryParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"),
+                new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getRestConfiguration().getDataset().setHasHeaders(true);
+        config.getRestConfiguration().getDataset().setHeaders(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"),
+                new Param(null, "val"), new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
+        config.getRestConfiguration().getDataset().setHasBody(true);
+        config.getRestConfiguration().getDataset().getBody().setType(RequestBody.Type.FORM_DATA);
+        config.getRestConfiguration().getDataset().getBody()
                 .setParams(Arrays.asList(new Param("xxx1", null), new Param("key1", "val"), new Param(null, "val"),
                         new Param("key2", "val"), new Param("", ""), new Param("key3", "")));
 
-        assertEquals("", config.getDataset().getRestConfiguration().pathParams().get("xxx1"));
-        assertEquals("", config.getDataset().getRestConfiguration().queryParams().get("xxx1"));
-        assertEquals("", config.getDataset().getRestConfiguration().headers().get("xxx1"));
+        assertEquals("", config.getRestConfiguration().pathParams().get("xxx1"));
+        assertEquals("", config.getRestConfiguration().queryParams().get("xxx1"));
+        assertEquals("", config.getRestConfiguration().headers().get("xxx1"));
 
-        config.getDataset().getRestConfiguration().getDataset().getBody().getParams().stream().forEach(p -> {
+        config.getRestConfiguration().getDataset().getBody().getParams().stream().forEach(p -> {
             assertFalse(p.getValue() == null);
             if ("xxx1".equals(p.getKey())) {
                 assertTrue(p.getValue().isEmpty());

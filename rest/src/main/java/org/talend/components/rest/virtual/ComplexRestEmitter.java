@@ -51,11 +51,11 @@ public class ComplexRestEmitter implements Serializable {
     public Object next() {
         if (items == null) {
             items = new LinkedList<>();
-            final RestEmitter delegateSource = new RestEmitter(configuration.getDataset().getRestConfiguration(), client);
+            final RestEmitter delegateSource = new RestEmitter(configuration.getRestConfiguration(), client);
             final CompletePayload global = delegateSource.next();
 
             final boolean isJson = !String.class.isInstance(global.getBody());
-            final boolean isCompletePayload = configuration.getDataset().getRestConfiguration().getDataset().isCompletePayload();
+            final boolean isCompletePayload = configuration.getRestConfiguration().getDataset().isCompletePayload();
 
             if (isJson) {
                 processJsonResponse(global, isCompletePayload);
@@ -76,8 +76,7 @@ public class ComplexRestEmitter implements Serializable {
 
     private void processJsonResponse(CompletePayload global, boolean isCompletePayload) {
         final JsonStructure body = (JsonStructure) global.getBody();
-        final JSonExtractor extractor = new JSonExtractor(configuration.getDataset().getJSonExtractorConfiguration(),
-                jsonExtractorService);
+        final JSonExtractor extractor = new JSonExtractor(configuration.getJSonExtractorConfiguration(), jsonExtractorService);
         if (isCompletePayload) {
             items.add(new CompletePayload(global.getStatus(), global.getHeaders(), extractor.onElement(body)));
         } else {
