@@ -39,7 +39,10 @@ import org.talend.sdk.component.api.service.Service;
 public class RecordIORepository {
 
     @Service
-    private final JsonReaderFactory jsonReaderFactory;
+    private JsonReaderFactory jsonReaderFactory;
+
+    @Service
+    private Messages i18n;
 
     /** all readers suppliers */
     private final ConcurrentMap<Class<? extends ContentFormat>, RecordReaderSupplier> readers = new ConcurrentHashMap<>();
@@ -47,19 +50,22 @@ public class RecordIORepository {
     /** all writers suppliers */
     private final ConcurrentMap<Class<? extends ContentFormat>, RecordWriterSupplier> writers = new ConcurrentHashMap<>();
 
-    public RecordIORepository(JsonReaderFactory jsonReaderFactory) {
-        this.jsonReaderFactory = jsonReaderFactory;
-    }
-
+    /**
+     * Load json file to get reader/writer class.
+     * Json schema is of form :
+     * {
+     * "[configuration class]": { "reader": "[reader supplier class]", "writer": "[writer supplier class]" }
+     * }
+     */
     @PostConstruct
     public void init() {
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        final ClassLoader loader = RecordIORepository.class.getClassLoader();
         try {
             Collections.list(loader.getResources("TALEND-INF/components/format.json")).stream() //
                     .map(this::readJson) // url -> json object
                     .forEach((JsonObject json) -> this.loadJson(loader, json)); // load json to update readers & writers
         } catch (IOException exIO) {
-            throw new UncheckedIOException("Unable to load 'TALEND-INF/components/format.json'", exIO);
+            throw new UncheckedIOException(this.i18n.cantLoad("TALEND-INF/components/format.json"), exIO);
         }
     }
 
@@ -67,8 +73,8 @@ public class RecordIORepository {
      * Load json content that config a reader/writer.
      * 
      * @param loader : current class loader.
-     * @param json : json content for a reader/writers declaration << { "<config class name>": {
-     * "reader": "<ReaderSupplierClassName>", "writer": "<WriterSupplierClassName>" } }
+     * @param json : json content for a reader/writers declaration << { "[config class name]": {
+     * "reader": "[ReaderSupplierClassName]", "writer": "[WriterSupplierClassName]" } }
      */
     private void loadJson(ClassLoader loader, JsonObject json) {
         json.entrySet().forEach((Entry<String, JsonValue> e) -> {
@@ -119,7 +125,7 @@ public class RecordIORepository {
             final Class<? extends T> clazz = this.loadClass(baseClazz, loader, name);
             return clazz.newInstance();
         } catch (InstantiationException | IllegalAccessException ex) {
-            throw new IllegalArgumentException("Can't instanciate " + name + " class", ex);
+            throw new IllegalArgumentException(i18n.cantInstanciate(name), ex);
         }
     }
 

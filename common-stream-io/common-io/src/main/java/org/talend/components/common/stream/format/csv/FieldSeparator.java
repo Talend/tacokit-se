@@ -43,12 +43,12 @@ public class FieldSeparator implements Serializable {
     }
 
     @Option
-    @Documentation("field delimiter")
+    @Documentation("Field delimiter type.")
     private Type fieldSeparatorType;
 
     @Option
     @ActiveIf(target = "fieldSeparatorType", value = "OTHER")
-    @Documentation("field delimiter")
+    @Documentation("Custom field delimiter.")
     private Character fieldSeparator;
 
     public Character findFieldSeparator() {

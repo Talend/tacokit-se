@@ -40,12 +40,12 @@ public class LineConfiguration implements ContentFormat {
     }
 
     @Option
-    @Documentation("Type of symbol(s) used to separate lines")
+    @Documentation("Type of symbol(s) used to separate lines.")
     private LineSeparatorType lineSeparatorType = LineSeparatorType.LF;
 
     @Option
     @ActiveIf(target = "lineSeparatorType", value = "OTHER")
-    @Documentation("Symbol(s) used to separate lines")
+    @Documentation("Symbol(s) used to separate lines.")
     private String lineSeparator = "\n";
 
     public String getLineSeparator() {
@@ -56,11 +56,11 @@ public class LineConfiguration implements ContentFormat {
     }
 
     @Option
-    @Documentation("Encoding")
+    @Documentation("Encoding.")
     private Encoding encoding = new Encoding();
 
     @Option
-    @Documentation("header")
+    @Documentation("Header.")
     private OptionalLine header;
 
     public int calcHeader() {

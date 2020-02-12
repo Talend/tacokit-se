@@ -30,7 +30,7 @@ public class Encoding implements Serializable {
     public enum Type {
         UFT8("UTF-8"), //
         ISO_8859_15("ISO-8859-15"), //
-        OTHER("");
+        OTHER("OTHER");
 
         Type(String encodingCharsetValue) {
             this.encodingCharsetValue = encodingCharsetValue;
@@ -44,12 +44,12 @@ public class Encoding implements Serializable {
     }
 
     @Option
-    @Documentation("content encoding")
+    @Documentation("Content encoding.")
     private Encoding.Type encodingType = Encoding.Type.UFT8;
 
     @Option
-    @ActiveIf(target = "encoding", value = "OTHER")
-    @Documentation("custom content encoding")
+    @ActiveIf(target = "encodingType", value = "OTHER")
+    @Documentation("Custom content encoding.")
     private String encoding;
 
     public String getEncoding() {

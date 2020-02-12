@@ -29,24 +29,24 @@ public class CSVConfiguration implements ContentFormat {
     private static final long serialVersionUID = -6803208558417743486L;
 
     @Option
-    @Documentation("line delimiter")
+    @Documentation("Line delimiter.")
     private LineConfiguration lineConfiguration;
 
     @Option
-    @Documentation("field delimiter")
+    @Documentation("Field delimiter.")
     private FieldSeparator fieldSeparator;
 
     @Option
-    @Documentation("Escape character")
+    @Documentation("Escape character.")
     private Character escape = '\\';
 
     @Option
-    @Documentation("Text enclosure character")
+    @Documentation("Text enclosure character.")
     private Character quotedValue = '"';
 
     public Character findFieldSeparator() {
         if (this.fieldSeparator == null) {
-            return '\n';
+            return ';';
         }
         return this.fieldSeparator.findFieldSeparator();
     }

@@ -41,27 +41,27 @@ public class ExcelConfiguration implements ContentFormat {
     }
 
     @Option
-    @Documentation("Excel format")
+    @Documentation("Excel format.")
     private ExcelFormat excelFormat = ExcelFormat.EXCEL2007;
 
     @Option
     @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" })
-    @Documentation("excel sheet name")
+    @Documentation("Excel sheet name.")
     private String sheetName;
 
     @Option
     @ActiveIf(target = "excelFormat", value = "HTML")
-    @Documentation("content encoding")
+    @Documentation("Content encoding.")
     private Encoding encoding = new Encoding();
 
     @Option
     @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" })
-    @Documentation("header")
+    @Documentation("Header.")
     private OptionalLine header;
 
     @Option
     @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" })
-    @Documentation("footer")
+    @Documentation("Footer.")
     private OptionalLine footer;
 
     public int calcHeader() {

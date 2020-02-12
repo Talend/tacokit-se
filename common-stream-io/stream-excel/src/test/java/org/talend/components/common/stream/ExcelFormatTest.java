@@ -12,10 +12,6 @@
  */
 package org.talend.components.common.stream;
 
-import java.util.Collections;
-
-import javax.json.Json;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.RecordIORepository;
@@ -24,14 +20,17 @@ import org.talend.components.common.stream.api.output.RecordWriterSupplier;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration;
 import org.talend.components.common.stream.input.excel.ExcelReaderSupplier;
 import org.talend.components.common.stream.output.excel.ExcelWriterSupplier;
+import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.junit5.WithComponents;
 
+@WithComponents("org.talend.components.common.stream.api")
 class ExcelFormatTest {
+
+    @Service
+    private RecordIORepository repo;
 
     @Test
     void format() {
-        final RecordIORepository repo = new RecordIORepository(Json.createReaderFactory(Collections.emptyMap()));
-        repo.init();
-
         final RecordReaderSupplier reader = repo.findReader(ExcelConfiguration.class);
         Assertions.assertNotNull(reader);
         Assertions.assertTrue(ExcelReaderSupplier.class.isInstance(reader));

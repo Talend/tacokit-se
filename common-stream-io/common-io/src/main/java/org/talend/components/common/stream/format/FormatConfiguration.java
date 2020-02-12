@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @GridLayout({ @GridLayout.Row("contentFormat"), @GridLayout.Row({ "csvConfiguration", "fixedConfiguration", "jsonConfiguration",
         "avroConfiguration", "excelConfiguration" }) })
-@Documentation("stream content configuration")
+@Documentation("Stream content configuration.")
 public class FormatConfiguration implements Serializable {
 
     private static final long serialVersionUID = -4143993987459031885L;
@@ -45,32 +45,32 @@ public class FormatConfiguration implements Serializable {
     }
 
     @Option
-    @Documentation("type of stream content format")
+    @Documentation("Type of stream content format.")
     private FormatConfiguration.Type contentFormat;
 
     @Option
     @ActiveIf(target = "contentFormat", value = "CSV")
-    @Documentation("CSV format")
+    @Documentation("CSV format.")
     private CSVConfiguration csvConfiguration;
 
     @Option
     @ActiveIf(target = "contentFormat", value = "FIXED")
-    @Documentation("Fixed length format")
+    @Documentation("Fixed length format.")
     private FixedConfiguration fixedConfiguration;
 
     @Option
     @ActiveIf(target = "contentFormat", value = "JSON_POINTER")
-    @Documentation("json format with json path access")
+    @Documentation("Json format with json pointer access.")
     private JsonConfiguration jsonConfiguration;
 
     @Option
     @ActiveIf(target = "contentFormat", value = "AVRO")
-    @Documentation("avro format")
+    @Documentation("Avro format.")
     private AvroConfiguration avroConfiguration;
 
     @Option
     @ActiveIf(target = "contentFormat", value = "EXCEL")
-    @Documentation("excel format")
+    @Documentation("Excel format.")
     private ExcelConfiguration excelConfiguration;
 
     public ContentFormat findFormat() {

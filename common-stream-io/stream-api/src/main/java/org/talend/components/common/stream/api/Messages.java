@@ -10,22 +10,14 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.common.stream.format.json;
+package org.talend.components.common.stream.api;
 
-import org.talend.components.common.stream.format.ContentFormat;
-import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
-import org.talend.sdk.component.api.meta.Documentation;
+import org.talend.sdk.component.api.internationalization.Internationalized;
 
-import lombok.Data;
+@Internationalized
+public interface Messages {
 
-@Data
-@GridLayout({ @GridLayout.Row("jsonPointer") })
-@Documentation("Json Configuration with json pointer rules.")
-public class JsonConfiguration implements ContentFormat {
+    String cantLoad(String ref);
 
-    @Option
-    @Documentation("Json pointer expression.")
-    private String jsonPointer;
-
+    String cantInstanciate(String className);
 }

@@ -13,25 +13,32 @@
 package org.talend.components.common.stream;
 
 import java.util.Collections;
+import java.util.Locale;
 
 import javax.json.Json;
+import javax.json.JsonReaderFactory;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.talend.components.common.stream.api.Messages;
 import org.talend.components.common.stream.api.RecordIORepository;
 import org.talend.components.common.stream.api.input.RecordReaderSupplier;
 import org.talend.components.common.stream.api.output.RecordWriterSupplier;
 import org.talend.components.common.stream.format.avro.AvroConfiguration;
 import org.talend.components.common.stream.input.avro.AvroReaderSupplier;
 import org.talend.components.common.stream.output.avro.AvroWriterSupplier;
+import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.junit5.WithComponents;
+import org.talend.sdk.component.runtime.internationalization.InternationalizationServiceFactory;
 
+@WithComponents("org.talend.components.common.stream.api")
 class AvroFormatTest {
+
+    @Service
+    private RecordIORepository repo;
 
     @Test
     void format() {
-        RecordIORepository repo = new RecordIORepository(Json.createReaderFactory(Collections.emptyMap()));
-        repo.init();
-
         final RecordReaderSupplier reader = repo.findReader(AvroConfiguration.class);
         Assertions.assertNotNull(reader);
         Assertions.assertTrue(AvroReaderSupplier.class.isInstance(reader));

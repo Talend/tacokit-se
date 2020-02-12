@@ -28,12 +28,12 @@ public class OptionalLine implements Serializable {
     private static final long serialVersionUID = -5243288997978197551L;
 
     @Option
-    @Documentation("activ optional lines")
+    @Documentation("Activ optional lines.")
     private boolean activ;
 
     @Option
     @ActiveIf(target = "activ", value = "true")
-    @Documentation("Number of optional lines")
+    @Documentation("Number of optional lines.")
     private int size;
 
     public int getSize() {

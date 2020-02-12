@@ -12,24 +12,23 @@
  */
 package org.talend.components.common.stream.format.line.fixed;
 
-import java.util.Collections;
-
-import javax.json.Json;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.RecordIORepository;
 import org.talend.components.common.stream.api.input.RecordReaderSupplier;
 import org.talend.components.common.stream.format.fixed.FixedConfiguration;
 import org.talend.components.common.stream.input.fixed.FixedReaderSupplier;
+import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.junit5.WithComponents;
 
+@WithComponents("org.talend.components.common.stream.api")
 class FixedFormatTest {
+
+    @Service
+    private RecordIORepository repo;
 
     @Test
     void format() {
-        final RecordIORepository repo = new RecordIORepository(Json.createReaderFactory(Collections.emptyMap()));
-        repo.init();
-
         final RecordReaderSupplier reader = repo.findReader(FixedConfiguration.class);
         Assertions.assertNotNull(reader);
         Assertions.assertTrue(FixedReaderSupplier.class.isInstance(reader));

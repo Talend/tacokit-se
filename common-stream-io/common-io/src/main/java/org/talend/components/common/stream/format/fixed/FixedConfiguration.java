@@ -29,15 +29,15 @@ public class FixedConfiguration implements ContentFormat {
     private static final long serialVersionUID = -7116638194610358461L;
 
     /** constraint pattern for lengthFields (form "[number];[number]...> accepted */
-    public static final String LengthPattern = "^([0-9]+;{0,1})*[0-9]+$";
+    public static final String LENGTH_PATTERN = "^([0-9]+;?)*[0-9]+$";
 
     @Option
-    @Documentation("line delimiter")
+    @Documentation("Line delimiter.")
     private LineConfiguration lineConfiguration;
 
     @Option
-    @Pattern(FixedConfiguration.LengthPattern)
-    @Documentation("fields lengths separate by ';'")
+    @Pattern(FixedConfiguration.LENGTH_PATTERN)
+    @Documentation("Fields lengths separate by ';'.")
     /** all fields length separate by ';' */
     private String lengthFields;
 
@@ -59,7 +59,7 @@ public class FixedConfiguration implements ContentFormat {
      * @return true if ok.
      */
     public boolean isValid() {
-        return this.lengthFields != null && this.lengthFields.matches(FixedConfiguration.LengthPattern);
+        return this.lengthFields != null && this.lengthFields.matches(FixedConfiguration.LENGTH_PATTERN);
     }
 
     /**
