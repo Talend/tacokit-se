@@ -24,12 +24,18 @@ import org.talend.sdk.component.api.meta.Documentation;
 import java.io.Serializable;
 
 @Data
-@GridLayout({ @GridLayout.Row({ "dataset" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataset" }) })
-public class ComplexRestConfiguration implements Serializable {
+@Version
+@DataSet("Dataset")
+@GridLayout({ @GridLayout.Row({ "restConfiguration" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "restConfiguration" }) })
+public class ComplexRestDataset implements Serializable {
 
     @Option
-    @Documentation("Dataset of the REST connector")
-    private ComplexRestDataset dataset;
+    @Documentation("REST connector configuration")
+    private RequestConfig restConfiguration;
+
+    @Option
+    @Documentation("Json extractor")
+    private JSonExtractorConfiguration jSonExtractorConfiguration = new JSonExtractorConfiguration();
 
 }
