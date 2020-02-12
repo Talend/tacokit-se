@@ -41,7 +41,6 @@ public class PubSubOutputConfiguration implements Serializable {
 
     public enum TopicOperation {
         NONE,
-        CREATE_IF_NOT_EXISTS,
-        DROP_IF_EXISTS_AND_CREATE,
+        CREATE_IF_NOT_EXISTS
     }
 }

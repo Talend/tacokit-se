@@ -61,11 +61,6 @@ public class PubSubOutput implements Serializable {
         this.recordService = recordService;
     }
 
-    @PostConstruct
-    public void init() {
-
-    }
-
     @ElementListener
     public void onElement(Record record) {
         if (!init) {
@@ -77,10 +72,7 @@ public class PubSubOutput implements Serializable {
 
     private void lazyInit() {
         init = true;
-        if (configuration.getTopicOperation() == PubSubOutputConfiguration.TopicOperation.DROP_IF_EXISTS_AND_CREATE) {
-            pubSubService.removeTopicIfExists(configuration.getDataset().getDataStore(), configuration.getDataset().getTopic());
-            pubSubService.createTopicIfNeeded(configuration.getDataset().getDataStore(), configuration.getDataset().getTopic());
-        } else if (configuration.getTopicOperation() == PubSubOutputConfiguration.TopicOperation.CREATE_IF_NOT_EXISTS) {
+        if (configuration.getTopicOperation() == PubSubOutputConfiguration.TopicOperation.CREATE_IF_NOT_EXISTS) {
             pubSubService.createTopicIfNeeded(configuration.getDataset().getDataStore(), configuration.getDataset().getTopic());
         }
         publisher = pubSubService.createPublisher(configuration.getDataset().getDataStore(),

@@ -38,7 +38,7 @@ public abstract class MessageConverter {
 
     public abstract boolean acceptFormat(PubSubDataSet.ValueFormat format);
 
-    public abstract Record convertMessage(PubsubMessage message);
+    public abstract Object convertMessage(PubsubMessage message);
 
     protected final String getMessageContentAsString(PubsubMessage message) {
         return message == null ? "null" : message.getData().toStringUtf8();

@@ -25,6 +25,8 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.runtime.internationalization.InternationalizationServiceFactory;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
+import javax.json.JsonObject;
+import javax.json.JsonString;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -79,16 +81,17 @@ public class JSonMessageConverterTest {
 
         PubsubMessage message = PubsubMessage.newBuilder().setData(ByteString.copyFrom(jsonBytes.toByteArray())).build();
 
-        Record record = beanUnderTest.convertMessage(message);
+        Object record = beanUnderTest.convertMessage(message);
 
         Assertions.assertNotNull(record, "Record is null.");
-        Assertions.assertNotNull(record.getSchema(), "Record schema is null.");
-        Assertions.assertNotNull(record.getArray(String.class, "innerArray"), "innerArray is null");
-        record.getArray(String.class, "innerArray").stream().map(Object::getClass)
-                .forEach(c -> Assertions.assertEquals(String.class, c, "Array item must be string"));
-        Assertions.assertNotNull(record.getRecord("innerRecord"), "inner record is null.");
-        Assertions.assertNotNull(record.getRecord("innerRecord").getRecord("field3"), "inner record field3 is null.");
-        Assertions.assertNotNull(record.getRecord("innerRecord").getRecord("field3").getArray(Double.class, "field3_1"),
+        Assertions.assertTrue(record instanceof JsonObject, "Record must be a JSON object.");
+        JsonObject json = (JsonObject) record;
+        Assertions.assertNotNull(json.getJsonArray("innerArray"), "innerArray is null");
+        json.getJsonArray("innerArray").stream().map(Object::getClass)
+                .forEach(c -> Assertions.assertTrue(JsonString.class.isAssignableFrom(c), "Array item must be string"));
+        Assertions.assertNotNull(json.getJsonObject("innerRecord"), "inner record is null.");
+        Assertions.assertNotNull(json.getJsonObject("innerRecord").getJsonObject("field3"), "inner record field3 is null.");
+        Assertions.assertNotNull(json.getJsonObject("innerRecord").getJsonObject("field3").getJsonArray("field3_1"),
                 "inner record field3_1 is null.");
 
     }

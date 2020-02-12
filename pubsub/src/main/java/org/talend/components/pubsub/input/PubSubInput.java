@@ -92,7 +92,7 @@ public class PubSubInput implements MessageReceiver, Serializable {
     @PreDestroy
     public void release() {
         if (!inbox.isEmpty()) {
-            log.info(i18n.inputReleaseWithMessageInbox(inbox.size()));
+            log.debug(i18n.inputReleaseWithMessageInbox(inbox.size()));
             inbox.stream().map(PubsubMessage::getMessageId).forEach(ackMessageService::removeMessage);
         }
         if (subscriber != null) {
@@ -104,14 +104,14 @@ public class PubSubInput implements MessageReceiver, Serializable {
     }
 
     @Producer
-    public Record next() {
+    public Object next() {
         if (inbox.isEmpty() && configuration.getPullMode() == PubSubInputConfiguration.PullMode.SYNCHRONOUS) {
             pull();
         }
 
         PubsubMessage message = inbox.poll();
 
-        Record record = null;
+        Object record = null;
         if (message != null && (!configuration.isConsumeMsg() || ackMessageService.messageExists(message.getMessageId()))) {
             try {
                 record = messageConverter == null ? null : messageConverter.convertMessage(message);

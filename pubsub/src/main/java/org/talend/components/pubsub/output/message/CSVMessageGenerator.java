@@ -186,8 +186,7 @@ public class CSVMessageGenerator extends MessageGenerator {
 
     @Override
     public void init(PubSubDataSet dataset) {
-        this.fieldDelimiter = dataset.getFieldDelimiter() == PubSubDataSet.CSVDelimiter.OTHER
-                ? dataset.getOtherDelimiter()
+        this.fieldDelimiter = dataset.getFieldDelimiter() == PubSubDataSet.CSVDelimiter.OTHER ? dataset.getOtherDelimiter()
                 : dataset.getFieldDelimiter().getValue();
     }
 
