@@ -23,6 +23,7 @@ import lombok.Data;
 
 @Data
 @GridLayout({ @GridLayout.Row("lineConfiguration"), @GridLayout.Row("lengthFields") })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = {})
 public class FixedConfiguration implements ContentFormat {
 
     /** Serialization */

@@ -17,6 +17,7 @@ import javax.json.JsonArray;
 import javax.json.JsonObject;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.output.json.RecordToJson;
@@ -38,6 +39,11 @@ class JsonToRecordTest {
             .add("subRecord", Json.createObjectBuilder().add("field_1", "val1").add("field_2", "val2")).build();
 
     private JsonToRecord toRecord;
+
+    @BeforeAll
+    static void initLog() {
+        System.setProperty("org.slf4j.simpleLogger.log.org.talend.components.common.stream", "debug");
+    }
 
     @BeforeEach
     void start() {

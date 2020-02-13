@@ -21,6 +21,7 @@ import lombok.Data;
 
 @Data
 @GridLayout({ @GridLayout.Row("jsonPointer") })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = {})
 @Documentation("Json Configuration with json pointer rules.")
 public class JsonConfiguration implements ContentFormat {
 

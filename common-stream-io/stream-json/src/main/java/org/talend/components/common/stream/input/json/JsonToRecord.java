@@ -151,7 +151,7 @@ public class JsonToRecord {
             break;
         }
         Entry entry = builder.build();
-        log.debug("[createEntry#{}] generated ({}) {} ", name, entry);
+        log.debug("[createEntry#{}] generated ({})", name, entry);
         return entry;
     }
 

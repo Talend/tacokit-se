@@ -29,6 +29,7 @@ import lombok.Data;
         @GridLayout.Row({ "header" }), // headers
         @GridLayout.Row({ "footer" }) // footers
 })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = {})
 @Data
 public class ExcelConfiguration implements ContentFormat {
 

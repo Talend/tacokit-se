@@ -63,8 +63,6 @@ public class ExcelRecordReader implements RecordReader {
             final Spliterator<Row> rowSpliterator = Spliterators.spliteratorUnknownSize(rowIterator, 0);
 
             return StreamSupport.stream(rowSpliterator, false) // iteration on excel lines
-                    // .skip(this.configuration.calcHeader()) // skip header
-                    // .filter((Row row) -> row.getRowNum() <= sheet.getLastRowNum() - configuration.calcFooter()) // skip footer
                     .map(this.toRecord::toRecord) // Excel Row to Record.
                     .iterator();
         } catch (IOException exIO) {

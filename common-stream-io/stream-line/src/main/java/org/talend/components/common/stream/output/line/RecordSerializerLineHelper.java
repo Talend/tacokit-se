@@ -36,7 +36,7 @@ public class RecordSerializerLineHelper {
                         .orElse(Collections.emptyList()).forEach(result::add);
             } else if (entry.getType() == Type.ARRAY) {
                 // can't translate array to Line.
-                log.warn("Can't translate array in line format ({})", entry.getName());
+                log.warn("Can't translate array in line format ({}).", entry.getName());
             } else {
                 Object obj = record.get(SchemaHelper.getFrom(entry.getType()), entry.getName());
                 result.add(obj.toString());

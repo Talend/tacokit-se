@@ -26,7 +26,7 @@ public class AvroWriterSupplier implements RecordWriterSupplier {
     @Override
     public RecordWriter getWriter(TargetFinder target, ContentFormat config) {
         if (!AvroConfiguration.class.isInstance(config)) {
-            throw new IllegalArgumentException("try to get avro-writer with other than avro config");
+            throw new IllegalArgumentException("Try to get avro-writer with other than avro config.");
         }
 
         final RecordConverter<GenericRecord, Schema> converter = new RecordToAvro("records");
