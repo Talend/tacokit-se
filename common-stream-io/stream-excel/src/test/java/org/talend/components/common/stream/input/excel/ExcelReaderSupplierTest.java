@@ -41,15 +41,15 @@ class ExcelReaderSupplierTest {
         config.setExcelFormat(ExcelFormat.EXCEL2007);
         config.setEncoding(new Encoding());
         config.setHeader(new OptionalLine());
-        config.getHeader().setActiv(false);
+        config.getHeader().setActive(false);
 
         config.setFooter(new OptionalLine());
-        config.getFooter().setActiv(false);
+        config.getFooter().setActive(false);
     }
 
     @Test
     void test1File1RecordsWithoutHeader() throws IOException {
-        config.getHeader().setActiv(false);
+        config.getHeader().setActive(false);
 
         this.testOneValueFile("excel2007/excel_2007_1_record_no_header.xlsx");
 
@@ -75,7 +75,7 @@ class ExcelReaderSupplierTest {
             }
             final Record firstRecord = records.next();
 
-            if (config.getHeader().isActiv()) {
+            if (config.getHeader().isActive()) {
 
                 Assert.assertEquals(idValue, firstRecord.getDouble("id"), 0.01);
                 Assert.assertEquals(nameValue, firstRecord.getString("name"));
@@ -112,7 +112,7 @@ class ExcelReaderSupplierTest {
 
     @Test
     void test1File5RecordsWithoutHeader() throws IOException {
-        config.getHeader().setActiv(false);
+        config.getHeader().setActive(false);
 
         this.testRecordsSize("excel2007/excel_2007_5_records_no_header.xlsx", 5);
 
@@ -128,7 +128,7 @@ class ExcelReaderSupplierTest {
 
     @Test
     void testInput1FileWithHeader1Row() throws IOException {
-        config.getHeader().setActiv(true);
+        config.getHeader().setActive(true);
         config.getHeader().setSize(1);
         this.testOneValueFile("excel2007/excel_2007_1_record_with_header.xlsx");
 
@@ -138,7 +138,7 @@ class ExcelReaderSupplierTest {
 
     @Test
     void testInput1FileMultipleRows() throws IOException {
-        config.getHeader().setActiv(true);
+        config.getHeader().setActive(true);
         config.getHeader().setSize(1);
 
         this.testRecordsSize("excel2007/excel_2007_5_records_with_header.xlsx", 5);
@@ -149,7 +149,7 @@ class ExcelReaderSupplierTest {
 
     @Test
     void test1File1RecordWithBigHeader() throws IOException {
-        config.getHeader().setActiv(true);
+        config.getHeader().setActive(true);
         config.getHeader().setSize(2);
 
         this.testOneValueFile("excel2007/excel_2007_1_record_with_big_header.xlsx");
@@ -160,7 +160,7 @@ class ExcelReaderSupplierTest {
 
     @Test
     void test1File5RecordsWithBigHeader() throws IOException {
-        config.getHeader().setActiv(true);
+        config.getHeader().setActive(true);
         config.getHeader().setSize(2);
 
         this.testRecordsSize("excel2007/excel_2007_5_records_with_big_header.xlsx", 5);
@@ -173,7 +173,7 @@ class ExcelReaderSupplierTest {
     @Test
     void test1FileWithFooter() throws IOException {
 
-        config.getFooter().setActiv(true);
+        config.getFooter().setActive(true);
         config.getFooter().setSize(1);
 
         this.testOneValueFile("excel2007/excel_2007_1_record_footer.xlsx");

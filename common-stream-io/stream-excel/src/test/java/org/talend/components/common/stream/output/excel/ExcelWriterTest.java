@@ -40,11 +40,11 @@ class ExcelWriterTest {
     void add() throws IOException {
         final ExcelConfiguration cfg = new ExcelConfiguration();
         cfg.setFooter(new OptionalLine());
-        cfg.getFooter().setActiv(true);
+        cfg.getFooter().setActive(true);
         cfg.getFooter().setSize(2);
 
         cfg.setHeader(new OptionalLine());
-        cfg.getHeader().setActiv(true);
+        cfg.getHeader().setActive(true);
         cfg.getHeader().setSize(2);
 
         cfg.setEncoding(new Encoding());

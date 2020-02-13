@@ -28,16 +28,16 @@ public class OptionalLine implements Serializable {
     private static final long serialVersionUID = -5243288997978197551L;
 
     @Option
-    @Documentation("Activ optional lines.")
-    private boolean activ;
+    @Documentation("Ignore lines.")
+    private boolean active;
 
     @Option
     @ActiveIf(target = "activ", value = "true")
-    @Documentation("Number of optional lines.")
+    @Documentation("Number of ignored lines.")
     private int size;
 
     public int getSize() {
-        if (!this.activ) {
+        if (!this.active) {
             return 0;
         }
         return this.size;

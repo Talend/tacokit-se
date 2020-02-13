@@ -43,7 +43,7 @@ class CSVRecordWriterTest {
         config.getFieldSeparator().setFieldSeparatorType(FieldSeparator.Type.SEMICOLON);
 
         config.getLineConfiguration().setHeader(new OptionalLine());
-        config.getLineConfiguration().getHeader().setActiv(true);
+        config.getLineConfiguration().getHeader().setActive(true);
         config.getLineConfiguration().getHeader().setSize(4);
 
         config.setQuotedValue('"');
