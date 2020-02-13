@@ -55,4 +55,10 @@ public interface I18n {
 
     String bodyParameters();
 
+    String withoutFollowRedirectsDegradedMode();
+
+    String parseJsonOk();
+
+    String parseJsonKo();
+
 }

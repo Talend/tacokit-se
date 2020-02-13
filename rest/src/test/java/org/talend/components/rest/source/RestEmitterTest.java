@@ -19,8 +19,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
-import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.service.RequestConfigBuilderTest;
+import org.talend.components.rest.virtual.ComplexRestConfiguration;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit.environment.Environment;
@@ -67,7 +67,7 @@ class RestEmitterTest {
     @Injected
     private BaseComponentsHandler handler;
 
-    private RequestConfig config;
+    private ComplexRestConfiguration config;
 
     private HttpServer server;
 
@@ -80,14 +80,14 @@ class RestEmitterTest {
 
         config = RequestConfigBuilderTest.getEmptyRequestConfig();
 
-        config.getDataset().getDatastore().setConnectionTimeout(5000);
-        config.getDataset().getDatastore().setReadTimeout(5000);
+        config.getDataset().getRestConfiguration().getDataset().getDatastore().setConnectionTimeout(5000);
+        config.getDataset().getRestConfiguration().getDataset().getDatastore().setReadTimeout(5000);
 
         // start server
         server = HttpServer.create(new InetSocketAddress(0), 0);
         port = server.getAddress().getPort();
 
-        config.getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getDataset().getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
     }
 
     @AfterEach
@@ -104,11 +104,11 @@ class RestEmitterTest {
     @EnvironmentalTest
     void testInput() {
 
-        config.getDataset().setResource("get");
-        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().getRestConfiguration().getDataset().setResource("get");
+        config.getDataset().getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
 
-        config.getDataset().setHasQueryParams(true);
-        config.getDataset()
+        config.getDataset().getRestConfiguration().getDataset().setHasQueryParams(true);
+        config.getDataset().getRestConfiguration().getDataset()
                 .setQueryParams(Arrays.asList(new Param("param1", "param1_value"), new Param("param2", "param1_value2")));
 
         final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
@@ -151,15 +151,15 @@ class RestEmitterTest {
     }
 
     private void testOptionsPathFlags(final boolean hasOptions) throws IOException {
-        config.getDataset().setMethodType(HttpMethod.POST);
-        config.getDataset().setResource("post/{module}/{id}");
+        config.getDataset().getRestConfiguration().getDataset().setMethodType(HttpMethod.POST);
+        config.getDataset().getRestConfiguration().getDataset().setResource("post/{module}/{id}");
 
         // Can't be tested the same way has other option since
         // when path param are not substituted the url contains "{...}"
         // and a 400 error is returned
-        config.getDataset().setHasPathParams(hasOptions);
+        config.getDataset().getRestConfiguration().getDataset().setHasPathParams(hasOptions);
         List<Param> pathParams = Arrays.asList(new Param[] { new Param("module", "myModule"), new Param("id", "myId") });
-        config.getDataset().setPathParams(pathParams);
+        config.getDataset().getRestConfiguration().getDataset().setPathParams(pathParams);
 
         this.setServerContextAndStart(httpExchange -> {
 

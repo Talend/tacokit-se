@@ -1,0 +1,6 @@
+{
+  "org.talend.components.common.stream.format.json.JsonConfiguration": {
+    "reader": "org.talend.components.common.stream.input.json.JsonReaderSupplier",
+    "writer": "org.talend.components.common.stream.output.json.JsonWriterSupplier"
+  }
+}
