@@ -35,7 +35,7 @@ public class RequestConfig implements Serializable {
     private Dataset dataset;
 
     public Map<String, String> pathParams() {
-        if (!getDataset().getHasPathParams() || getDataset().getPathParams() == null) {
+        if (!getDataset().isHasPathParams() || getDataset().getPathParams() == null) {
             return Collections.emptyMap();
         }
 
@@ -43,7 +43,7 @@ public class RequestConfig implements Serializable {
     }
 
     public Map<String, String> queryParams() {
-        if (!getDataset().getHasQueryParams() || getDataset().getQueryParams() == null) {
+        if (!getDataset().isHasQueryParams() || getDataset().getQueryParams() == null) {
             return Collections.emptyMap();
         }
 
@@ -51,7 +51,7 @@ public class RequestConfig implements Serializable {
     }
 
     public Map<String, String> headers() {
-        if (!getDataset().getHasHeaders() || getDataset().getHeaders() == null) {
+        if (!getDataset().isHasHeaders() || getDataset().getHeaders() == null) {
             return Collections.emptyMap();
         }
 

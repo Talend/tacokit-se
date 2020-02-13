@@ -28,14 +28,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@Version(1)
 @Data
-@DataSet("Dataset")
 @GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "resource" }), @GridLayout.Row({ "methodType" }),
         @GridLayout.Row({ "hasHeaders" }), @GridLayout.Row({ "headers" }), @GridLayout.Row({ "hasQueryParams" }),
         @GridLayout.Row({ "queryParams" }), @GridLayout.Row({ "hasPathParams" }), @GridLayout.Row({ "pathParams" }),
         @GridLayout.Row({ "hasBody" }), @GridLayout.Row({ "body" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "datastore" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "datastore" }),
+        @GridLayout.Row({ "completePayload" }) })
 @Documentation("Dataset configuration.")
 public class Dataset implements Serializable {
 
@@ -54,27 +53,27 @@ public class Dataset implements Serializable {
     @Documentation("End of url to complete base url of the datastore.")
     private String resource = "";
 
-    // @Option
+    @Option
     @Documentation("How many redirection are supported ? (-1 for infinite)")
     @DefaultValue("3")
     @Min(-1)
     private Integer maxRedirect = 3;
 
-    // @Option
+    @Option
     @Documentation("Redirect only if same host.")
     @DefaultValue("false")
     @ActiveIf(target = "maxRedirect", value = "0", negate = true)
-    private Boolean only_same_host = false;
+    private boolean only_same_host = false;
 
-    // @Option
+    @Option
     @Documentation("Force a GET on a 302 redirection.")
     @DefaultValue("false")
     @ActiveIf(target = "maxRedirect", value = "0", negate = true)
-    private Boolean force_302_redirect = false;
+    private boolean force_302_redirect = false;
 
     @Option
     @Documentation("Does the request have parameters in URL ?")
-    private Boolean hasPathParams = false;
+    private boolean hasPathParams = false;
 
     @Option
     @ActiveIf(target = "hasPathParams", value = "true")
@@ -83,7 +82,7 @@ public class Dataset implements Serializable {
 
     @Option
     @Documentation("Does the request have headers ?")
-    private Boolean hasHeaders = false;
+    private boolean hasHeaders = false;
 
     @Option
     @ActiveIf(target = "hasHeaders", value = "true")
@@ -92,7 +91,7 @@ public class Dataset implements Serializable {
 
     @Option
     @Documentation("Does the request have query paramters ?")
-    private Boolean hasQueryParams = false;
+    private boolean hasQueryParams = false;
 
     @Option
     @ActiveIf(target = "hasQueryParams", value = "true")
@@ -107,6 +106,10 @@ public class Dataset implements Serializable {
     @ActiveIf(target = "hasBody", value = "true")
     @Documentation("Request body")
     private RequestBody body;
+
+    @Option
+    @Documentation("Return complete payload as a record")
+    private boolean completePayload = false;
 
     public boolean supportRedirect() {
         return this.getMaxRedirect() != 0;

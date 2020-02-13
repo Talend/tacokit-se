@@ -24,28 +24,32 @@ import org.talend.components.rest.configuration.Datastore;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.configuration.auth.Authorization;
+import org.talend.components.rest.service.client.Body;
+import org.talend.components.rest.service.client.Client;
+import org.talend.components.rest.service.client.ContentType;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.RecordPointerFactory;
-import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.http.Response;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
+import javax.json.JsonReader;
+import javax.json.JsonReaderFactory;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -75,20 +79,20 @@ public class RestService {
     private I18n i18n;
 
     @Service
-    RecordBuilderFactory recordBuilderFactory;
-
-    @Service
     private RecordPointerFactory recordPointerFactory;
 
-    public Record execute(final RequestConfig config, final Record record) {
+    @Service
+    private JsonReaderFactory jsonReaderFactory;
+
+    public Response<byte[]> execute(final RequestConfig config, final Record record) {
         return _execute(config, record);
     }
 
-    public Record execute(final RequestConfig config) {
+    public Response<byte[]> execute(final RequestConfig config) {
         return _execute(config, null);
     }
 
-    private Record _execute(final RequestConfig config, final Record record) {
+    private Response<byte[]> _execute(final RequestConfig config, final Record record) {
         final Substitutor substitutor = new RecordSubstitutor(PARAMETERS_SUBSTITUTOR_PREFIX, PARAMETERS_SUBSTITUTOR_SUFFIX,
                 record, recordPointerFactory);
 
@@ -115,16 +119,14 @@ public class RestService {
         final Substitutor bodySubstitutor = new RecordSubstitutor(BODY_SUBSTITUTOR_PREFIX, BODY_SUBSTITUTOR_SUFFIX, record,
                 recordPointerFactory, substitutor.getCache());
 
-        // Has body has to be check here to set body = null if needed, the body encoder should not return null
+        // Has body has to be checked here to set body = null if needed, the body encoder should not return null
         Body body = config.getDataset().isHasBody() ? new Body(config, bodySubstitutor) : null;
 
         RedirectContext redirectContext = new RedirectContext(config.getDataset().getDatastore().getBase(),
-                config.getDataset().getMaxRedirect(), config.getDataset().getForce_302_redirect(),
-                config.getDataset().getMethodType().name(), config.getDataset().getOnly_same_host());
+                config.getDataset().getMaxRedirect(), config.getDataset().isForce_302_redirect(),
+                config.getDataset().getMethodType().name(), config.getDataset().isOnly_same_host());
 
-        Response<byte[]> resp = this.call(config, headers, queryParams, body, this.buildUrl(config, pathParams), redirectContext);
-
-        return this.buildRecord(resp);
+        return this.call(config, headers, queryParams, body, this.buildUrl(config, pathParams), redirectContext);
     }
 
     private Response<byte[]> call(final RequestConfig config, final Map<String, String> headers,
@@ -192,7 +194,7 @@ public class RestService {
 
     String buildUrl(final RequestConfig config, final Map<String, String> params) {
         String base = config.getDataset().getDatastore().getBase().trim();
-        String segments = this.setPathParams(config.getDataset().getResource().trim(), config.getDataset().getHasPathParams(),
+        String segments = this.setPathParams(config.getDataset().getResource().trim(), config.getDataset().isHasPathParams(),
                 params);
 
         if (segments.isEmpty()) {
@@ -218,39 +220,34 @@ public class RestService {
         return params.entrySet().stream().collect(toMap(e -> e.getKey(), e -> substitute(e.getValue(), substitutor)));
     }
 
-    private Record buildRecord(Response<byte[]> resp) {
-        Record.Builder builder = recordBuilderFactory.newRecordBuilder();
-
-        final int status = resp.status();
+    public CompletePayload buildFixedRecord(final Response<byte[]> resp) {
+        int status = resp.status();
         log.info(i18n.requestStatus(status));
-        builder.withInt("status", status);
 
-        if (resp.headers() == null) {
-            builder.withString("headers", "{}");
-        } else {
-            Schema.Entry headerKeyEntry = recordBuilderFactory.newEntryBuilder().withName("key").withType(Schema.Type.STRING)
-                    .withNullable(false).build();
-            Schema.Entry headerValueEntry = recordBuilderFactory.newEntryBuilder().withName("value").withType(Schema.Type.STRING)
-                    .withNullable(false).build();
-            Schema.Builder schemaBuilderHeader = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD);
-            Schema headerElementSchema = schemaBuilderHeader.withEntry(headerKeyEntry).withEntry(headerValueEntry).build();
-            List<Record> headers = resp
-                    .headers().entrySet().stream().map(e -> recordBuilderFactory.newRecordBuilder(headerElementSchema)
-                            .withString("key", e.getKey()).withString("value", String.join(",", e.getValue())).build())
-                    .collect(Collectors.toList());
+        Map<String, String> headers = Optional.ofNullable(resp.headers()).orElseGet(Collections::emptyMap).entrySet().stream()
+                .collect(toMap((Map.Entry<String, List<String>> e) -> e.getKey(), e -> String.join(",", e.getValue())));
 
-            Schema.Entry.Builder arrayEntryBuilder = recordBuilderFactory.newEntryBuilder();
-            builder.withArray(arrayEntryBuilder.withName("headers").withType(Schema.Type.ARRAY).withNullable(false)
-                    .withElementSchema(headerElementSchema).build(), headers);
+        final String receivedBody = getBody(resp);
+        Object body;
+        try (final JsonReader reader = jsonReaderFactory.createReader(new StringReader(receivedBody))) {
+            body = reader.read();
+            log.info(i18n.parseJsonOk());
+        } catch (Exception e) {
+            // It is not a json, we return the raw String payload
+            body = receivedBody;
+            log.info(i18n.parseJsonKo());
         }
 
-        String encoding = ContentType.getCharsetName(resp);
-        String receivedBody = (encoding == null) ? //
-                new String(Optional.ofNullable(resp.body()).orElse(new byte[0])) : //
-                new String(Optional.ofNullable(resp.body()).orElse(new byte[0]), Charset.forName(encoding));
-        builder.withString("body", receivedBody);
+        return new CompletePayload(status, headers, body);
+    }
 
-        return builder.build();
+    private static String getBody(final Response<byte[]> resp) {
+        String encoding = ContentType.getCharsetName(resp);
+        byte[] bytes = Optional.ofNullable(resp.body()).orElse(new byte[0]);
+        String receivedBody = (encoding == null) ? //
+                new String(bytes) : //
+                new String(bytes, Charset.forName(encoding));
+        return receivedBody;
     }
 
     private String substitute(final String value, final Substitutor substitutor) {
@@ -283,7 +280,6 @@ public class RestService {
     }
 
     /**
-     *
      * @param params
      * @return true is no duplicates, false if any duplicates
      */
