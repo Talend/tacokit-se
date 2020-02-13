@@ -13,7 +13,9 @@
 package org.talend.components.pubsub.input;
 
 import com.google.gson.internal.Streams;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.pubsub.input.converter.MessageConverterFactory;
 import org.talend.components.pubsub.service.AckMessageService;
 import org.talend.components.pubsub.service.I18nMessage;
 import org.talend.components.pubsub.service.PubSubService;
@@ -39,6 +41,7 @@ import java.util.stream.StreamSupport;
 @PartitionMapper(name = "PubSubInput", infinite = true)
 @Documentation("This component listens to a PubSub topic.")
 @Slf4j
+@RequiredArgsConstructor
 public class PubSubPartitionMapper implements Serializable {
 
     protected final PubSubInputConfiguration configuration;
@@ -51,15 +54,7 @@ public class PubSubPartitionMapper implements Serializable {
 
     protected final RecordBuilderFactory builderFactory;
 
-    public PubSubPartitionMapper(@Option("configuration") final PubSubInputConfiguration configuration,
-            final PubSubService service, final AckMessageService ackMessageService, final I18nMessage i18n,
-            final RecordBuilderFactory builderFactory) {
-        this.configuration = configuration;
-        this.service = service;
-        this.ackMessageService = ackMessageService;
-        this.i18n = i18n;
-        this.builderFactory = builderFactory;
-    }
+    protected final MessageConverterFactory messageConverterFactory;
 
     @Assessor
     public long estimateSize() {
@@ -74,14 +69,13 @@ public class PubSubPartitionMapper implements Serializable {
             configuration.getDataSet().setSubscription(subscription);
         }
 
-        return IntStream.range(0, desiredNbSplits)
-                .mapToObj(i -> new PubSubPartitionMapper(configuration, service, ackMessageService, i18n, builderFactory))
-                .collect(Collectors.toList());
+        return IntStream.range(0, desiredNbSplits).mapToObj(i -> new PubSubPartitionMapper(configuration, service,
+                ackMessageService, i18n, builderFactory, messageConverterFactory)).collect(Collectors.toList());
     }
 
     @Emitter
     public PubSubInput createSource() {
-        return new PubSubInput(configuration, service, ackMessageService, i18n, builderFactory);
+        return new PubSubInput(configuration, service, ackMessageService, i18n, builderFactory, messageConverterFactory);
     }
 
 }

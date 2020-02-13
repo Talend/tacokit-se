@@ -14,6 +14,7 @@ package org.talend.components.pubsub.output;
 
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.pubsub.v1.PubsubMessage;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.pubsub.output.message.MessageGenerator;
 import org.talend.components.pubsub.output.message.MessageGeneratorFactory;
@@ -37,6 +38,7 @@ import java.io.Serializable;
 @Icon(value = Icon.IconType.CUSTOM, custom = "pubsub")
 @Processor(name = "PubSubOutput")
 @Documentation("This component sends messages to a Pub/Sub topic.")
+@RequiredArgsConstructor
 public class PubSubOutput implements Serializable {
 
     private final I18nMessage i18n;
@@ -45,6 +47,8 @@ public class PubSubOutput implements Serializable {
 
     private final RecordService recordService;
 
+    private final MessageGeneratorFactory messageGeneratorFactory;
+
     private transient boolean init;
 
     private transient Publisher publisher;
@@ -52,14 +56,6 @@ public class PubSubOutput implements Serializable {
     private final PubSubService pubSubService;
 
     private transient MessageGenerator messageGenerator;
-
-    public PubSubOutput(@Option("configuration") final PubSubOutputConfiguration configuration, PubSubService pubSubService,
-            I18nMessage i18n, RecordService recordService) {
-        this.configuration = configuration;
-        this.i18n = i18n;
-        this.pubSubService = pubSubService;
-        this.recordService = recordService;
-    }
 
     @ElementListener
     public void onElement(Record record) {
@@ -78,7 +74,7 @@ public class PubSubOutput implements Serializable {
         publisher = pubSubService.createPublisher(configuration.getDataset().getDataStore(),
                 configuration.getDataset().getTopic());
 
-        messageGenerator = new MessageGeneratorFactory().getGenerator(configuration.getDataset(), i18n, recordService);
+        messageGenerator = messageGeneratorFactory.getGenerator(configuration.getDataset(), i18n, recordService);
     }
 
     @PreDestroy

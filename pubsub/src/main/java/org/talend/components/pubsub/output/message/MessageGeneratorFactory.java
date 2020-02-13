@@ -15,22 +15,28 @@ package org.talend.components.pubsub.output.message;
 import org.talend.components.pubsub.dataset.PubSubDataSet;
 import org.talend.components.pubsub.input.converter.TextMessageConverter;
 import org.talend.components.pubsub.service.I18nMessage;
+import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.injector.Injector;
 import org.talend.sdk.component.api.service.record.RecordService;
 
 import java.util.Arrays;
 import java.util.Optional;
 
+@Service
 public class MessageGeneratorFactory {
 
     private static final Class<? extends MessageGenerator>[] IMPLEMENTATIONS = new Class[] { AvroMessageGenerator.class,
             CSVMessageGenerator.class, JSONMessageGenerator.class, TextMessageConverter.class };
+
+    @Service
+    private Injector injector;
 
     public MessageGenerator getGenerator(PubSubDataSet dataset, I18nMessage i18n, RecordService recordService) {
         PubSubDataSet.ValueFormat format = dataset.getValueFormat();
 
         Optional<? extends MessageGenerator> opt = Arrays.stream(IMPLEMENTATIONS).map(c -> {
             try {
-                return c.newInstance();
+                return c.getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 return null;
             }
@@ -40,6 +46,7 @@ public class MessageGeneratorFactory {
 
         messageGenerator.setI18nMessage(i18n);
         messageGenerator.setRecordService(recordService);
+        injector.inject(messageGenerator);
         messageGenerator.init(dataset);
 
         return messageGenerator;

@@ -21,6 +21,7 @@ import com.google.pubsub.v1.ProjectSubscriptionName;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.PullRequest;
 import com.google.pubsub.v1.PullResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.pubsub.input.converter.MessageConverter;
 import org.talend.components.pubsub.input.converter.MessageConverterFactory;
@@ -44,17 +45,20 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 @Slf4j
+@RequiredArgsConstructor
 public class PubSubInput implements MessageReceiver, Serializable {
 
     protected final PubSubInputConfiguration configuration;
 
     protected final PubSubService service;
 
-    private final AckMessageService ackMessageService;
+    protected final AckMessageService ackMessageService;
 
     protected final I18nMessage i18n;
 
     protected final RecordBuilderFactory builderFactory;
+
+    protected final MessageConverterFactory messageConverterFactory;
 
     private transient final Queue<PubsubMessage> inbox = new ConcurrentLinkedDeque<>();
 
@@ -66,18 +70,9 @@ public class PubSubInput implements MessageReceiver, Serializable {
 
     private transient MessageConverter messageConverter;
 
-    public PubSubInput(final PubSubInputConfiguration configuration, final PubSubService service,
-            final AckMessageService ackMessageService, final I18nMessage i18n, final RecordBuilderFactory builderFactory) {
-        this.configuration = configuration;
-        this.service = service;
-        this.ackMessageService = ackMessageService;
-        this.i18n = i18n;
-        this.builderFactory = builderFactory;
-    }
-
     @PostConstruct
     public void init() {
-        messageConverter = new MessageConverterFactory().getConverter(configuration.getDataSet(), builderFactory, i18n);
+        messageConverter = messageConverterFactory.getConverter(configuration.getDataSet(), builderFactory, i18n);
         if (configuration.getPullMode() == PubSubInputConfiguration.PullMode.ASYNCHRONOUS) {
             subscriber = service.createSubscriber(configuration.getDataSet().getDataStore(),
                     configuration.getDataSet().getTopic(), configuration.getDataSet().getSubscription(), this);

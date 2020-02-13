@@ -16,6 +16,7 @@ import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 import org.talend.components.pubsub.dataset.PubSubDataSet;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.runtime.record.RecordConverters;
 
@@ -29,6 +30,9 @@ import javax.json.spi.JsonProvider;
 
 public class JSONMessageGenerator extends MessageGenerator {
 
+    @Service
+    private Jsonb jsonb;
+
     @Override
     public void init(PubSubDataSet dataset) {
 
@@ -39,7 +43,6 @@ public class JSONMessageGenerator extends MessageGenerator {
         RecordConverters converter = new RecordConverters();
         JsonBuilderFactory jsonBuilderFactory = Json.createBuilderFactory(null);
         JsonProvider jsonProvider = JsonProvider.provider();
-        Jsonb jsonb = JsonbBuilder.create();
         RecordBuilderFactory recordBuilderFactory = null;
         final JsonObject json = JsonObject.class.cast(converter.toType(new RecordConverters.MappingMetaRegistry(), record,
                 JsonObject.class, () -> jsonBuilderFactory, () -> jsonProvider, () -> jsonb, () -> recordBuilderFactory));
