@@ -54,6 +54,7 @@
         <module>pubsub</module>
         <module>netsuite</module>
         <module>cosmosDB</module>
+        <module>google-storage</module>
     </modules>
 
     <scm>
