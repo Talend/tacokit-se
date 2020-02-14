@@ -47,7 +47,7 @@ class GSServiceTest {
         ds.setJsonCredentials(jwtContent);
 
         final HealthCheckStatus status = service.healthCheck(ds);
-        Assertions.assertSame(HealthCheckStatus.Status.OK, status.getStatus());
+        Assertions.assertSame(HealthCheckStatus.Status.OK, status.getStatus(), () -> "Not OK : " + status.getComment());
     }
 
     private String getContentFile(String relativePath) throws IOException {
