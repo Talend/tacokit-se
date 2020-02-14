@@ -9,6 +9,7 @@
     </parent>
 
     <artifactId>pubsub</artifactId>
+    <name>Components :: Pub/Sub</name>
 
     <properties>
         <testcontainers.version>1.12.3</testcontainers.version>
