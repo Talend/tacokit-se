@@ -12,8 +12,14 @@
  */
 package org.talend.components.common.stream.format.avro;
 
+import lombok.Data;
 import org.talend.components.common.stream.format.ContentFormat;
 
+@Data
 public class AvroConfiguration implements ContentFormat {
+
+    private boolean attachSchema = true;
+
+    private String avroSchema;
 
 }

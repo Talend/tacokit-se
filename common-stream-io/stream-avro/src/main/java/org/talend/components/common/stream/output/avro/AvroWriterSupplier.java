@@ -29,7 +29,14 @@ public class AvroWriterSupplier implements RecordWriterSupplier {
             throw new IllegalArgumentException("Try to get avro-writer with other than avro config.");
         }
 
+        AvroConfiguration avroConfig = (AvroConfiguration) config;
+
         final RecordConverter<GenericRecord, Schema> converter = new RecordToAvro("records");
-        return new AvroRecordWriter(converter, target);
+        if (avroConfig.isAttachSchema()) {
+            return new AvroRecordWriter(converter, target);
+        } else {
+            Schema schema = avroConfig.getAvroSchema() != null ? new Schema.Parser().parse(avroConfig.getAvroSchema()) : null;
+            return new HeadlessAvroRecordWriter(converter, target, schema);
+        }
     }
 }

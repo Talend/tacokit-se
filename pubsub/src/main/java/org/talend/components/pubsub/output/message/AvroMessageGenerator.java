@@ -32,19 +32,25 @@ public class AvroMessageGenerator extends MessageGenerator {
 
     private RecordWriterSupplier recordWriterSupplier;
 
+    private AvroConfiguration avroConfiguration;
+
     @Override
     public void init(PubSubDataSet dataset) {
         recordWriterSupplier = getIoRepository().findWriter(AvroConfiguration.class);
+        avroConfiguration = new AvroConfiguration();
+        avroConfiguration.setAttachSchema(false);
+        avroConfiguration.setAvroSchema(dataset.getAvroSchema());
     }
 
     @Override
     public PubsubMessage generateMessage(Record record) {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            RecordWriter recordWriter = recordWriterSupplier.getWriter(() -> out, new AvroConfiguration());
+            RecordWriter recordWriter = recordWriterSupplier.getWriter(() -> out, avroConfiguration);
             recordWriter.add(record);
+            recordWriter.flush();
+            recordWriter.end();
             recordWriter.close();
-            out.close();
             PubsubMessage message = PubsubMessage.newBuilder().setData(ByteString.copyFrom(out.toByteArray())).build();
             return message;
         } catch (Exception e) {
