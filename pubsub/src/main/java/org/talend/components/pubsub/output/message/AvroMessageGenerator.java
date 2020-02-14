@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,24 +12,49 @@
  */
 package org.talend.components.pubsub.output.message;
 
+import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
+import lombok.extern.slf4j.Slf4j;
+import org.talend.components.common.stream.api.RecordIORepository;
+import org.talend.components.common.stream.api.output.RecordWriter;
+import org.talend.components.common.stream.api.output.RecordWriterSupplier;
+import org.talend.components.common.stream.format.avro.AvroConfiguration;
 import org.talend.components.pubsub.dataset.PubSubDataSet;
+import org.talend.components.pubsub.service.PubSubConnectorException;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.service.Service;
 
+import javax.inject.Inject;
+import java.io.ByteArrayOutputStream;
+
+@Slf4j
 public class AvroMessageGenerator extends MessageGenerator {
+
+    private RecordWriterSupplier recordWriterSupplier;
 
     @Override
     public void init(PubSubDataSet dataset) {
-
+        recordWriterSupplier = getIoRepository().findWriter(AvroConfiguration.class);
     }
 
     @Override
     public PubsubMessage generateMessage(Record record) {
-        return null;
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            RecordWriter recordWriter = recordWriterSupplier.getWriter(() -> out, new AvroConfiguration());
+            recordWriter.add(record);
+            recordWriter.close();
+            out.close();
+            PubsubMessage message = PubsubMessage.newBuilder().setData(ByteString.copyFrom(out.toByteArray())).build();
+            return message;
+        } catch (Exception e) {
+            log.error(getI18nMessage().errorWriteAvro(e.getMessage()), e);
+            return null;
+        }
     }
 
     @Override
     public boolean acceptFormat(PubSubDataSet.ValueFormat format) {
-        return false;
+        return format == PubSubDataSet.ValueFormat.AVRO;
     }
 }

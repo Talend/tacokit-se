@@ -54,6 +54,11 @@
             <version>${component-runtime.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.talend.components</groupId>
+            <artifactId>stream-avro</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- Testing -->
         <dependency>
             <groupId>org.talend.components</groupId>

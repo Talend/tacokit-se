@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,6 +12,7 @@
  */
 package org.talend.components.pubsub.output.message;
 
+import org.talend.components.common.stream.api.RecordIORepository;
 import org.talend.components.pubsub.dataset.PubSubDataSet;
 import org.talend.components.pubsub.input.converter.TextMessageConverter;
 import org.talend.components.pubsub.service.I18nMessage;
@@ -31,7 +32,16 @@ public class MessageGeneratorFactory {
     @Service
     private Injector injector;
 
-    public MessageGenerator getGenerator(PubSubDataSet dataset, I18nMessage i18n, RecordService recordService) {
+    @Service
+    private RecordIORepository ioRepository;
+
+    @Service
+    private RecordService recordService;
+
+    @Service
+    private I18nMessage i18n;
+
+    public MessageGenerator getGenerator(PubSubDataSet dataset) {
         PubSubDataSet.ValueFormat format = dataset.getValueFormat();
 
         Optional<? extends MessageGenerator> opt = Arrays.stream(IMPLEMENTATIONS).map(c -> {
@@ -46,7 +56,11 @@ public class MessageGeneratorFactory {
 
         messageGenerator.setI18nMessage(i18n);
         messageGenerator.setRecordService(recordService);
+        messageGenerator.setIoRepository(ioRepository);
+
+        // add more services if needed
         injector.inject(messageGenerator);
+
         messageGenerator.init(dataset);
 
         return messageGenerator;

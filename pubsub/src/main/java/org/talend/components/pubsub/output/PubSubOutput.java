@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -45,8 +45,6 @@ public class PubSubOutput implements Serializable {
 
     private final PubSubOutputConfiguration configuration;
 
-    private final RecordService recordService;
-
     private final MessageGeneratorFactory messageGeneratorFactory;
 
     private transient boolean init;
@@ -63,7 +61,9 @@ public class PubSubOutput implements Serializable {
             lazyInit();
         }
         PubsubMessage message = messageGenerator.generateMessage(record);
-        publisher.publish(message);
+        if (message != null) {
+            publisher.publish(message);
+        }
     }
 
     private void lazyInit() {
@@ -74,7 +74,7 @@ public class PubSubOutput implements Serializable {
         publisher = pubSubService.createPublisher(configuration.getDataset().getDataStore(),
                 configuration.getDataset().getTopic());
 
-        messageGenerator = messageGeneratorFactory.getGenerator(configuration.getDataset(), i18n, recordService);
+        messageGenerator = messageGeneratorFactory.getGenerator(configuration.getDataset());
     }
 
     @PreDestroy

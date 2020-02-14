@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,6 +16,7 @@ import com.google.pubsub.v1.PubsubMessage;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import org.talend.components.common.stream.api.RecordIORepository;
 import org.talend.components.pubsub.dataset.PubSubDataSet;
 import org.talend.components.pubsub.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
@@ -30,6 +31,10 @@ public abstract class MessageGenerator {
     @Setter
     @Getter(value = AccessLevel.PROTECTED)
     private RecordService recordService;
+
+    @Setter
+    @Getter(value = AccessLevel.PROTECTED)
+    private RecordIORepository ioRepository;
 
     public abstract void init(PubSubDataSet dataset);
 
