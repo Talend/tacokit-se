@@ -30,9 +30,6 @@
   {
     "request":{
       "headers":{
-        "content-length":"0",
-        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
-        "x-goog-api-client":"gl-java/1.8.0 gdcl/1.30.3 linux/4.15.0",
         "Connection":"keep-alive",
         "Accept-Encoding":"gzip"
       },
