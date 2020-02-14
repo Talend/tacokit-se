@@ -47,6 +47,7 @@ public class AvroMessageGenerator extends MessageGenerator {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             RecordWriter recordWriter = recordWriterSupplier.getWriter(() -> out, avroConfiguration);
+            recordWriter.init(avroConfiguration);
             recordWriter.add(record);
             recordWriter.flush();
             recordWriter.end();
