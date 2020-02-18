@@ -22,7 +22,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 import lombok.Data;
 
 @Data
-@GridLayout(@GridLayout.Row({ "activ", "size" }))
+@GridLayout(@GridLayout.Row({ "active", "size" }))
 public class OptionalLine implements Serializable {
 
     private static final long serialVersionUID = -5243288997978197551L;
@@ -32,7 +32,7 @@ public class OptionalLine implements Serializable {
     private boolean active;
 
     @Option
-    @ActiveIf(target = "activ", value = "true")
+    @ActiveIf(target = "active", value = "true")
     @Documentation("Number of ignored lines.")
     private int size;
 
