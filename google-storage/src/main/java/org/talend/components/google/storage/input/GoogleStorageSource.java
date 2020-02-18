@@ -26,6 +26,7 @@ import org.talend.components.common.stream.api.input.RecordReaderSupplier;
 import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.components.google.storage.dataset.GSDataSet;
 import org.talend.components.google.storage.service.CredentialService;
+import org.talend.components.google.storage.service.I18nMessage;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -42,9 +43,9 @@ import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 
 @Version
-@Icon(value = Icon.IconType.CUSTOM, custom = "GSInput")
+@Icon(value = Icon.IconType.CUSTOM, custom = "cloudstorageInput")
 @Emitter(family = "GoogleStorage", name = "Input")
-@Documentation("...")
+@Documentation("this component read content file from google cloud storage")
 public class GoogleStorageSource implements Serializable {
 
     private static final long serialVersionUID = 7373818898514942128L;
@@ -62,6 +63,9 @@ public class GoogleStorageSource implements Serializable {
     @Service
     private final CredentialService credentialService;
 
+    @Service
+    private final I18nMessage i18n;
+
     private transient GoogleCredentials googleCredentials = null;
 
     /** current record iterator */
@@ -71,11 +75,12 @@ public class GoogleStorageSource implements Serializable {
 
     public GoogleStorageSource(@Option("configuration") InputConfiguration config, RecordBuilderFactory factory, // build record
             RecordIORepository ioRepository, // find reader
-            CredentialService credentialService) { // connecte
+            CredentialService credentialService, I18nMessage i18n) {
         this.config = config;
         this.factory = factory;
         this.ioRepository = ioRepository;
         this.credentialService = credentialService;
+        this.i18n = i18n;
     }
 
     @PostConstruct
@@ -117,6 +122,10 @@ public class GoogleStorageSource implements Serializable {
         final Storage storage = this.credentialService.newStorage(this.googleCredentials);
         final BlobInfo blobInfo = dataset.blob();
         final Blob blob = storage.get(blobInfo.getBlobId());
+        if (blob == null) { // blob does not exist.
+            final String errorLabel = this.i18n.blobUnexist(dataset.getBlob(), dataset.getBucket());
+            throw new IllegalArgumentException(errorLabel);
+        }
 
         // reader & iterator.
         final InputStream in = Channels.newInputStream(blob.reader());

@@ -14,7 +14,9 @@ package org.talend.components.google.storage.datastore;
 
 import java.io.Serializable;
 
+import org.talend.components.google.storage.service.GSService;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataStore;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -25,6 +27,7 @@ import lombok.Data;
 
 @Data
 @DataStore(GSDataStore.NAME)
+@Checkable(GSService.ACTION_HEALTH_CHECK)
 @GridLayout({ @GridLayout.Row({ "jsonCredentials" }) })
 @Documentation("Connector for google cloud storage")
 public class GSDataStore implements Serializable {

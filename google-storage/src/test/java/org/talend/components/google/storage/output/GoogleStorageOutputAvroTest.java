@@ -12,13 +12,20 @@
  */
 package org.talend.components.google.storage.output;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.channels.Channels;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.Messages;
@@ -29,6 +36,7 @@ import org.talend.components.common.stream.format.FormatConfiguration.Type;
 import org.talend.components.google.storage.dataset.GSDataSet;
 import org.talend.components.google.storage.datastore.GSDataStore;
 import org.talend.components.google.storage.service.CredentialService;
+import org.talend.components.google.storage.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
@@ -38,6 +46,9 @@ import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.ReadChannel;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper;
 
@@ -51,6 +62,9 @@ public class GoogleStorageOutputAvroTest {
 
     @Service
     private RecordBuilderFactory factory;
+
+    @Service
+    private I18nMessage i18n;
 
     @Injected
     private BaseComponentsHandler handler;
@@ -91,12 +105,22 @@ public class GoogleStorageOutputAvroTest {
         };
         final GoogleStorageOutput output = new GoogleStorageOutput(config, //
                 credService, //
-                this.repository);
+                this.repository, i18n);
 
         output.init();
         final Collection<Record> records = buildRecords();
         output.write(records);
         output.release();
+
+        final Blob blob = storage.get(BlobId.of("bucketTest", "blob/avropath"));
+        try (final ReadChannel reader = blob.reader();
+                final InputStream in = Channels.newInputStream(reader);
+                final BufferedReader inputStream = new BufferedReader(new InputStreamReader(in))) {
+            final String collect = inputStream.lines().collect(Collectors.joining("\n"));
+            Assertions.assertNotNull(collect);
+            Assertions.assertTrue(collect.startsWith("Obj"));
+        }
+
     }
 
     private Collection<Record> buildRecords() {

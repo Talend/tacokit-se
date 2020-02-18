@@ -16,7 +16,9 @@ import java.io.Serializable;
 
 import org.talend.components.common.stream.format.FormatConfiguration;
 import org.talend.components.google.storage.datastore.GSDataStore;
+import org.talend.components.google.storage.service.GSService;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -42,10 +44,12 @@ public class GSDataSet implements Serializable {
 
     @Option
     @Documentation("bucket name of google storage")
+    @Suggestable(value = GSService.ACTION_SUGGESTION_BUCKET, parameters = { "dataStore" })
     private String bucket;
 
     @Option
     @Documentation("blob name (file) for bucket")
+    @Suggestable(value = GSService.ACTION_SUGGESTION_BLOB, parameters = { "dataStore", "bucket" })
     private String blob;
 
     @Option

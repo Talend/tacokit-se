@@ -27,7 +27,9 @@ import org.talend.components.common.stream.api.output.RecordWriterSupplier;
 import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.components.google.storage.dataset.GSDataSet;
 import org.talend.components.google.storage.service.CredentialService;
+import org.talend.components.google.storage.service.I18nMessage;
 import org.talend.sdk.component.api.component.Icon;
+import org.talend.sdk.component.api.component.Icon.IconType;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -46,12 +48,10 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Version
-@Icon(Icon.IconType.DEFAULT)
+@Icon(value = IconType.CUSTOM, custom = "cloudstorageOutput")
 @Processor(family = "GoogleStorage", name = "Output")
 @Documentation("Google storage output")
 public class GoogleStorageOutput implements Serializable {
-
-    private static final String errorWrite = "Error while writing records to google storage %s.%s :%s";
 
     @Service
     private final CredentialService credentialService;
@@ -61,13 +61,16 @@ public class GoogleStorageOutput implements Serializable {
 
     private final OutputConfiguration config;
 
+    private final I18nMessage i18n;
+
     private RecordWriter recordWriter;
 
     public GoogleStorageOutput(@Option("configuration") OutputConfiguration config, CredentialService credentialService,
-            RecordIORepository ioRepository) {
+            RecordIORepository ioRepository, I18nMessage i18n) {
         this.config = config;
         this.credentialService = credentialService;
         this.ioRepository = ioRepository;
+        this.i18n = i18n;
     }
 
     @AfterGroup
@@ -78,8 +81,7 @@ public class GoogleStorageOutput implements Serializable {
                 this.recordWriter.flush();
             }
         } catch (IOException exIO) {
-            String errorLib = String.format(GoogleStorageOutput.errorWrite, this.getDataSet().getBucket(),
-                    this.getDataSet().getBlob(), exIO.getMessage());
+            String errorLib = this.i18n.writeError(this.getDataSet().getBucket(), this.getDataSet().getBlob(), exIO.getMessage());
             log.error(errorLib);
             throw new UncheckedIOException(errorLib, exIO);
         }

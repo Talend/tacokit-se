@@ -22,4 +22,11 @@ public interface I18nMessage {
     String successConnection();
 
     String errorConnection(String error);
+
+    String blobUnexist(String blob, String bucket);
+
+    String writeError(String bucket, String blob, String exception);
+
+    String getCredentials(String exception);
+
 }

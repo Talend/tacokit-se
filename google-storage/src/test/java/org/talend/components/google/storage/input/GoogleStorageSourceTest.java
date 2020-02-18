@@ -29,6 +29,7 @@ import org.talend.components.common.stream.format.csv.FieldSeparator;
 import org.talend.components.google.storage.dataset.GSDataSet;
 import org.talend.components.google.storage.datastore.GSDataStore;
 import org.talend.components.google.storage.service.CredentialService;
+import org.talend.components.google.storage.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -47,7 +48,10 @@ class GoogleStorageSourceTest {
     private RecordIORepository repository;
 
     @Service
-    private RecordBuilderFactory factory;// = new RecordBuilderFactoryImpl("test");
+    private RecordBuilderFactory factory;
+
+    @Service
+    private I18nMessage i18n;
 
     private final Storage storage = LocalStorageHelper.getOptions().getService();
 
@@ -91,7 +95,7 @@ class GoogleStorageSourceTest {
             }
         };
 
-        GoogleStorageSource source = new GoogleStorageSource(config, this.factory, this.repository, credentialService);
+        GoogleStorageSource source = new GoogleStorageSource(config, this.factory, this.repository, credentialService, i18n);
 
         source.init();
 

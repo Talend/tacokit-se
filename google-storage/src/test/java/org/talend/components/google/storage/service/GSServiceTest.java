@@ -21,6 +21,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.talend.components.google.storage.datastore.GSDataStore;
 import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.completion.SuggestionValues;
+import org.talend.sdk.component.api.service.completion.SuggestionValues.Item;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.junit5.WithComponents;
@@ -50,9 +52,34 @@ class GSServiceTest {
         Assertions.assertSame(HealthCheckStatus.Status.OK, status.getStatus(), () -> "Not OK : " + status.getComment());
     }
 
+    @Test
+    void findBucketsName() throws IOException {
+        final GSDataStore ds = new GSDataStore();
+        String jwtContent = this.getContentFile("./engineering-test.json");
+        ds.setJsonCredentials(jwtContent);
+
+        final SuggestionValues bucketsName = this.service.findBucketsName(ds);
+        Assertions.assertNotNull(bucketsName);
+        Assertions.assertEquals(125, bucketsName.getItems().size());
+        final Item firstItem = bucketsName.getItems().iterator().next();
+        Assertions.assertEquals("bucket1", firstItem.getId());
+    }
+
+    @Test
+    void findBlobsName() throws IOException {
+        final GSDataStore ds = new GSDataStore();
+        String jwtContent = this.getContentFile("./engineering-test.json");
+        ds.setJsonCredentials(jwtContent);
+
+        final SuggestionValues blobsName = this.service.findBlobsName(ds, "mybucket");
+        Assertions.assertNotNull(blobsName);
+
+        final Item firstItem = blobsName.getItems().iterator().next();
+        Assertions.assertEquals("rep/first.txt", firstItem.getId());
+    }
+
     private String getContentFile(String relativePath) throws IOException {
         final URL urlJWT = Thread.currentThread().getContextClassLoader().getResource(relativePath);
-
         final File ficJWT = new File(urlJWT.getPath());
         return new String(Files.readAllBytes(ficJWT.toPath()));
     }
