@@ -162,14 +162,6 @@ public class CouchbaseInput implements Serializable {
         }
     }
 
-    private String getLimit() {
-        if (configuration.getLimit().isEmpty()) {
-            return "";
-        } else {
-            return " LIMIT " + configuration.getLimit().trim();
-        }
-    }
-
     private Record createJsonRecord(JsonObject jsonObject) {
         if (configuration.getSelectAction() == SelectAction.ALL) {
             // unwrap JSON (we use SELECT * to retrieve all values. Result will be wrapped with bucket name)
