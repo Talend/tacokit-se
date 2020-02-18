@@ -158,9 +158,6 @@ public class CouchbaseInput implements Serializable {
             LOG.error(i18n.queryResultError());
             throw new IllegalArgumentException(n1qlQueryRows.errors().toString());
         }
-        if (configuration.getSelectAction() == SelectAction.ONE && n1qlQueryRows.allRows().size() == 0) {
-            throw new IllegalArgumentException("Document with ID '" + configuration.getDocumentId() + "' can't be found");
-        }
     }
 
     private Record createJsonRecord(JsonObject jsonObject) {
