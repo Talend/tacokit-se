@@ -25,6 +25,7 @@ import com.couchbase.client.java.query.Statement;
 import com.couchbase.client.java.query.consistency.ScanConsistency;
 import com.couchbase.client.java.query.dsl.Expression;
 import com.couchbase.client.java.query.dsl.path.AsPath;
+import com.couchbase.client.java.query.dsl.path.Path;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,8 +110,9 @@ public class CouchbaseInput implements Serializable {
             n1qlQuery = N1qlQuery.simple(configuration.getQuery());
             break;
         case ONE:
-            n1qlQuery = N1qlQuery.simple("select " + configuration.getDataSet().getBucket() + ".* from "
-                    + configuration.getDataSet().getBucket() + " USE KEYS '" + configuration.getDocumentId() + "'");
+            Statement pathToOneDocument = Select.select("*").from(Expression.i(bucket.name()))
+                    .useKeysValues(configuration.getDocumentId());
+            n1qlQuery = N1qlQuery.simple(pathToOneDocument);
             break;
         default:
             throw new RuntimeException("Select action: '" + configuration.getSelectAction() + "' is unsupported");
@@ -161,7 +163,7 @@ public class CouchbaseInput implements Serializable {
     }
 
     private Record createJsonRecord(JsonObject jsonObject) {
-        if (configuration.getSelectAction() == SelectAction.ALL) {
+        if (configuration.getSelectAction() == SelectAction.ALL || configuration.getSelectAction() == SelectAction.ONE) {
             // unwrap JSON (we use SELECT * to retrieve all values. Result will be wrapped with bucket name)
             // couldn't use bucket_name.*, in this case big float numbers (e.g. 1E100) are converted into BigInteger with
             // many zeros at the end and cannot be converted back into float
