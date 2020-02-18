@@ -27,7 +27,7 @@ import java.util.List;
 
 import static java.util.Collections.singletonList;
 
-@Version(1)
+@Version(value = 2, migrationHandler = CouchbaseInputMigrationHandler.class)
 @Icon(value = Icon.IconType.CUSTOM, custom = "CouchbaseInput")
 @PartitionMapper(name = "Input")
 @Documentation("Couchbase input Mapper")

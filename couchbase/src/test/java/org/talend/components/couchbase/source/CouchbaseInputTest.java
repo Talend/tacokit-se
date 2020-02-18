@@ -131,7 +131,7 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         bucket.close();
 
         CouchbaseInputConfiguration inputConfiguration = getInputConfiguration();
-        inputConfiguration.setUseN1QLQuery(true);
+        inputConfiguration.setSelectAction(SelectAction.N1QL);
         inputConfiguration
                 .setQuery("SELECT `" + BUCKET_NAME + "`.* FROM `" + BUCKET_NAME + "` where meta().id like \"" + idPrefix + "%\"");
         executeJob(inputConfiguration);
@@ -151,7 +151,7 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         insertTestDataToDB(idPrefix);
 
         CouchbaseInputConfiguration configurationWithN1ql = getInputConfiguration();
-        configurationWithN1ql.setUseN1QLQuery(true);
+        configurationWithN1ql.setSelectAction(SelectAction.N1QL);
         configurationWithN1ql.setQuery("SELECT `t_long_max`, `t_string`, `t_double_max` FROM `" + BUCKET_NAME
                 + "` where meta().id like \"" + idPrefix + "%\"");
         executeJob(configurationWithN1ql);
@@ -223,6 +223,32 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         }
     }
 
+    @Test
+    @DisplayName("Select document by ID")
+    void oneDocumentInputDBTest() {
+        insertTestDataToDB();
+        CouchbaseInputConfiguration configuration = getInputConfiguration();
+            configuration.setSelectAction(SelectAction.ONE);
+            configuration.setDocumentId("RRRR1");
+        executeJob(configuration);
+
+        List<JsonObject> jsonObjects = createJsonObjects();
+
+        final List<Record> result = componentsHandler.getCollectedData(Record.class);
+        assertEquals(1, result.size());
+        assertEquals(jsonObjects.get(0).get("t_string"), result.get(0).getString("t_string"));
+    }
+
+    @Test
+    @DisplayName("Select document by not exist ID")
+    void oneNotExistDocumentInputDBTest() {
+        CouchbaseInputConfiguration configuration = getInputConfiguration();
+        configuration.setSelectAction(SelectAction.ONE);
+        configuration.setDocumentId("notExistID");
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> executeJob(configuration));
+    }
+
     private BinaryDocument createBinaryDocument(String id, byte[] bytes) {
         ByteBuf toWrite = Unpooled.copiedBuffer(bytes);
         return BinaryDocument.create(id, toWrite);
@@ -235,5 +261,15 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
 
         CouchbaseInputConfiguration configuration = new CouchbaseInputConfiguration();
         return configuration.setDataSet(couchbaseDataSet);
+    }
+
+    private void insertTestDataToDB() {
+        Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
+        bucket.bucketManager().flush();
+
+        List<JsonObject> jsonObjects = createJsonObjects();
+        bucket.insert(JsonDocument.create("RRRR1", jsonObjects.get(0)));
+        bucket.insert(JsonDocument.create("RRRR2", jsonObjects.get(1)));
+        bucket.close();
     }
 }
