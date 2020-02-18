@@ -33,12 +33,10 @@ import org.talend.components.rest.service.client.ContentType;
 import org.talend.components.rest.virtual.ComplexRestConfiguration;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
-import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.junit5.WithComponents;
 
 import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
-import javax.net.ssl.SSLContext;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
