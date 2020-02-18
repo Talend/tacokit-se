@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.talend.components</groupId>
+        <artifactId>connectors-se</artifactId>
+        <version>1.7.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>common-stream-io</artifactId>
+    <packaging>pom</packaging>
+
+    <name>Components :: Common IO</name>
+
+    <modules>
+        <module>common-io</module>
+        <module>stream-api</module>
+        <module>stream-line</module>
+        <module>stream-csv</module>
+        <module>stream-fixed</module>
+        <module>stream-json</module>
+        <module>stream-avro</module>
+        <module>stream-excel</module>
+    </modules>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!--
+        Set it to true if you want the documentation to be rendered as HTML and PDF
+
+        You can also use it on the command line: -Dtalend.documentation.htmlAndPdf=true
+        -->
+        <talend.documentation.htmlAndPdf>false</talend.documentation.htmlAndPdf>
+
+    </properties>
+
+    <dependencies>
+    </dependencies>
+</project>

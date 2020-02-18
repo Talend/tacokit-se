@@ -39,7 +39,6 @@ import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.azure")
-@Disabled
 public class Excel2007OutputIT extends BaseIT {
 
     BlobOutputConfiguration blobOutputProperties;
@@ -52,7 +51,7 @@ public class Excel2007OutputIT extends BaseIT {
 
         AzureBlobDataset dataset = new AzureBlobDataset();
         dataset.setConnection(dataStore);
-        // dataset.setFileFormat(FileFormat.EXCEL);
+        dataset.setFileFormat(FileFormat.EXCEL);
         ExcelFormatOptions excelFormatOptions = new ExcelFormatOptions();
         excelFormatOptions.setExcelFormat(ExcelFormat.EXCEL2007);
         excelFormatOptions.setSheetName("Sheet1");

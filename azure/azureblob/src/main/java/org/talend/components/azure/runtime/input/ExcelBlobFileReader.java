@@ -36,8 +36,10 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.ListBlobItem;
 import com.monitorjbl.xlsx.StreamingReader;
+import com.monitorjbl.xlsx.exceptions.MissingSheetException;
 import com.monitorjbl.xlsx.impl.StreamingSheet;
 import com.monitorjbl.xlsx.impl.StreamingWorkbook;
+import avro.shaded.com.google.common.collect.Iterators;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -86,19 +88,24 @@ public class ExcelBlobFileReader extends BlobFileReader {
 
                 Sheet sheet = wb.getSheet(getConfig().getExcelOptions().getSheetName());
 
-                if (getConfig().getExcelOptions().isUseHeader() && getConfig().getExcelOptions().getHeader() >= 1) {
+                if (sheet != null) {
 
-                    Row headerRow = sheet.getRow(getConfig().getExcelOptions().getHeader() - 1);
-                    if (converter.getColumnNames() == null) {
-                        converter.inferSchemaNames(headerRow, true);
+                    if (getConfig().getExcelOptions().isUseHeader() && getConfig().getExcelOptions().getHeader() >= 1) {
+
+                        Row headerRow = sheet.getRow(getConfig().getExcelOptions().getHeader() - 1);
+                        if (converter.getColumnNames() == null) {
+                            converter.inferSchemaNames(headerRow, true);
+                        }
                     }
-                }
-                boolean isHeaderUsed = getConfig().getExcelOptions().isUseHeader();
+                    boolean isHeaderUsed = getConfig().getExcelOptions().isUseHeader();
 
-                for (int i = isHeaderUsed ? getConfig().getExcelOptions().getHeader() : 0; i < sheet
-                        .getPhysicalNumberOfRows(); i++) {
-                    Row row = sheet.getRow(i);
-                    rows.add(row);
+                    for (int i = isHeaderUsed ? getConfig().getExcelOptions().getHeader() : 0; i < sheet
+                            .getPhysicalNumberOfRows(); i++) {
+                        Row row = sheet.getRow(i);
+                        rows.add(row);
+                    }
+                } else {
+                    log.warn("Excel file " + getCurrentItem().getName() + " was ignored since no sheet name exist: " + getConfig().getExcelOptions().getSheetName());
                 }
 
             } catch (StorageException | IOException e) {
@@ -153,7 +160,14 @@ public class ExcelBlobFileReader extends BlobFileReader {
             try {
                 currentWorkBook = (StreamingWorkbook) StreamingReader.builder().rowCacheSize(4096)
                         .open(getCurrentItem().openInputStream());
-                StreamingSheet sheet = (StreamingSheet) currentWorkBook.getSheet(getConfig().getExcelOptions().getSheetName());
+                StreamingSheet sheet = null;
+                try {
+                    sheet = (StreamingSheet) currentWorkBook.getSheet(getConfig().getExcelOptions().getSheetName());
+                } catch (MissingSheetException e) {
+                    log.warn("Excel file " + getCurrentItem().getName() + " was ignored since no sheet name exist: " + getConfig().getExcelOptions().getSheetName());
+                    rowIterator = Iterators.emptyIterator();
+                    return;
+                }
 
                 rowIterator = sheet.rowIterator();
 

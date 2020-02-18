@@ -14,7 +14,7 @@ package org.talend.components.azure.common;
 
 public enum FileFormat {
     CSV,
-    /* EXCEL, */ // FIXME uncomment it when excel will be ready to integrate
+    EXCEL,
     AVRO,
     PARQUET
 }

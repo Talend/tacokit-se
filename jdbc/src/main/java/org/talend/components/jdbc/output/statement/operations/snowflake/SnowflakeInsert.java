@@ -18,16 +18,18 @@ import org.talend.components.jdbc.output.platforms.Platform;
 import org.talend.components.jdbc.output.statement.operations.Insert;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
+import org.talend.components.jdbc.service.SnowflakeCopyService;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.service.Service;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeCopy.putAndCopy;
-
 public class SnowflakeInsert extends Insert {
+
+    SnowflakeCopyService snowflakeCopy = new SnowflakeCopyService();
 
     public SnowflakeInsert(Platform platform, OutputConfig configuration, I18nMessage i18n) {
         super(platform, configuration, i18n);
@@ -41,12 +43,14 @@ public class SnowflakeInsert extends Insert {
             final String tableName = getConfiguration().getDataset().getTableName();
             final String fqTableName = namespace(connection) + "." + getPlatform().identifier(tableName);
             final String fqStageName = namespace(connection) + ".%" + getPlatform().identifier(tableName);
-            rejects.addAll(putAndCopy(connection, records, fqStageName, fqTableName));
+            rejects.addAll(snowflakeCopy.putAndCopy(connection, records, fqStageName, fqTableName));
             if (rejects.isEmpty()) {
                 connection.commit();
             } else {
                 connection.rollback();
             }
+        } finally {
+            snowflakeCopy.cleanTmpFiles();
         }
         return rejects;
     }

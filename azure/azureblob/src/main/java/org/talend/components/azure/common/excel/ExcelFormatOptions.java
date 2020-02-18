@@ -39,7 +39,7 @@ public class ExcelFormatOptions implements Serializable {
     // @Required
     // FIXME: Required doesn't work simultaneously with @ActiveIf
     @Documentation("")
-    private String sheetName;
+    private String sheetName = "Sheet1";
 
     @Option
     @ActiveIf(target = "excelFormat", value = "HTML")

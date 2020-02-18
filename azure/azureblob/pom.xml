@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.talend.components</groupId>
         <artifactId>azure</artifactId>
-        <version>1.6.0-SNAPSHOT</version>
+        <version>1.7.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>azureblob</artifactId>
@@ -37,7 +37,7 @@
         -->
         <talend.component.studioHome />
 
-        <apache.poi.version>4.0.1</apache.poi.version>
+        <apache.poi.version>3.17</apache.poi.version>
         <jsoup.version>1.11.3</jsoup.version>
         <avro.version>1.8.2</avro.version>
         <parquet.version>1.10.1</parquet.version>
@@ -57,7 +57,7 @@
         <dependency>
             <groupId>org.talend.components</groupId>
             <artifactId>azurecommon</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>1.7.0-SNAPSHOT</version>
         </dependency>
 
         <!-- CSV format -->
@@ -83,6 +83,12 @@
             <artifactId>poi-ooxml-schemas</artifactId>
             <version>${apache.poi.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-scratchpad</artifactId>
+            <version>3.17</version>
+        </dependency>
+
 
         <dependency>
             <groupId>com.monitorjbl</groupId>

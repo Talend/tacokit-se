@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -155,16 +157,18 @@ public class ExcelConverter implements RecordConverter<Row> {
         Record.Builder recordBuilder = builderFactory.newRecordBuilder();
 
         for (int i = 0; i < schema.getEntries().size(); i++) {
-            Cell recordCell = record.getCell(i);
+            String fileName = columnNames.get(i);
+            Optional<Cell> recordCellOptional = Optional.ofNullable(record.getCell(i));
             switch (schema.getEntries().get(i).getType()) {
+
             case BOOLEAN:
-                recordBuilder.withBoolean(columnNames.get(i), recordCell.getBooleanCellValue());
+                recordCellOptional.ifPresent(cell -> recordBuilder.withBoolean(fileName, cell.getBooleanCellValue()));
                 break;
             case DOUBLE:
-                recordBuilder.withDouble(columnNames.get(i), recordCell.getNumericCellValue());
+                recordCellOptional.ifPresent(cell -> recordBuilder.withDouble(fileName, cell.getNumericCellValue()));
                 break;
             default:
-                recordBuilder.withString(columnNames.get(i), recordCell.getStringCellValue());
+                recordCellOptional.ifPresent(cell -> recordBuilder.withString(fileName, cell.getStringCellValue()));
             }
         }
 
