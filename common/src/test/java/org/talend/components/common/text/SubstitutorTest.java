@@ -29,9 +29,8 @@ class SubstitutorTest {
             "${,},Example ${three} with \\${escape} ${place_holder}.,Example 3 with ${escape} P_L_A_C_E_H_O_L_D_E_R.",
             "[,],[one] key with [unknown:-MY_DEFAULT] value,O_N_E key with MY_DEFAULT value",
             "${,},${one} ${two} ${three},O_N_E T_W_O 3", "${,},${aaa:-AAA} ${bbb:-BBB} ${ccc:-CCC},AAA BBB CCC",
-             "[START[,]STOP],[START[START]STOP] [START[STOP]STOP],begin end",
-             "[[,]],[[START]] [[STOP]],begin end",
-            "[[,]],example without substitution,example without substitution"})
+            "[START[,]STOP],[START[START]STOP] [START[STOP]STOP],begin end", "[[,]],[[START]] [[STOP]],begin end",
+            "[[,]],example without substitution,example without substitution" })
     void testSubstitutor(final String prefix, final String suffix, final String value, final String expected) {
         final Map<String, String> store = new HashMap<>();
         store.put("place_holder", "P_L_A_C_E_H_O_L_D_E_R");
@@ -54,13 +53,13 @@ class SubstitutorTest {
     @Test
     public void testFinder() {
         Substitutor.KeyFinder finder = new Substitutor.KeyFinder("${", "}");
-        Iterator<Substitutor.FindResult> res = finder.search( "${hello} ${world:-tdi}");
+        Iterator<Substitutor.FindResult> res = finder.search("${hello} ${world:-tdi}");
         Assertions.assertTrue(res.hasNext());
         Assertions.assertTrue(res.hasNext());
         Assertions.assertTrue(res.hasNext());
         Assertions.assertTrue(res.hasNext());
-        Substitutor.FindResult r1 =res.next();
-        Substitutor.FindResult r2 =res.next();
+        Substitutor.FindResult r1 = res.next();
+        Substitutor.FindResult r2 = res.next();
         Assertions.assertEquals("hello", r1.key);
         Assertions.assertEquals("world:-tdi", r2.key);
         Assertions.assertFalse(res.hasNext());

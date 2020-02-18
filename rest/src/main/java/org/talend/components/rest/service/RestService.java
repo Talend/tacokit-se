@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -78,7 +78,7 @@ public class RestService {
     private final Substitutor.KeyFinder bodyFinder = new Substitutor.KeyFinder(RestService.BODY_SUBSTITUTOR_PREFIX,
             RestService.BODY_SUBSTITUTOR_SUFFIX);
 
-    private final Substitutor.KeyFinder pathParamFinder = new Substitutor.KeyFinder("{","}");
+    private final Substitutor.KeyFinder pathParamFinder = new Substitutor.KeyFinder("{", "}");
 
     @Service
     Client client;
@@ -100,7 +100,7 @@ public class RestService {
         return _execute(config, null);
     }
 
-    private Record _execute(final RequestConfig config, final Record record) {
+    private Response<byte[]> _execute(final RequestConfig config, final Record record) {
         final RecordDictionary dictionary = new RecordDictionary(record, recordPointerFactory);
         final Substitutor substitutor = new Substitutor(parameterFinder, dictionary);
 

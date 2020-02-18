@@ -24,14 +24,14 @@ import java.util.regex.Pattern;
  * Convenient class to replace placeholders in a String giving a Function<String, String>.
  * Replace in String "${hello} ${world:-tdi}" with "hi tdi" with a function that convert 'hello' to 'hi'.
  * you choose delimiters (prefix / suffix) with limitations due to regexp usage :
- *    suffix can't start with ':' or '-' (':-' separate key and default value. (can't translate "[:hello:]")
- *    a word can't contains first symbole of a suffix, means that a suffix can't start with letter [Starthelloend] is not possible. 
+ * suffix can't start with ':' or '-' (':-' separate key and default value. (can't translate "[:hello:]")
+ * a word can't contains first symbole of a suffix, means that a suffix can't start with letter [Starthelloend] is not possible.
  * 
- * this class doesn't treat embraced substitution '${word${number}}' isn't translate to 'third' 
- *     with a function that give '3' for 'number' and 'third' for 'word3'
+ * this class doesn't treat embraced substitution '${word${number}}' isn't translate to 'third'
+ * with a function that give '3' for 'number' and 'third' for 'word3'
  * 
- * it doesn't treat recursive replacement: '${greeting}' with a function 
- *     'greeting' -> '${hello} ${world:-tdi}" and 'hello' -> 'hi' will render '${hello} ${world:-tdi}'.
+ * it doesn't treat recursive replacement: '${greeting}' with a function
+ * 'greeting' -> '${hello} ${world:-tdi}" and 'hello' -> 'hi' will render '${hello} ${world:-tdi}'.
  */
 public class Substitutor {
 
@@ -44,10 +44,11 @@ public class Substitutor {
      * Define a result for a search in a string.
      */
     public static class FindResult {
-        /** start position of a key in search string*/
+
+        /** start position of a key in search string */
         public final int start;
 
-        /** end position of a key in search string*/
+        /** end position of a key in search string */
         public final int end;
 
         /** key finded */
@@ -69,13 +70,14 @@ public class Substitutor {
         public KeyFinder(String prefix, String suffix) {
             String aPrefix = escapeChars(prefix);
             String aSuffix = escapeChars(suffix);
-            String exp = aPrefix + "([^" + escapeChars(suffix.substring(0,1)) + "]*)" + aSuffix;
+            String exp = aPrefix + "([^" + escapeChars(suffix.substring(0, 1)) + "]*)" + aSuffix;
             pattern = Pattern.compile(exp);
         }
 
         /**
          * Search all result to find in a string.
          * ex : "${hello} ${world:-tdi}" will produce 2 result as (0,8,hello), (9, 22, world:-tdi)
+         * 
          * @param source
          * @return
          */
@@ -104,17 +106,13 @@ public class Substitutor {
 
         /**
          * Refine prefix and suffix for regular expression.
+         * 
          * @param val : prefix of suffix expression.
          * @return expression with reg exp compatibility.
          */
         private String escapeChars(String val) {
-            val = val.replace("{", "\\{")
-                    .replace("}", "\\}")
-                    .replace("(", "\\(")
-                    .replace(")", "\\)")
-                    .replace("[", "\\[")
-                    .replace("]", "\\]")
-                    .replace("$", "\\$");
+            val = val.replace("{", "\\{").replace("}", "\\}").replace("(", "\\(").replace(")", "\\)").replace("[", "\\[")
+                    .replace("]", "\\]").replace("$", "\\$");
 
             return val;
         }
@@ -126,9 +124,9 @@ public class Substitutor {
     /** key finder with defined prefix / suffix */
     private final KeyFinder finder;
 
-
     /**
      * Constructor
+     * 
      * @param finder : finder;
      * @param placeholderProvider Function used to replace the string
      */
@@ -136,13 +134,10 @@ public class Substitutor {
         this.finder = finder;
         if (placeholderProvider instanceof CachedPlaceHolder) {
             this.placeholderProvider = placeholderProvider;
-        }
-        else {
+        } else {
             this.placeholderProvider = new CachedPlaceHolder(placeholderProvider);
         }
     }
-
-
 
     public UnaryOperator<String> getPlaceholderProvider() {
         return placeholderProvider;
@@ -150,6 +145,7 @@ public class Substitutor {
 
     /**
      * Replace all the placeholders
+     * 
      * @param source String to be parsed
      * @return new string with placeholders replaced
      */
@@ -166,8 +162,7 @@ public class Substitutor {
             final FindResult result = results.next();
 
             if (result.start == 0 || source.charAt(result.start - 1) != ESCAPE) {
-                sb.append(source.substring(curr, result.start))
-                        .append(findOrDefault(result.key));
+                sb.append(source.substring(curr, result.start)).append(findOrDefault(result.key));
                 curr = result.end;
             } else { // escaped placeholder
                 sb.append(source.substring(curr, result.start - 1));
@@ -184,6 +179,7 @@ public class Substitutor {
 
     /**
      * Find value for key in place holder or give default.
+     * 
      * @param key : simple key 'hello' or with default 'hello:-hi'
      * @return give value for key with function or default if it's unknown for function.
      */
