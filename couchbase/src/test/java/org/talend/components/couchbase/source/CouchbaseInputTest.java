@@ -228,8 +228,8 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
     void oneDocumentInputDBTest() {
         insertTestDataToDB();
         CouchbaseInputConfiguration configuration = getInputConfiguration();
-            configuration.setSelectAction(SelectAction.ONE);
-            configuration.setDocumentId("RRRR1");
+        configuration.setSelectAction(SelectAction.ONE);
+        configuration.setDocumentId("RRRR1");
         executeJob(configuration);
 
         List<JsonObject> jsonObjects = createJsonObjects();

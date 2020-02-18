@@ -91,28 +91,29 @@ public class CouchbaseInput implements Serializable {
         columnsSet = new HashSet<>();
 
         N1qlQuery n1qlQuery;
-        switch (configuration.getSelectAction()){
-            case ALL:
-                Statement statement;
-                AsPath asPath = Select.select("meta().id as " + Expression.i(META_ID_FIELD), "*").from(Expression.i(bucket.name()));
-                if (!configuration.getLimit().isEmpty()) {
-                    statement = asPath.limit(Integer.parseInt(configuration.getLimit().trim()));
-                } else {
-                    statement = asPath;
-                }
-                n1qlQuery = N1qlQuery.simple(statement);
-                break;
-            case N1QL:
-                /*
-                 * should contain "meta().id as `_meta_id_`" field for non-json (binary) documents
-                 */
-                n1qlQuery = N1qlQuery.simple(configuration.getQuery());
-                break;
-            case ONE:
-                n1qlQuery = N1qlQuery.simple("select " + configuration.getDataSet().getBucket() + ".* from " + configuration.getDataSet().getBucket() + " USE KEYS '" + configuration.getDocumentId() + "'");
-                break;
-            default:
-                throw new RuntimeException("Select action: '" + configuration.getSelectAction() + "' is unsupported");
+        switch (configuration.getSelectAction()) {
+        case ALL:
+            Statement statement;
+            AsPath asPath = Select.select("meta().id as " + Expression.i(META_ID_FIELD), "*").from(Expression.i(bucket.name()));
+            if (!configuration.getLimit().isEmpty()) {
+                statement = asPath.limit(Integer.parseInt(configuration.getLimit().trim()));
+            } else {
+                statement = asPath;
+            }
+            n1qlQuery = N1qlQuery.simple(statement);
+            break;
+        case N1QL:
+            /*
+             * should contain "meta().id as `_meta_id_`" field for non-json (binary) documents
+             */
+            n1qlQuery = N1qlQuery.simple(configuration.getQuery());
+            break;
+        case ONE:
+            n1qlQuery = N1qlQuery.simple("select " + configuration.getDataSet().getBucket() + ".* from "
+                    + configuration.getDataSet().getBucket() + " USE KEYS '" + configuration.getDocumentId() + "'");
+            break;
+        default:
+            throw new RuntimeException("Select action: '" + configuration.getSelectAction() + "' is unsupported");
         }
         n1qlQuery.params().consistency(ScanConsistency.REQUEST_PLUS);
         N1qlQueryResult n1qlQueryRows = bucket.query(n1qlQuery);
@@ -157,7 +158,7 @@ public class CouchbaseInput implements Serializable {
             LOG.error(i18n.queryResultError());
             throw new IllegalArgumentException(n1qlQueryRows.errors().toString());
         }
-        if (configuration.getSelectAction() == SelectAction.ONE && n1qlQueryRows.allRows().size() == 0){
+        if (configuration.getSelectAction() == SelectAction.ONE && n1qlQueryRows.allRows().size() == 0) {
             throw new IllegalArgumentException("Document with ID '" + configuration.getDocumentId() + "' can't be found");
         }
     }
