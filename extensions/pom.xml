@@ -8,10 +8,16 @@
     <version>1.6.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>virtual-component-extension</artifactId>
+  <groupId>org.talend.components.extension</groupId>
+  <artifactId>extensions</artifactId>
+  <packaging>pom</packaging>
 
   <name>Components :: Extensions</name>
-  <description>Experimental extension to enable to develop virtual components.</description>
+
+  <modules>
+      <module>register-extension</module>
+      <module>polling</module>
+  </modules>
 
   <dependencies>
     <dependency>

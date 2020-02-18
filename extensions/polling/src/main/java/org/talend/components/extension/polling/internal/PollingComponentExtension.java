@@ -1,0 +1,399 @@
+/*
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+package org.talend.components.extension.polling.internal;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.xbean.propertyeditor.PropertyEditorRegistry;
+import org.talend.components.extension.polling.api.Pollable;
+import org.talend.components.extension.polling.internal.impl.PollingConfiguration;
+import org.talend.components.extension.polling.internal.impl.PollingMapper;
+import org.talend.components.extension.register.api.CustomComponentExtension;
+import org.talend.sdk.component.api.component.MigrationHandler;
+import org.talend.sdk.component.api.component.Version;
+import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
+import org.talend.sdk.component.api.service.injector.Injector;
+import org.talend.sdk.component.container.Container;
+import org.talend.sdk.component.runtime.input.Mapper;
+import org.talend.sdk.component.runtime.manager.ComponentFamilyMeta;
+import org.talend.sdk.component.runtime.manager.ComponentManager;
+import org.talend.sdk.component.runtime.manager.ParameterMeta;
+import org.talend.sdk.component.runtime.manager.reflect.ParameterModelService;
+import org.talend.sdk.component.runtime.manager.reflect.ReflectionService;
+import org.talend.sdk.component.runtime.manager.reflect.parameterenricher.BaseParameterEnricher;
+import org.talend.sdk.component.runtime.manager.util.Lazy;
+
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonMap;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+
+/**
+ * todo: ComponentValidator to validate the PollingMapper (ie i18n, ...)
+ * IMPORTANT: this is not handled by the framework so validations must be coded in a
+ * ComponentValidator extension!!!
+ */
+@Slf4j
+public class PollingComponentExtension implements CustomComponentExtension {
+
+    public static final String VERSION_SUFFIX = "Version";
+
+    public static final String ROOT_CONFIGURATION_KEY = "configuration";
+
+    public static final String POLLING_CONFIGURATION_KEY = "pollingConfiguration";
+
+    public static final String POLLING_CONFIGURATION_VERSION_KEY = POLLING_CONFIGURATION_KEY + VERSION_SUFFIX;
+
+    public static final String POLLING_EXTENSION_CONFIGURATION_KEY = "extension::pollable";
+
+    public static final String DEFAULT_POLLABLE_NAME_SUFFIX = "Pollable";
+
+    public static final String METHOD_WITH_POLLING_CONFIGURATION_OPTION = "methodWithPollingConfigurationOption";
+
+    @Override
+    public Optional<Stream<Runnable>> onCreate(final Container container) {
+        return getFamilies(container).map(families -> families.flatMap(family -> {
+            processFamily(container, family);
+            return Stream.empty(); // no clean up task here
+        }));
+    }
+
+    private void processFamily(final Container container, final ComponentFamilyMeta family) {
+        final Map<String, ComponentFamilyMeta.PartitionMapperMeta> mappers = family.getPartitionMappers();
+        final List<PollableModel> pollables = findPollables(mappers);
+        if (pollables.isEmpty()) {
+            return;
+        }
+
+        final ComponentManager.AllServices allServices = container.get(ComponentManager.AllServices.class);
+        final Map<Class<?>, Object> services = allServices.getServices();
+        // final LocalConfiguration localConfig = LocalConfiguration.class.cast(services.get(LocalConfiguration.class));
+        // final Injector injector = Injector.class.cast(services.get(Injector.class)); // hack to retrieve the parameter service
+        // which is not exposed
+        // final PropertyEditorRegistry propertyEditorRegistry =
+        // PropertyEditorRegistry.class.cast(services.get(PropertyEditorRegistry.class));
+        final NeededServices neededServices = new NeededServices(services);
+
+        final List<ComponentFamilyMeta.PartitionMapperMeta> newMappersMeta = pollables.stream()
+                .map(it -> toPartitionMapperMeta(it, allServices, neededServices)).collect(toList());
+
+        // Now add all new partition mapper
+        final Map<String, ComponentFamilyMeta.PartitionMapperMeta> newMappersMetaMap = newMappersMeta.stream()
+                .collect(toMap(ComponentFamilyMeta.BaseMeta::getName, identity()));
+
+        log.info("Created {} pollable metadata", newMappersMetaMap.keySet());
+
+        mappers.putAll(newMappersMetaMap);
+    }
+
+    private ComponentFamilyMeta.PartitionMapperMeta toPartitionMapperMeta(final PollableModel model,
+            final ComponentManager.AllServices allServices, final NeededServices neededServices) {
+        final ComponentFamilyMeta.PartitionMapperMeta srcMapperMeta = model.mapperMeta;
+
+        final Version annotation = PollingConfiguration.class.getAnnotation(Version.class);
+        final int version = srcMapperMeta.getVersion() + annotation.value();
+
+        final AtomicReference<Supplier<List<ParameterMeta>>> pollingParametersRef = new AtomicReference<>();
+
+        final String pollableName = model.pollable.name().isEmpty() ? srcMapperMeta.getName() + DEFAULT_POLLABLE_NAME_SUFFIX
+                : model.pollable.name();
+        log.info("********* Duplicate mapper {} to its pollable version {}.", srcMapperMeta.getName(), pollableName);
+        return new ComponentFamilyMeta.PartitionMapperMeta(
+                                            srcMapperMeta.getParent(),
+                                            pollableName,
+                                            model.pollable.icon().isEmpty() ? srcMapperMeta.getIcon() : model.pollable.icon(),
+                                            version,
+                                            srcMapperMeta.getType() /* not important, only used for validation */,
+                                            createConfigurationSupplier(model.mapperMeta, neededServices, annotation, pollingParametersRef),
+                                            createInstantiator(model.mapperMeta.getName(), model.mapperMeta, pollingParametersRef, neededServices),
+                                            createMigrationHandlerSupplier(version, model.mapperMeta, allServices, neededServices, pollingParametersRef),
+                                    false,
+                                            srcMapperMeta.isInfinite()) {};
+    }
+
+    private Supplier<MigrationHandler> createMigrationHandlerSupplier(final int currentVersion,
+            final ComponentFamilyMeta.PartitionMapperMeta mapperMeta, final ComponentManager.AllServices services,
+            final NeededServices neededServices, final AtomicReference<Supplier<List<ParameterMeta>>> pollingParameters) {
+        // incomingVersion: version of the PollingConfiguration used when incomingData has been serialized
+        return Lazy.lazy(() -> (incomingVersion, incomingData) -> {
+
+            if (incomingData == null || incomingVersion == currentVersion) {
+                return incomingData;
+            }
+
+            // here we must split the incoming data per component, migrate it and re-prefix it
+            final Map<String, Map<String, String>> confs = splitConfigurationPerSubComponent(incomingData);
+
+            // Migration of the sub-configuration of the mapper
+            final Map<String, String> migratedMapperConfiguration = mapperMeta.getMigrationHandler().get().migrate(
+                    findStoreSubComponentVersion(incomingData, mapperMeta),
+                    confs.getOrDefault(mapperMeta.getName(), new HashMap<>()));
+
+            // Migration of the polling configuration
+            final Supplier<List<ParameterMeta>> pollingConfigurationParameters = getPollingConfigurationParameters(
+                    pollingParameters, neededServices, mapperMeta.getType().getPackage());
+            final MigrationHandler pollingConfigurationMigrationHandler = ComponentManager.instance().getMigrationHandlerFactory()
+                    .findMigrationHandler(pollingConfigurationParameters, PollingConfiguration.class, services);
+            final Map<String, String> migratedPollingConfiguration = pollingConfigurationMigrationHandler.migrate(
+                    Integer.parseInt(
+                            incomingData.getOrDefault("configuration." + POLLING_CONFIGURATION_KEY + VERSION_SUFFIX, "0")),
+                    confs.getOrDefault(POLLING_CONFIGURATION_KEY, new HashMap<>()));
+
+            final Map<String, String> resultingMigration = new HashMap<>();
+            resultingMigration.putAll(prefixWith("configuration." + mapperMeta.getName(), migratedMapperConfiguration));
+            resultingMigration.putAll(prefixWith("configuration." + POLLING_CONFIGURATION_KEY, migratedPollingConfiguration));
+
+            // passthrough internal configs ($ in keys)
+            resultingMigration.putAll(incomingData.entrySet().stream()
+                    .filter(it -> !resultingMigration.containsKey(it.getKey()) && it.getKey().contains("$"))
+                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue)));
+
+            return resultingMigration;
+        });
+    }
+
+    private Supplier<List<ParameterMeta>> getPollingConfigurationParameters(
+            final AtomicReference<Supplier<List<ParameterMeta>>> pollingParameters, final NeededServices services,
+            final Package i18nPackage) {
+        Supplier<List<ParameterMeta>> params = pollingParameters.get();
+        if (params == null) {
+            final List<ParameterMeta> metas = getPoolingRawMetas(services, i18nPackage);
+            params = () -> metas;
+            pollingParameters.compareAndSet(null, params);
+        }
+        return params;
+    }
+
+    private int findStoreSubComponentVersion(final Map<String, String> incomingData, final ComponentFamilyMeta.BaseMeta<?> meta) {
+        try {
+            return Integer.parseInt(incomingData.getOrDefault(ROOT_CONFIGURATION_KEY + "." + getVersionOptionName(meta), "0"));
+        } catch (final NumberFormatException nfe) {
+            log.warn("No version found for " + meta.getName());
+            return 0;
+        }
+    }
+
+    private List<PollableModel> findPollables(final Map<String, ComponentFamilyMeta.PartitionMapperMeta> mappers) {
+        return mappers.values().stream().map(it -> new PollableModel(it, it.getType().getAnnotation(Pollable.class)))
+                .collect(toList());
+    }
+
+    private Function<Map<String, String>, Mapper> createInstantiator(final String name,
+            final ComponentFamilyMeta.PartitionMapperMeta initialMapperMeta,
+            final AtomicReference<Supplier<List<ParameterMeta>>> pollingParameters, NeededServices neededServices) {
+        return configuration -> {
+            // split configuration
+            final Map<String, Map<String, String>> confs = splitConfigurationPerSubComponent(configuration);
+
+            // Create original mapper instanciator
+            final Mapper batchMapper = initialMapperMeta.getInstantiator().apply(confs.get(name));
+
+            // create polling mapper instanciator
+            final Supplier<List<ParameterMeta>> listSupplier = pollingParameters.get();
+            Function<Map<String, String>, Object[]> pollingConfigurationFactory = null;
+            try {
+                pollingConfigurationFactory = neededServices.reflectionService.parameterFactory(PollingComponentExtension.class
+                        .getMethod(METHOD_WITH_POLLING_CONFIGURATION_OPTION, PollingConfiguration.class), neededServices.services,
+                        pollingParameters.get().get());
+
+            } catch (NoSuchMethodException e) {
+                log.error("Can't retrieve the method with the polling configuration.", e);
+            }
+
+            final PollingConfiguration pollingConfiguration = PollingConfiguration.class
+                    .cast(pollingConfigurationFactory.apply(confs.get(POLLING_CONFIGURATION_KEY))[0]);
+
+            return new PollingMapper(pollingConfiguration, batchMapper);
+        };
+    }
+
+    /**
+     * Explode configuration in a map with at least two key : name of main connector & POLLING_CONFIGURATION_KEY
+     *
+     * @param configuration
+     * @return
+     */
+    private Map<String, Map<String, String>> splitConfigurationPerSubComponent(final Map<String, String> configuration) {
+        return configuration.entrySet().stream()
+                .filter(it -> it.getKey().startsWith(ROOT_CONFIGURATION_KEY + ".") && findRealKeyIndex(it.getKey()) > 0)
+                .collect(groupingBy(
+                        e -> e.getKey().substring((ROOT_CONFIGURATION_KEY + ".").length(), findRealKeyIndex(e.getKey())),
+                        toMap(e -> e.getKey().substring(findRealKeyIndex(e.getKey()) + 1), Map.Entry::getValue)));
+    }
+
+    private int findRealKeyIndex(final String key) {
+        return key.indexOf('.', (ROOT_CONFIGURATION_KEY + ".").length() + 1);
+    }
+
+    /**
+     * Not used by the instanciator since we overload it in this extension, but will be used by the component server.
+     */
+    private Supplier<List<ParameterMeta>> createConfigurationSupplier(final ComponentFamilyMeta.PartitionMapperMeta mapperMeta,
+            NeededServices neededServices, Version pollingConfigurationVersion,
+            final AtomicReference<Supplier<List<ParameterMeta>>> pollingParametersRef) {
+        // todo: manage layout as maxBatchSize
+        return Lazy.lazy(() -> {
+            final List<ParameterMeta> pollingRawMetas = getPollingConfigurationParameters(pollingParametersRef, neededServices,
+                    mapperMeta.getType().getPackage()).get();
+
+            final List<ParameterMeta> parameters = Stream
+                    .of(prefixWith(ROOT_CONFIGURATION_KEY + "." + mapperMeta.getName(), mapperMeta.getParameterMetas().get()),
+                            prefixWith(ROOT_CONFIGURATION_KEY + "." + POLLING_CONFIGURATION_KEY, pollingRawMetas))
+                    .flatMap(identity()).collect(toList());
+
+            // now we add for each component a hidden configuration hosting (thanks to the default) the actual version
+            // of the component to be able to impl the migration
+            // The hidden fields with version will be serialized within connector configuration
+            {
+                // 1st bloc to store mapper version
+                final String name = getVersionOptionName(mapperMeta);
+                final Map<String, String> metadata = new HashMap<>();
+                metadata.put(POLLING_EXTENSION_CONFIGURATION_KEY + "::synthetic", "true");
+                metadata.put("tcomp::ui::defaultvalue::value", Integer.toString(mapperMeta.getVersion()));
+                metadata.put("tcomp::condition::if::target", "missing"); // hide the 'name' property which contains the version of
+                                                                         // the initial mapper
+                metadata.put("tcomp::condition::if::value", "true");
+                metadata.put("tcomp::condition::if::negate", "false");
+                metadata.put("tcomp::condition::if::evaluationStrategy", "DEFAULT");
+
+                parameters.add(new ParameterMeta(null, int.class, ParameterMeta.Type.NUMBER, ROOT_CONFIGURATION_KEY + "." + name,
+                        name, new String[] { mapperMeta.getPackageName() }, parameters, emptyList(), metadata, false));
+            }
+
+            {
+                // 2st bloc to store PollingConfiguration version
+                final String name = POLLING_CONFIGURATION_VERSION_KEY;
+                final Map<String, String> metadata = new HashMap<>();
+                metadata.put(POLLING_EXTENSION_CONFIGURATION_KEY + "::synthetic", "true");
+                metadata.put("tcomp::ui::defaultvalue::value", Integer.toString(pollingConfigurationVersion.value()));
+                metadata.put("tcomp::condition::if::target", "missing"); // hide the 'name' property which contains the version of
+                                                                         // the initial mapper
+                metadata.put("tcomp::condition::if::value", "true");
+                metadata.put("tcomp::condition::if::negate", "false");
+                metadata.put("tcomp::condition::if::evaluationStrategy", "DEFAULT");
+
+                parameters.add(new ParameterMeta(null, int.class, ParameterMeta.Type.NUMBER, ROOT_CONFIGURATION_KEY + "." + name,
+                        name, new String[] { mapperMeta.getPackageName() }, parameters, emptyList(), metadata, false));
+            }
+
+            // Add just the root level of the configuration.
+            parameters.add(new ParameterMeta(null, Object.class, ParameterMeta.Type.OBJECT, ROOT_CONFIGURATION_KEY,
+                    ROOT_CONFIGURATION_KEY,
+                    new String[] { mapperMeta.getPackageName(), PollingConfiguration.class.getPackage()
+                            .getName() } /* for i18n we use the mapper one which owns the virtual comp */,
+                    parameters, emptyList(), singletonMap(POLLING_EXTENSION_CONFIGURATION_KEY, String.valueOf(Boolean.TRUE)),
+                    false));
+
+            return parameters;
+        });
+    }
+
+    private String getVersionOptionName(final ComponentFamilyMeta.BaseMeta<?> meta) {
+        return "$" + meta.getName() + VERSION_SUFFIX;
+    }
+
+    private Map<String, String> prefixWith(final String prefix, final Map<String, String> config) {
+        return config.entrySet().stream().collect(toMap(e -> prefix + "." + e.getKey(), Map.Entry::getValue));
+    }
+
+    private Stream<ParameterMeta> prefixWith(final String prefix, final List<ParameterMeta> parameterMetas) {
+        return parameterMetas == null ? Stream.empty()
+                : parameterMetas.stream()
+                        .map(it -> new ParameterMeta(it.getSource(), it.getJavaType(), it.getType(), prefix + '.' + it.getPath(),
+                                it.getName(), it.getI18nPackages(),
+                                prefixWith(prefix, it.getNestedParameters()).collect(toList()), it.getProposals(),
+                                it.getMetadata(), it.isLogMissingResourceBundle()));
+    }
+
+    /**
+     * Return metadata of the @option of the method methodWithPollingConfigurationOption.
+     * It means the metadata of the specific configuration of the polling.
+     *
+     * @param
+     * @return
+     */
+    private List<ParameterMeta> getPoolingRawMetas(final NeededServices neededServices, final Package i18nPackage) {
+        try {
+            return neededServices.parameterModelService.buildParameterMetas(
+                    getClass().getMethod(METHOD_WITH_POLLING_CONFIGURATION_OPTION, PollingConfiguration.class),
+                    i18nPackage == null ? "" : i18nPackage.getName(),
+                    new BaseParameterEnricher.Context(neededServices.localConfig));
+        } catch (final Exception e) {
+            // Means that methodWithPollingConfigurationOption has not been found
+            throw new IllegalStateException(e);
+        }
+    }
+
+    // This method exists only to have the @Option with the PollingConfiguration class
+    public void methodWithPollingConfigurationOption(
+            @Option("internal_polling_configuration") final PollingConfiguration pollingConfiguration) {
+        // no-op
+    }
+
+    @RequiredArgsConstructor
+    private static class PollableModel {
+
+        private final ComponentFamilyMeta.PartitionMapperMeta mapperMeta;
+
+        private final Pollable pollable;
+    }
+
+    private static class NeededServices {
+
+        private final Map<Class<?>, Object> services;
+
+        private final LocalConfiguration localConfig;
+
+        private final ParameterModelService parameterModelService;
+
+        private final ReflectionService reflectionService;
+
+        private NeededServices(final Map<Class<?>, Object> services) {
+            this.services = services;
+            this.localConfig = LocalConfiguration.class.cast(services.get(LocalConfiguration.class));
+
+            final Injector injector = Injector.class.cast(services.get(Injector.class)); // hack to retrieve the parameter service
+                                                                                         // which is not exposed
+            reflectionService = get(injector, "reflectionService", ReflectionService.class);
+
+            parameterModelService = get(reflectionService, "parameterModelService", ParameterModelService.class);
+        }
+
+        private <T> T get(final Object from, final String name, final Class<T> type) {
+            try {
+                final Field reflectionService = from.getClass().getDeclaredField(name);
+                if (!reflectionService.isAccessible()) {
+                    reflectionService.setAccessible(true);
+                }
+                return type.cast(reflectionService.get(from));
+            } catch (final Exception e) {
+                throw new IllegalStateException("Incompatible component runtime manager", e);
+            }
+        }
+
+    }
+
+}
