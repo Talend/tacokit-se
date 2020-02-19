@@ -208,21 +208,37 @@ public class PubSubService {
 
     public boolean createTopicIfNeeded(PubSubDataStore dataStore, String topicId) {
         try {
+            ProjectTopicName topicName = ProjectTopicName.of(dataStore.getProjectName(), topicId);
             TopicAdminSettings adminSettings = TopicAdminSettings.newBuilder()
                     .setCredentialsProvider(() -> createCredentials(dataStore)).build();
             try (TopicAdminClient topicAdminClient = TopicAdminClient.create(adminSettings)) {
-                ProjectTopicName topicName = ProjectTopicName.of(dataStore.getProjectName(), topicId);
-                Topic topic = topicAdminClient.getTopic(topicName);
-                if (topic == null) {
+                try {
+                    Topic topic = topicAdminClient.getTopic(topicName);
+                } catch (ApiException apiEx) {
                     topicAdminClient.createTopic(topicName);
                     return true;
                 }
             }
-        } catch (IOException ioe) {
+        } catch (Exception ioe) {
             log.warn(i18n.errorCreateTopic(ioe.getMessage()));
 
         }
         return false;
+    }
+
+    public Topic loadTopic(PubSubDataStore dataStore, String topicId) {
+        try {
+            TopicAdminSettings adminSettings = TopicAdminSettings.newBuilder()
+                    .setCredentialsProvider(() -> createCredentials(dataStore)).build();
+            try (TopicAdminClient topicAdminClient = TopicAdminClient.create(adminSettings)) {
+                ProjectTopicName topicName = ProjectTopicName.of(dataStore.getProjectName(), topicId);
+                return topicAdminClient.getTopic(topicName);
+            }
+        } catch (Exception e) {
+            log.warn(i18n.errorLoadTopic(e.getMessage()));
+        }
+
+        return null;
     }
 
     public void removeTopicIfExists(PubSubDataStore dataStore, String topicId) {

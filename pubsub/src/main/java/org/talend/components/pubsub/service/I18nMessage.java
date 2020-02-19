@@ -70,4 +70,6 @@ public interface I18nMessage {
     String inputReleaseWithMessageInbox(int size);
 
     String errorWriteAvro(String message);
+
+    String errorLoadTopic(String message);
 }

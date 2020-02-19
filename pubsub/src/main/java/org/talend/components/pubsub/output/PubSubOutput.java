@@ -14,6 +14,7 @@ package org.talend.components.pubsub.output;
 
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.pubsub.v1.PubsubMessage;
+import com.google.pubsub.v1.Topic;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.pubsub.output.message.MessageGenerator;
@@ -70,6 +71,9 @@ public class PubSubOutput implements Serializable {
         init = true;
         if (configuration.getTopicOperation() == PubSubOutputConfiguration.TopicOperation.CREATE_IF_NOT_EXISTS) {
             pubSubService.createTopicIfNeeded(configuration.getDataset().getDataStore(), configuration.getDataset().getTopic());
+        } else {
+            Topic topic = pubSubService.loadTopic(configuration.getDataset().getDataStore(),
+                    configuration.getDataset().getTopic());
         }
         publisher = pubSubService.createPublisher(configuration.getDataset().getDataStore(),
                 configuration.getDataset().getTopic());
