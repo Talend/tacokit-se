@@ -66,14 +66,14 @@ public class GSService {
             storage.list();
             return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18n.successConnection());
         } catch (final Exception e) {
-            log.error("[HealthCheckStatus] {}", e.getMessage());
-            return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.errorConnection(e.getMessage()));
+            final String errorMsg = i18n.errorConnection(e.getMessage());
+            log.error(errorMsg, e);
+            return new HealthCheckStatus(HealthCheckStatus.Status.KO, errorMsg);
         }
-
     }
 
     @Suggestions(ACTION_SUGGESTION_BUCKET)
-    public SuggestionValues findBucketsName(@Option GSDataStore dataStore) {
+    public SuggestionValues findBucketsName(@Option("dataStore") GSDataStore dataStore) {
         final Storage storage = this.newStorage(dataStore);
         final Page<Bucket> buckets = storage.list(BucketListOption.fields(BucketField.NAME));
 
@@ -81,7 +81,7 @@ public class GSService {
     }
 
     @Suggestions(ACTION_SUGGESTION_BLOB)
-    public SuggestionValues findBlobsName(@Option GSDataStore dataStore, @Option String bucket) {
+    public SuggestionValues findBlobsName(@Option("dataStore") GSDataStore dataStore, @Option("bucket") String bucket) {
         final Storage storage = this.newStorage(dataStore);
         final Bucket googleBucket = storage.get(bucket);
         final Page<Blob> blobs = googleBucket.list(BlobListOption.fields(BlobField.NAME));
@@ -97,6 +97,6 @@ public class GSService {
     private <T> SuggestionValues retrieveItems(Page<T> pages, Function<T, String> toName) {
         final List<SuggestionValues.Item> names = StreamSupport.stream(pages.iterateAll().spliterator(), false).map(toName)
                 .map((String name) -> new SuggestionValues.Item(name, name)).collect(Collectors.toList());
-        return new SuggestionValues(true, names);
+        return new SuggestionValues(!names.isEmpty(), names);
     }
 }

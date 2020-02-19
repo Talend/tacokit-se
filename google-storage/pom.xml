@@ -21,6 +21,7 @@
 
 
         <talend.scan.scannedDependencies>org.talend.components:stream-api</talend.scan.scannedDependencies>
+        <google-repo-version-test>0.120.0-alpha</google-repo-version-test>
     </properties>
 
     <dependencies>
@@ -81,7 +82,7 @@
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-nio</artifactId>
-            <version>0.120.0-alpha</version>
+            <version>${google-repo-version-test}</version>
             <scope>test</scope>
         </dependency>
 

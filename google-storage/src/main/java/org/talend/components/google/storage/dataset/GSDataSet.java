@@ -19,6 +19,7 @@ import org.talend.components.google.storage.datastore.GSDataStore;
 import org.talend.components.google.storage.service.GSService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
+import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -39,21 +40,21 @@ public class GSDataSet implements Serializable {
     private static final long serialVersionUID = 6928259038341692558L;
 
     @Option
-    @Documentation("The connector to google storage")
+    @Documentation("The connector to google storage.")
     private GSDataStore dataStore;
 
     @Option
-    @Documentation("bucket name of google storage")
+    @Documentation("Bucket name of google storage.")
     @Suggestable(value = GSService.ACTION_SUGGESTION_BUCKET, parameters = { "dataStore" })
     private String bucket;
 
     @Option
-    @Documentation("blob name (file) for bucket")
+    @Documentation("Blob name (file) for bucket.")
     @Suggestable(value = GSService.ACTION_SUGGESTION_BLOB, parameters = { "dataStore", "bucket" })
     private String blob;
 
     @Option
-    @Documentation("blob content format, CSV, Json ...")
+    @Documentation("Blob content format, CSV, Json ...")
     private FormatConfiguration contentFormat;
 
     public BlobInfo blob() {

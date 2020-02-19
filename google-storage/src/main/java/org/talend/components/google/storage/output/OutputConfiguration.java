@@ -29,6 +29,6 @@ public class OutputConfiguration implements Serializable {
     /** serialization */
 
     @Option
-    @Documentation("google storage data set")
+    @Documentation("Google storage data set.")
     private GSDataSet dataset;
 }

@@ -45,7 +45,7 @@ import com.google.cloud.storage.Storage;
 @Version
 @Icon(value = Icon.IconType.CUSTOM, custom = "cloudstorageInput")
 @Emitter(family = "GoogleStorage", name = "Input")
-@Documentation("this component read content file from google cloud storage")
+@Documentation("This component read content file from google cloud storage.")
 public class GoogleStorageSource implements Serializable {
 
     private static final long serialVersionUID = 7373818898514942128L;

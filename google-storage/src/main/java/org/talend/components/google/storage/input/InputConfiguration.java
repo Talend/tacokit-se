@@ -30,7 +30,7 @@ public class InputConfiguration implements Serializable {
     private static final long serialVersionUID = -6978750210431642379L;
 
     @Option
-    @Documentation("google storage data set")
+    @Documentation("Google storage data set.")
     private GSDataSet dataset;
 
 }
