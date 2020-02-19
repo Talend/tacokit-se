@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -75,7 +75,7 @@ public class HTMLConverter implements RecordConverter<Element> {
         Set<String> existNames = new HashSet<>();
         int index = 0;
         Elements columns = row.getAllElements();
-        for (int i = 1; i < columns.size(); i++) { //skip first element since it would be the whole row
+        for (int i = 1; i < columns.size(); i++) { // skip first element since it would be the whole row
             String fieldName = columns.get(i).ownText();
             if (useDefaultFieldName || StringUtils.isEmpty(fieldName)) {
                 fieldName = "field" + (i - 1);

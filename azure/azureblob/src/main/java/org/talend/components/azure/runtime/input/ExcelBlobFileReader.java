@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -105,7 +105,8 @@ public class ExcelBlobFileReader extends BlobFileReader {
                         rows.add(row);
                     }
                 } else {
-                    log.warn("Excel file " + getCurrentItem().getName() + " was ignored since no sheet name exist: " + getConfig().getExcelOptions().getSheetName());
+                    log.warn("Excel file " + getCurrentItem().getName() + " was ignored since no sheet name exist: "
+                            + getConfig().getExcelOptions().getSheetName());
                 }
 
             } catch (StorageException | IOException e) {
@@ -164,7 +165,8 @@ public class ExcelBlobFileReader extends BlobFileReader {
                 try {
                     sheet = (StreamingSheet) currentWorkBook.getSheet(getConfig().getExcelOptions().getSheetName());
                 } catch (MissingSheetException e) {
-                    log.warn("Excel file " + getCurrentItem().getName() + " was ignored since no sheet name exist: " + getConfig().getExcelOptions().getSheetName());
+                    log.warn("Excel file " + getCurrentItem().getName() + " was ignored since no sheet name exist: "
+                            + getConfig().getExcelOptions().getSheetName());
                     rowIterator = Iterators.emptyIterator();
                     return;
                 }

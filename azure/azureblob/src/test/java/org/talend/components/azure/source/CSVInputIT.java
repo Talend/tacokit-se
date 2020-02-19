@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -144,6 +144,22 @@ public class CSVInputIT extends BaseIT {
         BlobTestUtils.createAndPopulateFileInStorage(storageAccount, blobInputProperties.getDataset(), columns, 5);
         blobInputProperties.getDataset().getCsvOptions().setUseHeader(true);
         blobInputProperties.getDataset().getCsvOptions().setHeader(1);
+
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("azureInput").to("collector").build().run();
+        List<Record> records = componentsHandler.getCollectedData(Record.class);
+
+        Assert.assertEquals("Records amount is different", recordSize, records.size());
+    }
+
+    @Test
+    void testReadFileFromRootDir() throws Exception {
+        final int recordSize = 5;
+        List<String> columns = Arrays.asList(new String[] { "a", "b", "c" });
+        blobInputProperties.getDataset().setDirectory(null);
+
+        BlobTestUtils.createAndPopulateFileInStorage(storageAccount, blobInputProperties.getDataset(), columns, 5);
 
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
         Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
