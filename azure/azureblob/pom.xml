@@ -35,7 +35,7 @@
 
         TIP: it is recommended to set this property into your settings.xml in an active by default profile.
         -->
-        <talend.component.studioHome/>
+        <talend.component.studioHome />
 
         <apache.poi.version>3.17</apache.poi.version>
         <jsoup.version>1.11.3</jsoup.version>
