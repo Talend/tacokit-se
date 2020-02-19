@@ -72,4 +72,6 @@ public interface I18nMessage {
     String errorWriteAvro(String message);
 
     String errorLoadTopic(String message);
+
+    String topicDoesNotExist(String topic);
 }

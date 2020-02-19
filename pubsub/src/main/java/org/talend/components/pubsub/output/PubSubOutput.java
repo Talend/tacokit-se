@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.talend.components.pubsub.output.message.MessageGenerator;
 import org.talend.components.pubsub.output.message.MessageGeneratorFactory;
 import org.talend.components.pubsub.service.I18nMessage;
+import org.talend.components.pubsub.service.PubSubConnectorException;
 import org.talend.components.pubsub.service.PubSubService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -74,6 +75,9 @@ public class PubSubOutput implements Serializable {
         } else {
             Topic topic = pubSubService.loadTopic(configuration.getDataset().getDataStore(),
                     configuration.getDataset().getTopic());
+            if (topic == null) {
+                throw new PubSubConnectorException(i18n.topicDoesNotExist(configuration.getDataset().getTopic()));
+            }
         }
         publisher = pubSubService.createPublisher(configuration.getDataset().getDataStore(),
                 configuration.getDataset().getTopic());
