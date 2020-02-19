@@ -77,6 +77,5 @@ public class CSVMessageGeneratorTest {
 
         PubsubMessage message = beanUnderTest.generateMessage(record);
         Assertions.assertNotNull(message, "Message is null");
-        System.out.println(message.getData().toStringUtf8());
     }
 }
