@@ -34,6 +34,7 @@ import org.talend.sdk.component.api.service.record.RecordService;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.Serializable;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Version(1)
@@ -83,6 +84,11 @@ public class PubSubOutput implements Serializable {
     @PreDestroy
     public void release() {
         if (publisher != null) {
+            try {
+                publisher.awaitTermination(5, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                log.error(e.getMessage(), e);
+            }
             publisher.shutdown();
         }
     }
