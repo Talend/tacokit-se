@@ -26,21 +26,11 @@ import java.io.Serializable;
 @Data
 @Icon(value = Icon.IconType.CUSTOM, custom = "pubsub")
 @Documentation("Pub/Sub output component configuration.")
-@GridLayout({ //
-        @GridLayout.Row("dataset"), @GridLayout.Row("topicOperation") })
+@GridLayout({ @GridLayout.Row("dataset") })
 public class PubSubOutputConfiguration implements Serializable {
 
     @Option
     @Documentation("PubSub dataset")
     private PubSubDataSet dataset;
 
-    @Option
-    @DefaultValue("CREATE_IF_NOT_EXISTS")
-    @Documentation("Topic operation")
-    public TopicOperation topicOperation;
-
-    public enum TopicOperation {
-        NONE,
-        CREATE_IF_NOT_EXISTS
-    }
 }

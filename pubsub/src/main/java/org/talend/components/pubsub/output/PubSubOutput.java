@@ -70,14 +70,9 @@ public class PubSubOutput implements Serializable {
 
     private void lazyInit() {
         init = true;
-        if (configuration.getTopicOperation() == PubSubOutputConfiguration.TopicOperation.CREATE_IF_NOT_EXISTS) {
-            pubSubService.createTopicIfNeeded(configuration.getDataset().getDataStore(), configuration.getDataset().getTopic());
-        } else {
-            Topic topic = pubSubService.loadTopic(configuration.getDataset().getDataStore(),
-                    configuration.getDataset().getTopic());
-            if (topic == null) {
-                throw new PubSubConnectorException(i18n.topicDoesNotExist(configuration.getDataset().getTopic()));
-            }
+        Topic topic = pubSubService.loadTopic(configuration.getDataset().getDataStore(), configuration.getDataset().getTopic());
+        if (topic == null) {
+            throw new PubSubConnectorException(i18n.topicDoesNotExist(configuration.getDataset().getTopic()));
         }
         publisher = pubSubService.createPublisher(configuration.getDataset().getDataStore(),
                 configuration.getDataset().getTopic());
