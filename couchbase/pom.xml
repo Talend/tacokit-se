@@ -18,23 +18,15 @@
   </properties>
 
   <dependencies>
-    <!-- traductions -->
     <dependency>
       <groupId>org.talend.components</groupId>
       <artifactId>couchbase-locales</artifactId>
       <version>${locales.version}</version>
     </dependency>
-
     <dependency>
       <groupId>com.couchbase.client</groupId>
       <artifactId>java-client</artifactId>
       <version>${couchbase.client.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>testcontainers</artifactId>
-      <version>${testcontainers.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>

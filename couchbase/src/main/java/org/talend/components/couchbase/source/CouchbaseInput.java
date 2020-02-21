@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -25,6 +25,7 @@ import com.couchbase.client.java.query.Statement;
 import com.couchbase.client.java.query.consistency.ScanConsistency;
 import com.couchbase.client.java.query.dsl.Expression;
 import com.couchbase.client.java.query.dsl.path.AsPath;
+import com.couchbase.client.java.query.dsl.path.Path;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,12 +92,8 @@ public class CouchbaseInput implements Serializable {
         columnsSet = new HashSet<>();
 
         N1qlQuery n1qlQuery;
-        if (configuration.isUseN1QLQuery()) {
-            /*
-             * should contain "meta().id as `_meta_id_`" field for non-json (binary) documents
-             */
-            n1qlQuery = N1qlQuery.simple(configuration.getQuery());
-        } else {
+        switch (configuration.getSelectAction()) {
+        case ALL:
             Statement statement;
             AsPath asPath = Select.select("meta().id as " + Expression.i(META_ID_FIELD), "*").from(Expression.i(bucket.name()));
             if (!configuration.getLimit().isEmpty()) {
@@ -105,18 +102,25 @@ public class CouchbaseInput implements Serializable {
                 statement = asPath;
             }
             n1qlQuery = N1qlQuery.simple(statement);
+            break;
+        case N1QL:
+            /*
+             * should contain "meta().id as `_meta_id_`" field for non-json (binary) documents
+             */
+            n1qlQuery = N1qlQuery.simple(configuration.getQuery());
+            break;
+        case ONE:
+            Statement pathToOneDocument = Select.select("*").from(Expression.i(bucket.name()))
+                    .useKeysValues(configuration.getDocumentId());
+            n1qlQuery = N1qlQuery.simple(pathToOneDocument);
+            break;
+        default:
+            throw new RuntimeException("Select action: '" + configuration.getSelectAction() + "' is unsupported");
         }
         n1qlQuery.params().consistency(ScanConsistency.REQUEST_PLUS);
         N1qlQueryResult n1qlQueryRows = bucket.query(n1qlQuery);
         checkErrors(n1qlQueryRows);
         index = n1qlQueryRows.rows();
-    }
-
-    private void checkErrors(N1qlQueryResult n1qlQueryRows) {
-        if (!n1qlQueryRows.errors().isEmpty()) {
-            LOG.error(i18n.queryResultError());
-            throw new IllegalArgumentException(n1qlQueryRows.errors().toString());
-        }
     }
 
     @Producer
@@ -151,8 +155,15 @@ public class CouchbaseInput implements Serializable {
         return null;
     }
 
+    private void checkErrors(N1qlQueryResult n1qlQueryRows) {
+        if (!n1qlQueryRows.errors().isEmpty()) {
+            LOG.error(i18n.queryResultError());
+            throw new IllegalArgumentException(n1qlQueryRows.errors().toString());
+        }
+    }
+
     private Record createJsonRecord(JsonObject jsonObject) {
-        if (!configuration.isUseN1QLQuery()) {
+        if (configuration.getSelectAction() == SelectAction.ALL || configuration.getSelectAction() == SelectAction.ONE) {
             // unwrap JSON (we use SELECT * to retrieve all values. Result will be wrapped with bucket name)
             // couldn't use bucket_name.*, in this case big float numbers (e.g. 1E100) are converted into BigInteger with
             // many zeros at the end and cannot be converted back into float
@@ -186,7 +197,7 @@ public class CouchbaseInput implements Serializable {
 
     private Record createRecord(Schema schema, JsonObject jsonObject) {
         final Record.Builder recordBuilder = builderFactory.newRecordBuilder(schema);
-        schema.getEntries().stream().forEach(entry -> addColumn(recordBuilder, entry, getValue(entry.getName(), jsonObject)));
+        schema.getEntries().forEach(entry -> addColumn(recordBuilder, entry, getValue(entry.getName(), jsonObject)));
         return recordBuilder.build();
     }
 

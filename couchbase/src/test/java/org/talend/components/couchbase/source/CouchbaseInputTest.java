@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -70,24 +70,8 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
                 .sorted(Comparator.comparing(r -> r.getString("_meta_id_"))).collect(Collectors.toList());
         assertEquals(2, data.size());
 
-        TestData testData = new TestData();
-        System.out.println("qwerty: " + data.get(0).toString());
-        assertEquals(testData.getColId() + "1", data.get(0).getString("t_string"));
-        assertEquals(testData.getColIntMin(), data.get(0).getInt("t_int_min"));
-        assertEquals(testData.getColIntMax(), data.get(0).getInt("t_int_max"));
-        assertEquals(testData.getColLongMin(), data.get(0).getLong("t_long_min"));
-        assertEquals(testData.getColLongMax(), data.get(0).getLong("t_long_max"));
-        assertEquals(testData.getColFloatMin(), data.get(0).getFloat("t_float_min"));
-        assertEquals(testData.getColFloatMax(), data.get(0).getFloat("t_float_max"));
-        assertEquals(testData.getColDoubleMin(), data.get(0).getDouble("t_double_min"));
-        assertEquals(testData.getColDoubleMax(), data.get(0).getDouble("t_double_max"));
-        assertEquals(testData.isColBoolean(), data.get(0).getBoolean("t_boolean"));
-        assertEquals(testData.getColDateTime().toString(), data.get(0).getDateTime("t_datetime").toString());
-        String arrayStrOriginal = "[" + testData.getColList().stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(","))
-                + "]";
-        assertEquals(arrayStrOriginal, data.get(0).getString("t_array"));
-
-        assertEquals(testData.getColId() + "2", data.get(1).getString("t_string"));
+        assertOneRecord("1", data.get(0));
+        assertOneRecord("2", data.get(1));
     }
 
     private void insertTestDataToDB(String idPrefix) {
@@ -131,7 +115,7 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         bucket.close();
 
         CouchbaseInputConfiguration inputConfiguration = getInputConfiguration();
-        inputConfiguration.setUseN1QLQuery(true);
+        inputConfiguration.setSelectAction(SelectAction.N1QL);
         inputConfiguration
                 .setQuery("SELECT `" + BUCKET_NAME + "`.* FROM `" + BUCKET_NAME + "` where meta().id like \"" + idPrefix + "%\"");
         executeJob(inputConfiguration);
@@ -151,7 +135,7 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         insertTestDataToDB(idPrefix);
 
         CouchbaseInputConfiguration configurationWithN1ql = getInputConfiguration();
-        configurationWithN1ql.setUseN1QLQuery(true);
+        configurationWithN1ql.setSelectAction(SelectAction.N1QL);
         configurationWithN1ql.setQuery("SELECT `t_long_max`, `t_string`, `t_double_max` FROM `" + BUCKET_NAME
                 + "` where meta().id like \"" + idPrefix + "%\"");
         executeJob(configurationWithN1ql);
@@ -221,6 +205,51 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
             assertEquals(generateDocId(idPrefix, i), data.get(i).getString("id"));
             assertEquals((docContent + "_" + i), data.get(i).getString("content"));
         }
+    }
+
+    @Test
+    @DisplayName("Select document by ID")
+    void oneDocumentInputDBTest() {
+        insertTestDataToDB("oneDocumentInputDBTest");
+        CouchbaseInputConfiguration configuration = getInputConfiguration();
+        configuration.setSelectAction(SelectAction.ONE);
+        configuration.setDocumentId("oneDocumentInputDBTest_1");
+        executeJob(configuration);
+
+        final List<Record> result = componentsHandler.getCollectedData(Record.class);
+
+        assertEquals(1, result.size());
+        assertOneRecord("2", result.get(0));
+    }
+
+    @Test
+    @DisplayName("Select document by not exist ID")
+    void oneNotExistDocumentInputDBTest() {
+        CouchbaseInputConfiguration configuration = getInputConfiguration();
+        configuration.setSelectAction(SelectAction.ONE);
+        configuration.setDocumentId("notExistID");
+
+        final List<Record> result = componentsHandler.getCollectedData(Record.class);
+        assertEquals(0, result.size());
+    }
+
+    private void assertOneRecord(String id, Record record) {
+        TestData testData = new TestData();
+        assertEquals(testData.getColId() + id, record.getString("t_string"));
+        assertEquals(testData.getColIntMin(), record.getInt("t_int_min"));
+        assertEquals(testData.getColIntMax(), record.getInt("t_int_max"));
+        assertEquals(testData.getColLongMin(), record.getLong("t_long_min"));
+        assertEquals(testData.getColLongMax(), record.getLong("t_long_max"));
+        assertEquals(testData.getColFloatMin(), record.getFloat("t_float_min"));
+        assertEquals(testData.getColFloatMax(), record.getFloat("t_float_max"));
+        assertEquals(testData.getColDoubleMin(), record.getDouble("t_double_min"));
+        assertEquals(testData.getColDoubleMax(), record.getDouble("t_double_max"));
+        assertEquals(testData.isColBoolean(), record.getBoolean("t_boolean"));
+        assertEquals(testData.getColDateTime().toString(), record.getDateTime("t_datetime").toString());
+        String arrayStrOriginal = "[" + testData.getColList().stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(","))
+                + "]";
+        assertEquals(arrayStrOriginal, record.getString("t_array"));
+
     }
 
     private BinaryDocument createBinaryDocument(String id, byte[] bytes) {
