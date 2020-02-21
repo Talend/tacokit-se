@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -72,6 +72,14 @@ public class RestService {
 
     public final static String HEALTHCHECK = "healthcheck";
 
+    private final Substitutor.KeyFinder parameterFinder = new Substitutor.KeyFinder(RestService.PARAMETERS_SUBSTITUTOR_PREFIX,
+            RestService.PARAMETERS_SUBSTITUTOR_SUFFIX);
+
+    private final Substitutor.KeyFinder bodyFinder = new Substitutor.KeyFinder(RestService.BODY_SUBSTITUTOR_PREFIX,
+            RestService.BODY_SUBSTITUTOR_SUFFIX);
+
+    private final Substitutor.KeyFinder pathParamFinder = new Substitutor.KeyFinder("{", "}");
+
     @Service
     Client client;
 
@@ -93,8 +101,8 @@ public class RestService {
     }
 
     private Response<byte[]> _execute(final RequestConfig config, final Record record) {
-        final Substitutor substitutor = new RecordSubstitutor(PARAMETERS_SUBSTITUTOR_PREFIX, PARAMETERS_SUBSTITUTOR_SUFFIX,
-                record, recordPointerFactory);
+        final RecordDictionary dictionary = new RecordDictionary(record, recordPointerFactory);
+        final Substitutor substitutor = new Substitutor(parameterFinder, dictionary);
 
         // Check if there are some duplicate keys in given parameters
         if (!hasNoDuplicates(config.getDataset().getHeaders())) {
@@ -116,8 +124,7 @@ public class RestService {
 
         // I set another prefix '${' to have placeholder in a json body without having to
         // escape all normal '{' of the json
-        final Substitutor bodySubstitutor = new RecordSubstitutor(BODY_SUBSTITUTOR_PREFIX, BODY_SUBSTITUTOR_SUFFIX, record,
-                recordPointerFactory, substitutor.getCache());
+        final Substitutor bodySubstitutor = new Substitutor(bodyFinder, substitutor.getPlaceholderProvider());
 
         // Has body has to be checked here to set body = null if needed, the body encoder should not return null
         Body body = config.getDataset().isHasBody() ? new Body(config, bodySubstitutor) : null;
@@ -213,7 +220,7 @@ public class RestService {
             return resource;
         }
 
-        return new Substitutor("{", "}", params::get).replace(resource);
+        return new Substitutor(pathParamFinder, params::get).replace(resource);
     }
 
     public Map<String, String> updateParamsFromRecord(final Map<String, String> params, final Substitutor substitutor) {
@@ -251,7 +258,7 @@ public class RestService {
     }
 
     private String substitute(final String value, final Substitutor substitutor) {
-        String substitute = !value.contains(substitutor.getPrefix()) ? value : substitutor.replace(value);
+        String substitute = substitutor.replace(value);
         return substitute;
     }
 
@@ -288,11 +295,7 @@ public class RestService {
             return true;
         }
 
-        if (params.stream().map(Param::getKey).distinct().count() < params.size()) {
-            return false;
-        }
-
-        return true;
+        return params.stream().map(Param::getKey).distinct().count() >= params.size();
     }
 
 }

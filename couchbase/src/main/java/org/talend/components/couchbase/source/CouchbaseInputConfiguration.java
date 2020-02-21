@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,6 +16,7 @@ import org.talend.components.couchbase.dataset.CouchbaseDataSet;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.configuration.ui.widget.Code;
@@ -26,9 +27,10 @@ import java.io.Serializable;
 
 import lombok.Data;
 
-@Version(1)
 @Data
-@GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataSet" }), @GridLayout.Row("useN1QLQuery"), @GridLayout.Row("query") }),
+@GridLayouts({
+        @GridLayout({ @GridLayout.Row({ "dataSet" }), @GridLayout.Row("selectAction"), @GridLayout.Row("documentId"),
+                @GridLayout.Row("query") }),
         @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataSet" }),
                 @GridLayout.Row({ "limit" }) }) })
 
@@ -40,19 +42,26 @@ public class CouchbaseInputConfiguration implements Serializable {
     private CouchbaseDataSet dataSet;
 
     @Option
-    @Documentation("Use N1QL query")
-    private boolean useN1QLQuery = false;
+    @Documentation("Select action")
+    @DefaultValue(value = "ALL")
+    private SelectAction selectAction = SelectAction.ALL;
 
     @Option
     @TextArea
     @Code("sql")
     @Documentation("The N1QL query.")
-    @ActiveIf(target = "useN1QLQuery", value = "true")
+    @ActiveIf(target = "selectAction", value = "N1QL")
     private String query;
 
     @Option
+    @TextArea
+    @Documentation("Document Id.")
+    @ActiveIf(target = "selectAction", value = "ONE")
+    private String documentId;
+
+    @Option
     @Documentation("Maximum number of documents to be returned")
-    @ActiveIf(target = "useN1QLQuery", value = "false")
+    @ActiveIf(target = "selectAction", value = "ALL")
     private String limit = "";
 
     public CouchbaseDataSet getDataSet() {

@@ -12,197 +12,210 @@
  */
 package org.talend.components.common.text;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.function.UnaryOperator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * Forked from commons-text but no need to bring a dep only for < 200 LOC
- * <p>
  * Convenient class to replace placeholders in a String giving a Function<String, String>.
+ * Replace in String "${hello} ${world:-tdi}" with "hi tdi" with a function that convert 'hello' to 'hi'.
+ * you choose delimiters (prefix / suffix) with limitations due to regexp usage :
+ * suffix can't start with ':' or '-' (':-' separate key and default value. (can't translate "[:hello:]")
+ * a word can't contains first symbole of a suffix, means that a suffix can't start with letter [Starthelloend] is not possible.
+ * 
+ * this class doesn't treat embraced substitution '${word${number}}' isn't translate to 'third'
+ * with a function that give '3' for 'number' and 'third' for 'word3'
+ * 
+ * it doesn't treat recursive replacement: '${greeting}' with a function
+ * 'greeting' -> '${hello} ${world:-tdi}" and 'hello' -> 'hi' will render '${hello} ${world:-tdi}'.
  */
 public class Substitutor {
 
-    private final char escape = '\\';
+    private static final char ESCAPE = '\\';
 
-    private final char[] delimiter = ":-".toCharArray();
+    /** delimiter to separate a key and a default value or a variable ( ${key:-default} */
+    private static final Pattern DELIMITER = Pattern.compile("([^:]*):-(.*)");
 
-    private char[] prefix;
+    /**
+     * Define a result for a search in a string.
+     */
+    public static class FindResult {
 
-    private char[] suffix;
+        /** start position of a key in search string */
+        public final int start;
 
-    private final Function<String, String> placeholderProvider;
+        /** end position of a key in search string */
+        public final int end;
 
-    private final Map<String, Optional<String>> cache = new HashMap<>();
+        /** key finded */
+        public final String key;
 
-    public Substitutor(final String prefix, final String suffix, Function<String, String> placeholderProvider) {
-        this.prefix = prefix.toCharArray();
-        this.suffix = suffix.toCharArray();
-        this.placeholderProvider = placeholderProvider;
+        public FindResult(int start, int end, String key) {
+            this.start = start;
+            this.end = end;
+            this.key = key;
+        }
     }
 
-    public Substitutor(final String prefix, final String suffix, final Map<String, Optional<String>> intialCache,
-            Function<String, String> placeholderProvider) {
-        this.prefix = prefix.toCharArray();
-        this.suffix = suffix.toCharArray();
-        this.placeholderProvider = placeholderProvider;
-        this.cache.putAll(intialCache);
+    /** key finder for a String */
+    public static class KeyFinder {
+
+        /** regular expression for search. */
+        private final Pattern pattern;
+
+        public KeyFinder(String prefix, String suffix) {
+            String aPrefix = escapeChars(prefix);
+            String aSuffix = escapeChars(suffix);
+            String exp = aPrefix + "([^" + escapeChars(suffix.substring(0, 1)) + "]*)" + aSuffix;
+            pattern = Pattern.compile(exp);
+        }
+
+        /**
+         * Search all result to find in a string.
+         * ex : "${hello} ${world:-tdi}" will produce 2 result as (0,8,hello), (9, 22, world:-tdi)
+         * 
+         * @param source
+         * @return
+         */
+        public Iterator<FindResult> search(String source) {
+            final Matcher matcher = pattern.matcher(source);
+            return new Iterator<FindResult>() {
+
+                private boolean hasNext = matcher.find();
+
+                @Override
+                public boolean hasNext() {
+                    return this.hasNext;
+                }
+
+                @Override
+                public FindResult next() {
+                    if (hasNext) {
+                        FindResult result = new FindResult(matcher.start(), matcher.end(), matcher.group(1));
+                        this.hasNext = matcher.find();
+                        return result;
+                    }
+                    return null;
+                }
+            };
+        }
+
+        /**
+         * Refine prefix and suffix for regular expression.
+         * 
+         * @param val : prefix of suffix expression.
+         * @return expression with reg exp compatibility.
+         */
+        private String escapeChars(String val) {
+            val = val.replace("{", "\\{").replace("}", "\\}").replace("(", "\\(").replace(")", "\\)").replace("[", "\\[")
+                    .replace("]", "\\]").replace("$", "\\$");
+
+            return val;
+        }
     }
 
-    public void setPrefix(String prefix) {
-        this.prefix = prefix.toCharArray();
+    /** given place holder (dictionnary) */
+    private final UnaryOperator<String> placeholderProvider;
+
+    /** key finder with defined prefix / suffix */
+    private final KeyFinder finder;
+
+    /**
+     * Constructor
+     * 
+     * @param finder : finder;
+     * @param placeholderProvider Function used to replace the string
+     */
+    public Substitutor(KeyFinder finder, UnaryOperator<String> placeholderProvider) {
+        this.finder = finder;
+        if (placeholderProvider instanceof CachedPlaceHolder) {
+            this.placeholderProvider = placeholderProvider;
+        } else {
+            this.placeholderProvider = new CachedPlaceHolder(placeholderProvider);
+        }
     }
 
-    public String getPrefix() {
-        return new String(prefix);
+    public UnaryOperator<String> getPlaceholderProvider() {
+        return placeholderProvider;
     }
 
-    public void setSuffix(String suffix) {
-        this.suffix = suffix.toCharArray();
-    }
-
+    /**
+     * Replace all the placeholders
+     * 
+     * @param source String to be parsed
+     * @return new string with placeholders replaced
+     */
     public String replace(final String source) {
         if (source == null) {
             return null;
         }
-        final StringBuilder builder = new StringBuilder(source);
-        if (substitute(builder, 0, source.length(), null) <= 0) {
-            return source;
-        }
 
-        return builder.toString();
-    }
+        final Iterator<FindResult> results = this.finder.search(source);
 
-    private int substitute(final StringBuilder buf, final int offset, final int length, List<String> priorVariables) {
-        final boolean top = priorVariables == null;
-        boolean altered = false;
-        int lengthChange = 0;
-        char[] chars = buf.toString().toCharArray();
-        int bufEnd = offset + length;
-        int pos = offset;
-        while (pos < bufEnd) {
-            final int startMatchLen = isMatch(prefix, chars, pos, bufEnd);
-            if (startMatchLen == 0) {
-                pos++;
-            } else {
-                if (pos > offset && chars[pos - 1] == escape) {
-                    buf.deleteCharAt(pos - 1);
-                    chars = buf.toString().toCharArray();
-                    lengthChange--;
-                    altered = true;
-                    bufEnd--;
-                } else {
-                    final int startPos = pos;
-                    pos += startMatchLen;
-                    int endMatchLen;
-                    while (pos < bufEnd) {
-                        endMatchLen = isMatch(suffix, chars, pos, bufEnd);
-                        if (endMatchLen == 0) {
-                            pos++;
-                        } else {
-                            String varNameExpr = new String(chars, startPos + startMatchLen, pos - startPos - startMatchLen);
-                            pos += endMatchLen;
-                            final int endPos = pos;
+        StringBuilder sb = new StringBuilder();
+        int curr = 0;
+        while (results.hasNext()) {
+            final FindResult result = results.next();
 
-                            String varName = varNameExpr;
-                            String varDefaultValue = null;
-
-                            final char[] varNameExprChars = varNameExpr.toCharArray();
-                            for (int i = 0; i < varNameExprChars.length; i++) {
-                                if (isMatch(prefix, varNameExprChars, i, varNameExprChars.length) != 0) {
-                                    break;
-                                }
-                                final int match = isMatch(delimiter, varNameExprChars, i, varNameExprChars.length);
-                                if (match != 0) {
-                                    varName = varNameExpr.substring(0, i);
-                                    varDefaultValue = varNameExpr.substring(i + match);
-                                    break;
-                                }
-                            }
-
-                            if (priorVariables == null) {
-                                priorVariables = new ArrayList<>();
-                                priorVariables.add(new String(chars, offset, length + lengthChange));
-                            }
-
-                            checkCyclicSubstitution(varName, priorVariables);
-                            priorVariables.add(varName);
-
-                            final String varValue = getOrDefault(varName, varDefaultValue);
-                            if (varValue != null) {
-                                final int varLen = varValue.length();
-                                buf.replace(startPos, endPos, varValue);
-                                altered = true;
-                                int change = substitute(buf, startPos, varLen, priorVariables);
-                                change = change + varLen - (endPos - startPos);
-                                pos += change;
-                                bufEnd += change;
-                                lengthChange += change;
-                                chars = buf.toString().toCharArray();
-                            }
-
-                            priorVariables.remove(priorVariables.size() - 1);
-                            break;
-                        }
-                    }
-                }
+            if (result.start == 0 || source.charAt(result.start - 1) != ESCAPE) {
+                sb.append(source.substring(curr, result.start)).append(findOrDefault(result.key));
+                curr = result.end;
+            } else { // escaped placeholder
+                sb.append(source.substring(curr, result.start - 1));
+                curr = result.start;
             }
         }
-        if (top) {
-            return altered ? 1 : 0;
+
+        if (curr < source.length()) {
+            sb.append(source.substring(curr));
         }
-        return lengthChange;
+
+        return sb.toString();
     }
 
-    protected String getOrDefault(final String varName, final String varDefaultValue) {
-        return cache.computeIfAbsent(varName, k -> Optional.ofNullable(placeholderProvider.apply(k))).orElse(varDefaultValue);
-    }
+    /**
+     * Find value for key in place holder or give default.
+     * 
+     * @param key : simple key 'hello' or with default 'hello:-hi'
+     * @return give value for key with function or default if it's unknown for function.
+     */
+    private String findOrDefault(String key) {
+        String defaultValue = "";
 
-    private int isMatch(final char[] chars, final char[] buffer, int pos, final int bufferEnd) {
-        final int len = chars.length;
-        if (pos + len > bufferEnd) {
-            return 0;
+        Matcher matcher = DELIMITER.matcher(key);
+        if (matcher.matches()) {
+            // there's a default value.
+            key = matcher.group(1);
+            defaultValue = matcher.group(2);
         }
-        for (int i = 0; i < chars.length; i++, pos++) {
-            if (chars[i] != buffer[pos]) {
-                return 0;
-            }
-        }
-        return len;
+
+        final String s = placeholderProvider.apply(key);
+        return Optional.ofNullable(s).orElse(defaultValue);
     }
 
-    private void checkCyclicSubstitution(final String varName, final List<String> priorVariables) {
-        if (!priorVariables.contains(varName)) {
-            return;
-        }
-        final StringBuilder buf = new StringBuilder(256);
-        buf.append("Infinite loop in property interpolation of ");
-        buf.append(priorVariables.remove(0));
-        buf.append(": ");
-        appendWithSeparators(buf, priorVariables);
-        throw new IllegalStateException(buf.toString());
-    }
+    /**
+     * To optimized research of key.
+     */
+    static class CachedPlaceHolder implements UnaryOperator<String> {
 
-    private void appendWithSeparators(final StringBuilder builder, final Collection<String> iterable) {
-        if (iterable != null && !iterable.isEmpty()) {
-            final Iterator<?> it = iterable.iterator();
-            while (it.hasNext()) {
-                builder.append(it.next());
-                if (it.hasNext()) {
-                    builder.append("->");
-                }
-            }
+        /** original place holder function. */
+        private final UnaryOperator<String> originalFunction;
+
+        /** cache for function */
+        private final Map<String, Optional<String>> cache = new HashMap<>();
+
+        public CachedPlaceHolder(UnaryOperator<String> originalFunction) {
+            super();
+            this.originalFunction = originalFunction;
+        }
+
+        @Override
+        public String apply(String varName) {
+            return cache.computeIfAbsent(varName, k -> Optional.ofNullable(originalFunction.apply(k))).orElse(null);
         }
     }
-
-    public Map<String, Optional<String>> getCache() {
-        return cache.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
-
 }
