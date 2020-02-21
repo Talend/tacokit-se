@@ -14,39 +14,25 @@ package org.talend.components.extension.polling.mapper;
 
 import lombok.AllArgsConstructor;
 import org.talend.components.extension.polling.api.Pollable;
-import org.talend.components.extension.polling.internal.PollingComponentExtensionTest;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Emitter;
 import org.talend.sdk.component.api.input.Producer;
 
 import java.io.Serializable;
 
-@Pollable(icon = "pollableSource", name = "MyPollable")
-@Emitter(family = "mytest", name = "BatchSource")
-public class BatchSource implements Serializable {
+@Emitter(family = "mytest", name = "UnusedSource")
+public class UnusedSource implements Serializable {
 
-    private final BatchConfig config;
+    private final UnusedConfig config;
 
-    private int currentRow = 0;
+    private boolean done = false;
 
-    public BatchSource(@Option("configuration") final BatchConfig config) {
+    public UnusedSource(@Option("configuration") final UnusedConfig config) {
         this.config = config;
     }
 
     @Producer
     public Data next() {
-        // Only for test to wait enough for the polling
-        try {
-            Thread.sleep(PollingComponentExtensionTest.TEST_POLLING_DELAY + 50);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        if (currentRow < PollingComponentExtensionTest.TEST_NB_EXPECTED_ROWS) {
-            currentRow++;
-            return new Data("Data/" + config.getParam1() + currentRow, config.getParam0() + currentRow);
-        }
-
         return null;
     }
 

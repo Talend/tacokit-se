@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,22 +12,23 @@
  */
 package org.talend.components.extension.polling.internal.impl;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j;
 import org.talend.sdk.component.runtime.input.Input;
 import org.talend.sdk.component.runtime.input.Mapper;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static java.util.stream.Collectors.toList;
 
 @RequiredArgsConstructor
 public class PollingMapper implements Mapper, Serializable {
 
+    @Getter
     private final PollingConfiguration pollingConfiguration;
 
+    @Getter
     private final Mapper batchMapper;
 
     @Override
@@ -37,9 +38,7 @@ public class PollingMapper implements Mapper, Serializable {
 
     @Override
     public List<Mapper> split(long desiredSize) {
-        return batchMapper.split(desiredSize).stream()
-                .map(it -> new PollingMapper(pollingConfiguration, it))
-                .collect(toList());
+        return batchMapper.split(desiredSize).stream().map(it -> new PollingMapper(pollingConfiguration, it)).collect(toList());
     }
 
     @Override

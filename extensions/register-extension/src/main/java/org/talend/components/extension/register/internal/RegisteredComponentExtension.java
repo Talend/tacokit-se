@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,8 +16,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.extension.register.api.CustomComponentExtension;
 import org.talend.sdk.component.container.Container;
+import org.talend.sdk.component.container.ContainerManager;
 import org.talend.sdk.component.runtime.manager.ComponentManager;
 import org.talend.sdk.component.runtime.manager.spi.ContainerListenerExtension;
+import org.talend.sdk.component.spi.component.ComponentExtension;
 
 import javax.annotation.Priority;
 import java.util.Collection;
@@ -32,11 +34,19 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
 @Slf4j
-public class RegisteredComponentExtension implements ContainerListenerExtension, ComponentManager.Customizer {
+public class RegisteredComponentExtension implements ContainerListenerExtension {
+
+    private static ComponentManager componentManager; // workaround ComponentExtension
+
+    private static RegisteredComponentExtension selfAsListener; // workaround ComponentExtension
+
+    public RegisteredComponentExtension() {
+        selfAsListener = this;
+    }
 
     // @Override 1.1.17 API
     public int order() {
-        return Integer.getInteger(getClass().getName() + ".order", -1);
+        return Integer.getInteger(getClass().getName() + ".order", 10);
     }
 
     @Override
@@ -69,14 +79,49 @@ public class RegisteredComponentExtension implements ContainerListenerExtension,
                         it -> ofNullable(it.getClass().getAnnotation(Priority.class)).map(Priority::value).orElse(1000)))
                 .collect(toList());
 
-        extensions.stream().forEach(c -> log.info("*********** New loaded CustomComponentExtension : " + c.getClass().getName()));
+        extensions.forEach(c -> log.info("*********** New loaded CustomComponentExtension : " + c.getClass().getName()));
 
         return extensions;
     }
 
-    @Override
-    public Stream<String> containerClassesAndPackages() {
-        return Stream.of("org.talend.components.extension.register.api", "org.talend.sdk.component.container");
+    @Override // workaround ComponentExtension
+    public void setComponentManager(final ComponentManager manager) {
+        componentManager = manager;
+    }
+
+    /* ComponentExtension workaround to ensure the order before 1.1.17 release is used */
+    public static class ExtensionOrderingWorkaround implements ComponentExtension {
+
+        @Override // workaround ComponentExtension
+        public synchronized void onComponent(final ComponentContext context) {
+            if (selfAsListener == null) {
+                return;
+            }
+            final ContainerManager container = componentManager.getContainer();
+            container.unregisterListener(selfAsListener);
+            container.registerListener(selfAsListener);
+            selfAsListener = null;
+            componentManager = null;
+        }
+
+        @Override // workaround ComponentExtension, always disabled
+        public boolean supports(final Class<?> componentType) {
+            return false;
+        }
+
+        @Override // workaround ComponentExtension, never called
+        public <T> T convert(final ComponentInstance instance, final Class<T> component) {
+            throw new UnsupportedOperationException("shouldn't be called cause supports returns false");
+        }
+    }
+
+    public static class ClassloadingCustomizer implements ComponentManager.Customizer {
+
+        @Override
+        public Stream<String> containerClassesAndPackages() {
+            return Stream.of("org.talend.components.extension.register.api", "org.talend.sdk.component.container",
+                    "org.talend.sdk.component.design.");
+        }
     }
 
     @RequiredArgsConstructor

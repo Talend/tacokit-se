@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,8 +14,8 @@ package org.talend.components.extension.polling.internal;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.xbean.propertyeditor.PropertyEditorRegistry;
 import org.talend.components.extension.polling.api.Pollable;
+import org.talend.components.extension.polling.api.PollableDuplicateDataset;
 import org.talend.components.extension.polling.internal.impl.PollingConfiguration;
 import org.talend.components.extension.polling.internal.impl.PollingMapper;
 import org.talend.components.extension.register.api.CustomComponentExtension;
@@ -25,6 +25,9 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.injector.Injector;
 import org.talend.sdk.component.container.Container;
+import org.talend.sdk.component.design.extension.RepositoryModel;
+import org.talend.sdk.component.design.extension.repository.Config;
+import org.talend.sdk.component.design.extension.repository.ConfigKey;
 import org.talend.sdk.component.runtime.input.Mapper;
 import org.talend.sdk.component.runtime.manager.ComponentFamilyMeta;
 import org.talend.sdk.component.runtime.manager.ComponentManager;
@@ -32,9 +35,12 @@ import org.talend.sdk.component.runtime.manager.ParameterMeta;
 import org.talend.sdk.component.runtime.manager.reflect.ParameterModelService;
 import org.talend.sdk.component.runtime.manager.reflect.ReflectionService;
 import org.talend.sdk.component.runtime.manager.reflect.parameterenricher.BaseParameterEnricher;
+import org.talend.sdk.component.runtime.manager.util.IdGenerator;
 import org.talend.sdk.component.runtime.manager.util.Lazy;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,13 +65,15 @@ import static java.util.stream.Collectors.toMap;
 @Slf4j
 public class PollingComponentExtension implements CustomComponentExtension {
 
+    public final static String DUPLICATE_DATASET_KEY = PollingComponentExtension.class.getName() + ".duplicatedataset";
+
     public static final String VERSION_SUFFIX = "Version";
 
     public static final String ROOT_CONFIGURATION_KEY = "configuration";
 
     public static final String POLLING_CONFIGURATION_KEY = "pollingConfiguration";
 
-    public static final String POLLING_CONFIGURATION_VERSION_KEY = POLLING_CONFIGURATION_KEY + VERSION_SUFFIX;
+    public static final String POLLING_CONFIGURATION_VERSION_KEY = "$" + POLLING_CONFIGURATION_KEY + VERSION_SUFFIX;
 
     public static final String POLLING_EXTENSION_CONFIGURATION_KEY = "extension::pollable";
 
@@ -75,13 +83,89 @@ public class PollingComponentExtension implements CustomComponentExtension {
 
     @Override
     public Optional<Stream<Runnable>> onCreate(final Container container) {
-        return getFamilies(container).map(families -> families.flatMap(family -> {
-            processFamily(container, family);
+
+        final LocalConfiguration localConfiguration = LocalConfiguration.class
+                .cast(container.get(ComponentManager.AllServices.class).getServices().get(LocalConfiguration.class));
+        final boolean duplicateDatasetOption = Boolean
+                .valueOf(Optional.ofNullable(localConfiguration.get(DUPLICATE_DATASET_KEY)).orElse("true"));
+        final List<String> duplicatedDataSets = duplicatePollableDataset(container, duplicateDatasetOption);
+        if (duplicatedDataSets.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return getContainerComponentFamilies(container).map(families -> families.flatMap(family -> {
+            processFamily(container, family, duplicatedDataSets);
             return Stream.empty(); // no clean up task here
         }));
     }
 
-    private void processFamily(final Container container, final ComponentFamilyMeta family) {
+    private List<String> duplicatePollableDataset(final Container container, boolean duplicateDatasetOption) {
+        log.debug("{} option : {}", DUPLICATE_DATASET_KEY, duplicateDatasetOption);
+        if (!duplicateDatasetOption) {
+            return emptyList();
+        }
+
+        // Class.forName(container.get(RepositoryModel.class).getContainerComponentFamilies().get(0).getConfigs().get().get(0).getChildConfigs().get(0).getMeta().getJavaType().getTypeName()).getAnnotations()
+        final RepositoryModel repositoryModel = container.get(RepositoryModel.class);
+        if (repositoryModel == null) {
+            log.info("{} not loaded, can't duplicate {} dataset.", RepositoryModel.class.getName(),
+                    PollableDuplicateDataset.class.getName());
+            return emptyList();
+        }
+
+        return repositoryModel.getFamilies().stream()
+                .flatMap(family -> recursiveDuplicatePollableDataset(family.getConfigs().get(), family.getMeta()).stream())
+                .collect(toList());
+    }
+
+    private Collection<String> recursiveDuplicatePollableDataset(final List<Config> configs,
+            final ComponentFamilyMeta familyMeta) {
+        return new ArrayList<>(configs).stream().flatMap(config -> {
+            if ("dataset".equals(config.getKey().getConfigType())) {
+                final Class<?> datasetClass = Class.class.cast(config.getMeta().getJavaType());
+                final PollableDuplicateDataset annotation = datasetClass.getAnnotation(PollableDuplicateDataset.class);
+
+                if (annotation != null) {
+                    final Config duplicate = new Config();
+                    duplicate.setIcon(annotation.icon().isEmpty() ? config.getIcon() : annotation.icon());
+                    final ConfigKey keyForDuplicate = getKeyForDuplicate(config.getKey());
+                    duplicate.setKey(keyForDuplicate);
+                    duplicate.setMeta(getMetaForDuplicate(config.getMeta()));
+                    duplicate.setId(IdGenerator.get(familyMeta.getPlugin(), keyForDuplicate.getFamily(),
+                            keyForDuplicate.getConfigType(), keyForDuplicate.getConfigName()));
+                    duplicate.setVersion(config.getVersion());
+                    duplicate.setMigrationHandler(config.getMigrationHandler());
+
+                    configs.add(duplicate);
+
+                    return Stream.of(config.getKey().getConfigName());
+                }
+
+            }
+            return recursiveDuplicatePollableDataset(config.getChildConfigs(), familyMeta).stream();
+        }).collect(toList());
+    }
+
+    private ConfigKey getKeyForDuplicate(final ConfigKey origin) {
+        return new ConfigKey(origin.getFamily(), origin.getConfigName() + PollableDuplicateDataset.DUPLICATE_SUFFIX,
+                origin.getConfigType());
+    }
+
+    private ParameterMeta getMetaForDuplicate(final ParameterMeta origin) {
+        HashMap<String, String> meta = new HashMap<>(origin.getMetadata());
+        meta.put("tcomp::configurationtype::name",
+                origin.getMetadata().get("tcomp::configurationtype::name") + PollableDuplicateDataset.DUPLICATE_SUFFIX);
+        return new ParameterMeta(origin.getSource(), origin.getJavaType(), origin.getType(), origin.getPath(), origin.getName(),
+                origin.getI18nPackages(), origin.getNestedParameters(), origin.getProposals(), meta,
+                origin.isLogMissingResourceBundle());
+    }
+
+    private void processFamily(final Container container, final ComponentFamilyMeta family,
+            final List<String> duplicateDatasets) {
+        if (duplicateDatasets.isEmpty()) {
+            return;
+        }
+
         final Map<String, ComponentFamilyMeta.PartitionMapperMeta> mappers = family.getPartitionMappers();
         final List<PollableModel> pollables = findPollables(mappers);
         if (pollables.isEmpty()) {
@@ -98,7 +182,7 @@ public class PollingComponentExtension implements CustomComponentExtension {
         final NeededServices neededServices = new NeededServices(services);
 
         final List<ComponentFamilyMeta.PartitionMapperMeta> newMappersMeta = pollables.stream()
-                .map(it -> toPartitionMapperMeta(it, allServices, neededServices)).collect(toList());
+                .map(it -> toPartitionMapperMeta(it, allServices, neededServices, duplicateDatasets)).collect(toList());
 
         // Now add all new partition mapper
         final Map<String, ComponentFamilyMeta.PartitionMapperMeta> newMappersMetaMap = newMappersMeta.stream()
@@ -110,8 +194,9 @@ public class PollingComponentExtension implements CustomComponentExtension {
     }
 
     private ComponentFamilyMeta.PartitionMapperMeta toPartitionMapperMeta(final PollableModel model,
-            final ComponentManager.AllServices allServices, final NeededServices neededServices) {
-        final ComponentFamilyMeta.PartitionMapperMeta srcMapperMeta = model.mapperMeta;
+            final ComponentManager.AllServices allServices, final NeededServices neededServices,
+            final List<String> duplicateDatasets) {
+        final ComponentFamilyMeta.PartitionMapperMeta srcMapperMeta = duplicateDatasetInMeta(model.mapperMeta, duplicateDatasets);
 
         final Version annotation = PollingConfiguration.class.getAnnotation(Version.class);
         final int version = srcMapperMeta.getVersion() + annotation.value();
@@ -121,17 +206,57 @@ public class PollingComponentExtension implements CustomComponentExtension {
         final String pollableName = model.pollable.name().isEmpty() ? srcMapperMeta.getName() + DEFAULT_POLLABLE_NAME_SUFFIX
                 : model.pollable.name();
         log.info("********* Duplicate mapper {} to its pollable version {}.", srcMapperMeta.getName(), pollableName);
-        return new ComponentFamilyMeta.PartitionMapperMeta(
-                                            srcMapperMeta.getParent(),
-                                            pollableName,
-                                            model.pollable.icon().isEmpty() ? srcMapperMeta.getIcon() : model.pollable.icon(),
-                                            version,
-                                            srcMapperMeta.getType() /* not important, only used for validation */,
-                                            createConfigurationSupplier(model.mapperMeta, neededServices, annotation, pollingParametersRef),
-                                            createInstantiator(model.mapperMeta.getName(), model.mapperMeta, pollingParametersRef, neededServices),
-                                            createMigrationHandlerSupplier(version, model.mapperMeta, allServices, neededServices, pollingParametersRef),
-                                    false,
-                                            srcMapperMeta.isInfinite()) {};
+        final ComponentFamilyMeta.PartitionMapperMeta partitionMapperMeta = new ComponentFamilyMeta.PartitionMapperMeta(
+                srcMapperMeta.getParent(), pollableName,
+                model.pollable.icon().isEmpty() ? srcMapperMeta.getIcon() : model.pollable.icon(), version,
+                srcMapperMeta.getType() /* not important, only used for validation */,
+                createConfigurationSupplier(srcMapperMeta, neededServices, annotation, pollingParametersRef),
+                createInstantiator(srcMapperMeta.getName(), srcMapperMeta, pollingParametersRef, neededServices),
+                createMigrationHandlerSupplier(version, srcMapperMeta, allServices, neededServices, pollingParametersRef), false,
+                true) {
+            // since constructor is protected
+        };
+
+        return partitionMapperMeta;
+    }
+
+    private ComponentFamilyMeta.PartitionMapperMeta duplicateDatasetInMeta(ComponentFamilyMeta.PartitionMapperMeta srcMapperMeta,
+            final List<String> duplicateDatasetOption) {
+        if (duplicateDatasetOption.isEmpty()) {
+            return srcMapperMeta;
+        }
+
+        // Rename dataset with @PollableDuplicateDataset#DUPLICATE_SUFFIX
+        final Supplier<List<ParameterMeta>> lazyParameterMeta = Lazy
+                .lazy(() -> copyParameters(srcMapperMeta.getParameterMetas().get(), meta -> {
+                    final String type = meta.get("tcomp::configurationtype::type");
+                    if ("dataset".equals(type)) {
+                        final String name = meta.get("tcomp::configurationtype::name");
+                        final Map<String, String> copy = new HashMap<>(meta);
+                        copy.put("tcomp::configurationtype::name", name + PollableDuplicateDataset.DUPLICATE_SUFFIX);
+                        return copy;
+                    }
+                    return meta;
+                }));
+
+        return new ComponentFamilyMeta.PartitionMapperMeta(srcMapperMeta.getParent(), srcMapperMeta.getName(),
+                srcMapperMeta.getIcon(), srcMapperMeta.getVersion(), srcMapperMeta.getType(), lazyParameterMeta,
+                srcMapperMeta.getInstantiator(), srcMapperMeta.getMigrationHandler(), srcMapperMeta.isValidated(),
+                srcMapperMeta.isInfinite()) {
+            // since constructor is protected
+        };
+    }
+
+    private List<ParameterMeta> copyParameters(final List<ParameterMeta> rawParams,
+            final Function<Map<String, String>, Map<String, String>> metaMapper) {
+        return rawParams.stream().map(m -> copyParameterMeta(m, metaMapper)).collect(toList());
+    }
+
+    private ParameterMeta copyParameterMeta(final ParameterMeta m,
+            final Function<Map<String, String>, Map<String, String>> metaMapper) {
+        return new ParameterMeta(m.getSource(), m.getJavaType(), m.getType(), m.getPath(), m.getName(), m.getI18nPackages(),
+                m.getNestedParameters() != null ? copyParameters(m.getNestedParameters(), metaMapper) : null, m.getProposals(),
+                metaMapper.apply(m.getMetadata()), m.isLogMissingResourceBundle());
     }
 
     private Supplier<MigrationHandler> createMigrationHandlerSupplier(final int currentVersion,
@@ -158,8 +283,7 @@ public class PollingComponentExtension implements CustomComponentExtension {
             final MigrationHandler pollingConfigurationMigrationHandler = ComponentManager.instance().getMigrationHandlerFactory()
                     .findMigrationHandler(pollingConfigurationParameters, PollingConfiguration.class, services);
             final Map<String, String> migratedPollingConfiguration = pollingConfigurationMigrationHandler.migrate(
-                    Integer.parseInt(
-                            incomingData.getOrDefault("configuration." + POLLING_CONFIGURATION_KEY + VERSION_SUFFIX, "0")),
+                    Integer.parseInt(incomingData.getOrDefault("configuration." + POLLING_CONFIGURATION_VERSION_KEY, "0")),
                     confs.getOrDefault(POLLING_CONFIGURATION_KEY, new HashMap<>()));
 
             final Map<String, String> resultingMigration = new HashMap<>();
@@ -198,7 +322,7 @@ public class PollingComponentExtension implements CustomComponentExtension {
 
     private List<PollableModel> findPollables(final Map<String, ComponentFamilyMeta.PartitionMapperMeta> mappers) {
         return mappers.values().stream().map(it -> new PollableModel(it, it.getType().getAnnotation(Pollable.class)))
-                .collect(toList());
+                .filter(p -> p.pollable != null).collect(toList());
     }
 
     private Function<Map<String, String>, Mapper> createInstantiator(final String name,
@@ -208,11 +332,10 @@ public class PollingComponentExtension implements CustomComponentExtension {
             // split configuration
             final Map<String, Map<String, String>> confs = splitConfigurationPerSubComponent(configuration);
 
-            // Create original mapper instanciator
+            // Create original mapper instantiator
             final Mapper batchMapper = initialMapperMeta.getInstantiator().apply(confs.get(name));
 
             // create polling mapper instanciator
-            final Supplier<List<ParameterMeta>> listSupplier = pollingParameters.get();
             Function<Map<String, String>, Object[]> pollingConfigurationFactory = null;
             try {
                 pollingConfigurationFactory = neededServices.reflectionService.parameterFactory(PollingComponentExtension.class
@@ -226,7 +349,7 @@ public class PollingComponentExtension implements CustomComponentExtension {
             final PollingConfiguration pollingConfiguration = PollingConfiguration.class
                     .cast(pollingConfigurationFactory.apply(confs.get(POLLING_CONFIGURATION_KEY))[0]);
 
-            return new PollingMapper(pollingConfiguration, batchMapper);
+            return newMapper(batchMapper.plugin(), new PollingMapper(pollingConfiguration, batchMapper));
         };
     }
 
@@ -274,7 +397,7 @@ public class PollingComponentExtension implements CustomComponentExtension {
                 metadata.put(POLLING_EXTENSION_CONFIGURATION_KEY + "::synthetic", "true");
                 metadata.put("tcomp::ui::defaultvalue::value", Integer.toString(mapperMeta.getVersion()));
                 metadata.put("tcomp::condition::if::target", "missing"); // hide the 'name' property which contains the version of
-                                                                         // the initial mapper
+                // the initial mapper
                 metadata.put("tcomp::condition::if::value", "true");
                 metadata.put("tcomp::condition::if::negate", "false");
                 metadata.put("tcomp::condition::if::evaluationStrategy", "DEFAULT");
@@ -290,7 +413,7 @@ public class PollingComponentExtension implements CustomComponentExtension {
                 metadata.put(POLLING_EXTENSION_CONFIGURATION_KEY + "::synthetic", "true");
                 metadata.put("tcomp::ui::defaultvalue::value", Integer.toString(pollingConfigurationVersion.value()));
                 metadata.put("tcomp::condition::if::target", "missing"); // hide the 'name' property which contains the version of
-                                                                         // the initial mapper
+                // the initial mapper
                 metadata.put("tcomp::condition::if::value", "true");
                 metadata.put("tcomp::condition::if::negate", "false");
                 metadata.put("tcomp::condition::if::evaluationStrategy", "DEFAULT");
@@ -359,6 +482,7 @@ public class PollingComponentExtension implements CustomComponentExtension {
         private final ComponentFamilyMeta.PartitionMapperMeta mapperMeta;
 
         private final Pollable pollable;
+
     }
 
     private static class NeededServices {
@@ -376,7 +500,7 @@ public class PollingComponentExtension implements CustomComponentExtension {
             this.localConfig = LocalConfiguration.class.cast(services.get(LocalConfiguration.class));
 
             final Injector injector = Injector.class.cast(services.get(Injector.class)); // hack to retrieve the parameter service
-                                                                                         // which is not exposed
+            // which is not exposed
             reflectionService = get(injector, "reflectionService", ReflectionService.class);
 
             parameterModelService = get(reflectionService, "parameterModelService", ParameterModelService.class);
