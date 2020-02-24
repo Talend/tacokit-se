@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -24,6 +24,12 @@ public class AccessTokenConfigurer implements Configurer {
     public void configure(Connection connection, ConfigurerConfiguration configuration) {
         log.debug("[configure] [{}] {}", connection.getMethod(), connection.getUrl());
         connection //
-                .withHeader("Content-Type", CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED).withoutFollowRedirects();
+                .withHeader("Content-Type", CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED);
+
+        try {
+            connection.withoutFollowRedirects();
+        } catch (NoSuchMethodError ex) {
+            log.warn("can't do withoutFollowRedirects");
+        }
     }
 }
