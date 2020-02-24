@@ -29,7 +29,7 @@ public class AccessTokenConfigurer implements Configurer {
         try {
             connection.withoutFollowRedirects();
         } catch (NoSuchMethodError ex) {
-            log.warn("can't do withoutFollowRedirects");
+            log.warn("withoutFollowRedirects operation unsupported.");
         }
     }
 }
