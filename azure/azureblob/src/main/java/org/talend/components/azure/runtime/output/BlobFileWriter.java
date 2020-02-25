@@ -52,10 +52,10 @@ public abstract class BlobFileWriter {
         container = blobClient.getContainerReference(config.getDataset().getContainerName());
 
         directoryName = config.getDataset().getDirectory();
-        if (StringUtils.isEmpty(directoryName)) {
-            throw new BlobRuntimeException("Directory for output action should be specified");
-        }
-        if (!directoryName.endsWith("/")) {
+
+        if (directoryName == null) {
+            directoryName = "";
+        } else if (!directoryName.endsWith("/")) {
             directoryName += "/";
         }
     }

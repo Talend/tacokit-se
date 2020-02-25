@@ -68,7 +68,7 @@ public class BlobOutputTest {
     }
 
     @Test
-    void testCSVOutputWithEmptyDirFailing() {
+    void testCSVOutputWithEmptyDirNotFailing() {
         final String expectedExceptionMessage = "Directory for output action should be specified";
         CSVFormatOptions csvFormatOptions = new CSVFormatOptions();
         AzureBlobDataset dataset = new AzureBlobDataset();
@@ -79,8 +79,6 @@ public class BlobOutputTest {
         outputConfiguration.setDataset(dataset);
 
         BlobOutput output = new BlobOutput(outputConfiguration, blobComponentServicesMock, Mockito.mock(MessageService.class));
-        BlobRuntimeException thrownException = Assertions.assertThrows(BlobRuntimeException.class, output::init);
-
-        Assert.assertEquals("Exception message is different", expectedExceptionMessage, thrownException.getCause().getMessage());
+        Assertions.assertDoesNotThrow(output::init);
     }
 }
