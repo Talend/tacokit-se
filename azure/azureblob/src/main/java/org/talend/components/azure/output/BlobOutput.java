@@ -13,14 +13,11 @@
 package org.talend.components.azure.output;
 
 import java.io.Serializable;
-import java.util.Optional;
-import java.util.function.Consumer;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.talend.components.azure.common.exception.BlobRuntimeException;
-import org.talend.components.azure.common.service.AzureComponentServices;
 import org.talend.components.azure.runtime.output.BlobFileWriter;
 import org.talend.components.azure.runtime.output.BlobFileWriterFactory;
 import org.talend.components.azure.service.AzureBlobComponentServices;
