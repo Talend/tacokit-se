@@ -29,7 +29,7 @@ public class OtherCustomFieldAdapter<T> extends CustomFieldAdapter<T> {
     public boolean appliesTo(String recordTypeName, T field) {
         if (field instanceof OtherCustomField) {
             String fieldTypeName = ((OtherCustomField) field).getRecType().getName();
-            return (recordTypeName.equalsIgnoreCase(fieldTypeName));
+            return recordTypeName.equalsIgnoreCase(fieldTypeName);
         } else
             return false;
     }

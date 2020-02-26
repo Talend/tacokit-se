@@ -12,14 +12,15 @@
  */
 package org.talend.components.netsuite.runtime.client;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.talend.components.netsuite.datastore.NetSuiteDataStore.ApiVersion;
 import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * Hold NetSuite API version numbers.
@@ -56,10 +57,6 @@ public class NetSuiteVersion {
         return new NetSuiteVersion(majorYear, majorRelease);
     }
 
-    public boolean isSameMajor(NetSuiteVersion thatVersion) {
-        return this.majorYear == thatVersion.majorYear && this.majorRelease == thatVersion.majorRelease;
-    }
-
     /**
      * Parse version.
      *
@@ -84,27 +81,4 @@ public class NetSuiteVersion {
         throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.OPERATION_NOT_SUPPORTED), "Unsupported version");
     }
 
-    /**
-     * Detect version from NetSuite web service endpoint URL.
-     *
-     * @param nsEndpointUrl endpoint URL
-     * @return version object
-     */
-    public static NetSuiteVersion detectVersion(String nsEndpointUrl) {
-        Matcher matcher = ENDPOINT_URL_VERSION_PATTERN.matcher(nsEndpointUrl);
-        if (matcher.matches()) {
-            String sValue1 = matcher.group(2);
-            String sValue2 = matcher.group(3);
-            String sValue3 = matcher.group(5);
-            try {
-                int value1 = Integer.parseInt(sValue1);
-                int value2 = Integer.parseInt(sValue2);
-                int value3 = sValue3 != null ? Integer.parseInt(sValue3) : -1;
-                return new NetSuiteVersion(value1, value2, value3);
-            } catch (NumberFormatException e) {
-                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.OPERATION_NOT_SUPPORTED), e.getMessage(), e);
-            }
-        }
-        throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.OPERATION_NOT_SUPPORTED), "Unsupported version");
-    }
 }

@@ -73,6 +73,6 @@ public class NetSuiteInputSource implements Serializable {
 
     @Producer
     public Record next() {
-        return rs.next() ? transducer.read(rs::get) : null;
+        return rs.hasNext() ? transducer.read(rs::next) : null;
     }
 }

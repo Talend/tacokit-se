@@ -26,11 +26,4 @@ public interface NetSuiteClientFactory<T> {
      */
     NetSuiteClientService<T> createClient();
 
-    /**
-     * Get version of NetSuite runtime.
-     *
-     * @return version of NetSuite
-     */
-    NetSuiteVersion getApiVersion();
-
 }

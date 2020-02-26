@@ -16,7 +16,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -133,14 +132,10 @@ public abstract class NsObjectTransducer {
      */
     protected Map<String, Object> getMapView(Object nsObject, Schema schema, TypeDesc typeDesc) {
         Map<String, Object> valueMap = new HashMap<>();
-
-        BeanInfo beanInfo = Beans.getBeanInfo(typeDesc.getTypeClass());
         Map<String, FieldDesc> fieldMap = typeDesc.getFieldMap();
-
         Map<String, CustomFieldDesc> customFieldMap = new HashMap<>();
 
         // Extract normal fields
-
         for (Schema.Entry entry : schema.getEntries()) {
             // Get actual name of the field
             String nsFieldName = Beans.toInitialLower(entry.getName());
@@ -160,7 +155,7 @@ public abstract class NsObjectTransducer {
         }
 
         // Extract custom fields
-
+        BeanInfo beanInfo = Beans.getBeanInfo(typeDesc.getTypeClass());
         if (!customFieldMap.isEmpty() && beanInfo.getProperty(CUSTOM_FIELD_LIST) != null) {
             List<?> customFieldList = (List<?>) Beans.getProperty(nsObject, CUSTOM_FIELD_LIST_CUSTOM_FIELD);
             if (customFieldList != null && !customFieldList.isEmpty()) {
@@ -356,14 +351,10 @@ public abstract class NsObjectTransducer {
     }
 
     public Class<?> getPicklistClass() {
-        String version = apiVersion;
-        String pattern = "20\\d{2}\\.\\d+";
-        if (version != null && Pattern.matches(pattern, version)) {
-            try {
-                return Class.forName("com.netsuite.webservices.v" + version.replace('.', '_') + ".platform.core.ListOrRecordRef");
-            } catch (ClassNotFoundException e) {
-                // ignore
-            }
+        try {
+            return Class.forName("com.netsuite.webservices.v" + apiVersion.replace('.', '_') + ".platform.core.ListOrRecordRef");
+        } catch (ClassNotFoundException e) {
+            // ignore
         }
         return null;
     }

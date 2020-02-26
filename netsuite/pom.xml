@@ -15,9 +15,9 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <cxf.version>3.2.6</cxf.version>
-        <commons-beanutils.version>1.8.3</commons-beanutils.version>
-        <commons-lang3.version>3.7</commons-lang3.version>
+        <cxf.version>3.3.5</cxf.version>
+        <commons-beanutils.version>1.9.4</commons-beanutils.version>
+        <commons-lang3.version>3.9</commons-lang3.version>
 
         <!--
         Set it to true if you want the documentation to be rendered as HTML and PDF
@@ -126,7 +126,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.0.1</version>
+                <version>3.1.1</version>
                 <configuration>
                     <excludePackageNames>com.netsuite.webservices.*</excludePackageNames>
                 </configuration>
@@ -135,7 +135,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.12</version>
+                <version>3.0.0</version>
                 <executions>
                     <execution>
                         <id>add-source</id>
@@ -188,7 +188,7 @@
                     <dependency>
                         <groupId>org.apache.cxf.xjcplugins</groupId>
                         <artifactId>cxf-xjc-boolean</artifactId>
-                        <version>3.1.0</version>
+                        <version>3.3.1</version>
                     </dependency>
                 </dependencies>
             </plugin>

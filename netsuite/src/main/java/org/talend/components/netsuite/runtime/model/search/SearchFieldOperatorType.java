@@ -41,4 +41,27 @@ public enum SearchFieldOperatorType {
     public String getOperatorTypeName() {
         return operatorTypeName;
     }
+
+    public static SearchFieldType getSearchFieldType(String dataType) {
+        SearchFieldType searchFieldType;
+        if (SearchFieldOperatorType.STRING.dataTypeEquals(dataType)) {
+            searchFieldType = SearchFieldType.CUSTOM_STRING;
+        } else if (SearchFieldOperatorType.BOOLEAN.dataTypeEquals(dataType)) {
+            searchFieldType = SearchFieldType.CUSTOM_BOOLEAN;
+        } else if (SearchFieldOperatorType.LONG.dataTypeEquals(dataType)) {
+            searchFieldType = SearchFieldType.CUSTOM_LONG;
+        } else if (SearchFieldOperatorType.DOUBLE.dataTypeEquals(dataType)) {
+            searchFieldType = SearchFieldType.CUSTOM_DOUBLE;
+        } else if (SearchFieldOperatorType.DATE.dataTypeEquals(dataType)
+                || SearchFieldOperatorType.PREDEFINED_DATE.dataTypeEquals(dataType)) {
+            searchFieldType = SearchFieldType.CUSTOM_DATE;
+        } else if (SearchFieldOperatorType.MULTI_SELECT.dataTypeEquals(dataType)) {
+            searchFieldType = SearchFieldType.CUSTOM_MULTI_SELECT;
+        } else if (SearchFieldOperatorType.ENUM_MULTI_SELECT.dataTypeEquals(dataType)) {
+            searchFieldType = SearchFieldType.CUSTOM_SELECT;
+        } else {
+            throw new UnsupportedOperationException("Invalid data type: " + dataType);
+        }
+        return searchFieldType;
+    }
 }

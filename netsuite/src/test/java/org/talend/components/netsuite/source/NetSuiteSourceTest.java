@@ -134,7 +134,7 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
         log.info("Test 'partition input data' start ");
         String testIdPrefix = "PartitionInputDataTest_";
         int concurrency = 5;
-        int numberOfRecords = 501;
+        int numberOfRecords = 10000;
         NetSuiteInputProperties inputProperties = createInputProperties();
         NetSuiteDataSet dataSet = inputProperties.getDataSet();
         NetSuiteOutputProperties outputProperties = createOutputProperties();
@@ -159,7 +159,7 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
                 return res;
             }));
         }
-        buildAndRunCollectorJob(outputProperties, newRecords);
+        // buildAndRunCollectorJob(outputProperties, newRecords);
 
         // select in parallel
         log.info("Test 'partition input data' selecting start ");
@@ -182,7 +182,7 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
             // clean records
             log.info("Test 'partition input data' clean records start ");
             outputProperties.setAction(NetSuiteOutputProperties.DataAction.DELETE);
-            buildAndRunCollectorJob(outputProperties, insertedRecords);
+            // buildAndRunCollectorJob(outputProperties, insertedRecords);
         }
         log.info("Test 'partition input data' check cleaned start ");
         Assertions.assertTrue(buildAndRunEmitterJob(inputProperties).isEmpty());

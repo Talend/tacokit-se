@@ -27,7 +27,7 @@ public class NsTokenPassportSignature {
 
         private final String algorithm;
 
-        private Algorithm(String algorithm) {
+        Algorithm(String algorithm) {
             this.algorithm = algorithm;
         }
 

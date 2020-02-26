@@ -15,7 +15,6 @@ package org.talend.components.netsuite.runtime.client.search;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
@@ -178,25 +177,12 @@ public class SearchQuery<SearchT, RecT> {
         } else {
             SearchFieldOperatorName operatorQName = new SearchFieldOperatorName(condition.getOperatorName());
             String dataType = operatorQName.getDataType();
-            SearchFieldType searchFieldType = null;
-            if (SearchFieldOperatorType.STRING.dataTypeEquals(dataType)) {
-                searchFieldType = SearchFieldType.CUSTOM_STRING;
-            } else if (SearchFieldOperatorType.BOOLEAN.dataTypeEquals(dataType)) {
-                searchFieldType = SearchFieldType.CUSTOM_BOOLEAN;
-            } else if (SearchFieldOperatorType.LONG.dataTypeEquals(dataType)) {
-                searchFieldType = SearchFieldType.CUSTOM_LONG;
-            } else if (SearchFieldOperatorType.DOUBLE.dataTypeEquals(dataType)) {
-                searchFieldType = SearchFieldType.CUSTOM_DOUBLE;
-            } else if (SearchFieldOperatorType.DATE.dataTypeEquals(dataType)
-                    || SearchFieldOperatorType.PREDEFINED_DATE.dataTypeEquals(dataType)) {
-                searchFieldType = SearchFieldType.CUSTOM_DATE;
-            } else if (SearchFieldOperatorType.MULTI_SELECT.dataTypeEquals(dataType)) {
-                searchFieldType = SearchFieldType.CUSTOM_MULTI_SELECT;
-            } else if (SearchFieldOperatorType.ENUM_MULTI_SELECT.dataTypeEquals(dataType)) {
-                searchFieldType = SearchFieldType.CUSTOM_SELECT;
-            } else {
+            SearchFieldType searchFieldType;
+            try {
+                searchFieldType = SearchFieldOperatorType.getSearchFieldType(dataType);
+            } catch (UnsupportedOperationException e) {
                 throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.OPERATION_NOT_SUPPORTED),
-                        i18n.invalidDataType(Optional.ofNullable(searchFieldType).map(SearchFieldType::name).orElse(null)));
+                        i18n.invalidDataType(dataType));
             }
 
             Object searchField = processCondition(searchFieldType, condition);

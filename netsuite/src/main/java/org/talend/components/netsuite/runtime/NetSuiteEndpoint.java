@@ -64,6 +64,22 @@ public class NetSuiteEndpoint {
      * @throws NetSuiteException if connection configuration not valid
      */
     public ConnectionConfig createConnectionConfig(NetSuiteDataStore properties) throws NetSuiteException {
+        validateProperties(properties);
+
+        NetSuiteCredentials credentials = null;
+        NsTokenPassport tokenPassport = null;
+        if (properties.getLoginType() == LoginType.BASIC) {
+            credentials = new NetSuiteCredentials(properties.getEmail(), properties.getPassword(), properties.getAccount(),
+                    properties.getRole().trim(), properties.getApplicationId());
+        } else {
+            tokenPassport = new NsTokenPassport(properties.getAccount(), properties.getConsumerKey(),
+                    properties.getConsumerSecret(), properties.getTokenId(), properties.getTokenSecret());
+        }
+        NetSuiteVersion apiVersion = NetSuiteVersion.parseVersion(properties.getApiVersion());
+        return new ConnectionConfig(properties.getApiVersion().getEndpoint(), apiVersion.getMajor(), credentials, tokenPassport);
+    }
+
+    private void validateProperties(NetSuiteDataStore properties) {
         if (StringUtils.isEmpty(properties.getApiVersion().getEndpoint())) {
             throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), i18n.endpointUrlRequired());
         }
@@ -71,10 +87,7 @@ public class NetSuiteEndpoint {
             throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), i18n.accountRequired());
         }
 
-        NetSuiteCredentials credentials = null;
-        NsTokenPassport tokenPassport = null;
         if (properties.getLoginType() == LoginType.BASIC) {
-
             if (StringUtils.isEmpty(properties.getEmail())) {
                 throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), i18n.emailRequired());
             }
@@ -85,9 +98,6 @@ public class NetSuiteEndpoint {
             if (properties.getRole() == null || properties.getRole().trim().isEmpty()) {
                 throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), i18n.roleRequired());
             }
-
-            credentials = new NetSuiteCredentials(properties.getEmail(), properties.getPassword(), properties.getAccount(),
-                    properties.getRole().trim(), properties.getApplicationId());
         } else {
             if (StringUtils.isEmpty(properties.getConsumerKey())) {
                 throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), i18n.consumerKeyRequired());
@@ -101,45 +111,17 @@ public class NetSuiteEndpoint {
             if (StringUtils.isEmpty(properties.getTokenSecret())) {
                 throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), i18n.tokenSecretRequired());
             }
-            tokenPassport = new NsTokenPassport(properties.getAccount(), properties.getConsumerKey(),
-                    properties.getConsumerSecret(), properties.getTokenId(), properties.getTokenSecret());
         }
-
-        NetSuiteVersion endpointApiVersion = NetSuiteVersion.detectVersion(properties.getApiVersion().getEndpoint());
-        NetSuiteVersion apiVersion = NetSuiteVersion.parseVersion(properties.getApiVersion());
-
-        if (!endpointApiVersion.isSameMajor(apiVersion)) {
-            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), i18n.endpointUrlApiVersionMismatch(
-                    properties.getApiVersion().getEndpoint(), properties.getApiVersion().getVersion()));
-        }
-
-        ConnectionConfig connectionConfig = new ConnectionConfig(properties.getApiVersion().getEndpoint(), apiVersion.getMajor(),
-                credentials, tokenPassport);
-        return connectionConfig;
-    }
-
-    /**
-     * Connect to NetSuite remote endpoint.
-     *
-     * @return NetSuite client
-     * @throws NetSuiteException if an error occurs during connecting
-     */
-    public NetSuiteClientService<?> connect() throws NetSuiteException {
-        return connect(connectionConfig);
     }
 
     /**
      * Return NetSuite client.
      *
-     * <p>
-     * If endpoint is not yet connected then the method creates client and
-     * connects ({@link #connect()}) to NetSuite.
-     *
      * @return client
      * @throws NetSuiteException if an error occurs during connecting
      */
     public NetSuiteClientService<?> getClientService() throws NetSuiteException {
-        return connect();
+        return connect(connectionConfig);
     }
 
     /**

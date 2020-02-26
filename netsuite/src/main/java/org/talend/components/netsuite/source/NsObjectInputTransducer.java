@@ -14,7 +14,6 @@ package org.talend.components.netsuite.source;
 
 import java.time.ZonedDateTime;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.talend.components.netsuite.runtime.NsObjectTransducer;
@@ -67,21 +66,19 @@ public class NsObjectInputTransducer extends NsObjectTransducer {
                 continue;
             }
 
-            Optional.ofNullable(readField(mapView, fieldDesc)).ifPresent(v -> {
-                if (fieldDesc.getRecordValueType() == Boolean.class) {
-                    builder.withBoolean(entry, (Boolean) v);
-                } else if (fieldDesc.getRecordValueType() == Double.class) {
-                    builder.withDouble(entry, (Double) v);
-                } else if (fieldDesc.getRecordValueType() == Integer.class) {
-                    builder.withInt(entry, (Integer) v);
-                } else if (fieldDesc.getRecordValueType() == Long.class) {
-                    builder.withLong(entry, (Long) v);
-                } else if (fieldDesc.getRecordValueType() == ZonedDateTime.class) {
-                    builder.withDateTime(entry, (ZonedDateTime) v);
-                } else {
-                    builder.withString(entry, (String) v);
-                }
-            });
+            if (fieldDesc.getRecordValueType() == Boolean.class) {
+                builder.withBoolean(entry, (Boolean) value);
+            } else if (fieldDesc.getRecordValueType() == Double.class) {
+                builder.withDouble(entry, (Double) value);
+            } else if (fieldDesc.getRecordValueType() == Integer.class) {
+                builder.withInt(entry, (Integer) value);
+            } else if (fieldDesc.getRecordValueType() == Long.class) {
+                builder.withLong(entry, (Long) value);
+            } else if (fieldDesc.getRecordValueType() == ZonedDateTime.class) {
+                builder.withDateTime(entry, (ZonedDateTime) value);
+            } else {
+                builder.withString(entry, (String) value);
+            }
         }
 
         return builder.build();

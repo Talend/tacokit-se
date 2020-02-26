@@ -98,9 +98,6 @@ public abstract class NetSuiteClientService<PortT> {
     /** Size of search result page. */
     protected int searchPageSize = DEFAULT_SEARCH_PAGE_SIZE;
 
-    /** Specifies whether to return record body fields only. */
-    protected boolean bodyFieldsOnly = true;
-
     /** Specifies whether to return search columns. */
     protected boolean returnSearchColumns = false;
 
@@ -141,7 +138,6 @@ public abstract class NetSuiteClientService<PortT> {
     }
 
     public void setBodyFieldsOnly(boolean bodyFieldsOnly) {
-        this.bodyFieldsOnly = bodyFieldsOnly;
         searchPreferences.setBodyFieldsOnly(bodyFieldsOnly);
         Object searchPreferencesObject = createNativeSearchPreferences(searchPreferences);
         try {
@@ -267,8 +263,43 @@ public abstract class NetSuiteClientService<PortT> {
      * @return result of operation
      */
     public <R> R execute(PortOperation<R, PortT> op) {
-        return tokenPassport != null ? executeUsingTokenBasedAuth(op)
-                : useRequestLevelCredentials ? executeUsingRequestLevelCredentials(op) : executeUsingLogin(op);
+        boolean execUsingToken = (tokenPassport != null);
+        boolean execUsingRequestLevelCreds = !execUsingToken && useRequestLevelCredentials;
+        boolean execUsingLogin = !execUsingToken && !useRequestLevelCredentials;
+
+        lock.lock();
+        try {
+            if (execUsingToken)
+                refreshTokenSignature();
+            else if (execUsingRequestLevelCreds)
+                relogin();
+            else if (execUsingLogin)
+                login(false);
+
+            R result = null;
+            for (int i = 0; i < getRetryCount(); i++) {
+                try {
+                    result = op.execute(port);
+                    break;
+                } catch (Exception e) {
+                    if (errorCanBeWorkedAround(e)) {
+                        log.debug("Attempting workaround, retrying ({})", (i + 1));
+                        waitForRetryInterval();
+                        if (execUsingLogin) {
+                            if (errorRequiresNewLogin(e) || i >= getRetriesBeforeLogin() - 1) {
+                                log.debug("Re-logging in ({})", (i + 1));
+                                relogin();
+                            }
+                        }
+                    } else {
+                        throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), e.getMessage(), e);
+                    }
+                }
+            }
+            return result;
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -302,104 +333,6 @@ public abstract class NetSuiteClientService<PortT> {
      * @return customization meta data source
      */
     public abstract CustomMetaDataSource createDefaultCustomMetaDataSource();
-
-    protected <R> R executeUsingTokenBasedAuth(PortOperation<R, PortT> op) {
-        lock.lock();
-        try {
-            refreshTokenSignature();
-            R result = null;
-            for (int i = 0; i < getRetryCount(); i++) {
-                try {
-                    result = op.execute(port);
-                    break;
-                } catch (Exception e) {
-                    if (errorCanBeWorkedAround(e)) {
-                        log.debug("Attempting workaround, retrying ({})", (i + 1));
-                        waitForRetryInterval();
-                        continue;
-                    } else {
-                        throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), e.getMessage(), e);
-                    }
-                }
-            }
-            return result;
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    /**
-     * Execute an operation as logged-in client.
-     *
-     * @param op operation to be executed
-     * @param <R> type of operation result
-     * @return result of execution
-     */
-    protected <R> R executeUsingLogin(PortOperation<R, PortT> op) {
-        lock.lock();
-        try {
-            // Log in if required
-            login(false);
-
-            R result = null;
-            for (int i = 0; i < getRetryCount(); i++) {
-                try {
-                    result = op.execute(port);
-                    break;
-                } catch (Exception e) {
-                    if (errorCanBeWorkedAround(e)) {
-                        log.debug("Attempting workaround, retrying ({})", (i + 1));
-                        waitForRetryInterval();
-                        if (errorRequiresNewLogin(e) || i >= getRetriesBeforeLogin() - 1) {
-                            log.debug("Re-logging in ({})", (i + 1));
-                            relogin();
-                        }
-                        continue;
-                    } else {
-                        throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), e.getMessage(), e);
-                    }
-                }
-            }
-            return result;
-
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    /**
-     * Execute an operation using request level credentials.
-     *
-     * @param op operation to be executed
-     * @param <R> type of operation result
-     * @return result of execution
-     */
-    private <R> R executeUsingRequestLevelCredentials(PortOperation<R, PortT> op) {
-        lock.lock();
-        try {
-            relogin();
-
-            R result = null;
-            for (int i = 0; i < getRetryCount(); i++) {
-                try {
-                    result = op.execute(port);
-                    break;
-                } catch (Exception e) {
-                    if (errorCanBeWorkedAround(e)) {
-                        log.debug("Attempting workaround, retrying ({})", (i + 1));
-                        waitForRetryInterval();
-                        continue;
-                    } else {
-                        throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), e.getMessage(), e);
-                    }
-                }
-            }
-            return result;
-
-        } finally {
-            lock.unlock();
-        }
-    }
 
     /**
      * Set a SOAP header to be sent to NetSuite in request
@@ -662,7 +595,7 @@ public abstract class NetSuiteClientService<PortT> {
      * @param account NetSuite account number
      * @return port
      */
-    protected abstract PortT getNetSuitePort(String defaultEndpointUrl, String account);
+    protected abstract void setNetSuitePort(String defaultEndpointUrl, String account);
 
     /**
      * Check 'log-in' operation status and throw {@link NetSuiteException} if status indicates that

@@ -22,7 +22,6 @@ import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
 import org.talend.components.netsuite.runtime.client.NsSearchResult;
-import org.talend.components.netsuite.runtime.client.ResultSet;
 import org.talend.components.netsuite.runtime.model.BasicRecordType;
 import org.talend.components.netsuite.runtime.model.RecordTypeInfo;
 import org.talend.components.netsuite.runtime.model.SearchRecordTypeDesc;
@@ -37,7 +36,7 @@ import static java.util.stream.Collectors.toCollection;
  * @see SearchQuery#search()
  * @see NetSuiteClientService#search(Object)
  */
-public class SearchResultSet<R> implements ResultSet<R> {
+public class SearchResultSet<R> implements Iterator<R> {
 
     /**
      * NetSuite client which this result set is owned by.
@@ -87,20 +86,20 @@ public class SearchResultSet<R> implements ResultSet<R> {
     }
 
     @Override
-    public boolean next() {
+    public boolean hasNext() {
         if (recordIterator.hasNext()) {
             current = recordIterator.next();
             return true;
         }
         if (pageIterator.hasNext()) {
             recordIterator = getRecordIterator(pageIterator.next());
-            return next();
+            return hasNext();
         }
         return false;
     }
 
     @Override
-    public R get() {
+    public R next() {
         return current;
     }
 
