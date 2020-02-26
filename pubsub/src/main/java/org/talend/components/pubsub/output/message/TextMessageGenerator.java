@@ -16,17 +16,26 @@ import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 import org.talend.components.pubsub.dataset.PubSubDataSet;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.RecordPointer;
+import org.talend.sdk.component.api.record.RecordPointerFactory;
+import org.talend.sdk.component.api.service.Service;
 
 public class TextMessageGenerator extends MessageGenerator {
 
+    @Service
+    private RecordPointerFactory recordPointerFactory;
+
+    private RecordPointer recordPointer;
+
     @Override
     public void init(PubSubDataSet dataset) {
-
+        recordPointer = recordPointerFactory.apply(dataset.getPathToText());
     }
 
     @Override
     public PubsubMessage generateMessage(Record record) {
-        return PubsubMessage.newBuilder().setData(ByteString.copyFromUtf8(record.toString())).build();
+        return PubsubMessage.newBuilder()
+                .setData(ByteString.copyFromUtf8(recordPointer.getValue(record, Object.class).toString())).build();
     }
 
     @Override
