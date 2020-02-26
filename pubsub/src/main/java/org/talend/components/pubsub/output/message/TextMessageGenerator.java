@@ -41,8 +41,7 @@ public class TextMessageGenerator extends MessageGenerator {
     public PubsubMessage generateMessage(Record record) {
         try {
             String text = recordPointer.getValue(record, Object.class).toString();
-            return PubsubMessage.newBuilder()
-                    .setData(ByteString.copyFromUtf8(text)).build();
+            return PubsubMessage.newBuilder().setData(ByteString.copyFromUtf8(text)).build();
         } catch (IllegalArgumentException iae) {
             log.info(getI18nMessage().infoNoTextContent(iae.getMessage()));
             return null;
