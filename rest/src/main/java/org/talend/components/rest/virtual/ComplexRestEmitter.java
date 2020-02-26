@@ -13,6 +13,7 @@
 package org.talend.components.rest.virtual;
 
 import lombok.RequiredArgsConstructor;
+import org.talend.components.extension.polling.api.Pollable;
 import org.talend.components.rest.processor.JSonExtractor;
 import org.talend.components.rest.processor.JsonExtractorService;
 import org.talend.components.rest.service.CompletePayload;
@@ -37,6 +38,7 @@ import java.util.List;
 @Emitter(name = "Input")
 @Documentation("Http REST Input component")
 @RequiredArgsConstructor
+@Pollable
 public class ComplexRestEmitter implements Serializable {
 
     private final ComplexRestConfiguration configuration;
