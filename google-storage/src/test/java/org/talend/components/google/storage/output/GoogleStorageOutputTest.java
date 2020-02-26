@@ -27,9 +27,8 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.RecordIORepository;
-import org.talend.components.common.stream.format.FormatConfiguration;
-import org.talend.components.common.stream.format.FormatConfiguration.Type;
 import org.talend.components.common.stream.format.json.JsonConfiguration;
+import org.talend.components.google.storage.dataset.FormatConfiguration;
 import org.talend.components.google.storage.dataset.GSDataSet;
 import org.talend.components.google.storage.datastore.GSDataStore;
 import org.talend.components.google.storage.service.CredentialService;
@@ -68,7 +67,7 @@ class GoogleStorageOutputTest {
 
         final FormatConfiguration format = new FormatConfiguration();
         dataset.setContentFormat(format);
-        format.setContentFormat(Type.JSON_POINTER);
+        format.setContentFormat(FormatConfiguration.Type.JSON_POINTER);
         format.setJsonConfiguration(new JsonConfiguration());
         format.getJsonConfiguration().setJsonPointer("");
 

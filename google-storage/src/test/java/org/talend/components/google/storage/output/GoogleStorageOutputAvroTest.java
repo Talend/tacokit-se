@@ -12,7 +12,6 @@
  */
 package org.talend.components.google.storage.output;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -31,8 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.Messages;
 import org.talend.components.common.stream.api.RecordIORepository;
 import org.talend.components.common.stream.format.avro.AvroConfiguration;
-import org.talend.components.common.stream.format.FormatConfiguration;
-import org.talend.components.common.stream.format.FormatConfiguration.Type;
+import org.talend.components.google.storage.dataset.FormatConfiguration;
 import org.talend.components.google.storage.dataset.GSDataSet;
 import org.talend.components.google.storage.datastore.GSDataStore;
 import org.talend.components.google.storage.service.CredentialService;
@@ -86,7 +84,7 @@ public class GoogleStorageOutputAvroTest {
 
         final FormatConfiguration format = new FormatConfiguration();
         dataset.setContentFormat(format);
-        format.setContentFormat(Type.AVRO);
+        format.setContentFormat(FormatConfiguration.Type.AVRO);
         format.setAvroConfiguration(new AvroConfiguration());
 
         final String jwtContent = this.getContentFile("./engineering-test.json");

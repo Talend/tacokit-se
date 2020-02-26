@@ -14,12 +14,10 @@ package org.talend.components.google.storage.dataset;
 
 import java.io.Serializable;
 
-import org.talend.components.common.stream.format.FormatConfiguration;
 import org.talend.components.google.storage.datastore.GSDataStore;
 import org.talend.components.google.storage.service.GSService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
-import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
