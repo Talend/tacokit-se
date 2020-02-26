@@ -103,21 +103,19 @@ public class NetSuiteInputMapper implements Serializable {
 
         List<NetSuiteInputMapper> res = new LinkedList<>();
         for (int i = 0; i < threads; i++) {
-            NetSuiteInputMapper mapper = new NetSuiteInputMapper(configuration, recordBuilderFactory, i18n, netSuiteService,
-                    netSuiteClientConnectionService);
-            mapper.setPageSelection(new PageSelection(pageSelection.getSearchId(),
-                    (int) (bundles * i) + pageSelection.getFirstPage(), (int) bundles));
-            res.add(mapper);
+            res.add(createMapper((int) (bundles * i), (int) bundles));
         }
         if (threads * bundles < pageSelection.getPageCount()) {
-            NetSuiteInputMapper mapper = new NetSuiteInputMapper(configuration, recordBuilderFactory, i18n, netSuiteService,
-                    netSuiteClientConnectionService);
-            mapper.setPageSelection(
-                    new PageSelection(pageSelection.getSearchId(), (int) bundles * threads + pageSelection.getFirstPage(),
-                            pageSelection.getPageCount() - (int) bundles * threads));
-            res.add(mapper);
+            res.add(createMapper((int) bundles * threads, pageSelection.getPageCount() - (int) bundles * threads));
         }
         return res;
+    }
+
+    private NetSuiteInputMapper createMapper(int offset, int size) {
+        NetSuiteInputMapper mapper = new NetSuiteInputMapper(configuration, recordBuilderFactory, i18n, netSuiteService,
+                netSuiteClientConnectionService);
+        mapper.setPageSelection(new PageSelection(pageSelection.getSearchId(), pageSelection.getFirstPage() + offset, size));
+        return mapper;
     }
 
     @Emitter
