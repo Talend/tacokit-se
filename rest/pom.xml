@@ -43,6 +43,11 @@
             <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.talend.components.extension</groupId>
+            <artifactId>polling</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
