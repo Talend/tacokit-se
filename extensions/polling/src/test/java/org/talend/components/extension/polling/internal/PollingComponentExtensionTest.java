@@ -12,9 +12,9 @@
  */
 package org.talend.components.extension.polling.internal;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.talend.components.extension.polling.api.Pollable;
+import org.talend.components.extension.polling.api.PollableDuplicateDataset;
 import org.talend.components.extension.polling.internal.impl.PollingConfiguration;
 import org.talend.components.extension.polling.internal.impl.PollingMapper;
 import org.talend.components.extension.polling.mapper.BatchConfig;
@@ -33,7 +33,6 @@ import org.talend.sdk.component.runtime.manager.ComponentManager;
 import org.talend.sdk.component.runtime.manager.ContainerComponentRegistry;
 import org.talend.sdk.component.runtime.manager.ParameterMeta;
 import org.talend.sdk.component.runtime.manager.chain.Job;
-import org.talend.sdk.component.runtime.manager.util.Lazy;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -43,7 +42,6 @@ import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -52,7 +50,6 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -169,13 +166,41 @@ public class PollingComponentExtensionTest {
     void checkDataSetNameInMapperParameterModels() {
         final List<ParameterMeta> parameterMetas = container.get().get(ContainerComponentRegistry.class).getComponents()
                 .get("mytest").getPartitionMappers().get("MyPollable").getParameterMetas().get();
-        final List<String> datasetName = flatten(parameterMetas).map(it -> it.getMetadata().get("tcomp::configurationtype::name"))
-                .filter(Objects::nonNull).collect(toList());
+        final List<String> datasetName = flatten(parameterMetas)
+                .filter(it -> "dataset".equals(it.getMetadata().get("tcomp::configurationtype::type")))
+                .map(it -> it.getMetadata().get("tcomp::configurationtype::name")).filter(Objects::nonNull).collect(toList());
         assertEquals(singletonList("batchDatasetNamePollable"), datasetName);
+        assertNotNull(findParameterMeta(parameterMetas, "dataset", "batchDatasetNamePollable"));
+    }
+
+    @Test
+    void checkDataSet() {
+        final ParameterMeta parameterMetas = container.get().get(RepositoryModel.class).getFamilies().iterator().next()
+                .getConfigs().get().stream().flatMap(it -> it.getChildConfigs().stream())
+                .filter(it -> it.getKey().getConfigName().endsWith(PollableDuplicateDataset.DUPLICATE_SUFFIX)).iterator().next()
+                .getMeta();
+        assertNotNull(findParameterMeta(singletonList(parameterMetas), "dataset", "batchDatasetNamePollable"));
     }
 
     private Stream<ParameterMeta> flatten(final List<ParameterMeta> parameterMetas) {
         return parameterMetas.stream().flatMap(it -> it.getNestedParameters() == null ? Stream.of(it)
-                : Stream.concat(Stream.of(it), it.getNestedParameters().stream()));
+                : Stream.concat(Stream.of(it), flatten(it.getNestedParameters())));
     }
+
+    // pd method
+    public ParameterMeta findParameterMeta(List<ParameterMeta> in, String type, String name) {
+        // If this matches, return success
+        for (ParameterMeta pm : in) {
+            if (pm.getType() == ParameterMeta.Type.OBJECT && type.equals(pm.getMetadata().get("tcomp::configurationtype::type"))
+                    && name.equals(pm.getMetadata().get("tcomp::configurationtype::name"))) {
+                return pm;
+            }
+            ParameterMeta recurse = findParameterMeta(pm.getNestedParameters(), type, name);
+            if (recurse != null) {
+                return recurse;
+            }
+        }
+        return null;
+    }
+
 }

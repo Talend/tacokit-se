@@ -92,8 +92,7 @@ public class RegisteredComponentExtension implements ContainerListenerExtension 
     /* ComponentExtension workaround to ensure the order before 1.1.17 release is used */
     public static class ExtensionOrderingWorkaround implements ComponentExtension {
 
-        @Override // workaround ComponentExtension
-        public synchronized void onComponent(final ComponentContext context) {
+        public ExtensionOrderingWorkaround() {
             if (selfAsListener == null) {
                 return;
             }
@@ -102,6 +101,11 @@ public class RegisteredComponentExtension implements ContainerListenerExtension 
             container.registerListener(selfAsListener);
             selfAsListener = null;
             componentManager = null;
+        }
+
+        @Override // workaround ComponentExtension
+        public synchronized void onComponent(final ComponentContext context) {
+            // no-op
         }
 
         @Override // workaround ComponentExtension, always disabled

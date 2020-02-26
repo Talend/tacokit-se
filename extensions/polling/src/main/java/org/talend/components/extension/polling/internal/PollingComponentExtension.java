@@ -51,6 +51,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
@@ -86,15 +87,17 @@ public class PollingComponentExtension implements CustomComponentExtension {
 
         final LocalConfiguration localConfiguration = LocalConfiguration.class
                 .cast(container.get(ComponentManager.AllServices.class).getServices().get(LocalConfiguration.class));
+
         final boolean duplicateDatasetOption = Boolean
                 .valueOf(Optional.ofNullable(localConfiguration.get(DUPLICATE_DATASET_KEY)).orElse("true"));
+
         final List<String> duplicatedDataSets = duplicatePollableDataset(container, duplicateDatasetOption);
         if (duplicatedDataSets.isEmpty()) {
             return Optional.empty();
         }
 
         return getContainerComponentFamilies(container).map(families -> families.flatMap(family -> {
-            processFamily(container, family, duplicatedDataSets);
+            processFamily(container, family, duplicatedDataSets, duplicateDatasetOption);
             return Stream.empty(); // no clean up task here
         }));
     }
@@ -160,9 +163,9 @@ public class PollingComponentExtension implements CustomComponentExtension {
                 origin.isLogMissingResourceBundle());
     }
 
-    private void processFamily(final Container container, final ComponentFamilyMeta family,
-            final List<String> duplicateDatasets) {
-        if (duplicateDatasets.isEmpty()) {
+    private void processFamily(final Container container, final ComponentFamilyMeta family, final List<String> duplicateDatasets, boolean duplicateDatasetOption) {
+
+        if (duplicateDatasets.isEmpty() && duplicateDatasetOption) {
             return;
         }
 
@@ -174,15 +177,10 @@ public class PollingComponentExtension implements CustomComponentExtension {
 
         final ComponentManager.AllServices allServices = container.get(ComponentManager.AllServices.class);
         final Map<Class<?>, Object> services = allServices.getServices();
-        // final LocalConfiguration localConfig = LocalConfiguration.class.cast(services.get(LocalConfiguration.class));
-        // final Injector injector = Injector.class.cast(services.get(Injector.class)); // hack to retrieve the parameter service
-        // which is not exposed
-        // final PropertyEditorRegistry propertyEditorRegistry =
-        // PropertyEditorRegistry.class.cast(services.get(PropertyEditorRegistry.class));
         final NeededServices neededServices = new NeededServices(services);
 
         final List<ComponentFamilyMeta.PartitionMapperMeta> newMappersMeta = pollables.stream()
-                .map(it -> toPartitionMapperMeta(it, allServices, neededServices, duplicateDatasets)).collect(toList());
+                .map(it -> toPartitionMapperMeta(it, allServices, neededServices, duplicateDatasets, duplicateDatasetOption)).collect(toList());
 
         // Now add all new partition mapper
         final Map<String, ComponentFamilyMeta.PartitionMapperMeta> newMappersMetaMap = newMappersMeta.stream()
@@ -194,9 +192,10 @@ public class PollingComponentExtension implements CustomComponentExtension {
     }
 
     private ComponentFamilyMeta.PartitionMapperMeta toPartitionMapperMeta(final PollableModel model,
-            final ComponentManager.AllServices allServices, final NeededServices neededServices,
-            final List<String> duplicateDatasets) {
-        final ComponentFamilyMeta.PartitionMapperMeta srcMapperMeta = duplicateDatasetInMeta(model.mapperMeta, duplicateDatasets);
+                                                                          final ComponentManager.AllServices allServices, final NeededServices neededServices,
+                                                                          final List<String> duplicateDatasets, boolean duplicateDatasetOption) {
+
+        final ComponentFamilyMeta.PartitionMapperMeta srcMapperMeta = (duplicateDatasetOption) ? duplicateDatasetInMeta(model.mapperMeta, duplicateDatasets) : model.mapperMeta;
 
         final Version annotation = PollingConfiguration.class.getAnnotation(Version.class);
         final int version = srcMapperMeta.getVersion() + annotation.value();
@@ -403,7 +402,7 @@ public class PollingComponentExtension implements CustomComponentExtension {
                 metadata.put("tcomp::condition::if::evaluationStrategy", "DEFAULT");
 
                 parameters.add(new ParameterMeta(null, int.class, ParameterMeta.Type.NUMBER, ROOT_CONFIGURATION_KEY + "." + name,
-                        name, new String[] { mapperMeta.getPackageName() }, parameters, emptyList(), metadata, false));
+                        name, new String[] { mapperMeta.getPackageName() }, emptyList(), emptyList(), metadata, false));
             }
 
             {
@@ -419,18 +418,16 @@ public class PollingComponentExtension implements CustomComponentExtension {
                 metadata.put("tcomp::condition::if::evaluationStrategy", "DEFAULT");
 
                 parameters.add(new ParameterMeta(null, int.class, ParameterMeta.Type.NUMBER, ROOT_CONFIGURATION_KEY + "." + name,
-                        name, new String[] { mapperMeta.getPackageName() }, parameters, emptyList(), metadata, false));
+                        name, new String[] { mapperMeta.getPackageName() }, emptyList(), emptyList(), metadata, false));
             }
 
             // Add just the root level of the configuration.
-            parameters.add(new ParameterMeta(null, Object.class, ParameterMeta.Type.OBJECT, ROOT_CONFIGURATION_KEY,
+            return singletonList(new ParameterMeta(null, Object.class, ParameterMeta.Type.OBJECT, ROOT_CONFIGURATION_KEY,
                     ROOT_CONFIGURATION_KEY,
                     new String[] { mapperMeta.getPackageName(), PollingConfiguration.class.getPackage()
                             .getName() } /* for i18n we use the mapper one which owns the virtual comp */,
                     parameters, emptyList(), singletonMap(POLLING_EXTENSION_CONFIGURATION_KEY, String.valueOf(Boolean.TRUE)),
                     false));
-
-            return parameters;
         });
     }
 

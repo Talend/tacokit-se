@@ -12,7 +12,9 @@
  */
 package org.talend.components.extension.polling.internal.impl;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -21,10 +23,12 @@ import java.io.Serializable;
 
 @Version(1)
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class PollingConfiguration implements Serializable {
 
     @Option
     @Documentation("Delay between two calls (in ms).")
-    private Integer delay;
+    private Integer delay = 5000;
 
 }
