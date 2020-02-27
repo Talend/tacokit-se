@@ -82,7 +82,6 @@ public class PubSubDataSet implements Serializable {
     private String avroSchema;
 
     @Option
-    @DefaultValue("/content")
     @ActiveIf(target = "valueFormat", value = { "TEXT" })
     @Pattern("\\/.*[^\\/]")
     @Documentation("Path to text field in record (output only) : Json pointer format")
