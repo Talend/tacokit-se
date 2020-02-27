@@ -27,7 +27,6 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @GridLayout({ @GridLayout.Row({ "delay" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataset" }) })
 public class PollingConfiguration implements Serializable {
 
     @Option

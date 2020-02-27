@@ -40,8 +40,10 @@ import org.talend.sdk.component.runtime.manager.util.IdGenerator;
 import org.talend.sdk.component.runtime.manager.util.Lazy;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -387,12 +389,32 @@ public class PollingComponentExtension implements CustomComponentExtension {
             final AtomicReference<Supplier<List<ParameterMeta>>> pollingParametersRef) {
         // todo: manage layout as maxBatchSize
         return Lazy.lazy(() -> {
+
             final List<ParameterMeta> pollingRawMetas = getPollingConfigurationParameters(pollingParametersRef, neededServices,
                     mapperMeta.getType().getPackage()).get();
 
+            List<String> rawPollingNames = getNames(pollingRawMetas);
+            final Map<String, String> rootPollingMetadata = new HashMap<>();
+            rootPollingMetadata.put("ui::gridlayout::Main::value", String.join("|", rawPollingNames));
+            rootPollingMetadata.put("ui::gridlayout::Advanced::value", String.join("|", rawPollingNames));
+
+            final ParameterMeta rootPollingMeta = new ParameterMeta(null, Object.class, ParameterMeta.Type.OBJECT,
+                    POLLING_CONFIGURATION_KEY, POLLING_CONFIGURATION_KEY, new String[] { mapperMeta.getPackageName() },
+                    prefixWith(POLLING_CONFIGURATION_KEY, pollingRawMetas).collect(toList()), emptyList(), rootPollingMetadata,
+                    false);
+
+            final List<ParameterMeta> delegateMetas = mapperMeta.getParameterMetas().get().stream().collect(toList());
+            final Map<String, String> rootDelegateMetadata = new HashMap<>();
+            List<String> delegateNames = getNames(delegateMetas);
+            rootDelegateMetadata.put("ui::gridlayout::Main::value", String.join("|", delegateNames));
+            rootDelegateMetadata.put("ui::gridlayout::Advanced::value", String.join("|", delegateNames));
+
+            final ParameterMeta rootDelegateMeta = new ParameterMeta(null, Object.class, ParameterMeta.Type.OBJECT,
+                    mapperMeta.getName(), mapperMeta.getName(), new String[] { mapperMeta.getPackageName() },
+                    prefixWith(mapperMeta.getName(), delegateMetas).collect(toList()), emptyList(), rootDelegateMetadata, false);
+
             final List<ParameterMeta> parameters = Stream
-                    .of(prefixWith(ROOT_CONFIGURATION_KEY + "." + mapperMeta.getName(), mapperMeta.getParameterMetas().get()),
-                            prefixWith(ROOT_CONFIGURATION_KEY + "." + POLLING_CONFIGURATION_KEY, pollingRawMetas))
+                    .of(prefixWith(ROOT_CONFIGURATION_KEY, rootDelegateMeta), prefixWith(ROOT_CONFIGURATION_KEY, rootPollingMeta))
                     .flatMap(identity()).collect(toList());
 
             // now we add for each component a hidden configuration hosting (thanks to the default) the actual version
@@ -416,6 +438,12 @@ public class PollingComponentExtension implements CustomComponentExtension {
 
             {
                 // 2st bloc to store PollingConfiguration version
+                // POLLING_CONFIGURATION_KEY
+
+                // Intermedaite param
+                // new ParameterMeta(null, Object.class, ParameterMeta.Type.OBJECT, ROOT_CONFIGURATION_KEY+"."+)
+
+                // main param
                 final String name = POLLING_CONFIGURATION_VERSION_KEY;
                 final Map<String, String> metadata = new HashMap<>();
                 metadata.put(POLLING_EXTENSION_CONFIGURATION_KEY + "::synthetic", "true");
@@ -430,14 +458,28 @@ public class PollingComponentExtension implements CustomComponentExtension {
                         name, new String[] { mapperMeta.getPackageName() }, emptyList(), emptyList(), metadata, false));
             }
 
+            List<String> parametersName = parameters.stream().filter(e -> '$' != e.getName().charAt(0)).map(e -> e.getName())
+                    .collect(toList());
+
+            final Map<String, String> rootMetadata = new HashMap<>();
+            rootMetadata.put("ui::gridlayout::Main::value", String.join("|", parametersName));
+            rootMetadata.put("ui::gridlayout::Advanced::value", String.join("|", parametersName));
+
+            rootMetadata.put(POLLING_EXTENSION_CONFIGURATION_KEY, String.valueOf(Boolean.TRUE));
+
             // Add just the root level of the configuration.
-            return singletonList(new ParameterMeta(null, Object.class, ParameterMeta.Type.OBJECT, ROOT_CONFIGURATION_KEY,
-                    ROOT_CONFIGURATION_KEY,
+            final List<ParameterMeta> rootParameterMetas = singletonList(new ParameterMeta(null, Object.class,
+                    ParameterMeta.Type.OBJECT, ROOT_CONFIGURATION_KEY, ROOT_CONFIGURATION_KEY,
                     new String[] { mapperMeta.getPackageName(), PollingConfiguration.class.getPackage()
                             .getName() } /* for i18n we use the mapper one which owns the virtual comp */,
-                    parameters, emptyList(), singletonMap(POLLING_EXTENSION_CONFIGURATION_KEY, String.valueOf(Boolean.TRUE)),
-                    false));
+                    parameters, emptyList(), rootMetadata, false));
+
+            return rootParameterMetas;
         });
+    }
+
+    private List<String> getNames(List<ParameterMeta> parameters) {
+        return parameters.stream().filter(e -> '$' != e.getName().charAt(0)).map(e -> e.getName()).collect(toList());
     }
 
     private String getVersionOptionName(final ComponentFamilyMeta.BaseMeta<?> meta) {
@@ -446,6 +488,10 @@ public class PollingComponentExtension implements CustomComponentExtension {
 
     private Map<String, String> prefixWith(final String prefix, final Map<String, String> config) {
         return config.entrySet().stream().collect(toMap(e -> prefix + "." + e.getKey(), Map.Entry::getValue));
+    }
+
+    private Stream<ParameterMeta> prefixWith(final String prefix, final ParameterMeta parameterMetas) {
+        return prefixWith(prefix, Collections.singletonList(parameterMetas));
     }
 
     private Stream<ParameterMeta> prefixWith(final String prefix, final List<ParameterMeta> parameterMetas) {
