@@ -34,9 +34,9 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class UIActionService {
 
-    public static final String ACTION_HEALTHCHECK = "ACTION_HEALTHCHECK";
+    public static final String ACTION_HEALTHCHECK_DYNAMICS365 = "ACTION_HEALTHCHECK_DYNAMICS365";
 
-    public static final String ACTION_ENTITY_SETS = "ACTION_ENTITY_SETS";
+    public static final String ACTION_ENTITY_SETS_DYNAMICS365 = "ACTION_ENTITY_SETS_DYNAMICS365";
 
     @Service
     private I18n i18n;
@@ -44,7 +44,7 @@ public class UIActionService {
     @Service
     private DynamicsCrmService service;
 
-    @HealthCheck(ACTION_HEALTHCHECK)
+    @HealthCheck(ACTION_HEALTHCHECK_DYNAMICS365)
     public HealthCheckStatus validateConnection(@Option final DynamicsCrmConnection connection) {
         try {
             service.createClient(connection, null);
@@ -56,7 +56,7 @@ public class UIActionService {
         return new HealthCheckStatus(OK, i18n.healthCheckOk());
     }
 
-    @Suggestions(ACTION_ENTITY_SETS)
+    @Suggestions(ACTION_ENTITY_SETS_DYNAMICS365)
     public SuggestionValues entitySetsList(@Option final DynamicsCrmConnection connection) throws AuthenticationException {
         List<SuggestionValues.Item> items = service.getEntitySetNames(connection).stream()
                 .map(s -> new SuggestionValues.Item(s, s)).collect(Collectors.toList());

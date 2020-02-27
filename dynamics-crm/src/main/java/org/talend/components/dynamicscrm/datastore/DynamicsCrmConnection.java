@@ -12,7 +12,7 @@
  */
 package org.talend.components.dynamicscrm.datastore;
 
-import static org.talend.components.dynamicscrm.service.UIActionService.ACTION_HEALTHCHECK;
+import static org.talend.components.dynamicscrm.service.UIActionService.ACTION_HEALTHCHECK_DYNAMICS365;
 import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
 
 import java.io.Serializable;
@@ -29,7 +29,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 import lombok.Data;
 
 @Data
-@Checkable(ACTION_HEALTHCHECK)
+@Checkable(ACTION_HEALTHCHECK_DYNAMICS365)
 @DataStore("DynamicsCrmConnection")
 @GridLayout({ @GridLayout.Row({ "appType" }), @GridLayout.Row({ "username", "password" }), @GridLayout.Row({ "serviceRootUrl" }),
         @GridLayout.Row({ "clientId" }), @GridLayout.Row({ "clientSecret" }), @GridLayout.Row({ "authorizationEndpoint" }) })

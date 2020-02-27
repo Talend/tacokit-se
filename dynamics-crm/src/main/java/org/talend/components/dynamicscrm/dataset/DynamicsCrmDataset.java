@@ -40,7 +40,7 @@ public class DynamicsCrmDataset implements Serializable {
 
     @Option
     @Required
-    @Suggestable(value = UIActionService.ACTION_ENTITY_SETS, parameters = { "datastore" })
+    @Suggestable(value = UIActionService.ACTION_ENTITY_SETS_DYNAMICS365, parameters = { "datastore" })
     @Documentation("Name of entity set")
     private String entitySet;
 
