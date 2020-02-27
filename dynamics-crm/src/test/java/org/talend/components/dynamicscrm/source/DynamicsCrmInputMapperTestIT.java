@@ -31,10 +31,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.talend.components.dynamicscrm.DynamicsCrmTestBase;
 import org.talend.components.dynamicscrm.dataset.DynamicsCrmDataset;
-import org.talend.ms.crm.odata.ClientConfiguration;
-import org.talend.ms.crm.odata.ClientConfiguration.WebAppPermission;
-import org.talend.ms.crm.odata.ClientConfigurationFactory;
-import org.talend.ms.crm.odata.DynamicsCRMClient;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
@@ -63,7 +59,7 @@ public class DynamicsCrmInputMapperTestIT extends DynamicsCrmTestBase {
         configuration.setFilter(filterFactory.eq("company", company).build());
 
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
-        Job.components().component("mycomponent", "DynamicsCrm://DynamicsCrmInput?" + config) //
+        Job.components().component("mycomponent", "Azure://AzureDynamics365Input?" + config) //
                 .component("collector", "test://collector") //
                 .connections() //
                 .from("mycomponent") //

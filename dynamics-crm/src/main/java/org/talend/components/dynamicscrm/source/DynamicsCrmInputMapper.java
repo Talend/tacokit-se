@@ -32,7 +32,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 @Version(1)
 @Icon(value = IconType.CUSTOM, custom = "azure-dynamics")
-@PartitionMapper(name = "DynamicsCrmInput")
+@PartitionMapper(name = "AzureDynamics365Input")
 @Documentation("Dynamics CRM input")
 public class DynamicsCrmInputMapper implements Serializable {
 

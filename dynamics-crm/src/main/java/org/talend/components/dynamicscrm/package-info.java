@@ -13,7 +13,7 @@
 
 // this tells the framework in which family (group of components) and categories (UI grouping)
 // the components in the nested packages belong to
-@Components(family = "DynamicsCrm", categories = "Business")
+@Components(family = "Azure", categories = "Cloud")
 @Icon(value = Icon.IconType.CUSTOM, custom = "azure-dynamics")
 package org.talend.components.dynamicscrm;
 

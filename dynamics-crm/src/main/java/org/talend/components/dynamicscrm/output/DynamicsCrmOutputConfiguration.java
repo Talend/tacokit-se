@@ -34,11 +34,11 @@ import lombok.Data;
 @GridLayout({ @GridLayout.Row({ "dataset" }), @GridLayout.Row({ "action" }), @GridLayout.Row({ "lookupMapping" }) })
 @GridLayout(names = ADVANCED, value = { @GridLayout.Row("dataset"), @GridLayout.Row("emptyStringToNull"),
         @GridLayout.Row("ignoreNull") })
-@Documentation("Dynamics CRM output configuration")
+@Documentation("Azure Dynamics 365 output configuration")
 public class DynamicsCrmOutputConfiguration implements Serializable {
 
     @Option
-    @Documentation("Dynamics CRM dataset")
+    @Documentation("Azure Dynamics 365 dataset")
     private DynamicsCrmDataset dataset;
 
     @Option

@@ -12,28 +12,24 @@
  */
 package org.talend.components.dynamicscrm.source;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.talend.components.dynamicscrm.service.DynamicsCrmService;
-import org.talend.components.dynamicscrm.service.I18n;
-import org.talend.components.dynamicscrm.source.DynamicsCrmInputMapperConfiguration;
-import org.talend.components.dynamicscrm.source.DynamicsCrmInputMapperConfiguration.Operator;
-import org.talend.components.dynamicscrm.source.FilterCondition;
-import org.talend.components.dynamicscrm.source.FilterCondition.FilterOperator;
-import org.talend.components.dynamicscrm.source.OrderByCondition;
-import org.talend.components.dynamicscrm.source.OrderByCondition.Order;
-import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.junit5.WithComponents;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.talend.components.dynamicscrm.service.I18n;
+import org.talend.components.dynamicscrm.source.DynamicsCrmInputMapperConfiguration.Operator;
+import org.talend.components.dynamicscrm.source.FilterCondition.FilterOperator;
+import org.talend.components.dynamicscrm.source.OrderByCondition.Order;
+import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.junit5.WithComponents;
 
 @WithComponents("org.talend.components.dynamicscrm")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

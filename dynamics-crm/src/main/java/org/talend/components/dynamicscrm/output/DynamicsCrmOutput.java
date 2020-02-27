@@ -44,8 +44,8 @@ import org.talend.sdk.component.api.service.Service;
 
 @Version(1)
 @Icon(value = IconType.CUSTOM, custom = "azure-dynamics")
-@Processor(name = "DynamicsCrmOutput")
-@Documentation("Dynamics CRM output")
+@Processor(name = "AzureDynamics365Output")
+@Documentation("Azure Dynamics 365 output")
 public class DynamicsCrmOutput implements Serializable {
 
     private final DynamicsCrmOutputConfiguration configuration;

@@ -15,15 +15,16 @@ package org.talend.components.dynamicscrm.output;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
+
+import javax.naming.AuthenticationException;
+import javax.naming.ServiceUnavailableException;
 
 import org.apache.olingo.client.api.domain.ClientEntity;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
@@ -34,18 +35,11 @@ import org.junit.jupiter.api.TestInstance;
 import org.talend.components.dynamicscrm.DynamicsCrmTestBase;
 import org.talend.components.dynamicscrm.dataset.DynamicsCrmDataset;
 import org.talend.components.dynamicscrm.output.DynamicsCrmOutputConfiguration.Action;
-import org.talend.ms.crm.odata.ClientConfiguration;
-import org.talend.ms.crm.odata.ClientConfiguration.WebAppPermission;
-import org.talend.ms.crm.odata.ClientConfigurationFactory;
-import org.talend.ms.crm.odata.DynamicsCRMClient;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
-
-import javax.naming.AuthenticationException;
-import javax.naming.ServiceUnavailableException;
 
 @WithComponents("org.talend.components.dynamicscrm")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -75,7 +69,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         components.setInputData(testRecords);
         Job.components() //
                 .component("in", "test://emitter") //
-                .component("out", "DynamicsCrm://DynamicsCrmOutput?" + config) //
+                .component("out", "Azure://AzureDynamics365Output?" + config) //
                 .connections() //
                 .from("in") //
                 .to("out") //
@@ -133,7 +127,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         components.setInputData(testRecords);
         Job.components() //
                 .component("in", "test://emitter") //
-                .component("out", "DynamicsCrm://DynamicsCrmOutput?" + config) //
+                .component("out", "Azure://AzureDynamics365Output?" + config) //
                 .connections() //
                 .from("in") //
                 .to("out") //
@@ -181,7 +175,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         components.setInputData(testRecords);
         Job.components() //
                 .component("in", "test://emitter") //
-                .component("out", "DynamicsCrm://DynamicsCrmOutput?" + config) //
+                .component("out", "Azure://AzureDynamics365Output?" + config) //
                 .connections() //
                 .from("in") //
                 .to("out") //

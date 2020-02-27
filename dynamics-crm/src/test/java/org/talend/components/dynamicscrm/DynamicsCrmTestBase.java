@@ -12,7 +12,6 @@
  */
 package org.talend.components.dynamicscrm;
 
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,8 +27,8 @@ import org.apache.olingo.client.api.uri.FilterFactory;
 import org.apache.olingo.client.core.uri.FilterFactoryImpl;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.talend.components.dynamicscrm.dataset.DynamicsCrmDataset;
-import org.talend.components.dynamicscrm.datastore.DynamicsCrmConnection;
 import org.talend.components.dynamicscrm.datastore.AppType;
+import org.talend.components.dynamicscrm.datastore.DynamicsCrmConnection;
 import org.talend.ms.crm.odata.ClientConfiguration;
 import org.talend.ms.crm.odata.ClientConfiguration.WebAppPermission;
 import org.talend.ms.crm.odata.ClientConfigurationFactory;
