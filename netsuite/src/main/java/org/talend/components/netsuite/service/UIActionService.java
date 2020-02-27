@@ -60,7 +60,7 @@ public class UIActionService {
 
     // is not relevant for pipeline designer
     public Schema guessSchema(@Option final NetSuiteDataSet dataSet) {
-        return service.getSchema(dataSet, null);
+        return service.getSchema(dataSet, null, null);
     }
 
     @Suggestions(LOAD_RECORD_TYPES)

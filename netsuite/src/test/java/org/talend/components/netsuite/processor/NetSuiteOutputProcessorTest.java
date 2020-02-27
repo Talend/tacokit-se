@@ -66,7 +66,7 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         NetSuiteClientService<?> clientService = netSuiteClientConnectionService.getClientService(dataSet.getDataStore(), i18n);
         TypeDesc typeDesc = clientService.getMetaDataSource().getTypeInfo("Account", dataSet.isEnableCustomization());
         NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService.getBasicMetaData(), i18n, factory,
-                netSuiteService.getSchema(dataSet, schemaFields), typeDesc, "2019.2");
+                netSuiteService.getSchema(dataSet, schemaFields, clientService), typeDesc, "2019.2");
         Record record = inputTransducer.read(() -> SampleData.prepareAccountRecord(null, testIdPrefix));
         buildAndRunCollectorJob(outputProperties, Collections.singletonList(record));
 
@@ -122,7 +122,7 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         TypeDesc typeDesc = clientService.getMetaDataSource().getTypeInfo("customrecordqacomp_custom_recordtype",
                 dataSet.isEnableCustomization());
         NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService.getBasicMetaData(), i18n, factory,
-                netSuiteService.getSchema(dataSet, schemaFields), typeDesc, "2019.2");
+                netSuiteService.getSchema(dataSet, schemaFields, clientService), typeDesc, "2019.2");
         NetSuiteInputProperties inputDataSet = new NetSuiteInputProperties();
         inputDataSet.setDataSet(dataSet);
 
@@ -176,7 +176,7 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         NetSuiteClientService<?> clientService = netSuiteClientConnectionService.getClientService(dataSet.getDataStore(), i18n);
         TypeDesc typeDesc = clientService.getMetaDataSource().getTypeInfo("PurchaseOrder", dataSet.isEnableCustomization());
         NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService.getBasicMetaData(), i18n, factory,
-                netSuiteService.getSchema(dataSet, schemaFields), typeDesc, "2019.2");
+                netSuiteService.getSchema(dataSet, schemaFields, clientService), typeDesc, "2019.2");
 
         Record record = inputTransducer.read(SampleData::preparePurchaseOrder);
 

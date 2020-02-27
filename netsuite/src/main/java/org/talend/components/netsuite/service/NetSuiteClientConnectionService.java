@@ -17,7 +17,6 @@ import org.talend.components.netsuite.runtime.NetSuiteEndpoint;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientFactory;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.cache.Cached;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,7 +37,7 @@ public class NetSuiteClientConnectionService {
         return endpoint.getClientService();
     }
 
-    @Cached(timeout = 300000)
+//    @Cached(timeout = 300000)
     public NetSuiteClientService<?> getClientService(NetSuiteDataStore dataStore, Messages i18n) {
         return connect(dataStore, i18n);
     }

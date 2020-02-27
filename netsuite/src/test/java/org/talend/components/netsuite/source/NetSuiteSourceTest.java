@@ -149,7 +149,7 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
         NetSuiteClientService<?> clientService = netSuiteClientConnectionService.getClientService(dataSet.getDataStore(), i18n);
         TypeDesc typeDesc = clientService.getMetaDataSource().getTypeInfo("Account", dataSet.isEnableCustomization());
         NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService.getBasicMetaData(), i18n, factory,
-                netSuiteService.getSchema(dataSet, schemaFields), typeDesc, "2019.2");
+                netSuiteService.getSchema(dataSet, schemaFields, clientService), typeDesc, "2019.2");
         List<Record> newRecords = new LinkedList<>();
         for (int i = 0; i < numberOfRecords; i++) {
             int num = i;

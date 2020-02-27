@@ -46,24 +46,28 @@ public class NetSuiteInputSource implements Serializable {
 
     private NetSuiteService netSuiteService;
 
-    private NetSuiteClientConnectionService netSuiteClientConnectionService;
+//    private NetSuiteClientConnectionService netSuiteClientConnectionService;
+
+    private NetSuiteClientService<?> clientService;
 
     public NetSuiteInputSource(@Option("configuration") final NetSuiteInputProperties configuration,
             final RecordBuilderFactory recordBuilderFactory, final Messages i18n, SearchResultSet<?> rs,
-            NetSuiteService netSuiteService, NetSuiteClientConnectionService netSuiteClientConnectionService) {
+            NetSuiteService netSuiteService, NetSuiteClientConnectionService netSuiteClientConnectionService,
+                               NetSuiteClientService<?> clientService) {
         this.configuration = configuration;
         this.recordBuilderFactory = recordBuilderFactory;
         this.i18n = i18n;
         this.rs = rs;
         this.netSuiteService = netSuiteService;
-        this.netSuiteClientConnectionService = netSuiteClientConnectionService;
+//        this.netSuiteClientConnectionService = netSuiteClientConnectionService;
+        this.clientService = clientService;
     }
 
     @PostConstruct
     public void init() {
-        NetSuiteClientService<?> clientService = netSuiteClientConnectionService
-                .getClientService(configuration.getDataSet().getDataStore(), i18n);
-        Schema runtimeSchema = netSuiteService.getSchema(configuration.getDataSet(), null);
+//        NetSuiteClientService<?> clientService = netSuiteClientConnectionService
+//                .getClientService(configuration.getDataSet().getDataStore(), i18n);
+        Schema runtimeSchema = netSuiteService.getSchema(configuration.getDataSet(), null, clientService);
         RecordTypeInfo recordTypeInfo = rs.getRecordTypeDesc();
         TypeDesc typeDesc = clientService.getMetaDataSource().getTypeInfo(recordTypeInfo.getName(),
                 configuration.getDataSet().isEnableCustomization());

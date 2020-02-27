@@ -90,8 +90,10 @@ public class NetSuiteService {
                 .map(searchField -> new SuggestionValues.Item(searchField, searchField)).collect(Collectors.toList());
     }
 
-    public Schema getSchema(NetSuiteDataSet dataSet, List<String> stringSchema) {
-        NetSuiteClientService<?> clientService = netSuiteClientConnectionService.getClientService(dataSet.getDataStore(), i18n);
+    public Schema getSchema(NetSuiteDataSet dataSet, List<String> stringSchema, NetSuiteClientService<?> clientService) {
+        if (clientService == null) {
+            clientService = netSuiteClientConnectionService.getClientService(dataSet.getDataStore(), i18n);
+        }
         final boolean schemaNotDesigned = (stringSchema == null);
         Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD);
         clientService.getMetaDataSource().getTypeInfo(dataSet.getRecordType(), dataSet.isEnableCustomization()).getFields()

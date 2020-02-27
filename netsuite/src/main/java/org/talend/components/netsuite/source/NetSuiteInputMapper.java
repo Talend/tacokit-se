@@ -127,6 +127,6 @@ public class NetSuiteInputMapper implements Serializable {
         SearchResultSet<?> srs = new SearchResultSet<>(clientService, recordTypeName, pageSelection,
                 configuration.getDataSet().isEnableCustomization());
         return new NetSuiteInputSource(configuration, recordBuilderFactory, i18n, srs, netSuiteService,
-                netSuiteClientConnectionService);
+                netSuiteClientConnectionService, clientService);
     }
 }
