@@ -75,11 +75,12 @@ public class GoogleStorageOutput implements Serializable {
 
     @AfterGroup
     public void write(final Collection<Record> records) {
+        if (this.recordWriter == null) {
+            throw new IllegalStateException(this.i18n.outputWasNotInitialize());
+        }
         try {
-            if (this.recordWriter != null) {
-                this.recordWriter.add(records);
-                this.recordWriter.flush();
-            }
+            this.recordWriter.add(records);
+            this.recordWriter.flush();
         } catch (IOException exIO) {
             String errorLib = this.i18n.writeError(this.getDataSet().getBucket(), this.getDataSet().getBlob(), exIO.getMessage());
             log.error(errorLib);

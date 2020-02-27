@@ -12,6 +12,7 @@
  */
 package org.talend.components.google.storage.service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -35,6 +36,7 @@ import com.google.cloud.storage.Storage.BlobField;
 import com.google.cloud.storage.Storage.BlobListOption;
 import com.google.cloud.storage.Storage.BucketField;
 import com.google.cloud.storage.Storage.BucketListOption;
+import com.google.cloud.storage.StorageException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -74,19 +76,32 @@ public class GSService {
 
     @Suggestions(ACTION_SUGGESTION_BUCKET)
     public SuggestionValues findBucketsName(@Option("dataStore") GSDataStore dataStore) {
-        final Storage storage = this.newStorage(dataStore);
-        final Page<Bucket> buckets = storage.list(BucketListOption.fields(BucketField.NAME));
+        try {
+            final Storage storage = this.newStorage(dataStore);
+            final Page<Bucket> buckets = storage.list(BucketListOption.fields(BucketField.NAME));
 
-        return this.retrieveItems(buckets, Bucket::getName);
+            return this.retrieveItems(buckets, Bucket::getName);
+        } catch (StorageException ex) {
+            log.error("google storage exception", ex);
+            return new SuggestionValues(false, Collections.emptyList());
+        }
     }
 
     @Suggestions(ACTION_SUGGESTION_BLOB)
     public SuggestionValues findBlobsName(@Option("dataStore") GSDataStore dataStore, @Option("bucket") String bucket) {
-        final Storage storage = this.newStorage(dataStore);
-        final Bucket googleBucket = storage.get(bucket);
-        final Page<Blob> blobs = googleBucket.list(BlobListOption.fields(BlobField.NAME));
+        try {
+            final Storage storage = this.newStorage(dataStore);
+            final Bucket googleBucket = storage.get(bucket);
+            if (googleBucket == null) { // bucket not exist.
+                return new SuggestionValues(false, Collections.emptyList());
+            }
+            final Page<Blob> blobs = googleBucket.list(BlobListOption.fields(BlobField.NAME));
 
-        return this.retrieveItems(blobs, Blob::getName);
+            return this.retrieveItems(blobs, Blob::getName);
+        } catch (StorageException ex) {
+            log.error("google storage exception", ex);
+            return new SuggestionValues(false, Collections.emptyList());
+        }
     }
 
     private Storage newStorage(GSDataStore dataStore) {
@@ -95,8 +110,10 @@ public class GSService {
     }
 
     private <T> SuggestionValues retrieveItems(Page<T> pages, Function<T, String> toName) {
-        final List<SuggestionValues.Item> names = StreamSupport.stream(pages.iterateAll().spliterator(), false).map(toName)
-                .map((String name) -> new SuggestionValues.Item(name, name)).collect(Collectors.toList());
+        final List<SuggestionValues.Item> names = StreamSupport.stream(pages.iterateAll().spliterator(), false) //
+                .map(toName) // T -> name
+                .map((String name) -> new SuggestionValues.Item(name, name)) // name -> suggestion values item.
+                .collect(Collectors.toList());
         return new SuggestionValues(!names.isEmpty(), names);
     }
 }

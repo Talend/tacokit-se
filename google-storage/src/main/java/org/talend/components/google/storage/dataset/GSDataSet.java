@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @DataSet("GoogleStorageDataSet")
 @GridLayout({ @GridLayout.Row("dataStore"), @GridLayout.Row({ "bucket", "blob" }), @GridLayout.Row("contentFormat") })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("contentFormat") })
-@Documentation("Dataset for workday")
+@Documentation("Dataset for google storage")
 @Slf4j
 public class GSDataSet implements Serializable {
 
