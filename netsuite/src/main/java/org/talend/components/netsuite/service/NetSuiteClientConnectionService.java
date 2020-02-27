@@ -37,7 +37,6 @@ public class NetSuiteClientConnectionService {
         return endpoint.getClientService();
     }
 
-//    @Cached(timeout = 300000)
     public NetSuiteClientService<?> getClientService(NetSuiteDataStore dataStore, Messages i18n) {
         return connect(dataStore, i18n);
     }
