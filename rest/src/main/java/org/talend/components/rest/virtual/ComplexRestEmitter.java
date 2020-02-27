@@ -14,6 +14,7 @@ package org.talend.components.rest.virtual;
 
 import lombok.RequiredArgsConstructor;
 import org.talend.components.extension.polling.api.Pollable;
+import org.talend.components.extension.polling.api.Resumable;
 import org.talend.components.rest.processor.JSonExtractor;
 import org.talend.components.rest.processor.JsonExtractorService;
 import org.talend.components.rest.service.CompletePayload;
@@ -39,7 +40,7 @@ import java.util.List;
 @Documentation("Http REST Input component")
 @RequiredArgsConstructor
 @Pollable
-public class ComplexRestEmitter implements Serializable {
+public class ComplexRestEmitter implements Serializable, Resumable<Object> {
 
     private final ComplexRestConfiguration configuration;
 
@@ -49,9 +50,15 @@ public class ComplexRestEmitter implements Serializable {
 
     private transient LinkedList<Object> items = null;
 
+    private transient boolean resume = false;
+
+    public void resume(Object configutation) {
+        resume = true;
+    }
+
     @Producer
     public Object next() {
-        if (items == null) {
+        if (items == null || resume) {
             items = new LinkedList<>();
             final RestEmitter delegateSource = new RestEmitter(configuration.getDataset().getRestConfiguration(), client);
             final CompletePayload global = delegateSource.next();

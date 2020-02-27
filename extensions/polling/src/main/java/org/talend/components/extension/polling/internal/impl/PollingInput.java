@@ -15,6 +15,8 @@ package org.talend.components.extension.polling.internal.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.extension.polling.api.Resumable;
+import org.talend.sdk.component.runtime.base.Delegated;
 import org.talend.sdk.component.runtime.input.Input;
 
 import java.io.Serializable;
@@ -36,8 +38,10 @@ public class PollingInput implements Input, Serializable {
 
         final long duration = current - this.lastExec.get();
         if (duration < pollingConfiguration.getDelay()) {
-            return null;
+            return null; // currenty resume not supported, just to know that we will recall the input
         }
+
+        Resumable.class.cast(Delegated.class.cast(input).getDelegate()).resume(null);
 
         log.info("Call batch input from polling after {} ms.", duration);
         this.lastExec.set(current);

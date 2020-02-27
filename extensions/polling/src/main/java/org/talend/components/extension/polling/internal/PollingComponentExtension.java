@@ -25,6 +25,7 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.injector.Injector;
 import org.talend.sdk.component.container.Container;
+import org.talend.sdk.component.design.extension.DesignModel;
 import org.talend.sdk.component.design.extension.RepositoryModel;
 import org.talend.sdk.component.design.extension.repository.Config;
 import org.talend.sdk.component.design.extension.repository.ConfigKey;
@@ -163,7 +164,8 @@ public class PollingComponentExtension implements CustomComponentExtension {
                 origin.isLogMissingResourceBundle());
     }
 
-    private void processFamily(final Container container, final ComponentFamilyMeta family, final List<String> duplicateDatasets, boolean duplicateDatasetOption) {
+    private void processFamily(final Container container, final ComponentFamilyMeta family, final List<String> duplicateDatasets,
+            boolean duplicateDatasetOption) {
 
         if (duplicateDatasets.isEmpty() && duplicateDatasetOption) {
             return;
@@ -180,7 +182,8 @@ public class PollingComponentExtension implements CustomComponentExtension {
         final NeededServices neededServices = new NeededServices(services);
 
         final List<ComponentFamilyMeta.PartitionMapperMeta> newMappersMeta = pollables.stream()
-                .map(it -> toPartitionMapperMeta(it, allServices, neededServices, duplicateDatasets, duplicateDatasetOption)).collect(toList());
+                .map(it -> toPartitionMapperMeta(it, allServices, neededServices, duplicateDatasets, duplicateDatasetOption))
+                .collect(toList());
 
         // Now add all new partition mapper
         final Map<String, ComponentFamilyMeta.PartitionMapperMeta> newMappersMetaMap = newMappersMeta.stream()
@@ -192,10 +195,12 @@ public class PollingComponentExtension implements CustomComponentExtension {
     }
 
     private ComponentFamilyMeta.PartitionMapperMeta toPartitionMapperMeta(final PollableModel model,
-                                                                          final ComponentManager.AllServices allServices, final NeededServices neededServices,
-                                                                          final List<String> duplicateDatasets, boolean duplicateDatasetOption) {
+            final ComponentManager.AllServices allServices, final NeededServices neededServices,
+            final List<String> duplicateDatasets, boolean duplicateDatasetOption) {
 
-        final ComponentFamilyMeta.PartitionMapperMeta srcMapperMeta = (duplicateDatasetOption) ? duplicateDatasetInMeta(model.mapperMeta, duplicateDatasets) : model.mapperMeta;
+        final ComponentFamilyMeta.PartitionMapperMeta srcMapperMeta = (duplicateDatasetOption)
+                ? duplicateDatasetInMeta(model.mapperMeta, duplicateDatasets)
+                : model.mapperMeta;
 
         final Version annotation = PollingConfiguration.class.getAnnotation(Version.class);
         final int version = srcMapperMeta.getVersion() + annotation.value();
@@ -215,6 +220,7 @@ public class PollingComponentExtension implements CustomComponentExtension {
                 true) {
             // since constructor is protected
         };
+        partitionMapperMeta.set(DesignModel.class, srcMapperMeta.get(DesignModel.class));
 
         return partitionMapperMeta;
     }
@@ -238,12 +244,15 @@ public class PollingComponentExtension implements CustomComponentExtension {
                     return meta;
                 }));
 
-        return new ComponentFamilyMeta.PartitionMapperMeta(srcMapperMeta.getParent(), srcMapperMeta.getName(),
-                srcMapperMeta.getIcon(), srcMapperMeta.getVersion(), srcMapperMeta.getType(), lazyParameterMeta,
-                srcMapperMeta.getInstantiator(), srcMapperMeta.getMigrationHandler(), srcMapperMeta.isValidated(),
-                srcMapperMeta.isInfinite()) {
+        final ComponentFamilyMeta.PartitionMapperMeta newPartitionMapperMeta = new ComponentFamilyMeta.PartitionMapperMeta(
+                srcMapperMeta.getParent(), srcMapperMeta.getName(), srcMapperMeta.getIcon(), srcMapperMeta.getVersion(),
+                srcMapperMeta.getType(), lazyParameterMeta, srcMapperMeta.getInstantiator(), srcMapperMeta.getMigrationHandler(),
+                srcMapperMeta.isValidated(), srcMapperMeta.isInfinite()) {
             // since constructor is protected
         };
+        newPartitionMapperMeta.set(DesignModel.class, srcMapperMeta.get(DesignModel.class));
+
+        return newPartitionMapperMeta;
     }
 
     private List<ParameterMeta> copyParameters(final List<ParameterMeta> rawParams,
