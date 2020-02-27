@@ -12,6 +12,8 @@
  */
 package org.talend.components.dynamicscrm.output;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -153,13 +155,20 @@ public abstract class AbstractToEntityRecordProcessor implements RecordProcessor
         case STRING:
             return processString(fromRecord, entityType.getProperty(name), name);
         case INT:
-            Integer intValue;
+            Object intOrDateValue;
             if (fromRecord.getOptionalInt(name).isPresent()) {
-                intValue = fromRecord.getOptionalInt(name).getAsInt();
+                intOrDateValue = fromRecord.getOptionalInt(name).getAsInt();
+                // This is for Tacokit Date type - it's INT with number of days since epoch
+                EdmPrimitiveTypeKind primitiveTypeKind = EdmPrimitiveTypeKind
+                        .valueOfFQN(entityType.getProperty(name).getType().getFullQualifiedName());
+                if (primitiveTypeKind == EdmPrimitiveTypeKind.Date || primitiveTypeKind == EdmPrimitiveTypeKind.DateTimeOffset) {
+                    LocalDate date = LocalDate.ofEpochDay((Integer) intOrDateValue);
+                    intOrDateValue = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                }
             } else {
-                intValue = null;
+                intOrDateValue = null;
             }
-            return processPrimitive(entityType, name, intValue);
+            return processPrimitive(entityType, name, intOrDateValue);
         case DOUBLE:
             Double doubleValue;
             if (fromRecord.getOptionalDouble(name).isPresent()) {

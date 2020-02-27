@@ -12,6 +12,7 @@
  */
 package org.talend.components.dynamicscrm;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -112,7 +113,7 @@ public abstract class DynamicsCrmTestBase {
         FilterFactory filterFactory = new FilterFactoryImpl();
         queryOptionConfig.setFilter(filterFactory.eq("company", company).build());
         queryOptionConfig.setReturnEntityProperties(new String[] { "contactid", "annualincome", "assistantname", "business2",
-                "callback", "childrensnames", "company", "creditonhold", "_transactioncurrencyid_value" });
+                "callback", "childrensnames", "company", "creditonhold", "_transactioncurrencyid_value", "birthdate" });
         ODataEntitySetRequest<ClientEntitySet> request = client.createEntityRetrieveRequest(queryOptionConfig);
         ODataRetrieveResponse<ClientEntitySet> response = request.execute();
         return response.getBody().getEntities();
@@ -165,11 +166,14 @@ public abstract class DynamicsCrmTestBase {
                         .withElementSchema(builderFactory.newSchemaBuilder(Type.BOOLEAN).build()).build())
                 .withEntry(builderFactory.newEntryBuilder().withName("_transactioncurrencyid_value").withType(Type.STRING)
                         .withElementSchema(builderFactory.newSchemaBuilder(Type.STRING).build()).build())
+                .withEntry(builderFactory.newEntryBuilder().withName("birthdate").withType(Type.INT)
+                        .withElementSchema(builderFactory.newSchemaBuilder(Type.INT).build()).build())
                 .build();
         Record record = builderFactory.newRecordBuilder(schema).withFloat("annualincome", 2.0f)
                 .withString("assistantname", "assistant").withString("business2", "business2").withString("callback", "callback")
                 .withString("childrensnames", "childrensnames").withString("company", company).withBoolean("creditonhold", false)
-                .withString("_transactioncurrencyid_value", "dca1714c-6d1a-e311-a5fb-b4b52f67b688").build();
+                .withInt("birthdate", 6720).withString("_transactioncurrencyid_value", "dca1714c-6d1a-e311-a5fb-b4b52f67b688")
+                .build();
         return record;
     }
 

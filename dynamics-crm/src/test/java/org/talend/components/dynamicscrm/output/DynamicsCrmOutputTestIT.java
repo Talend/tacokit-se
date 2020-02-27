@@ -17,8 +17,12 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.olingo.client.api.domain.ClientEntity;
@@ -62,7 +66,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         configuration.setEmptyStringToNull(true);
         configuration.setAction(Action.INSERT);
         configuration.setColumns(Arrays.asList("annualincome", "assistantname", "business2", "callback", "childrensnames",
-                "company", "creditonhold", "_transactioncurrencyid_value"));
+                "company", "creditonhold", "_transactioncurrencyid_value", "birthdate"));
 
         configuration.setLookupMapping(Arrays.asList(new LookupMapping("_transactioncurrencyid_value", "transactioncurrencies")));
 
@@ -80,6 +84,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         List<ClientEntity> data = getData(client);
         assertEquals(1, data.size());
 
+        LocalDate date = LocalDate.ofEpochDay(6720);
         ClientEntity entity = data.get(0);
         assertEquals(false, entity.getProperty("creditonhold").getPrimitiveValue().toValue());
         assertEquals(2.0f, ((BigDecimal) entity.getProperty("annualincome").getPrimitiveValue().toValue()).floatValue());
@@ -90,6 +95,8 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         assertEquals(company, entity.getProperty("company").getPrimitiveValue().toString());
         assertEquals("dca1714c-6d1a-e311-a5fb-b4b52f67b688",
                 entity.getProperty("_transactioncurrencyid_value").getPrimitiveValue().toString());
+        assertEquals(Timestamp.valueOf(date.atTime(LocalTime.MIDNIGHT)),
+                entity.getProperty("birthdate").getPrimitiveValue().toValue());
     }
 
     @Test
@@ -117,7 +124,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         configuration.setEmptyStringToNull(true);
         configuration.setAction(Action.UPDATE);
         configuration.setColumns(Arrays.asList("annualincome", "assistantname", "business2", "callback", "childrensnames",
-                "company", "creditonhold", "_transactioncurrencyid_value"));
+                "company", "creditonhold", "_transactioncurrencyid_value", "birthdate"));
 
         configuration.setLookupMapping(Arrays.asList(new LookupMapping("_transactioncurrencyid_value", "transactioncurrencies")));
 
@@ -135,6 +142,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         List<ClientEntity> data = getData(client);
         assertEquals(1, data.size());
 
+        LocalDate date = LocalDate.ofEpochDay(6720);
         ClientEntity resultEntity = data.get(0);
         assertEquals(false, resultEntity.getProperty("creditonhold").getPrimitiveValue().toValue());
         assertEquals(2.0f, ((BigDecimal) resultEntity.getProperty("annualincome").getPrimitiveValue().toValue()).floatValue());
@@ -145,6 +153,8 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         assertEquals(company, resultEntity.getProperty("company").getPrimitiveValue().toString());
         assertEquals("dca1714c-6d1a-e311-a5fb-b4b52f67b688",
                 resultEntity.getProperty("_transactioncurrencyid_value").getPrimitiveValue().toString());
+        assertEquals(Timestamp.valueOf(date.atTime(LocalTime.MIDNIGHT)),
+                resultEntity.getProperty("birthdate").getPrimitiveValue().toValue());
     }
 
     @Test
@@ -204,11 +214,14 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
                         .withElementSchema(builderFactory.newSchemaBuilder(Type.STRING).build()).build())
                 .withEntry(builderFactory.newEntryBuilder().withName("creditonhold").withType(Type.BOOLEAN)
                         .withElementSchema(builderFactory.newSchemaBuilder(Type.BOOLEAN).build()).build())
+                // DATE type in Tcomp record
+                .withEntry(builderFactory.newEntryBuilder().withName("birthdate").withType(Type.INT)
+                        .withElementSchema(builderFactory.newSchemaBuilder(Type.INT).build()).build())
                 .build();
         Record testRecord = builderFactory.newRecordBuilder(schema).withString("contactid", id).withFloat("annualincome", 2.0f)
                 .withString("assistantname", "assistant").withString("business2", "business2").withString("callback", "callback")
                 .withString("childrensnames", "childrensnames").withString("company", company).withBoolean("creditonhold", false)
-                .build();
+                .withInt("birthdate", 6720).build();
         return testRecord;
     }
 
