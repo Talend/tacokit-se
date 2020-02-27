@@ -31,10 +31,9 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 @GridLayout({ @GridLayout.Row("contentFormat"), //
-        @GridLayout.Row({ "csvConfiguration", "jsonConfiguration", "avroConfiguration",
-                "excelConfiguration" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "csvConfiguration",
-        "jsonConfiguration", "avroConfiguration", "excelConfiguration" }) })
+        @GridLayout.Row({ "csvConfiguration", "jsonConfiguration", "avroConfiguration", "excelConfiguration" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = {
+        @GridLayout.Row({ "csvConfiguration", "jsonConfiguration", "avroConfiguration", "excelConfiguration" }) })
 @Documentation("Stream content configuration.")
 public class FormatConfiguration implements Serializable {
 

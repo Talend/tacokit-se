@@ -27,6 +27,7 @@ import lombok.Data;
 public class OutputConfiguration implements Serializable {
 
     /** serialization */
+    private static final long serialVersionUID = -1486222551209613659L;
 
     @Option
     @Documentation("Google storage data set.")

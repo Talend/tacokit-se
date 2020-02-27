@@ -29,4 +29,5 @@ public interface I18nMessage {
 
     String getCredentials(String exception);
 
+    String outputWasNotInitialize();
 }
