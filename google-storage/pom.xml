@@ -51,7 +51,11 @@
             <artifactId>stream-avro</artifactId>
             <version>${project.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.talend.components</groupId>
+            <artifactId>stream-excel</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Testing -->
         <dependency>
