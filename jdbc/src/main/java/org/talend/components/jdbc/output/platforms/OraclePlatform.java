@@ -104,6 +104,7 @@ public class OraclePlatform extends Platform {
         case DATETIME:
             return "TIMESTAMP(6)";
         case BOOLEAN:
+            throw new IllegalStateException(getI18n().errorUnsupportedBooleanType4Oracle(column.getName()));
         case RECORD:
         case ARRAY:
         default:
