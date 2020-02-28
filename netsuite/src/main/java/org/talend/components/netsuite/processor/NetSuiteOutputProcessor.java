@@ -149,24 +149,15 @@ public class NetSuiteOutputProcessor implements Serializable {
         inputRecordList.add(record);
     }
 
-    /**
-     * Process and write given list of <code>Record</code>s.
-     *
-     * @param recordList list of records to be processed
-     */
-    private void write(List<Record> recordList) {
-        if (recordList.isEmpty()) {
-            return;
-        }
-
+    private void write() {
         int processed = 0;
-        while (processed < recordList.size()) {
-            List<Object> nsObjectList = recordList.stream().skip(processed).limit(MAX_OUTPUT_BATCH_SIZE).map(transducer::write)
+        while (processed < inputRecordList.size()) {
+            List<Object> nsObjectList = inputRecordList.stream().skip(processed).limit(MAX_OUTPUT_BATCH_SIZE).map(transducer::write)
                     .collect(toList());
-            processed += MAX_OUTPUT_BATCH_SIZE;
+            processed += nsObjectList.size();
             dataActionFunction.apply(nsObjectList).forEach(this::processWriteResponse);
-            inputRecordList.clear();
         }
+        inputRecordList.clear();
     }
 
     private void processWriteResponse(NsWriteResponse<?> response) {
@@ -177,13 +168,13 @@ public class NetSuiteOutputProcessor implements Serializable {
 
     @AfterGroup
     public void afterGroup() {
-        write(inputRecordList);
+        write();
     }
 
     @PreDestroy
     public void release() {
         if (!inputRecordList.isEmpty()) {
-            write(inputRecordList);
+            write();
         }
     }
 
