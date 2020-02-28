@@ -13,7 +13,6 @@
 package org.talend.components.extension.polling.mapper;
 
 import lombok.Data;
-import org.talend.components.extension.polling.api.Pollable;
 import org.talend.components.extension.polling.api.PollableDuplicateDataset;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;

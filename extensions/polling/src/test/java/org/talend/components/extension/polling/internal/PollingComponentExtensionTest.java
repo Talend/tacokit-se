@@ -122,7 +122,7 @@ public class PollingComponentExtensionTest {
         assertEquals(TEST_NB_EXPECTED_ROWS, records.size());
 
         for (int i = 1; i <= records.size(); i++) {
-            assertEquals("Data/abcde" + i, records.get(i - 1).getString("valueStr"));
+            assertEquals("Data/abcde" + i + "/" + i, records.get(i - 1).getString("valueStr"));
             assertEquals(1234 + i, records.get(i - 1).getInt("valueInt"));
         }
     }

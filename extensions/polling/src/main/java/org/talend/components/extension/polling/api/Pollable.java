@@ -25,4 +25,6 @@ public @interface Pollable {
 
     String icon() default "";
 
+    String resumeMethod() default "";
+
 }

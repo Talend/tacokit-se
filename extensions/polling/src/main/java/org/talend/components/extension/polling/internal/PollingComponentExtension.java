@@ -40,7 +40,6 @@ import org.talend.sdk.component.runtime.manager.util.IdGenerator;
 import org.talend.sdk.component.runtime.manager.util.Lazy;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -55,7 +54,6 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static java.util.Collections.singletonMap;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;

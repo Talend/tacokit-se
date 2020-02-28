@@ -13,7 +13,6 @@
 package org.talend.components.extension.polling.mapper;
 
 import lombok.AllArgsConstructor;
-import org.talend.components.extension.polling.api.Pollable;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Emitter;
 import org.talend.sdk.component.api.input.Producer;

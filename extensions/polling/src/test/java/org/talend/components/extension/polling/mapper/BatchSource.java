@@ -21,7 +21,7 @@ import org.talend.sdk.component.api.input.Producer;
 
 import java.io.Serializable;
 
-@Pollable(icon = "pollableSource", name = "MyPollable")
+@Pollable(icon = "pollableSource", name = "MyPollable", resumeMethod = "resume")
 @Emitter(family = "mytest", name = "BatchSource")
 public class BatchSource implements Serializable {
 
@@ -29,8 +29,14 @@ public class BatchSource implements Serializable {
 
     private int currentRow = 0;
 
+    private int resumeInc = 0;
+
     public BatchSource(@Option("configuration") final BatchConfig config) {
         this.config = config;
+    }
+
+    public void resume(Object o) {
+        resumeInc++;
     }
 
     @Producer
@@ -44,7 +50,7 @@ public class BatchSource implements Serializable {
 
         if (currentRow < PollingComponentExtensionTest.TEST_NB_EXPECTED_ROWS) {
             currentRow++;
-            return new Data("Data/" + config.getParam1() + currentRow, config.getParam0() + currentRow);
+            return new Data("Data/" + config.getParam1() + currentRow + "/" + resumeInc, config.getParam0() + currentRow);
         }
 
         return null;
