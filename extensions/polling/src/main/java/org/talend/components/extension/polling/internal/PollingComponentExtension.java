@@ -396,8 +396,10 @@ public class PollingComponentExtension implements CustomComponentExtension {
             rootPollingMetadata.put("ui::gridlayout::Main::value", String.join("|", rawPollingNames));
             rootPollingMetadata.put("ui::gridlayout::Advanced::value", String.join("|", rawPollingNames));
 
+            log.info("??????????????????????????????????????????????? 1100");
             final ParameterMeta rootPollingMeta = new ParameterMeta(null, Object.class, ParameterMeta.Type.OBJECT,
-                    POLLING_CONFIGURATION_KEY, POLLING_CONFIGURATION_KEY, new String[] { mapperMeta.getPackageName() },
+                    POLLING_CONFIGURATION_KEY, POLLING_CONFIGURATION_KEY,
+                    new String[] { PollingMapper.class.getPackage().getName() },
                     prefixWith(POLLING_CONFIGURATION_KEY, pollingRawMetas).collect(toList()), emptyList(), rootPollingMetadata,
                     false);
 
