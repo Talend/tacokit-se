@@ -50,7 +50,6 @@
         <module>bigquery</module>
         <module>workday</module>
         <module>pubsub</module>
-        <module>google-storage</module>
     </modules>
 
     <scm>
@@ -419,13 +418,6 @@
                 <artifactId>talend-component-maven-plugin</artifactId>
                 <version>${component-runtime.version}</version>
                 <executions>
-                    <execution>
-                        <id>talend-svg2png</id>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>svg2png</goal>
-                        </goals>
-                    </execution>
                     <execution>
                         <id>talend-dita-documentation</id>
                         <phase>process-classes</phase>
