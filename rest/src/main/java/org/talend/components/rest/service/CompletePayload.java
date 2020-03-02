@@ -15,11 +15,13 @@ package org.talend.components.rest.service;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
+import javax.json.bind.annotation.JsonbPropertyOrder;
 import java.util.HashMap;
 import java.util.Map;
 
 @Data
 @RequiredArgsConstructor
+@JsonbPropertyOrder({ "status", "headers", "body" })
 public class CompletePayload {
 
     final private int status;
