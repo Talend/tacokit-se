@@ -14,7 +14,6 @@ package org.talend.components.rest.virtual;
 
 import lombok.RequiredArgsConstructor;
 import org.talend.components.extension.polling.api.Pollable;
-import org.talend.components.extension.polling.api.Resumable;
 import org.talend.components.rest.processor.JSonExtractor;
 import org.talend.components.rest.processor.JsonExtractorService;
 import org.talend.components.rest.service.CompletePayload;
@@ -26,21 +25,18 @@ import org.talend.sdk.component.api.input.Emitter;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import javax.json.JsonObject;
 import javax.json.JsonStructure;
 import javax.json.JsonValue;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 
 @Version(1)
 @Icon(value = Icon.IconType.CUSTOM, custom = "talend-rest")
 @Emitter(name = "Input")
 @Documentation("Http REST Input component")
 @RequiredArgsConstructor
-@Pollable
-public class ComplexRestEmitter implements Serializable, Resumable<Object> {
+@Pollable(name = "Polling", resumeMethod = "resume")
+public class ComplexRestEmitter implements Serializable {
 
     private final ComplexRestConfiguration configuration;
 
@@ -52,13 +48,15 @@ public class ComplexRestEmitter implements Serializable, Resumable<Object> {
 
     private transient boolean resume = false;
 
-    public void resume(Object configutation) {
+    public void resume(Object configuration) {
         resume = true;
     }
 
     @Producer
     public Object next() {
         if (items == null || resume) {
+            resume = false;
+
             items = new LinkedList<>();
             final RestEmitter delegateSource = new RestEmitter(configuration.getDataset().getRestConfiguration(), client);
             final CompletePayload global = delegateSource.next();
