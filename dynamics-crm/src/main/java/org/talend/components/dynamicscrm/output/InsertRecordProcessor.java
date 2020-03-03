@@ -22,6 +22,7 @@ import org.talend.sdk.component.api.record.Record;
 
 import javax.naming.ServiceUnavailableException;
 import java.util.List;
+import java.util.Map;
 
 public class InsertRecordProcessor extends AbstractToEntityRecordProcessor {
 
@@ -32,6 +33,13 @@ public class InsertRecordProcessor extends AbstractToEntityRecordProcessor {
 
     @Override
     protected void doProcessRecord(ClientEntity entity, Record record) throws ServiceUnavailableException {
+        for (Map.Entry<String, String> lookupEntry : lookupMapping.entrySet()) {
+            if (columnNames.contains(lookupEntry.getKey())) {
+                client.addOrSkipEntityNavigationLink(entity, lookupEntry.getValue(),
+                        client.extractNavigationLinkName(lookupEntry.getKey()), record.getString(lookupEntry.getKey()),
+                        configuration.isEmptyStringToNull(), configuration.isIgnoreNull());
+            }
+        }
         client.insertEntity(entity);
     }
 }

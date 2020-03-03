@@ -21,7 +21,9 @@ import org.talend.ms.crm.odata.DynamicsCRMClient;
 import org.talend.sdk.component.api.record.Record;
 
 import javax.naming.ServiceUnavailableException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class UpdateRecordProcessor extends AbstractToEntityRecordProcessor {
 
@@ -32,8 +34,21 @@ public class UpdateRecordProcessor extends AbstractToEntityRecordProcessor {
 
     @Override
     protected void doProcessRecord(ClientEntity entity, Record record) throws ServiceUnavailableException {
+        // We need to obtain list of navigation links to delete
+        List<String> navigationLinksToDelete = new ArrayList<>();
+        for (Map.Entry<String, String> lookupEntry : lookupMapping.entrySet()) {
+            if (!columnNames.contains(lookupEntry.getKey())) {
+                continue;
+            }
+            if (!client.addOrSkipEntityNavigationLink(entity, lookupEntry.getValue(),
+                    client.extractNavigationLinkName(lookupEntry.getKey()), record.getString(lookupEntry.getKey()),
+                    configuration.isEmptyStringToNull(), configuration.isIgnoreNull())) {
+                navigationLinksToDelete.add(client.extractNavigationLinkName(lookupEntry.getKey()));
+            }
+        }
         // There is only one key in Microsoft CRM objects
         client.updateEntity(entity,
-                record.getString(entitySet.getEntityType().getKeyPropertyRefs().get(0).getProperty().getName()));
+                record.getString(entitySet.getEntityType().getKeyPropertyRefs().get(0).getProperty().getName()),
+                navigationLinksToDelete);
     }
 }

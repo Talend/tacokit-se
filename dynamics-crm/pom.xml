@@ -51,7 +51,7 @@
         <dependency>
             <groupId>org.talend.libraries</groupId>
             <artifactId>talend-mscrm</artifactId>
-            <version>3.4-20200213</version>
+            <version>3.4-20200303</version>
         </dependency>
     </dependencies>
 

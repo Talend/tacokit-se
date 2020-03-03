@@ -105,13 +105,6 @@ public abstract class AbstractToEntityRecordProcessor implements RecordProcessor
 
     protected ClientEntity createEntity(Set<String> columnNames, Record record) {
         ClientEntity entity = client.getClient().getObjectFactory().newEntity(entitySet.getEntityType().getFullQualifiedName());
-        for (Map.Entry<String, String> lookupEntry : lookupMapping.entrySet()) {
-            if (columnNames.contains(lookupEntry.getKey())) {
-                client.addEntityNavigationLink(entity, lookupEntry.getValue(), lookupEntry.getKey(),
-                        record.getString(lookupEntry.getKey()), configuration.isEmptyStringToNull(),
-                        configuration.isIgnoreNull());
-            }
-        }
         for (Schema.Entry entry : record.getSchema().getEntries()) {
             // Need to filter not updateable/insertable fields and navigation properties.
             // Navigation properties cannot be inserted as a common property.
