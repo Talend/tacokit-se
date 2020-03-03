@@ -17,8 +17,8 @@ import org.talend.components.extension.polling.api.Pollable;
 import org.talend.components.extension.polling.api.PollableDuplicateDataset;
 import org.talend.components.extension.polling.internal.impl.PollingConfiguration;
 import org.talend.components.extension.polling.internal.impl.PollingMapper;
-import org.talend.components.extension.polling.mapper.BatchConfig;
-import org.talend.components.extension.polling.mapper.BatchSource;
+import org.talend.components.extension.polling.mapperA.BatchConfig;
+import org.talend.components.extension.polling.mapperA.BatchSource;
 import org.talend.components.extension.register.api.Contextual;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.container.Container;
@@ -56,7 +56,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
-@WithComponents("org.talend.components.extension.polling.mapper")
+@WithComponents("org.talend.components.extension.polling.mapperA")
 public class PollingComponentExtensionTest {
 
     public final static int TEST_POLLING_DELAY = 100;
@@ -73,7 +73,7 @@ public class PollingComponentExtensionTest {
     };
 
     @Test
-    void serialization() throws IOException, ClassNotFoundException {
+    void testSerialization() throws IOException, ClassNotFoundException {
         final Optional<Mapper> mapper = handler.asManager().findMapper("mytest", "MyPollable", 1, emptyMap());
         assertTrue(mapper.isPresent());
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -108,7 +108,6 @@ public class PollingComponentExtensionTest {
                 "configuration." + PollingComponentExtension.POLLING_CONFIGURATION_KEY + ".internal_polling_configuration")
                 .configured().toQueryString();
 
-        // If
         Job.components() //
                 .component("emitter", "mytest://MyPollable?" + String.join("&", mainConfigStr, pollingConfigStr)) //
                 .component("out", "test://collector") //

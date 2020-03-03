@@ -51,7 +51,7 @@ public class RegisteredComponentExtension implements ContainerListenerExtension 
 
     @Override
     public void onCreate(final Container container) {
-        log.info("************* RegisteredComponentExtension extension will load CustomComponentExtension...");
+        log.info("RegisteredComponentExtension extension will load CustomComponentExtension...");
         final List<CustomComponentExtension> extensions = loadExtensions(container);
         container.set(Closeables.class, new Closeables(extensions.stream().map(it -> it.onCreate(container))
                 .filter(Optional::isPresent).flatMap(Optional::get).collect(toList())));
@@ -79,7 +79,7 @@ public class RegisteredComponentExtension implements ContainerListenerExtension 
                         it -> ofNullable(it.getClass().getAnnotation(Priority.class)).map(Priority::value).orElse(1000)))
                 .collect(toList());
 
-        extensions.forEach(c -> log.info("*********** New loaded CustomComponentExtension : " + c.getClass().getName()));
+        extensions.forEach(c -> log.info("New loaded CustomComponentExtension : " + c.getClass().getName()));
 
         return extensions;
     }
