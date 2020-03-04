@@ -48,6 +48,7 @@ import com.netsuite.webservices.v2019_2.platform.core.types.SearchStringFieldOpe
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Disabled
 @WithComponents("org.talend.components.netsuite")
 public class NetSuiteSourceTest extends NetSuiteBaseTest {
 
