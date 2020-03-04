@@ -34,6 +34,12 @@ public class UpdateRecordProcessor extends AbstractToEntityRecordProcessor {
 
     @Override
     protected void doProcessRecord(ClientEntity entity, Record record) throws ServiceUnavailableException {
+        // There is only one key in Microsoft CRM objects
+        String keyField = entitySet.getEntityType().getKeyPropertyRefs().get(0).getProperty().getName();
+        String recordId = record.getString(keyField);
+        if (recordId == null || recordId.isEmpty()) {
+            throw new DynamicsCrmException(i18n.idCannotBeNull(keyField));
+        }
         // We need to obtain list of navigation links to delete
         List<String> navigationLinksToDelete = new ArrayList<>();
         for (Map.Entry<String, String> lookupEntry : lookupMapping.entrySet()) {
@@ -46,9 +52,6 @@ public class UpdateRecordProcessor extends AbstractToEntityRecordProcessor {
                 navigationLinksToDelete.add(client.extractNavigationLinkName(lookupEntry.getKey()));
             }
         }
-        // There is only one key in Microsoft CRM objects
-        client.updateEntity(entity,
-                record.getString(entitySet.getEntityType().getKeyPropertyRefs().get(0).getProperty().getName()),
-                navigationLinksToDelete);
+        client.updateEntity(entity, recordId, navigationLinksToDelete);
     }
 }

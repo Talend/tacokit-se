@@ -33,4 +33,5 @@ public interface I18n {
 
     String failedToInsertEntity(String message);
 
+    String idCannotBeNull(String keyFieldName);
 }

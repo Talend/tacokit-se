@@ -13,6 +13,7 @@
 package org.talend.components.dynamicscrm.output;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 import java.math.BigDecimal;
@@ -35,10 +36,12 @@ import org.junit.jupiter.api.TestInstance;
 import org.talend.components.dynamicscrm.DynamicsCrmTestBase;
 import org.talend.components.dynamicscrm.dataset.DynamicsCrmDataset;
 import org.talend.components.dynamicscrm.output.DynamicsCrmOutputConfiguration.Action;
+import org.talend.components.dynamicscrm.service.DynamicsCrmException;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.junit5.WithComponents;
+import org.talend.sdk.component.runtime.base.lang.exception.InvocationExceptionWrapper.ComponentException;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
 @WithComponents("org.talend.components.dynamicscrm")
@@ -152,6 +155,36 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
     }
 
     @Test
+    public void testUpdateWithNullKey() throws ServiceUnavailableException {
+        // When we try to update entity using null key we should get an exception
+        Record testRecord = createTestRecordWithId(null);
+
+        final DynamicsCrmDataset dataset = createDataset();
+        final DynamicsCrmOutputConfiguration configuration = new DynamicsCrmOutputConfiguration();
+        configuration.setDataset(dataset);
+        configuration.setIgnoreNull(true);
+        configuration.setEmptyStringToNull(true);
+        configuration.setAction(Action.UPDATE);
+        configuration.setColumns(Arrays.asList("annualincome", "assistantname", "business2", "callback", "childrensnames",
+                "company", "creditonhold", "_transactioncurrencyid_value", "birthdate"));
+
+        configuration.setLookupMapping(Arrays.asList(new LookupMapping("_transactioncurrencyid_value", "transactioncurrencies")));
+
+        final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
+        List<Record> testRecords = Collections.singletonList(testRecord);
+        components.setInputData(testRecords);
+        ComponentException exception = assertThrows(ComponentException.class, () -> Job.components() //
+                .component("in", "test://emitter") //
+                .component("out", "Azure://AzureDynamics365Output?" + config) //
+                .connections() //
+                .from("in") //
+                .to("out") //
+                .build().run());
+        assertEquals(DynamicsCrmException.class.getName(), exception.getOriginalType());
+        assertEquals(i18n.idCannotBeNull("contactid"), exception.getOriginalMessage());
+    }
+
+    @Test
     public void testDelete() throws ServiceUnavailableException {
         ClientEntity entity = createTestEntity(client);
         client.insertEntity(entity);
@@ -194,7 +227,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         Schema schema = builderFactory.newSchemaBuilder(Type.RECORD)
                 .withEntry(builderFactory.newEntryBuilder().withName("annualincome").withType(Type.FLOAT)
                         .withElementSchema(builderFactory.newSchemaBuilder(Type.FLOAT).build()).build())
-                .withEntry(builderFactory.newEntryBuilder().withName("contactid").withType(Type.STRING)
+                .withEntry(builderFactory.newEntryBuilder().withName("contactid").withType(Type.STRING).withNullable(true)
                         .withElementSchema(builderFactory.newSchemaBuilder(Type.STRING).build()).build())
                 .withEntry(builderFactory.newEntryBuilder().withName("assistantname").withType(Type.STRING)
                         .withElementSchema(builderFactory.newSchemaBuilder(Type.STRING).build()).build())

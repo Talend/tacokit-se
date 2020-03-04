@@ -29,6 +29,7 @@ import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.talend.components.dynamicscrm.dataset.DynamicsCrmDataset;
 import org.talend.components.dynamicscrm.datastore.AppType;
 import org.talend.components.dynamicscrm.datastore.DynamicsCrmConnection;
+import org.talend.components.dynamicscrm.service.I18n;
 import org.talend.ms.crm.odata.ClientConfiguration;
 import org.talend.ms.crm.odata.ClientConfiguration.WebAppPermission;
 import org.talend.ms.crm.odata.ClientConfigurationFactory;
@@ -65,6 +66,9 @@ public abstract class DynamicsCrmTestBase {
 
     @Service
     protected RecordBuilderFactory builderFactory;
+
+    @Service
+    protected I18n i18n;
 
     @DecryptedServer("dynamicscrm.userpwd")
     protected Server userPass;
