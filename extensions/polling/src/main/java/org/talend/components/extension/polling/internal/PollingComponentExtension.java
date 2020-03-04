@@ -127,7 +127,7 @@ public class PollingComponentExtension implements CustomComponentExtension {
     }
 
     private Collection<String> recursiveDuplicatePollableDataset(final List<Config> configs,
-                                                                 final ComponentFamilyMeta familyMeta) {
+            final ComponentFamilyMeta familyMeta) {
         return new ArrayList<>(configs).stream().flatMap(config -> {
             if ("dataset".equals(config.getKey().getConfigType())) {
                 final Class<?> datasetClass = Class.class.cast(config.getMeta().getJavaType());
@@ -170,7 +170,7 @@ public class PollingComponentExtension implements CustomComponentExtension {
 
     // Duplicate mappers
     private void processFamily(final Container container, final ComponentFamilyMeta family, final List<String> duplicateDatasets,
-                               boolean duplicateDatasetOption) {
+            boolean duplicateDatasetOption) {
 
         if (duplicateDatasets.isEmpty() && duplicateDatasetOption) {
             return;
@@ -202,8 +202,8 @@ public class PollingComponentExtension implements CustomComponentExtension {
 
     // Duplicate a mapper to pollable one
     private ComponentFamilyMeta.PartitionMapperMeta toPartitionMapperMeta(final PollableModel model,
-                                                                          final ComponentManager.AllServices allServices, final NeededServices neededServices,
-                                                                          final List<String> duplicateDatasets, boolean duplicateDatasetOption) {
+            final ComponentManager.AllServices allServices, final NeededServices neededServices,
+            final List<String> duplicateDatasets, boolean duplicateDatasetOption) {
 
         // If Dataset has been duplicated, must be reported in mapper meta
         final ComponentFamilyMeta.PartitionMapperMeta srcMapperMeta = (duplicateDatasetOption)
@@ -244,7 +244,7 @@ public class PollingComponentExtension implements CustomComponentExtension {
     }
 
     private ComponentFamilyMeta.PartitionMapperMeta duplicateDatasetInMeta(ComponentFamilyMeta.PartitionMapperMeta srcMapperMeta,
-                                                                           final List<String> duplicateDatasetOption) {
+            final List<String> duplicateDatasetOption) {
         if (duplicateDatasetOption.isEmpty()) {
             return srcMapperMeta;
         }
@@ -274,20 +274,20 @@ public class PollingComponentExtension implements CustomComponentExtension {
     }
 
     private List<ParameterMeta> copyParameters(final List<ParameterMeta> rawParams,
-                                               final Function<Map<String, String>, Map<String, String>> metaMapper) {
+            final Function<Map<String, String>, Map<String, String>> metaMapper) {
         return rawParams.stream().map(m -> copyParameterMeta(m, metaMapper)).collect(toList());
     }
 
     private ParameterMeta copyParameterMeta(final ParameterMeta m,
-                                            final Function<Map<String, String>, Map<String, String>> metaMapper) {
+            final Function<Map<String, String>, Map<String, String>> metaMapper) {
         return new ParameterMeta(m.getSource(), m.getJavaType(), m.getType(), m.getPath(), m.getName(), m.getI18nPackages(),
                 m.getNestedParameters() != null ? copyParameters(m.getNestedParameters(), metaMapper) : null, m.getProposals(),
                 metaMapper.apply(m.getMetadata()), m.isLogMissingResourceBundle());
     }
 
     private Supplier<MigrationHandler> createMigrationHandlerSupplier(final int currentVersion,
-                                                                      final ComponentFamilyMeta.PartitionMapperMeta mapperMeta, final ComponentManager.AllServices services,
-                                                                      final NeededServices neededServices, final AtomicReference<Supplier<List<ParameterMeta>>> pollingParameters) {
+            final ComponentFamilyMeta.PartitionMapperMeta mapperMeta, final ComponentManager.AllServices services,
+            final NeededServices neededServices, final AtomicReference<Supplier<List<ParameterMeta>>> pollingParameters) {
         // incomingVersion: version of the PollingConfiguration used when incomingData has been serialized
         return Lazy.lazy(() -> (incomingVersion, incomingData) -> {
 
@@ -352,8 +352,8 @@ public class PollingComponentExtension implements CustomComponentExtension {
     }
 
     private Function<Map<String, String>, Mapper> createInstantiator(final String name,
-                                                                     final ComponentFamilyMeta.PartitionMapperMeta initialMapperMeta,
-                                                                     final AtomicReference<Supplier<List<ParameterMeta>>> pollingParameters, NeededServices neededServices) {
+            final ComponentFamilyMeta.PartitionMapperMeta initialMapperMeta,
+            final AtomicReference<Supplier<List<ParameterMeta>>> pollingParameters, NeededServices neededServices) {
         return configuration -> {
             // split configuration
             final Map<String, Map<String, String>> confs = splitConfigurationPerSubComponent(configuration);
@@ -365,7 +365,7 @@ public class PollingComponentExtension implements CustomComponentExtension {
             Function<Map<String, String>, Object[]> pollingConfigurationFactory = null;
             try {
                 pollingConfigurationFactory = neededServices.reflectionService.parameterFactory(PollingComponentExtension.class
-                                .getMethod(METHOD_WITH_POLLING_CONFIGURATION_OPTION, PollingConfiguration.class), neededServices.services,
+                        .getMethod(METHOD_WITH_POLLING_CONFIGURATION_OPTION, PollingConfiguration.class), neededServices.services,
                         pollingParameters.get().get());
 
             } catch (NoSuchMethodException e) {
@@ -402,20 +402,19 @@ public class PollingComponentExtension implements CustomComponentExtension {
      * Not used by the instanciator since we overload it in this extension, but will be used by the component server for form.
      */
     private Supplier<List<ParameterMeta>> createConfigurationSupplier(final ComponentFamilyMeta.PartitionMapperMeta mapperMeta,
-                                                                      NeededServices neededServices, Version pollingConfigurationVersion,
-                                                                      final AtomicReference<Supplier<List<ParameterMeta>>> pollingParametersRef) {
+            NeededServices neededServices, Version pollingConfigurationVersion,
+            final AtomicReference<Supplier<List<ParameterMeta>>> pollingParametersRef) {
         return Lazy.lazy(() -> {
 
             final List<ParameterMeta> pollingRawMetas = getPollingConfigurationParameters(pollingParametersRef, neededServices,
                     mapperMeta.getType().getPackage()).get();
 
-            List<String> rawPollingNames = getNames(pollingRawMetas);
             final Map<String, String> rootPollingMetadata = new HashMap<>();
-            rootPollingMetadata.put("ui::gridlayout::Main::value", String.join("|", rawPollingNames));
-            rootPollingMetadata.put("ui::gridlayout::Advanced::value", String.join("|", rawPollingNames));
+            rootPollingMetadata.put("ui::gridlayout::Main::value", "internal_polling_configuration");
+            rootPollingMetadata.put("ui::gridlayout::Advanced::value", ""); // No advanced option for polling currently
 
             final ParameterMeta rootPollingMeta = new ParameterMeta(null, Object.class, ParameterMeta.Type.OBJECT,
-                    POLLING_CONFIGURATION_KEY, POLLING_CONFIGURATION_KEY, new String[]{mapperMeta.getPackageName()},
+                    POLLING_CONFIGURATION_KEY, POLLING_CONFIGURATION_KEY, new String[] { mapperMeta.getPackageName() },
                     prefixWith(POLLING_CONFIGURATION_KEY, pollingRawMetas).collect(toList()), emptyList(), rootPollingMetadata,
                     false);
 
@@ -426,7 +425,7 @@ public class PollingComponentExtension implements CustomComponentExtension {
             rootDelegateMetadata.put("ui::gridlayout::Advanced::value", String.join("|", delegateNames));
 
             final ParameterMeta rootDelegateMeta = new ParameterMeta(null, Object.class, ParameterMeta.Type.OBJECT,
-                    mapperMeta.getName(), mapperMeta.getName(), new String[]{mapperMeta.getPackageName()},
+                    mapperMeta.getName(), mapperMeta.getName(), new String[] { mapperMeta.getPackageName() },
                     prefixWith(mapperMeta.getName(), delegateMetas).collect(toList()), emptyList(), rootDelegateMetadata, false);
 
             final List<ParameterMeta> parameters = Stream
@@ -440,38 +439,36 @@ public class PollingComponentExtension implements CustomComponentExtension {
                 // 1st bloc to store mapper version
                 final String name = getVersionOptionName(mapperMeta);
                 final Map<String, String> metadata = new HashMap<>();
-                metadata.put(POLLING_EXTENSION_CONFIGURATION_KEY + "::synthetic", "true"); // Anotated as synthetic since created on the flow
+                // Anotated as synthetic since created on the flow
+                metadata.put(POLLING_EXTENSION_CONFIGURATION_KEY + "::synthetic", "true");
                 metadata.put("tcomp::ui::defaultvalue::value", Integer.toString(mapperMeta.getVersion()));
-                metadata.put("tcomp::condition::if::target", "missing"); // hide the 'name' property which contains the version of
-                // the initial mapper
+                // hide the 'name' property which contains the version of the initial mapper
+                metadata.put("tcomp::condition::if::target", "missing");
                 metadata.put("tcomp::condition::if::value", "true");
                 metadata.put("tcomp::condition::if::negate", "false");
                 metadata.put("tcomp::condition::if::evaluationStrategy", "DEFAULT");
 
                 parameters.add(new ParameterMeta(null, int.class, ParameterMeta.Type.NUMBER, ROOT_CONFIGURATION_KEY + "." + name,
-                        name, new String[]{mapperMeta.getPackageName()}, emptyList(), emptyList(), metadata, false));
+                        name, new String[] { mapperMeta.getPackageName() }, emptyList(), emptyList(), metadata, false));
             }
 
             {
                 // 2st bloc to store PollingConfiguration version
-                // POLLING_CONFIGURATION_KEY
-
-                // Intermedaite param
-                // new ParameterMeta(null, Object.class, ParameterMeta.Type.OBJECT, ROOT_CONFIGURATION_KEY+"."+)
 
                 // main param
                 final String name = POLLING_CONFIGURATION_VERSION_KEY;
                 final Map<String, String> metadata = new HashMap<>();
-                metadata.put(POLLING_EXTENSION_CONFIGURATION_KEY + "::synthetic", "true"); // Generated on the flow
+                // Generated on the flow
+                metadata.put(POLLING_EXTENSION_CONFIGURATION_KEY + "::synthetic", "true");
                 metadata.put("tcomp::ui::defaultvalue::value", Integer.toString(pollingConfigurationVersion.value()));
-                metadata.put("tcomp::condition::if::target", "missing"); // hide the 'name' property which contains the version of
-                // the initial mapper
+                // hide the 'name' property which contains the version of the initial mapper
+                metadata.put("tcomp::condition::if::target", "missing");
                 metadata.put("tcomp::condition::if::value", "true");
                 metadata.put("tcomp::condition::if::negate", "false");
                 metadata.put("tcomp::condition::if::evaluationStrategy", "DEFAULT");
 
                 parameters.add(new ParameterMeta(null, int.class, ParameterMeta.Type.NUMBER, ROOT_CONFIGURATION_KEY + "." + name,
-                        name, new String[]{mapperMeta.getPackageName()}, emptyList(), emptyList(), metadata, false));
+                        name, new String[] { mapperMeta.getPackageName() }, emptyList(), emptyList(), metadata, false));
             }
 
             List<String> parametersName = parameters.stream().filter(e -> '$' != e.getName().charAt(0)).map(e -> e.getName())
@@ -486,8 +483,8 @@ public class PollingComponentExtension implements CustomComponentExtension {
             // Add just the root level of the configuration.
             final List<ParameterMeta> rootParameterMetas = singletonList(new ParameterMeta(null, Object.class,
                     ParameterMeta.Type.OBJECT, ROOT_CONFIGURATION_KEY, ROOT_CONFIGURATION_KEY,
-                    new String[]{mapperMeta.getPackageName(), PollingConfiguration.class.getPackage()
-                            .getName()} /* for i18n we use the mapper one which owns the virtual comp */,
+                    new String[] { mapperMeta.getPackageName(), PollingConfiguration.class.getPackage()
+                            .getName() } /* for i18n we use the mapper one which owns the virtual comp */,
                     parameters, emptyList(), rootMetadata, false));
 
             return rootParameterMetas;
@@ -513,10 +510,10 @@ public class PollingComponentExtension implements CustomComponentExtension {
     private Stream<ParameterMeta> prefixWith(final String prefix, final List<ParameterMeta> parameterMetas) {
         return parameterMetas == null ? Stream.empty()
                 : parameterMetas.stream()
-                .map(it -> new ParameterMeta(it.getSource(), it.getJavaType(), it.getType(), prefix + '.' + it.getPath(),
-                        it.getName(), it.getI18nPackages(),
-                        prefixWith(prefix, it.getNestedParameters()).collect(toList()), it.getProposals(),
-                        it.getMetadata(), it.isLogMissingResourceBundle()));
+                        .map(it -> new ParameterMeta(it.getSource(), it.getJavaType(), it.getType(), prefix + '.' + it.getPath(),
+                                it.getName(), it.getI18nPackages(),
+                                prefixWith(prefix, it.getNestedParameters()).collect(toList()), it.getProposals(),
+                                it.getMetadata(), it.isLogMissingResourceBundle()));
     }
 
     /**
