@@ -37,10 +37,9 @@ import org.talend.components.netsuite.runtime.client.search.SearchQuery;
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.service.Messages;
 
-import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-@Data
 @Slf4j
 public abstract class NetSuiteClientService<PortT> {
 
@@ -60,6 +59,7 @@ public abstract class NetSuiteClientService<PortT> {
 
     private static final String JAXB_CONTEXT = "com.sun.xml.internal.bind.v2.runtime.JAXBContextImpl";
 
+    @Getter
     public Messages i18n;
 
     private boolean isLoggedIn = false;
@@ -108,7 +108,7 @@ public abstract class NetSuiteClientService<PortT> {
     protected boolean disableMandatoryCustomFieldValidation = false;
 
     /** Specifies whether to use request level credentials. */
-    protected boolean useRequestLevelCredentials = false;
+    protected boolean useRequestLevelCredentials = true;
 
     /** Specifies whether to use request token based authentication. */
     protected boolean useTokens = false;
@@ -117,10 +117,16 @@ public abstract class NetSuiteClientService<PortT> {
 
     protected PortT port;
 
-    /** Source of meta data. */
+    @Getter
     protected MetaDataSource metaDataSource;
 
-    protected NetSuiteClientService() {
+    protected NetSuiteClientService(String endpointUrl, NetSuiteCredentials credentials, NsTokenPassport tokenPassport,
+            Messages i18n) {
+        this.endpointUrl = endpointUrl;
+        this.credentials = credentials;
+        this.tokenPassport = tokenPassport;
+        this.i18n = i18n;
+
         String prefix = null;
         try {
             prefix = Class.forName(JAXB_CONTEXT_OLD).getName();
@@ -277,7 +283,7 @@ public abstract class NetSuiteClientService<PortT> {
                 login(false);
 
             R result = null;
-            for (int i = 0; i < getRetryCount(); i++) {
+            for (int i = 0; i < retryCount; i++) {
                 try {
                     result = op.execute(port);
                     break;
@@ -286,7 +292,7 @@ public abstract class NetSuiteClientService<PortT> {
                         log.debug("Attempting workaround, retrying ({})", (i + 1));
                         waitForRetryInterval();
                         if (execUsingLogin) {
-                            if (errorRequiresNewLogin(e) || i >= getRetriesBeforeLogin() - 1) {
+                            if (errorRequiresNewLogin(e) || i >= retriesBeforeLogin - 1) {
                                 log.debug("Re-logging in ({})", (i + 1));
                                 relogin();
                             }
@@ -444,7 +450,7 @@ public abstract class NetSuiteClientService<PortT> {
 
     protected void waitForRetryInterval() {
         try {
-            Thread.sleep(getRetryInterval() * 1000);
+            Thread.sleep(retryInterval * 1000);
         } catch (InterruptedException e) {
 
         }

@@ -46,9 +46,11 @@ import org.talend.components.netsuite.runtime.client.NsReadResponse;
 import org.talend.components.netsuite.runtime.client.NsSearchPreferences;
 import org.talend.components.netsuite.runtime.client.NsSearchResult;
 import org.talend.components.netsuite.runtime.client.NsStatus;
+import org.talend.components.netsuite.runtime.client.NsTokenPassport;
 import org.talend.components.netsuite.runtime.client.NsWriteResponse;
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.runtime.v2019_2.model.BasicMetaDataImpl;
+import org.talend.components.netsuite.service.Messages;
 
 import com.netsuite.webservices.v2019_2.platform.ExceededRequestLimitFault;
 import com.netsuite.webservices.v2019_2.platform.ExceededRequestSizeFault;
@@ -103,8 +105,9 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
 
     private TokenPassport nativeTokenPassport;
 
-    public NetSuiteClientServiceImpl() {
-        super();
+    public NetSuiteClientServiceImpl(String endpointUrl, NetSuiteCredentials credentials, NsTokenPassport tokenPassport,
+            Messages i18n) {
+        super(endpointUrl, credentials, tokenPassport, i18n);
 
         portAdapter = new PortAdapterImpl();
         metaDataSource = new DefaultMetaDataSource(this);
@@ -173,7 +176,7 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
         Status status = null;
         Object response;
         String exceptionMessage = null;
-        for (int i = 0; i < getRetryCount(); i++) {
+        for (int i = 0; i < retryCount; i++) {
             try {
                 response = loginOp.execute(port);
                 status = response instanceof SessionResponse ? ((SessionResponse) response).getStatus()
@@ -190,7 +193,7 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
                 break;
             }
 
-            if (i != getRetryCount() - 1) {
+            if (i != retryCount - 1) {
                 waitForRetryInterval();
             }
         }
@@ -276,7 +279,7 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
             NetSuiteService service = new NetSuiteService(wsdlLocationUrl, NetSuiteService.SERVICE);
 
             WebServiceFeature[] features;
-            if (isMessageLoggingEnabled())
+            if (messageLoggingEnabled)
                 features = new WebServiceFeature[] { new LoggingFeature() };
             else
                 features = new WebServiceFeature[0];
