@@ -58,6 +58,7 @@ public class Dataset implements Serializable {
     @Documentation("How many redirection are supported ? (-1 for infinite)")
     @DefaultValue("3")
     @Min(-1)
+    @Required
     private Integer maxRedirect = 3;
 
     @Option
