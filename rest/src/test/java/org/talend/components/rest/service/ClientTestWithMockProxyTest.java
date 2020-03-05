@@ -335,7 +335,7 @@ public class ClientTestWithMockProxyTest {
     private void valideCompletePayloadSchema(final Record record, final Schema.Type bodyType) {
         assertEquals(3, record.getSchema().getEntries().size());
 
-        Schema.Entry body = record.getSchema().getEntries().get(0);
+        Schema.Entry body = record.getSchema().getEntries().get(2);
         assertEquals("body", body.getName());
         assertEquals(bodyType, body.getType());
 
@@ -343,7 +343,7 @@ public class ClientTestWithMockProxyTest {
         assertEquals("headers", headers.getName());
         assertEquals(Schema.Type.RECORD, headers.getType());
 
-        Schema.Entry status = record.getSchema().getEntries().get(2);
+        Schema.Entry status = record.getSchema().getEntries().get(0);
         assertEquals("status", status.getName());
         assertEquals(Schema.Type.DOUBLE, status.getType());
     }
