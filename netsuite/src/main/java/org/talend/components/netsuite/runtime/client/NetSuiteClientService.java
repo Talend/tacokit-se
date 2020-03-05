@@ -72,6 +72,8 @@ public abstract class NetSuiteClientService<PortT> {
 
     protected NsSearchPreferences searchPreferences;
 
+    protected boolean useRequestLevelCredentials = true;
+
     protected NsPreferences preferences;
 
     /** Used for synchronization of access to NetSuite port. */
@@ -98,20 +100,11 @@ public abstract class NetSuiteClientService<PortT> {
     /** Size of search result page. */
     protected int searchPageSize = DEFAULT_SEARCH_PAGE_SIZE;
 
-    /** Specifies whether to return search columns. */
     protected boolean returnSearchColumns = false;
 
-    /** Specifies whether to treat warnings as errors. */
     protected boolean treatWarningsAsErrors = false;
 
-    /** Specifies whether to disable validation for mandatory custom fields. */
     protected boolean disableMandatoryCustomFieldValidation = false;
-
-    /** Specifies whether to use request level credentials. */
-    protected boolean useRequestLevelCredentials = true;
-
-    /** Specifies whether to use request token based authentication. */
-    protected boolean useTokens = false;
 
     protected PortAdapter<PortT> portAdapter;
 

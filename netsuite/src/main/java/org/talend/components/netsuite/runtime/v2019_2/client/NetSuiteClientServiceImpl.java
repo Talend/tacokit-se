@@ -300,7 +300,7 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
             String wsDomain = urls.getWebservicesDomain();
             String endpointUrl = wsDomain.concat(new URL(defaultEndpointUrl).getPath());
 
-            requestContext.put(BindingProvider.SESSION_MAINTAIN_PROPERTY, true);
+            requestContext.put(BindingProvider.SESSION_MAINTAIN_PROPERTY, tokenPassport != null || !useRequestLevelCredentials);
             requestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpointUrl);
         } catch (WebServiceException | MalformedURLException | InsufficientPermissionFault | InvalidCredentialsFault
                 | InvalidSessionFault | UnexpectedErrorFault | ExceededRequestSizeFault | JAXBException e) {
