@@ -119,7 +119,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         configuration.setDataset(dataset);
         configuration.setIgnoreNull(true);
         configuration.setEmptyStringToNull(true);
-        configuration.setAction(Action.UPDATE);
+        configuration.setAction(Action.UPSERT);
         configuration.setColumns(Arrays.asList("annualincome", "assistantname", "business2", "callback", "childrensnames",
                 "company", "creditonhold", "_transactioncurrencyid_value", "birthdate"));
 
@@ -164,7 +164,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         configuration.setDataset(dataset);
         configuration.setIgnoreNull(true);
         configuration.setEmptyStringToNull(true);
-        configuration.setAction(Action.UPDATE);
+        configuration.setAction(Action.UPSERT);
         configuration.setColumns(Arrays.asList("annualincome", "assistantname", "business2", "callback", "childrensnames",
                 "company", "creditonhold", "_transactioncurrencyid_value", "birthdate"));
 

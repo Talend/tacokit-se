@@ -68,7 +68,7 @@ public class DynamicsCrmOutputConfiguration implements Serializable {
 
     public enum Action {
         INSERT,
-        UPDATE,
+        UPSERT,
         DELETE;
     }
 }

@@ -40,7 +40,6 @@ import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.service.Service;
 
 @Version(1)
 @Icon(value = IconType.CUSTOM, custom = "azure-dynamics")
@@ -98,7 +97,7 @@ public class DynamicsCrmOutput implements Serializable {
         switch (configuration.getAction()) {
         case INSERT:
             return PropertyValidationData::isValidForCreate;
-        case UPDATE:
+        case UPSERT:
             return PropertyValidationData::isValidForUpdate;
         default:
             return t -> true;
@@ -109,7 +108,7 @@ public class DynamicsCrmOutput implements Serializable {
         switch (action) {
         case DELETE:
             return new DeleteRecordProcessor(client, entitySet, i18n);
-        case UPDATE:
+        case UPSERT:
             return new UpdateRecordProcessor(client, i18n, entitySet, configuration, metadata, fields);
         case INSERT:
             return new InsertRecordProcessor(client, i18n, entitySet, configuration, metadata, fields);
