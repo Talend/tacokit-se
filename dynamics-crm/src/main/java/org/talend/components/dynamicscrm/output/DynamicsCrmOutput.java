@@ -109,7 +109,7 @@ public class DynamicsCrmOutput implements Serializable {
         case DELETE:
             return new DeleteRecordProcessor(client, entitySet, i18n);
         case UPSERT:
-            return new UpdateRecordProcessor(client, i18n, entitySet, configuration, metadata, fields);
+            return new UpsertRecordProcessor(client, i18n, entitySet, configuration, metadata, fields);
         case INSERT:
             return new InsertRecordProcessor(client, i18n, entitySet, configuration, metadata, fields);
         default:

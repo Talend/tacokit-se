@@ -25,9 +25,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class UpdateRecordProcessor extends AbstractToEntityRecordProcessor {
+public class UpsertRecordProcessor extends AbstractToEntityRecordProcessor {
 
-    public UpdateRecordProcessor(DynamicsCRMClient client, I18n i18n, EdmEntitySet entitySet,
+    public UpsertRecordProcessor(DynamicsCRMClient client, I18n i18n, EdmEntitySet entitySet,
             DynamicsCrmOutputConfiguration configuration, Edm metadata, List<String> columnNames) {
         super(client, i18n, entitySet, configuration, metadata, columnNames);
     }
