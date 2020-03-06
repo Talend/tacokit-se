@@ -18,9 +18,6 @@ import org.talend.components.rest.configuration.RequestBody;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.configuration.auth.Authentication;
 import org.talend.components.rest.configuration.auth.Authorization;
-import org.talend.components.rest.processor.JSonExtractorConfiguration;
-import org.talend.components.rest.virtual.ComplexRestConfiguration;
-import org.talend.components.rest.virtual.ComplexRestDataset;
 
 import java.util.Collections;
 
@@ -29,7 +26,7 @@ public class RequestConfigBuilderTest {
     private RequestConfigBuilderTest() {
     }
 
-    public static ComplexRestConfiguration getEmptyRequestConfig() {
+    public static RequestConfig getEmptyRequestConfig() {
         RequestConfig config = new RequestConfig();
 
         Authentication authent = new Authentication();
@@ -53,19 +50,11 @@ public class RequestConfigBuilderTest {
         dataset.setHeaders(Collections.emptyList());
         dataset.setHasPathParams(false);
         dataset.setPathParams(Collections.emptyList());
+        dataset.setCompletePayload(true);
 
         config.setDataset(dataset);
 
-        ComplexRestConfiguration complexRestConfiguration = new ComplexRestConfiguration();
-
-        ComplexRestDataset complexRestDataset = new ComplexRestDataset();
-        complexRestDataset.setRestConfiguration(config);
-        complexRestDataset.getRestConfiguration().getDataset().setCompletePayload(true); // setComputeBody(false);
-        complexRestDataset.setJSonExtractorConfiguration(new JSonExtractorConfiguration());
-
-        complexRestConfiguration.setDataset(complexRestDataset);
-
-        return complexRestConfiguration;
+        return config;
     }
 
 }
