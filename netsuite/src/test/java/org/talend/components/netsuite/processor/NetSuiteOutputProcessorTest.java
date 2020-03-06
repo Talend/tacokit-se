@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.talend.components.netsuite.NetSuiteBaseTest;
 import org.talend.components.netsuite.dataset.NetSuiteDataSet;
@@ -42,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
+@Disabled
 @WithComponents("org.talend.components.netsuite")
 public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
 

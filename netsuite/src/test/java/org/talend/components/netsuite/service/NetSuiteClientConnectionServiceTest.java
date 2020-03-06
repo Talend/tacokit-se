@@ -27,6 +27,7 @@ import org.talend.sdk.component.maven.Server;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Disabled
 @WithComponents("org.talend.components.netsuite")
 public class NetSuiteClientConnectionServiceTest extends NetSuiteBaseTest {
 

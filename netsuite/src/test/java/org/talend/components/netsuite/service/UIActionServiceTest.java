@@ -54,6 +54,7 @@ import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
+@Disabled
 @WithComponents("org.talend.components.netsuite")
 class UIActionServiceTest extends NetSuiteBaseTest {
 
