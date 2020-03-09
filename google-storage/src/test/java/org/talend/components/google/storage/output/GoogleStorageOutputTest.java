@@ -60,48 +60,50 @@ class GoogleStorageOutputTest {
     @Service
     private I18nMessage i18n;
 
- /*   @Test
-    void write() throws IOException {
-        GSDataSet dataset = new GSDataSet();
-        dataset.setDataStore(new GSDataStore());
-
-        final FormatConfiguration format = new FormatConfiguration();
-        dataset.setContentFormat(format);
-        format.setContentFormat(FormatConfiguration.Type.JSON_POINTER);
-        format.setJsonConfiguration(new JsonConfiguration());
-        format.getJsonConfiguration().setJsonPointer("");
-
-        final String jwtContent = this.getContentFile("./engineering-test.json");
-        dataset.getDataStore().setJsonCredentials(jwtContent);
-        dataset.setBucket("bucketTest");
-        dataset.setBlob("blob/path");
-
-        final OutputConfiguration config = new OutputConfiguration();
-        config.setDataset(dataset);
-        final CredentialService credService = new CredentialService() {
-
-            @Override
-            public Storage newStorage(GoogleCredentials credentials) {
-                return GoogleStorageOutputTest.this.storage;
-            }
-        };
-        final GoogleStorageOutput output = new GoogleStorageOutput(config, credService, this.repository, i18n);
-
-        output.init();
-        final Collection<Record> records = buildRecords();
-
-        output.write(records);
-        output.release();
-
-        final Blob blob = storage.get(BlobId.of("bucketTest", "blob/path"));
-        try (final ReadChannel reader = blob.reader();
-                final InputStream in = Channels.newInputStream(reader);
-                final BufferedReader inputStream = new BufferedReader(new InputStreamReader(in))) {
-            final String collect = inputStream.lines().collect(Collectors.joining("\n"));
-            Assertions.assertNotNull(collect);
-            Assertions.assertTrue(collect.startsWith("["));
-        }
-    }*/
+    /*
+     * @Test
+     * void write() throws IOException {
+     * GSDataSet dataset = new GSDataSet();
+     * dataset.setDataStore(new GSDataStore());
+     * 
+     * final FormatConfiguration format = new FormatConfiguration();
+     * dataset.setContentFormat(format);
+     * format.setContentFormat(FormatConfiguration.Type.JSON_POINTER);
+     * format.setJsonConfiguration(new JsonConfiguration());
+     * format.getJsonConfiguration().setJsonPointer("");
+     * 
+     * final String jwtContent = this.getContentFile("./engineering-test.json");
+     * dataset.getDataStore().setJsonCredentials(jwtContent);
+     * dataset.setBucket("bucketTest");
+     * dataset.setBlob("blob/path");
+     * 
+     * final OutputConfiguration config = new OutputConfiguration();
+     * config.setDataset(dataset);
+     * final CredentialService credService = new CredentialService() {
+     * 
+     * @Override
+     * public Storage newStorage(GoogleCredentials credentials) {
+     * return GoogleStorageOutputTest.this.storage;
+     * }
+     * };
+     * final GoogleStorageOutput output = new GoogleStorageOutput(config, credService, this.repository, i18n);
+     * 
+     * output.init();
+     * final Collection<Record> records = buildRecords();
+     * 
+     * output.write(records);
+     * output.release();
+     * 
+     * final Blob blob = storage.get(BlobId.of("bucketTest", "blob/path"));
+     * try (final ReadChannel reader = blob.reader();
+     * final InputStream in = Channels.newInputStream(reader);
+     * final BufferedReader inputStream = new BufferedReader(new InputStreamReader(in))) {
+     * final String collect = inputStream.lines().collect(Collectors.joining("\n"));
+     * Assertions.assertNotNull(collect);
+     * Assertions.assertTrue(collect.startsWith("["));
+     * }
+     * }
+     */
 
     private Collection<Record> buildRecords() {
         final Record record1 = factory.newRecordBuilder().withString("Hello", "World")
