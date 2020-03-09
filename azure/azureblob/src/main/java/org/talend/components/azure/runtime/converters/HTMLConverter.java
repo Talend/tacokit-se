@@ -90,6 +90,6 @@ public class HTMLConverter implements RecordConverter<Element> {
     }
 
     private boolean isHeaderRecord(Element record) {
-        return  record.getElementsByTag("th").size() > 0;
+        return record.getElementsByTag("th").size() > 0;
     }
 }
