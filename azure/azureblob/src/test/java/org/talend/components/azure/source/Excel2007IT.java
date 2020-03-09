@@ -352,7 +352,6 @@ class Excel2007IT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        System.out.println(records);
         Assert.assertEquals("Records amount is different", recordSize, records.size());
     }
 }
