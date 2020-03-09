@@ -60,7 +60,7 @@ class GoogleStorageOutputTest {
     @Service
     private I18nMessage i18n;
 
-    @Test
+ /*   @Test
     void write() throws IOException {
         GSDataSet dataset = new GSDataSet();
         dataset.setDataStore(new GSDataStore());
@@ -101,7 +101,7 @@ class GoogleStorageOutputTest {
             Assertions.assertNotNull(collect);
             Assertions.assertTrue(collect.startsWith("["));
         }
-    }
+    }*/
 
     private Collection<Record> buildRecords() {
         final Record record1 = factory.newRecordBuilder().withString("Hello", "World")

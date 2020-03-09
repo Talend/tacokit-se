@@ -40,7 +40,6 @@ public class FormatConfiguration implements Serializable {
 
     public enum Type {
         CSV,
-        JSON_POINTER,
         AVRO,
         EXCEL
     }
@@ -55,11 +54,6 @@ public class FormatConfiguration implements Serializable {
     private CSVConfiguration csvConfiguration;
 
     @Option
-    @ActiveIf(target = "contentFormat", value = "JSON_POINTER")
-    @Documentation("Json format with json pointer access.")
-    private JsonConfiguration jsonConfiguration;
-
-    @Option
     @ActiveIf(target = "contentFormat", value = "AVRO")
     @Documentation("Avro format.")
     private AvroConfiguration avroConfiguration;
@@ -72,9 +66,6 @@ public class FormatConfiguration implements Serializable {
     public ContentFormat findFormat() {
         if (this.contentFormat == FormatConfiguration.Type.CSV) {
             return this.csvConfiguration;
-        }
-        if (this.contentFormat == FormatConfiguration.Type.JSON_POINTER) {
-            return this.jsonConfiguration;
         }
         if (this.contentFormat == FormatConfiguration.Type.AVRO) {
             return this.avroConfiguration;
