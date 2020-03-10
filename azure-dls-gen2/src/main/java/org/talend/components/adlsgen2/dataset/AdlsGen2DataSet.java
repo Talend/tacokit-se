@@ -12,6 +12,9 @@
  */
 package org.talend.components.adlsgen2.dataset;
 
+import static org.talend.components.adlsgen2.service.UIActionService.ACTION_FILESYSTEMS;
+import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
+
 import java.io.Serializable;
 
 import org.talend.components.adlsgen2.common.format.FileFormat;
@@ -31,8 +34,6 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
 
-import static org.talend.components.adlsgen2.service.UIActionService.ACTION_FILESYSTEMS;
-
 @Data
 @DataSet("AdlsGen2DataSet")
 @GridLayout({ //
@@ -45,6 +46,7 @@ import static org.talend.components.adlsgen2.service.UIActionService.ACTION_FILE
         @GridLayout.Row("parquetConfiguration"), //
         @GridLayout.Row("jsonConfiguration"), //
 })
+@GridLayout(names = ADVANCED, value = { @GridLayout.Row({ "connection" }) })
 @Documentation("ADLS DataSet")
 public class AdlsGen2DataSet implements Serializable {
 
