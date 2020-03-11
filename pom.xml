@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+  Copyright (C) 2006-2020 Talend Inc. - www.talend.com
    Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
   You may obtain a copy of the License at
@@ -80,6 +80,8 @@
         <connectors-test-bom.version>1.8.0-SNAPSHOT</connectors-test-bom.version>
         <common.version>1.8.0-SNAPSHOT</common.version>
 
+        <timestamp.year>${maven.build.timestamp}</timestamp.year>
+        <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <locales.version>[1.8,)</locales.version>
@@ -520,7 +522,7 @@
                         <encoding>UTF-8</encoding>
                         <licenseHeader>
                             <content><![CDATA[/*
- * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-${timestamp.year} Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
