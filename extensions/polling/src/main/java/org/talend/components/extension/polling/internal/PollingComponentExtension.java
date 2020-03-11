@@ -229,10 +229,11 @@ public class PollingComponentExtension implements CustomComponentExtension {
                 srcMapperMeta.getType(), // Not important, only used for validation
                 createConfigurationSupplier(srcMapperMeta, neededServices, pollingConfigurationAnnotationVersion,
                         pollingParametersRef), // THe configuration
-                createInstantiator(srcMapperMeta.getName(), srcMapperMeta, pollingParametersRef,
-                        neededServices), // The instanciator
-                createMigrationHandlerSupplier(version, srcMapperMeta, allServices, neededServices,
-                        pollingParametersRef), // The migration handler
+                createInstantiator(srcMapperMeta.getName(), srcMapperMeta, pollingParametersRef, neededServices), // The
+                                                                                                                  // instanciator
+                createMigrationHandlerSupplier(version, srcMapperMeta, allServices, neededServices, pollingParametersRef), // The
+                                                                                                                           // migration
+                                                                                                                           // handler
                 false, // not needed
                 true // It is a streaming connector now
         ) {
