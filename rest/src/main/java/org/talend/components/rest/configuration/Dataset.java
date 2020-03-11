@@ -13,6 +13,7 @@
 package org.talend.components.rest.configuration;
 
 import lombok.Data;
+import org.talend.components.extension.polling.api.PollableDuplicateDataset;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -30,6 +31,7 @@ import java.util.List;
 
 @Data
 @DataSet("Dataset")
+@PollableDuplicateDataset
 @GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "resource" }), @GridLayout.Row({ "methodType" }),
         @GridLayout.Row({ "hasHeaders" }), @GridLayout.Row({ "headers" }), @GridLayout.Row({ "hasQueryParams" }),
         @GridLayout.Row({ "queryParams" }), @GridLayout.Row({ "hasPathParams" }), @GridLayout.Row({ "pathParams" }),
