@@ -247,8 +247,7 @@ class AvroOutputIT extends BaseIT {
 
         CloudBlobContainer container = storageAccount.createCloudBlobClient().getContainerReference(containerName);
         Iterator blobIterator = container.listBlobs("", false).iterator();
-        Assert.assertTrue("No files were created in test container root directory",
-                blobIterator.hasNext());
+        Assert.assertTrue("No files were created in test container root directory", blobIterator.hasNext());
         Assert.assertTrue("Directory was created", blobIterator.next() instanceof CloudBlob);
     }
 }
