@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -103,9 +103,10 @@ public class TacoKitRecordToTableRowConverter {
                         tableRow.put(fieldName, input.getArray(Boolean.class, fieldName));
                         break;
                     case DATETIME:
-                        tableRow.put(fieldName, input.getArray(ZonedDateTime.class, fieldName).stream()
-                                .map(dt -> Optional.ofNullable(dt).map(getDateFunction(field.getType())).orElse(null))
-                                .collect(toList()));
+                        tableRow.put(fieldName,
+                                input.getArray(ZonedDateTime.class, fieldName).stream()
+                                        .map(dt -> Optional.ofNullable(dt).map(getDateFunction(field.getType())).orElse(null))
+                                        .collect(toList()));
                         break;
                     default:
                         throw new BigQueryConnectorException(i18n.entryTypeNotDefined(entry.getElementSchema().getType().name()));
@@ -134,8 +135,7 @@ public class TacoKitRecordToTableRowConverter {
                     break;
                 case DATETIME:
                     tableRow.put(fieldName, Optional.ofNullable(input.getDateTime(fieldName))
-                            .map( dt -> getDateFunction(field.getType()).apply(dt))
-                            .orElse(null));
+                            .map(dt -> getDateFunction(field.getType()).apply(dt)).orElse(null));
                     break;
                 default:
                     throw new BigQueryConnectorException(i18n.entryTypeNotDefined(entry.getType().name()));
