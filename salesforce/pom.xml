@@ -50,6 +50,14 @@
       <artifactId>antlr4-runtime</artifactId>
       <version>${antlr4-runtime.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-core-asl</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-asl</artifactId>
+    </dependency>
 
     <!-- test -->
     <dependency>
