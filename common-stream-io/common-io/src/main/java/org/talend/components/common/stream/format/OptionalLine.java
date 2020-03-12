@@ -16,6 +16,7 @@ import java.io.Serializable;
 
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.constraint.Min;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
@@ -32,6 +33,7 @@ public class OptionalLine implements Serializable {
     private boolean active;
 
     @Option
+    @Min(0)
     @ActiveIf(target = "active", value = "true")
     @Documentation("Number of ignored lines.")
     private int size;
