@@ -40,7 +40,7 @@ public class PubSubDataStore implements Serializable {
     @Option
     @Required
     @Documentation("Google Cloud Platform Project")
-    @Pattern("/^\\S+$/")
+    @Pattern("/^[a-z][a-z0-9\\-]*$/")
     private String projectName;
 
     @Option
