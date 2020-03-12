@@ -10,17 +10,17 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.common.stream.api.input;
+package org.talend.components.common.stream.format.rawtext;
 
-import org.talend.components.common.stream.format.ContentFormat;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-@FunctionalInterface
-public interface RecordReaderSupplier {
+@Data
+@AllArgsConstructor
+public class ExtendedRawTextConfiguration {
 
-    default RecordReader getReader(RecordBuilderFactory factory, ContentFormat config) {
-        return this.getReader(factory, config, null);
-    }
+    private final String charset;
 
-    RecordReader getReader(RecordBuilderFactory factory, ContentFormat config, Object extraParameter);
+    private final boolean forceOneRow;
+
 }

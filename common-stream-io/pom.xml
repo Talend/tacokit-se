@@ -22,6 +22,7 @@
         <module>stream-json</module>
         <module>stream-avro</module>
         <module>stream-excel</module>
+        <module>stream-rawtext</module>
     </modules>
 
     <properties>

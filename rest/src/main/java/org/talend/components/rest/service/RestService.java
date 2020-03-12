@@ -14,11 +14,20 @@ package org.talend.components.rest.service;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.common.collections.IteratorComposer;
+import org.talend.components.common.collections.IteratorMap;
 import org.talend.components.common.service.http.RedirectContext;
 import org.talend.components.common.service.http.RedirectService;
 import org.talend.components.common.service.http.common.UserNamePassword;
 import org.talend.components.common.service.http.digest.DigestAuthContext;
 import org.talend.components.common.service.http.digest.DigestAuthService;
+import org.talend.components.common.stream.api.RecordIORepository;
+import org.talend.components.common.stream.api.input.RecordReader;
+import org.talend.components.common.stream.api.input.RecordReaderSupplier;
+import org.talend.components.common.stream.format.ContentFormat;
+import org.talend.components.common.stream.format.json.JsonConfiguration;
+import org.talend.components.common.stream.format.rawtext.ExtendedRawTextConfiguration;
+import org.talend.components.common.stream.format.rawtext.RawTextConfiguration;
 import org.talend.components.common.text.Substitutor;
 import org.talend.components.rest.configuration.Datastore;
 import org.talend.components.rest.configuration.Param;
@@ -30,26 +39,29 @@ import org.talend.components.rest.service.client.ContentType;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.RecordPointerFactory;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.http.Response;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -90,17 +102,23 @@ public class RestService {
     private RecordPointerFactory recordPointerFactory;
 
     @Service
+    private RecordIORepository ioRepository;
+
+    @Service
     private JsonReaderFactory jsonReaderFactory;
 
-    public Response<byte[]> execute(final RequestConfig config, final Record record) {
+    @Service
+    private RecordBuilderFactory recordBuilderFactory;
+
+    public Response<InputStream> execute(final RequestConfig config, final Record record) {
         return _execute(config, record);
     }
 
-    public Response<byte[]> execute(final RequestConfig config) {
+    public Response<InputStream> execute(final RequestConfig config) {
         return _execute(config, null);
     }
 
-    private Response<byte[]> _execute(final RequestConfig config, final Record record) {
+    private Response<InputStream> _execute(final RequestConfig config, final Record record) {
         final RecordDictionary dictionary = new RecordDictionary(record, recordPointerFactory);
         final Substitutor substitutor = new Substitutor(parameterFinder, dictionary);
 
@@ -136,11 +154,11 @@ public class RestService {
         return this.call(config, headers, queryParams, body, this.buildUrl(config, pathParams), redirectContext);
     }
 
-    private Response<byte[]> call(final RequestConfig config, final Map<String, String> headers,
+    private Response<InputStream> call(final RequestConfig config, final Map<String, String> headers,
             final Map<String, String> queryParams, final Body body, final String surl,
             final RedirectContext previousRedirectContext) {
 
-        Response<byte[]> resp = null;
+        Response<InputStream> resp = null;
 
         log.info(i18n.request(config.getDataset().getMethodType().name(), surl,
                 config.getDataset().getDatastore().getAuthentication().getType().toString()));
@@ -199,7 +217,7 @@ public class RestService {
         return resp;
     }
 
-    String buildUrl(final RequestConfig config, final Map<String, String> params) {
+    public String buildUrl(final RequestConfig config, final Map<String, String> params) {
         String base = config.getDataset().getDatastore().getBase().trim();
         String segments = this.setPathParams(config.getDataset().getResource().trim(), config.getDataset().isHasPathParams(),
                 params);
@@ -215,7 +233,7 @@ public class RestService {
         return base + segments;
     }
 
-    public String setPathParams(String resource, boolean hasPathParams, Map<String, String> params) {
+    public String setPathParams(final String resource, final boolean hasPathParams, final Map<String, String> params) {
         if (!hasPathParams) {
             return resource;
         }
@@ -227,34 +245,80 @@ public class RestService {
         return params.entrySet().stream().collect(toMap(e -> e.getKey(), e -> substitute(e.getValue(), substitutor)));
     }
 
-    public CompletePayload buildFixedRecord(final Response<byte[]> resp) {
+    public Iterator<Record> buildFixedRecord(final Response<InputStream> resp, final boolean isCompletePayload) {
         int status = resp.status();
         log.info(i18n.requestStatus(status));
 
         Map<String, String> headers = Optional.ofNullable(resp.headers()).orElseGet(Collections::emptyMap).entrySet().stream()
                 .collect(toMap((Map.Entry<String, List<String>> e) -> e.getKey(), e -> String.join(",", e.getValue())));
 
-        final String receivedBody = getBody(resp);
-        Object body;
-        try (final JsonReader reader = jsonReaderFactory.createReader(new StringReader(receivedBody))) {
-            body = reader.read();
-            log.info(i18n.parseJsonOk());
-        } catch (Exception e) {
-            // It is not a json, we return the raw String payload
-            body = receivedBody;
-            log.info(i18n.parseJsonKo());
+        final String encoding = ContentType.getCharsetName(resp.headers());
+
+        final ContentFormat format = findFormat(headers);
+        final RecordReaderSupplier recordReaderSupplier = this.ioRepository.findReader(format.getClass());
+        final RecordReader reader = recordReaderSupplier.getReader(recordBuilderFactory, format,
+                new ExtendedRawTextConfiguration(encoding, isCompletePayload));
+
+        final Schema.Entry headersEntry = this.recordBuilderFactory.newEntryBuilder().withName("headers")
+                .withType(Schema.Type.ARRAY)
+                .withElementSchema(this.recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD)
+                        .withEntry(newEntry("key", Schema.Type.STRING)).withEntry(newEntry("value", Schema.Type.STRING)).build())
+                .build();
+
+        Schema.Type bodyType = Schema.Type.RECORD;
+        if (RawTextConfiguration.class.equals(format.getClass())) {
+            bodyType = Schema.Type.STRING;
         }
 
-        return new CompletePayload(status, headers, body);
+        final Schema schema = this.recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD)
+                .withEntry(this.recordBuilderFactory.newEntryBuilder().withName("status").withType(Schema.Type.INT).build())
+                .withEntry(headersEntry).withEntry(this.recordBuilderFactory.newEntryBuilder().withName("body").withType(bodyType)
+                        .withNullable(true).build())
+                .build();
+
+        final List<Record> headerRecords = headers.entrySet().stream().map(this::convertHeadersToRecords)
+                .collect(Collectors.toList());
+
+        // InputStream inputStreamBody = Optional.ofNullable(resp.body()).orElse(new ByteArrayInputStream(new byte[0]));
+        return new IteratorMap<Record, Record>(reader.read(resp.body()),
+                r -> this.buildRecord(schema, headersEntry, r, status, headerRecords, isCompletePayload));
     }
 
-    private static String getBody(final Response<byte[]> resp) {
-        String encoding = ContentType.getCharsetName(resp);
-        byte[] bytes = Optional.ofNullable(resp.body()).orElse(new byte[0]);
-        String receivedBody = (encoding == null) ? //
-                new String(bytes) : //
-                new String(bytes, Charset.forName(encoding));
-        return receivedBody;
+    private Record convertHeadersToRecords(final Map.Entry<String, String> header) {
+        return this.recordBuilderFactory.newRecordBuilder().withString("key", header.getKey())
+                .withString("value", header.getValue()).build();
+    }
+
+    private Record buildRecord(final Schema schema, final Schema.Entry headersEntry, final Record body, final int status,
+            final List<Record> headers, final boolean isCompletePayload) {
+        if (!isCompletePayload) {
+            return body;
+        }
+
+        if (schema.getEntries().get(2).getType() == Schema.Type.STRING) {
+            String v = body == null ? null : body.getString("content");
+            return this.recordBuilderFactory.newRecordBuilder(schema).withString("body", v).withInt("status", status)
+                    .withArray(headersEntry, headers).build();
+        } else {
+            return this.recordBuilderFactory.newRecordBuilder(schema).withRecord("body", body).withInt("status", status)
+                    .withArray(headersEntry, headers).build();
+        }
+    }
+
+    private Schema.Entry newEntry(String name, Schema.Type type) {
+        return this.recordBuilderFactory.newEntryBuilder().withName(name).withType(type).build();
+    }
+
+    private ContentFormat findFormat(final Map<String, String> headers) {
+        final String contentType = Optional.ofNullable(headers.get(ContentType.HEADER_KEY))
+                .orElse(ContentType.DEFAULT_CONTENT_TYPE);
+        if (contentType.contains("json")) {
+            JsonConfiguration jsonConfiguration = new JsonConfiguration();
+            jsonConfiguration.setJsonPointer("/");
+            return jsonConfiguration;
+        }
+
+        return new RawTextConfiguration();
     }
 
     private String substitute(final String value, final Substitutor substitutor) {

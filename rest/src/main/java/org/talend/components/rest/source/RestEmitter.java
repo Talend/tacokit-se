@@ -27,6 +27,7 @@ import org.talend.sdk.component.api.record.Record;
 import javax.json.JsonStructure;
 import javax.json.JsonValue;
 import java.io.Serializable;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 @Version(1)
@@ -40,7 +41,7 @@ public class RestEmitter implements Serializable {
 
     private final RestService client;
 
-    private transient LinkedList<Object> items;
+    private Iterator<Record> items;
 
     private boolean done;
 
@@ -54,47 +55,55 @@ public class RestEmitter implements Serializable {
     }
 
     @Producer
-    public Object next() {
-        if (items == null) {
-            items = new LinkedList<>();
-        }
-
-        if (items.isEmpty() && !done) {
+    public Record next() {
+        if (items == null && !done) {
             done = true;
-            final CompletePayload completePayload = client.buildFixedRecord(client.execute(config));
-
             final boolean isCompletePayload = config.getDataset().isCompletePayload();
-            final boolean isJson = !String.class.isInstance(completePayload.getBody());
-            if (isJson) {
-                processJsonResponse(completePayload, isCompletePayload);
-            } else {
-                processOtherResponse(completePayload, isCompletePayload);
-            }
+            // final CompletePayload completePayload = client.buildFixedRecord(client.execute(config), isCompletePayload);
+            items = client.buildFixedRecord(client.execute(config), isCompletePayload);
+
+            /*
+             * final boolean isJson = !String.class.isInstance(completePayload.getBody());
+             * if (isJson) {
+             * processJsonResponse(completePayload, isCompletePayload);
+             * } else {
+             * processOtherResponse(completePayload, isCompletePayload);
+             * }
+             */
         }
-        return items.isEmpty() ? null : items.removeFirst();
+
+        final Record r = items.hasNext() ? items.next() : null;
+
+        if (!items.hasNext()) {
+            items = null;
+        }
+
+        return r;
 
     }
 
-    private void processOtherResponse(CompletePayload global, boolean isCompletePayload) {
-        if (isCompletePayload) {
-            items.add(global);
-        } else {
-            items.add(new StringBody((String) global.getBody()));
-        }
-    }
-
-    private void processJsonResponse(CompletePayload completePayload, boolean isCompletePayload) {
-        if (isCompletePayload) {
-            items.add(completePayload);
-        } else {
-            final JsonStructure body = (JsonStructure) completePayload.getBody();
-
-            if (body.getValueType() == JsonValue.ValueType.ARRAY) {
-                items.addAll(body.asJsonArray());
-            } else {
-                items.add(body);
-            }
-        }
-    }
+    /*
+     * private void processOtherResponse(CompletePayload global, boolean isCompletePayload) {
+     * if (isCompletePayload) {
+     * items.add(global);
+     * } else {
+     * items.add(new StringBody((String) global.getBody()));
+     * }
+     * }
+     * 
+     * private void processJsonResponse(CompletePayload completePayload, boolean isCompletePayload) {
+     * if (isCompletePayload) {
+     * items.add(completePayload);
+     * } else {
+     * final JsonStructure body = (JsonStructure) completePayload.getBody();
+     * 
+     * if (body.getValueType() == JsonValue.ValueType.ARRAY) {
+     * items.addAll(body.asJsonArray());
+     * } else {
+     * items.add(body);
+     * }
+     * }
+     * }
+     */
 
 }

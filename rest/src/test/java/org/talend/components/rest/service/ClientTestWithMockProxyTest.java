@@ -34,9 +34,8 @@ import org.talend.sdk.component.junit5.environment.EnvironmentalTest;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
@@ -103,8 +102,8 @@ public class ClientTestWithMockProxyTest {
         config.getDataset().getDatastore().setAuthentication(auth);
         config.getDataset().setMethodType(HttpMethod.GET);
 
-        CompletePayload resp = service.buildFixedRecord(service.execute(config));
-        assertEquals(200, resp.getStatus());
+        Iterator<Record> resp = service.buildFixedRecord(service.execute(config), config.getDataset().isCompletePayload());
+        assertEquals(200, resp.next().getInt("status"));
     }
 
     @EnvironmentalTest
