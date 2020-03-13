@@ -12,6 +12,8 @@
  */
 package org.talend.components.adlsgen2.input;
 
+import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
+
 import java.io.Serializable;
 
 import org.talend.sdk.component.api.configuration.Option;
@@ -22,6 +24,7 @@ import lombok.Data;
 
 @Data
 @GridLayout(value = { @GridLayout.Row({ "dataSet" }) })
+@GridLayout(names = ADVANCED, value = { @GridLayout.Row({ "dataSet" }) })
 @Documentation("ADLS input configuration")
 public class InputConfiguration implements Serializable {
 

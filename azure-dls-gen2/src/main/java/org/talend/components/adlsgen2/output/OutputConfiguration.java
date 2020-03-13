@@ -25,7 +25,9 @@ import lombok.Data;
 @GridLayout(value = { //
         @GridLayout.Row({ "dataSet" }), //
 })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("blobNameTemplate") })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { //
+        @GridLayout.Row({ "dataSet" }), //
+        @GridLayout.Row({ "blobNameTemplate" }) })
 @Documentation("ADLS output configuration")
 public class OutputConfiguration implements Serializable {
 
