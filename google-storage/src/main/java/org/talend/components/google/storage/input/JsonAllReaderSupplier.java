@@ -28,7 +28,6 @@ public class JsonAllReaderSupplier implements RecordReaderSupplier {
         if (!JsonAllConfiguration.class.isInstance(config)) {
             throw new IllegalArgumentException("try to get json-all-reader with other than json-all-config");
         }
-        final JsonPointerParser parser = JsonPointerParser.of("/");
-        return new JsonRecordReader(parser, factory);
+        return new JsonAllRecordReader(factory);
     }
 }

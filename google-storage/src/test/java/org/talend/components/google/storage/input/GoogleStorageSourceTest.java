@@ -18,6 +18,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Collection;
+import java.util.Iterator;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -150,13 +151,18 @@ class GoogleStorageSourceTest {
 
         final Record record1 = source.next();
         Assertions.assertNotNull(record1);
-        Assertions.assertEquals("John", record1.getString("Hi"));
+        final Collection<Record> records = record1.getArray(Record.class, "field");
+        Assertions.assertEquals(3, records.size());
 
-        final Record record2 = source.next();
+        final Iterator<Record> recordIterator = records.iterator();
+        final Record recordJohn = recordIterator.next();
+        Assertions.assertEquals("John", recordJohn.getString("Hi"));
+
+        final Record record2 = recordIterator.next();
         Assertions.assertNotNull(record2);
         Assertions.assertEquals("Java", record2.getString("Hi"));
 
-        final Record record3 = source.next();
+        final Record record3 = recordIterator.next();
         Assertions.assertNotNull(record3);
         Assertions.assertEquals("Kotlin", record3.getString("Hi"));
 
