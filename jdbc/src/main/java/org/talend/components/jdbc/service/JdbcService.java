@@ -12,10 +12,26 @@
  */
 package org.talend.components.jdbc.service;
 
-import com.zaxxer.hikari.HikariDataSource;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.talend.components.jdbc.ErrorFactory;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.joining;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.Security;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Locale;
+import java.util.function.Supplier;
+import java.util.regex.Pattern;
+
 import org.talend.components.jdbc.configuration.JdbcConfiguration;
 import org.talend.components.jdbc.datastore.AuthenticationType;
 import org.talend.components.jdbc.datastore.JdbcConnection;
@@ -24,41 +40,18 @@ import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.dependency.Resolver;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.operator.InputDecryptorProvider;
+import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8DecryptorProviderBuilder;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
+import org.bouncycastle.util.encoders.Base64;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.function.Supplier;
-import java.util.regex.Pattern;
+import com.zaxxer.hikari.HikariDataSource;
 
-import javax.crypto.EncryptedPrivateKeyInfo;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.joining;
-import static org.talend.components.jdbc.ErrorFactory.toIllegalStateException;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -67,8 +60,6 @@ public class JdbcService {
     private static Pattern READ_ONLY_QUERY_PATTERN = Pattern.compile(
             "^SELECT\\s+((?!((\\bINTO\\b)|(\\bFOR\\s+UPDATE\\b)|(\\bLOCK\\s+IN\\s+SHARE\\s+MODE\\b))).)+$",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.MULTILINE);
-
-    private final Map<JdbcConfiguration.Driver, URL[]> drivers = new HashMap<>();
 
     @Service
     private Resolver resolver;
@@ -194,25 +185,37 @@ public class JdbcService {
                 return privateKeyContent.contains("ENCRYPTED") ? getFromEncrypted(privateKeyContent, privateKeyPassword)
                         : getFromRegular(privateKeyContent);
             } catch (Exception e) {
+                // Provide better exception handling
                 throw new RuntimeException(e);
             }
         }
 
-        private PrivateKey getFromEncrypted(String privateKeyContent, String privateKeyPassword)
-                throws InvalidKeySpecException, NoSuchAlgorithmException, IOException, InvalidKeyException {
-            EncryptedPrivateKeyInfo pkInfo = new EncryptedPrivateKeyInfo(Base64.getMimeDecoder().decode(privateKeyContent
-                    .replace("-----BEGIN ENCRYPTED PRIVATE KEY-----", "").replace("-----END ENCRYPTED PRIVATE KEY-----", "")));
-            PBEKeySpec keySpec = new PBEKeySpec(privateKeyPassword.toCharArray());
-            SecretKeyFactory pbeKeyFactory = SecretKeyFactory.getInstance(pkInfo.getAlgName());
-            PKCS8EncodedKeySpec encodedKeySpec = pkInfo.getKeySpec(pbeKeyFactory.generateSecret(keySpec));
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-            return keyFactory.generatePrivate(encodedKeySpec);
+        private PrivateKey getFromEncrypted(String privateKeyContent, String privateKeyPassword) throws Exception {
+            // Maybe move to some Static block? For All JDBC then?
+            Security.addProvider(new BouncyCastleProvider());
+            PKCS8EncryptedPrivateKeyInfo pkcs8EncryptedPrivateKeyInfo = new PKCS8EncryptedPrivateKeyInfo(
+                    decodeString(replaceString(privateKeyContent, true)));
+            InputDecryptorProvider inputDecryptorProvider = new JceOpenSSLPKCS8DecryptorProviderBuilder().setProvider("BC")
+                    .build(privateKeyPassword.toCharArray());
+            PrivateKeyInfo pkInfo_bc1 = pkcs8EncryptedPrivateKeyInfo.decryptPrivateKeyInfo(inputDecryptorProvider);
+            return new JcaPEMKeyConverter().setProvider("BC").getPrivateKey(pkInfo_bc1);
         }
 
         private PrivateKey getFromRegular(String privateKeyContent) throws InvalidKeySpecException, NoSuchAlgorithmException {
-            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(Base64.getMimeDecoder().decode(privateKeyContent
-                    .replace("-----BEGIN RSA PRIVATE KEY-----", "").replace("-----END RSA PRIVATE KEY-----", "")));
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodeString(replaceString(privateKeyContent, false)));
             return KeyFactory.getInstance("RSA").generatePrivate(keySpec);
+        }
+
+        private byte[] decodeString(String privateKeyContent) {
+            return Base64.decode(privateKeyContent);
+        }
+
+        private String replaceString(String privateKeyContent, boolean isEncrypted) {
+            return isEncrypted
+                    ? privateKeyContent.replace("-----BEGIN ENCRYPTED PRIVATE KEY-----", "")
+                            .replace("-----END ENCRYPTED PRIVATE KEY-----", "")
+                    : privateKeyContent.replace("-----BEGIN RSA PRIVATE KEY-----", "")
+                            .replace("-----END RSA PRIVATE KEY-----", "");
         }
 
         public Connection getConnection() throws SQLException {
