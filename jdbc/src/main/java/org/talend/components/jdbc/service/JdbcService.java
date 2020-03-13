@@ -17,6 +17,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.ErrorFactory;
 import org.talend.components.jdbc.configuration.JdbcConfiguration;
+import org.talend.components.jdbc.datastore.AuthenticationType;
 import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.output.platforms.PlatformFactory;
 import org.talend.sdk.component.api.service.Service;
@@ -34,15 +35,26 @@ import java.lang.reflect.Proxy;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
+
+import javax.crypto.EncryptedPrivateKeyInfo;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
@@ -149,7 +161,12 @@ public class JdbcService {
                 thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
                 dataSource = new HikariDataSource();
                 dataSource.setUsername(connection.getUserId());
-                dataSource.setPassword(connection.getPassword());
+                if (AuthenticationType.KEY_PAIR == connection.getAuthenticationType()) {
+                    dataSource.addDataSourceProperty("privateKey",
+                            getPrivateKey(connection.getPrivateKeyContent(), connection.getPrivateKeyPassword()));
+                } else {
+                    dataSource.setPassword(connection.getPassword());
+                }
                 dataSource.setDriverClassName(driver.getClassName());
                 dataSource.setJdbcUrl(connection.getJdbcUrl());
                 dataSource.setAutoCommit(isAutoCommit);
@@ -170,6 +187,32 @@ public class JdbcService {
             } finally {
                 thread.setContextClassLoader(prev);
             }
+        }
+
+        private PrivateKey getPrivateKey(String privateKeyContent, String privateKeyPassword) {
+            try {
+                return privateKeyContent.contains("ENCRYPTED") ? getFromEncrypted(privateKeyContent, privateKeyPassword)
+                        : getFromRegular(privateKeyContent);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        private PrivateKey getFromEncrypted(String privateKeyContent, String privateKeyPassword)
+                throws InvalidKeySpecException, NoSuchAlgorithmException, IOException, InvalidKeyException {
+            EncryptedPrivateKeyInfo pkInfo = new EncryptedPrivateKeyInfo(Base64.getMimeDecoder().decode(privateKeyContent
+                    .replace("-----BEGIN ENCRYPTED PRIVATE KEY-----", "").replace("-----END ENCRYPTED PRIVATE KEY-----", "")));
+            PBEKeySpec keySpec = new PBEKeySpec(privateKeyPassword.toCharArray());
+            SecretKeyFactory pbeKeyFactory = SecretKeyFactory.getInstance(pkInfo.getAlgName());
+            PKCS8EncodedKeySpec encodedKeySpec = pkInfo.getKeySpec(pbeKeyFactory.generateSecret(keySpec));
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            return keyFactory.generatePrivate(encodedKeySpec);
+        }
+
+        private PrivateKey getFromRegular(String privateKeyContent) throws InvalidKeySpecException, NoSuchAlgorithmException {
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(Base64.getMimeDecoder().decode(privateKeyContent
+                    .replace("-----BEGIN RSA PRIVATE KEY-----", "").replace("-----END RSA PRIVATE KEY-----", "")));
+            return KeyFactory.getInstance("RSA").generatePrivate(keySpec);
         }
 
         public Connection getConnection() throws SQLException {
