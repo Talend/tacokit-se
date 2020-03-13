@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:listEmpTyp="urn:types.employees_2019_2.lists.webservices.netsuite.com" targetNamespace="urn:types.employees_2019_2.lists.webservices.netsuite.com" elementFormDefault="qualified">
+    <!-- EmployeePayFrequency/start -->
+    <simpleType name="EmployeePayFrequency">
+        <restriction base="xsd:string">
+            <enumeration value="_annually"/>
+            <enumeration value="_custom"/>
+            <enumeration value="_daily"/>
+            <enumeration value="_endOfPeriod"/>
+            <enumeration value="_everyFourWeeks"/>
+            <enumeration value="_everyThreeYears"/>
+            <enumeration value="_everyTwoMonths"/>
+            <enumeration value="_everyTwoWeeks"/>
+            <enumeration value="_everyTwoYears"/>
+            <enumeration value="_hourly"/>
+            <enumeration value="_monthly"/>
+            <enumeration value="_never"/>
+            <enumeration value="_oneTime"/>
+            <enumeration value="_quarterly"/>
+            <enumeration value="_startOfPeriod"/>
+            <enumeration value="_twiceAMonth"/>
+            <enumeration value="_twiceAYear"/>
+            <enumeration value="_weekly"/>
+        </restriction>
+    </simpleType>
+    <!-- EmployeePayFrequency/end -->
+    <!-- EmployeeUseTimeData/start -->
+    <simpleType name="EmployeeUseTimeData">
+        <restriction base="xsd:string">
+            <enumeration value="_wage"/>
+            <enumeration value="_salary"/>
+        </restriction>
+    </simpleType>
+    <!-- EmployeeUseTimeData/end -->
+    <!-- EmployeeCommissionPaymentPreference/start -->
+    <simpleType name="EmployeeCommissionPaymentPreference">
+        <restriction base="xsd:string">
+            <enumeration value="_accountsPayable"/>
+            <enumeration value="_payroll"/>
+            <enumeration value="_systemPreference"/>
+        </restriction>
+    </simpleType>
+    <!-- EmployeeCommissionPaymentPreference/end -->
+    <!-- Gender/start -->
+    <simpleType name="Gender">
+        <restriction base="xsd:string">
+            <enumeration value="_omitted"/>
+            <enumeration value="_female"/>
+            <enumeration value="_male"/>
+        </restriction>
+    </simpleType>
+    <!-- Gender/end -->
+    <simpleType name="EmployeeAccruedTimeAccrualMethod">
+        <restriction base="xsd:string">
+            <enumeration value="_lumpSums"/>
+            <enumeration value="_perHourWorked"/>
+            <enumeration value="_perPayPeriod"/>
+        </restriction>
+    </simpleType>
+    <simpleType name="EmployeeDirectDepositAccountStatus">
+        <restriction base="xsd:string">
+            <enumeration value="_active"/>
+            <enumeration value="_pending"/>
+            <enumeration value="_verifying"/>
+            <enumeration value="_failed"/>
+            <enumeration value="_inactive"/>
+        </restriction>
+    </simpleType>
+    <simpleType name="PayrollItemItemTypeNoHierarchy">
+        <restriction base="xsd:string">
+            <enumeration value="_addition"/>
+            <enumeration value="_commission"/>
+            <enumeration value="_deduction"/>
+            <enumeration value="_directDeposit"/>
+            <enumeration value="_disability"/>
+            <enumeration value="_earning"/>
+            <enumeration value="_employerContribution"/>
+            <enumeration value="_expense"/>
+            <enumeration value="_federal"/>
+            <enumeration value="_medicare"/>
+            <enumeration value="_other"/>
+            <enumeration value="_salary"/>
+            <enumeration value="_sick"/>
+            <enumeration value="_socialSecurity"/>
+            <enumeration value="_state"/>
+            <enumeration value="_tax"/>
+            <enumeration value="_unemployment"/>
+            <enumeration value="_vacation"/>
+            <enumeration value="_wage"/>
+        </restriction>
+    </simpleType>
+    <simpleType name="EmployeeWorkAssignment">
+        <restriction base="xsd:string">
+            <enumeration value="_job"/>
+            <enumeration value="_position"/>
+        </restriction>
+    </simpleType>
+    <simpleType name="EmployeeTerminationRegretted">
+        <restriction base="xsd:string">
+            <enumeration value="_no"/>
+            <enumeration value="_unspecified"/>
+            <enumeration value="_yes"/>
+        </restriction>
+    </simpleType>
+    <simpleType name="EmployeeCompensationCurrency">
+        <restriction base="xsd:string">
+            <enumeration value="_aed"/>
+            <enumeration value="_afa"/>
+            <enumeration value="_afn"/>
+            <enumeration value="_all"/>
+            <enumeration value="_amd"/>
+            <enumeration value="_ang"/>
+            <enumeration value="_aoa"/>
+            <enumeration value="_ars"/>
+            <enumeration value="_aud"/>
+            <enumeration value="_awg"/>
+            <enumeration value="_azn"/>
+            <enumeration value="_bam"/>
+            <enumeration value="_bbd"/>
+            <enumeration value="_bdt"/>
+            <enumeration value="_bgn"/>
+            <enumeration value="_bhd"/>
+            <enumeration value="_bif"/>
+            <enumeration value="_bmd"/>
+            <enumeration value="_bnd"/>
+            <enumeration value="_bob"/>
+            <enumeration value="_brl"/>
+            <enumeration value="_bsd"/>
+            <enumeration value="_btn"/>
+            <enumeration value="_bwp"/>
+            <enumeration value="_byn"/>
+            <enumeration value="_byr"/>
+            <enumeration value="_bzd"/>
+            <enumeration value="_cad"/>
+            <enumeration value="_cdf"/>
+            <enumeration value="_chf"/>
+            <enumeration value="_clp"/>
+            <enumeration value="_cny"/>
+            <enumeration value="_cop"/>
+            <enumeration value="_crc"/>
+            <enumeration value="_csd"/>
+            <enumeration value="_cuc"/>
+            <enumeration value="_cup"/>
+            <enumeration value="_cve"/>
+            <enumeration value="_cyp"/>
+            <enumeration value="_czk"/>
+            <enumeration value="_djf"/>
+            <enumeration value="_dkk"/>
+            <enumeration value="_dop"/>
+            <enumeration value="_dzd"/>
+            <enumeration value="_ecs"/>
+            <enumeration value="_eek"/>
+            <enumeration value="_egp"/>
+            <enumeration value="_ern"/>
+            <enumeration value="_etb"/>
+            <enumeration value="_eur"/>
+            <enumeration value="_fjd"/>
+            <enumeration value="_fkp"/>
+            <enumeration value="_gbp"/>
+            <enumeration value="_gel"/>
+            <enumeration value="_ggp"/>
+            <enumeration value="_ghc"/>
+            <enumeration value="_ghs"/>
+            <enumeration value="_gip"/>
+            <enumeration value="_gmd"/>
+            <enumeration value="_gnf"/>
+            <enumeration value="_gtq"/>
+            <enumeration value="_gyd"/>
+            <enumeration value="_hkd"/>
+            <enumeration value="_hnl"/>
+            <enumeration value="_hrk"/>
+            <enumeration value="_htg"/>
+            <enumeration value="_huf"/>
+            <enumeration value="_idr"/>
+            <enumeration value="_ils"/>
+            <enumeration value="_imp"/>
+            <enumeration value="_inr"/>
+            <enumeration value="_iqd"/>
+            <enumeration value="_irr"/>
+            <enumeration value="_isk"/>
+            <enumeration value="_jep"/>
+            <enumeration value="_jmd"/>
+            <enumeration value="_jod"/>
+            <enumeration value="_jpy"/>
+            <enumeration value="_kes"/>
+            <enumeration value="_kgs"/>
+            <enumeration value="_khr"/>
+            <enumeration value="_kmf"/>
+            <enumeration value="_kpw"/>
+            <enumeration value="_krw"/>
+            <enumeration value="_kwd"/>
+            <enumeration value="_kyd"/>
+            <enumeration value="_kzt"/>
+            <enumeration value="_lak"/>
+            <enumeration value="_lbp"/>
+            <enumeration value="_lkr"/>
+            <enumeration value="_lrd"/>
+            <enumeration value="_lsl"/>
+            <enumeration value="_ltl"/>
+            <enumeration value="_lvl"/>
+            <enumeration value="_lyd"/>
+            <enumeration value="_mad"/>
+            <enumeration value="_mdl"/>
+            <enumeration value="_mfg"/>
+            <enumeration value="_mga"/>
+            <enumeration value="_mkd"/>
+            <enumeration value="_mmk"/>
+            <enumeration value="_mnt"/>
+            <enumeration value="_mop"/>
+            <enumeration value="_mro"/>
+            <enumeration value="_mru"/>
+            <enumeration value="_mtl"/>
+            <enumeration value="_mur"/>
+            <enumeration value="_mvr"/>
+            <enumeration value="_mwk"/>
+            <enumeration value="_mxn"/>
+            <enumeration value="_myr"/>
+            <enumeration value="_mzm"/>
+            <enumeration value="_mzn"/>
+            <enumeration value="_nad"/>
+            <enumeration value="_ngn"/>
+            <enumeration value="_nio"/>
+            <enumeration value="_nok"/>
+            <enumeration value="_npr"/>
+            <enumeration value="_nzd"/>
+            <enumeration value="_omr"/>
+            <enumeration value="_pab"/>
+            <enumeration value="_pen"/>
+            <enumeration value="_pgk"/>
+            <enumeration value="_php"/>
+            <enumeration value="_pkr"/>
+            <enumeration value="_pln"/>
+            <enumeration value="_pyg"/>
+            <enumeration value="_qar"/>
+            <enumeration value="_rol"/>
+            <enumeration value="_ron"/>
+            <enumeration value="_rsd"/>
+            <enumeration value="_rub"/>
+            <enumeration value="_rur"/>
+            <enumeration value="_rwf"/>
+            <enumeration value="_sar"/>
+            <enumeration value="_sbd"/>
+            <enumeration value="_scr"/>
+            <enumeration value="_sdd"/>
+            <enumeration value="_sdg"/>
+            <enumeration value="_sek"/>
+            <enumeration value="_sgd"/>
+            <enumeration value="_shp"/>
+            <enumeration value="_sit"/>
+            <enumeration value="_skk"/>
+            <enumeration value="_sll"/>
+            <enumeration value="_sos"/>
+            <enumeration value="_spl"/>
+            <enumeration value="_srd"/>
+            <enumeration value="_srg"/>
+            <enumeration value="_ssp"/>
+            <enumeration value="_std"/>
+            <enumeration value="_stn"/>
+            <enumeration value="_svc"/>
+            <enumeration value="_syp"/>
+            <enumeration value="_szl"/>
+            <enumeration value="_thb"/>
+            <enumeration value="_tjs"/>
+            <enumeration value="_tmm"/>
+            <enumeration value="_tmt"/>
+            <enumeration value="_tnd"/>
+            <enumeration value="_top"/>
+            <enumeration value="_trl"/>
+            <enumeration value="_try"/>
+            <enumeration value="_ttd"/>
+            <enumeration value="_tvd"/>
+            <enumeration value="_twd"/>
+            <enumeration value="_tzs"/>
+            <enumeration value="_uah"/>
+            <enumeration value="_ugx"/>
+            <enumeration value="_usd"/>
+            <enumeration value="_uyu"/>
+            <enumeration value="_uzs"/>
+            <enumeration value="_veb"/>
+            <enumeration value="_vef"/>
+            <enumeration value="_ves"/>
+            <enumeration value="_vnd"/>
+            <enumeration value="_vuv"/>
+            <enumeration value="_wst"/>
+            <enumeration value="_wsx"/>
+            <enumeration value="_xaf"/>
+            <enumeration value="_xag"/>
+            <enumeration value="_xau"/>
+            <enumeration value="_xcd"/>
+            <enumeration value="_xdr"/>
+            <enumeration value="_xof"/>
+            <enumeration value="_xop"/>
+            <enumeration value="_xpd"/>
+            <enumeration value="_xpf"/>
+            <enumeration value="_xpt"/>
+            <enumeration value="_yer"/>
+            <enumeration value="_yum"/>
+            <enumeration value="_zar"/>
+            <enumeration value="_zmk"/>
+            <enumeration value="_zmw"/>
+            <enumeration value="_zrn"/>
+            <enumeration value="_zwd"/>
+            <enumeration value="_zwl"/>
+        </restriction>
+    </simpleType>
+    <simpleType name="EmployeeBaseWageType">
+        <restriction base="xsd:string">
+            <enumeration value="_annualSalary"/>
+            <enumeration value="_hourly"/>
+            <enumeration value="_monthlySalary"/>
+        </restriction>
+    </simpleType>
+    <simpleType name="EmployeeTerminationCategory">
+        <restriction base="xsd:string">
+            <enumeration value="_involuntary"/>
+            <enumeration value="_voluntary"/>
+        </restriction>
+    </simpleType>
+    <simpleType name="PayrollItemAccountCategory">
+        <restriction base="xsd:string">
+            <enumeration value="_expense"/>
+            <enumeration value="_liability"/>
+        </restriction>
+    </simpleType>
+</schema>

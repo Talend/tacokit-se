@@ -1,0 +1,86 @@
+= Component Extension
+
+It is a component-runtime integration module enabling some advanced features through extensions.
+It is also used as a sample of container extensions.
+
+== Setup
+
+Its prerequisite is to deploy it with component-runtime-manager classpath.
+
+For the studio it must be added to [1] for the server and [2] for the runtime.
+For [2] it can just be added to `component-runtime-di` dependencies.
+
+For the remote engine (TDC/TPD) it must be added in `/opt/talend/component-kit/custom` folder ([3]) for the server and livy for the runtime (it is currently moving so not detailling it more).
+
+[1] https://github.com/Talend/tdi-studio-se/blob/95e561d5ffed676fe10bf35c2f5ba69fefa7b0fa/main/plugins/org.talend.sdk.component.studio-integration/src/main/java/org/talend/sdk/component/studio/ProcessManager.java#L520
+[2] https://github.com/Talend/tdi-studio-se/blob/95e561d5ffed676fe10bf35c2f5ba69fefa7b0fa/main/plugins/org.talend.sdk.component.studio-integration/src/main/java/org/talend/sdk/component/studio/ComponentModel.java#L392
+[3] https://talend.github.io/component-runtime/main/1.1.17/documentation-rest.html#_adding_extensions_to_the_server
+
+== Usage
+
+The first big difference between `org.talend.components.extension.api.extension.CustomComponentExtension` and `org.talend.sdk.component.runtime.manager.spi.ContainerListenerExtension` except its API is the fact it can be hosted in a component family and not only at container/component-runtime-manager level.
+Therefore it enables to build extension libraries embeddable in families.
+
+=== Doing a custom extension
+
+* Create a module `my-extension`,
+* Implement `CustomComponentExtension`,
+* Register the extension putting its fully qualified name in `META-INF/services/org.talend.components.extension.api.extension.CustomComponentExtension`,
+* Add the `my-extension` module as dependency of the component.
+
+TIP: alternatively you can also deploy `my-extension.jar` in the container, see xref:Setup part.
+
+== Built-in extensions
+
+=== @ExcludedIf/@IncludedIf
+
+Both annotation are symmetric and aim to veto component if some conditions are not met.
+The two supported conditions today are:
+
+1. the presence of another component in the *same* family,
+2. the presence of a `LocalConfiguration` key/value (can be set through system properties or environment variables).
+
+If multiple conditions are configured, at least one enables to activate the component.
+
+Example:
+
+[source,java]
+----
+@PartitionMapper(name = "EnterpriseMapper")
+@ExcludedIf(componentExistsInTheFamily = "OpenSourceMapper")
+// or
+@ExcludedIf(configuration = @KeyValue(name = "family.use-open-source-mapper", value = "true"))
+public class MyAdvancedEnterpriseMapper extends MyOpenSourceMapper {
+    // stand impl
+}
+----
+
+NOTE: for enterprise/open-source distinction, configuring the scanning can be sufficient.
+
+=== @VirtualChain
+
+Enables to chain some flatMap processors to the source.
+A `flatMap` processor is a processor taking one input and using an `OutputEmitter` to emit zero or more record.
+
+Putting `@VirtualChain` on a mapper will enable to chain the source with 1-N processor automatically.
+The configuration will be merged automatically and all of them will be presented to the end user.
+
+[source,java]
+----
+@Emitter(name = "SomeSource")
+@VirtualChain(
+        name = "SourceWithFlatMapJson",
+        icon = "foo",
+        followedBy = FlatMapJson.class)
+public class SomeSource implements Serializable {
+    // ...
+}
+----
+
+Potential enhancements:
+
+* Handle the layout of the merged options,
+* Handle the conditions on the options,
+* Handle the validation implementing a `org.talend.sdk.component.tools.spi.ValidationExtension` and adding the dependency in the plugin `talend-component-maven-plugin`,
+* Enable to override some options metadata,
+* Likely way much more ;)

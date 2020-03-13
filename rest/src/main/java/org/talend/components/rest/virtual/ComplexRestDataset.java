@@ -13,6 +13,7 @@
 package org.talend.components.rest.virtual;
 
 import lombok.Data;
+import org.talend.components.extension.polling.api.PollableDuplicateDataset;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.processor.JSonExtractorConfiguration;
 import org.talend.sdk.component.api.component.Version;
@@ -28,6 +29,7 @@ import java.io.Serializable;
 @DataSet("Dataset")
 @GridLayout({ @GridLayout.Row({ "restConfiguration" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "restConfiguration" }) })
+@PollableDuplicateDataset
 public class ComplexRestDataset implements Serializable {
 
     @Option

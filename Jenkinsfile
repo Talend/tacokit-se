@@ -91,8 +91,24 @@ spec:
                     // for next concurrent builds
                     sh 'for i in ci_documentation ci_nexus ci_site; do rm -Rf $i; rsync -av . $i; done'
                     // real task
-                    withCredentials([nexusCredentials]) {
-                        sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -e ${talendOssRepositoryArg}"
+                    withCredentials([
+                            nexusCredentials
+                            , usernamePassword(
+                                credentialsId: 'netsuite-integration',
+                                usernameVariable: 'NETSUITE_INTEGRATION_USER',
+                                passwordVariable: 'NETSUITE_INTEGRATION_PASSWORD')
+                            , usernamePassword(
+                                credentialsId: 'netsuite-integration-consumer',
+                                usernameVariable: 'NETSUITE_INTEGRATION_CONSUMER_USER',
+                                passwordVariable: 'NETSUITE_INTEGRATION_CONSUMER_PASSWORD')
+                            , usernamePassword(
+                                credentialsId: 'netsuite-integration-token',
+                                usernameVariable: 'NETSUITE_INTEGRATION_TOKEN_USER',
+                                passwordVariable: 'NETSUITE_INTEGRATION_TOKEN_PASSWORD')
+                    ]) {
+                        script {
+                            sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/ -e ${talendOssRepositoryArg}"
+                        }
                     }
                 }
             }
@@ -198,8 +214,7 @@ spec:
                 container('main') {
                     withCredentials([nexusCredentials, string(credentialsId: 'xtm-token', variable: 'XTM_TOKEN'), gitCredentials]) {
                         script {
-                            sh "mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-deploy"
-                            sh "cd tmp/repository && mvn -s ../../.jenkins/settings.xml clean deploy -DaltDeploymentRepository=talend_nexus_deployment::default::https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceRelease/"
+                            sh "sh .jenkins/xtm-deploy.sh"
                         }
                     }
                 }

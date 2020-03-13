@@ -18,7 +18,7 @@
 
     <groupId>org.talend.components</groupId>
     <artifactId>connectors-se</artifactId>
-    <version>1.7.0-SNAPSHOT</version>
+    <version>1.8.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Components</name>
@@ -38,8 +38,9 @@
         <module>couchbase</module>
         <module>azure</module>
         <module>rest</module>
+        <module>dynamics-crm</module>
         <!-- disable eventhubs build before all ready
-	<module>azure-eventhubs</module> 
+	<module>azure-eventhubs</module>
 	-->
 
         <module>azure-dls-gen2</module>
@@ -49,7 +50,9 @@
         <module>connectors-test-bom</module>
         <module>bigquery</module>
         <module>workday</module>
+        <module>extensions</module>
         <module>pubsub</module>
+        <module>netsuite</module>
     </modules>
 
     <scm>
@@ -74,12 +77,12 @@
     </distributionManagement>
 
     <properties>
-        <connectors-test-bom.version>1.7.0-SNAPSHOT</connectors-test-bom.version>
-        <common.version>1.7.0-SNAPSHOT</common.version>
+        <connectors-test-bom.version>1.8.0-SNAPSHOT</connectors-test-bom.version>
+        <common.version>1.8.0-SNAPSHOT</common.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <locales.version>[1.7,)</locales.version>
+        <locales.version>[1.8,)</locales.version>
 
         <component-runtime.version>1.1.15</component-runtime.version>
         <slf4j.version>1.7.25</slf4j.version>
@@ -914,8 +917,8 @@
                                             ${maven.multiModuleProjectDirectory}/target/documentation_resources/resources/html
                                         </stylesdir>
                                         <stylesheet>talend.css</stylesheet>
-                                        <data-uri/>
-                                        <toc/>
+                                        <data-uri />
+                                        <toc />
                                     </attributes>
                                 </configuration>
                             </execution>

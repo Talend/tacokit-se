@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -116,7 +116,7 @@ class HTMLInputIT extends BaseIT {
 
     @Test
     void testInputHTMLExportedFromSalesforce() throws StorageException, IOException, URISyntaxException {
-        final int recordSize = 7;
+        final int recordSize = 6;
         final int columnSize = 7;
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excelHTML/realSalesforceExportedHTML.html",
                 "realSalesforceExportedHTML.html");
@@ -127,6 +127,14 @@ class HTMLInputIT extends BaseIT {
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
         Assert.assertEquals("Records amount is different", recordSize, records.size());
-        Assert.assertEquals("Record's column amount is different", columnSize, records.get(0).getSchema().getEntries().size());
+        Record firstRecord = records.get(0);
+        Assert.assertEquals("Record's column amount is different", columnSize, firstRecord.getSchema().getEntries().size());
+        Assert.assertEquals("compqa talend", firstRecord.getString("Account_Owner"));
+        Assert.assertEquals("CLoud_salesforce", firstRecord.getString("Account_Name"));
+        Assert.assertTrue("Type should be empty", firstRecord.getString("Type").isEmpty());
+        Assert.assertTrue("Rating should be empty", firstRecord.getString("Rating").isEmpty());
+        Assert.assertTrue("Last_Activity should be empty", firstRecord.getString("Last_Activity").isEmpty());
+        Assert.assertEquals("2/3/2020", firstRecord.getString("Last_Modified_Date"));
+        Assert.assertTrue("Billing_State_Province should be empty", firstRecord.getString("Billing_State_Province").isEmpty());
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -18,7 +18,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.talend.components.azure.common.exception.BlobRuntimeException;
-import org.talend.components.azure.common.service.AzureComponentServices;
 import org.talend.components.azure.runtime.output.BlobFileWriter;
 import org.talend.components.azure.runtime.output.BlobFileWriterFactory;
 import org.talend.components.azure.service.AzureBlobComponentServices;
@@ -86,7 +85,9 @@ public class BlobOutput implements Serializable {
     @PreDestroy
     public void release() {
         try {
-            fileWriter.complete();
+            if (fileWriter != null) {
+                fileWriter.complete();
+            }
         } catch (Exception e) {
             throw new BlobRuntimeException(messageService.errorSubmitRows(), e);
         }

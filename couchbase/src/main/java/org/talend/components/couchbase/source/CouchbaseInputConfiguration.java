@@ -54,7 +54,6 @@ public class CouchbaseInputConfiguration implements Serializable {
     private String query;
 
     @Option
-    @TextArea
     @Documentation("Document Id.")
     @ActiveIf(target = "selectAction", value = "ONE")
     private String documentId;

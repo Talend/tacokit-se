@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -60,14 +60,12 @@ public class ParquetBlobFileWriter extends BlobFileWriter {
     }
 
     @Override
-    public void generateFile() throws URISyntaxException, StorageException {
-        String fileName = config.getDataset().getDirectory() + "/" + config.getBlobNameTemplate() + System.currentTimeMillis()
-                + ".parquet";
+    public void generateFile(String directoryName) throws URISyntaxException, StorageException {
+        String fileName = directoryName + config.getBlobNameTemplate() + System.currentTimeMillis() + ".parquet";
 
         CloudBlob blob = getContainer().getBlockBlobReference(fileName);
         while (blob.exists(null, null, AzureComponentServices.getTalendOperationContext())) {
-            fileName = config.getDataset().getDirectory() + "/" + config.getBlobNameTemplate() + System.currentTimeMillis()
-                    + ".parquet";
+            fileName = directoryName + config.getBlobNameTemplate() + System.currentTimeMillis() + ".parquet";
             blob = getContainer().getBlockBlobReference(fileName);
         }
 

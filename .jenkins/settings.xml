@@ -29,6 +29,22 @@
         <timeout>30000</timeout>
       </configuration>
     </server>
+
+    <server>
+      <id>netsuite</id>
+      <username>${env.NETSUITE_INTEGRATION_USER}</username>
+      <password>${env.NETSUITE_INTEGRATION_PASSWORD}</password>
+    </server>
+    <server>
+      <id>netsuite.consumer</id>
+      <username>${env.NETSUITE_INTEGRATION_CONSUMER_USER}</username>
+      <password>${env.NETSUITE_INTEGRATION_CONSUMER_PASSWORD}</password>
+    </server>
+    <server>
+      <id>netsuite.token</id>
+      <username>${env.NETSUITE_INTEGRATION_TOKEN_USER}</username>
+      <password>${env.NETSUITE_INTEGRATION_TOKEN_PASSWORD}</password>
+    </server>
   </servers>
 
   <mirrors>

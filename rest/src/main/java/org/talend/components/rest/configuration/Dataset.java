@@ -34,7 +34,8 @@ import java.util.List;
         @GridLayout.Row({ "queryParams" }), @GridLayout.Row({ "hasPathParams" }), @GridLayout.Row({ "pathParams" }),
         @GridLayout.Row({ "hasBody" }), @GridLayout.Row({ "body" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "datastore" }),
-        @GridLayout.Row({ "completePayload" }) })
+        @GridLayout.Row({ "completePayload" }), @GridLayout.Row({ "maxRedirect" }), @GridLayout.Row({ "only_same_host" }),
+        @GridLayout.Row({ "force_302_redirect" }) })
 @Documentation("Dataset configuration.")
 public class Dataset implements Serializable {
 
@@ -57,6 +58,7 @@ public class Dataset implements Serializable {
     @Documentation("How many redirection are supported ? (-1 for infinite)")
     @DefaultValue("3")
     @Min(-1)
+    @Required
     private Integer maxRedirect = 3;
 
     @Option

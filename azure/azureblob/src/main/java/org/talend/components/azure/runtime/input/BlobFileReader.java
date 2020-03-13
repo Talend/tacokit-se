@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -58,7 +58,9 @@ public abstract class BlobFileReader {
         CloudBlobContainer container = checkBlobContainer(config, blobClient);
 
         String directoryName = config.getDirectory();
-        if (!directoryName.endsWith("/")) {
+        if (directoryName == null) {
+            directoryName = "";
+        } else if (!directoryName.endsWith("/")) {
             directoryName += "/";
         }
 
@@ -155,10 +157,13 @@ public abstract class BlobFileReader {
             }
 
             while (blobItems.hasNext()) {
-                currentItem = (CloudBlob) blobItems.next();
-                readItem();
-                if (hasNextRecordTaken()) {
-                    return takeNextRecord(); // read record from next item
+                Object next = blobItems.next();
+                if (next instanceof CloudBlob) {
+                    currentItem = (CloudBlob) next;
+                    readItem();
+                    if (hasNextRecordTaken()) {
+                        return takeNextRecord(); // read record from next item
+                    }
                 }
             }
 
@@ -176,9 +181,13 @@ public abstract class BlobFileReader {
         protected abstract void readItem();
 
         protected void takeFirstItem() {
-            if (blobItems.hasNext()) {
-                currentItem = (CloudBlob) blobItems.next();
-                readItem();
+            while (blobItems.hasNext()) {
+                Object next = blobItems.next();
+                if (next instanceof CloudBlob) {
+                    currentItem = (CloudBlob) next;
+                    readItem();
+                    break;
+                }
             }
         }
 

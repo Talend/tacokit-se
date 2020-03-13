@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,11 +16,11 @@ import java.net.URISyntaxException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.talend.components.azure.BaseIT;
 import org.talend.components.azure.common.FileFormat;
@@ -34,6 +34,7 @@ import org.talend.sdk.component.runtime.manager.chain.Job;
 import org.talend.sdk.component.runtime.record.SchemaImpl;
 
 import com.microsoft.azure.storage.StorageException;
+import com.microsoft.azure.storage.blob.CloudBlob;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
@@ -221,5 +222,32 @@ class AvroOutputIT extends BaseIT {
         Assert.assertEquals(recordSize, records.size());
         Assert.assertEquals(fieldSize, records.get(0).getSchema().getEntries().size());
         Assert.assertEquals(fieldSize, records.get(1).getSchema().getEntries().size());
+    }
+
+    @Test
+    void testOutputWhenDirIsNotSpecified() throws URISyntaxException, StorageException {
+        int recordSize = 1;
+        blobOutputProperties.getDataset().setDirectory(null);
+
+        Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder()
+                .withString("stringValue", testStringValue).withBoolean("booleanValue", testBooleanValue)
+                .withLong("longValue", testLongValue).withInt("intValue", testIntValue).withDouble("doubleValue", testDoubleValue)
+                .withDateTime("dateValue", testDateValue).withBytes("byteArray", bytes).build();
+
+        List<Record> testRecords = new ArrayList<>();
+        for (int i = 0; i < recordSize; i++) {
+            testRecords.add(testRecord);
+        }
+        componentsHandler.setInputData(testRecords);
+
+        String outputConfig = configurationByExample().forInstance(blobOutputProperties).configured().toQueryString();
+        outputConfig += "&$configuration.$maxBatchSize=" + recordSize;
+        Job.components().component("inputFlow", "test://emitter").component("outputComponent", "Azure://Output?" + outputConfig)
+                .connections().from("inputFlow").to("outputComponent").build().run();
+
+        CloudBlobContainer container = storageAccount.createCloudBlobClient().getContainerReference(containerName);
+        Iterator blobIterator = container.listBlobs("", false).iterator();
+        Assert.assertTrue("No files were created in test container root directory", blobIterator.hasNext());
+        Assert.assertTrue("Directory was created", blobIterator.next() instanceof CloudBlob);
     }
 }
