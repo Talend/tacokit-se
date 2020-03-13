@@ -36,11 +36,11 @@
             <artifactId>common-io</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!--<dependency>
+        <dependency>
             <groupId>org.talend.components</groupId>
             <artifactId>stream-json</artifactId>
             <version>${project.version}</version>
-        </dependency>-->
+        </dependency>
         <dependency>
             <groupId>org.talend.components</groupId>
             <artifactId>stream-csv</artifactId>

@@ -40,9 +40,13 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.Storage;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Version
+@Slf4j
 @Icon(value = Icon.IconType.CUSTOM, custom = "cloudstorageInput")
 @Emitter(family = "GoogleStorage", name = "Input")
 @Documentation("This component read content file from google cloud storage.")
@@ -111,29 +115,58 @@ public class GoogleStorageSource implements Serializable {
 
     private Iterator<Record> buildRecordIterator() {
         // reader depending on format.
-        final GSDataSet dataset = this.getDataSet();
-        final ContentFormat format = dataset.getContentFormat().findFormat();
-
+        final ContentFormat format = this.getDataSet().getContentFormat().findFormat();
         final RecordReaderSupplier recordReaderSupplier = this.ioRepository.findReader(format.getClass());
-
         this.recordReader = recordReaderSupplier.getReader(this.factory, format);
 
-        // Blob (byte source)
-        final Storage storage = this.credentialService.newStorage(this.googleCredentials);
-        final BlobInfo blobInfo = dataset.blob();
-        final Blob blob = storage.get(blobInfo.getBlobId());
-        if (blob == null) { // blob does not exist.
-            final String errorLabel = this.i18n.blobUnexist(dataset.getBlob(), dataset.getBucket());
-            throw new IllegalArgumentException(errorLabel);
-        }
+        // find source blob.
+        final Blob blob = this.findBlob();
 
         // reader & iterator.
         final InputStream in = Channels.newInputStream(blob.reader());
         return this.recordReader.read(in);
     }
 
+    /**
+     * Get dataset targeted blob.
+     * 
+     * @return google storage blob.
+     */
+    private Blob findBlob() {
+        final GSDataSet dataset = this.getDataSet();
+        // Blob (byte source)
+        final Storage storage = this.credentialService.newStorage(this.googleCredentials);
+        final BlobInfo blobInfo = dataset.blob();
+
+        this.checkBucket(storage, dataset.getBucket());
+
+        final Blob blob = storage.get(blobInfo.getBlobId());
+        if (blob == null) { // blob does not exist.
+            final String errorLabel = this.i18n.blobUnexist(dataset.getBlob(), dataset.getBucket());
+            log.warn(errorLabel);
+            throw new IllegalArgumentException(errorLabel);
+        }
+        return blob;
+    }
+
+    /**
+     * Check bucket existence.
+     * Exception if not exists.
+     * (put in specific protected method for test reason; can't create bucket with google fake storage class).
+     * 
+     * @param storage : storage.
+     * @param bucketName : name of bucket.
+     */
+    protected void checkBucket(Storage storage, String bucketName) {
+        final Bucket bucket = storage.get(bucketName);
+        if (bucket == null) { // bucket does not exist.
+            final String errorLabel = this.i18n.bucketUnexist(bucketName);
+            log.warn(errorLabel);
+            throw new IllegalArgumentException(errorLabel);
+        }
+    }
+
     private GSDataSet getDataSet() {
         return this.config.getDataset();
     }
-
 }

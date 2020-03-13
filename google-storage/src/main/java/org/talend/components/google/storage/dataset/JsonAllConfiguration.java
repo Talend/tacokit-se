@@ -10,26 +10,17 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.google.storage.service;
+package org.talend.components.google.storage.dataset;
 
-import org.talend.sdk.component.api.internationalization.Internationalized;
+import org.talend.components.common.stream.format.ContentFormat;
+import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.meta.Documentation;
 
-@Internationalized
-public interface I18nMessage {
+import lombok.Data;
 
-    String credentialsRequired();
+@Data
+@GridLayout({})
+@Documentation("Json Configuration in one object.")
+public class JsonAllConfiguration implements ContentFormat {
 
-    String successConnection();
-
-    String errorConnection(String error);
-
-    String bucketUnexist(String bucket);
-
-    String blobUnexist(String blob, String bucket);
-
-    String writeError(String bucket, String blob, String exception);
-
-    String getCredentials(String exception);
-
-    String outputWasNotInitialize();
 }

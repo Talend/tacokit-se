@@ -17,6 +17,11 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Collection;
+
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -55,22 +60,20 @@ class GoogleStorageSourceTest {
 
     private final Storage storage = LocalStorageHelper.getOptions().getService();
 
+    private final CredentialService credentialService = new CredentialService() {
+
+        @Override
+        public Storage newStorage(GoogleCredentials credentials) {
+            return GoogleStorageSourceTest.this.storage;
+        }
+    };
+
     @Test
     void next() throws IOException {
-        BlobInfo blobInfo = BlobInfo.newBuilder(BlobId.of("bucketTest", "blob/path")).build();
+        final String content = "C1;C2\nL1;L2\nM1;M2\nP1;P2";
+        final GSDataSet dataset = storeContent("bucketTest", "blob/path", content);
 
-        String content = "C1;C2\nL1;L2\nM1;M2\nP1;P2";
-
-        storage.create(blobInfo, content.getBytes(StandardCharsets.UTF_8));
-
-        GSDataSet dataset = new GSDataSet();
-        dataset.setDataStore(new GSDataStore());
-        String jwtContent = this.getContentFile("./engineering-test.json");
-        dataset.getDataStore().setJsonCredentials(jwtContent);
-        dataset.setBucket("bucketTest");
-        dataset.setBlob("blob/path");
-
-        FormatConfiguration configuration = new FormatConfiguration();
+        final FormatConfiguration configuration = new FormatConfiguration();
         configuration.setContentFormat(FormatConfiguration.Type.CSV);
         CSVConfiguration csvConfig = new CSVConfiguration();
         csvConfig.setFieldSeparator(new FieldSeparator());
@@ -84,20 +87,7 @@ class GoogleStorageSourceTest {
         configuration.setCsvConfiguration(csvConfig);
         dataset.setContentFormat(configuration);
 
-        final InputConfiguration config = new InputConfiguration();
-        config.setDataset(dataset);
-
-        final CredentialService credentialService = new CredentialService() {
-
-            @Override
-            public Storage newStorage(GoogleCredentials credentials) {
-                return GoogleStorageSourceTest.this.storage;
-            }
-        };
-
-        GoogleStorageSource source = new GoogleStorageSource(config, this.factory, this.repository, credentialService, i18n);
-
-        source.init();
+        final GoogleStorageSource source = buildSource(dataset);
 
         final Record record1 = source.next();
         this.checkRecord(record1, "C1", "C2");
@@ -115,6 +105,98 @@ class GoogleStorageSourceTest {
         Assertions.assertNull(record5);
 
         source.release();
+    }
+
+    @Test
+    void nextSimpleJson() throws IOException {
+        final JsonObject jsonObject = Json.createObjectBuilder().add("Hello", "Team")
+                .add("items", Json.createArrayBuilder().add(1).add(2).add(3).build()).build();
+        final String content = jsonObject.toString();
+        final GSDataSet dataset = storeContent("bucketTest", "jsonSimple", content);
+
+        final FormatConfiguration configuration = new FormatConfiguration();
+        configuration.setContentFormat(FormatConfiguration.Type.JSON);
+        dataset.setContentFormat(configuration);
+
+        final GoogleStorageSource source = buildSource(dataset);
+
+        final Record record1 = source.next();
+        Assertions.assertNotNull(record1);
+        Assertions.assertEquals("Team", record1.getString("Hello"));
+        final Collection<Long> items = record1.getArray(Long.TYPE, "items");
+        Assertions.assertNotNull(items);
+        Assertions.assertEquals(3, items.size());
+        Assertions.assertTrue(items.contains(1L));
+
+        final Record record2 = source.next();
+        Assertions.assertNull(record2);
+
+        source.release();
+    }
+
+    @Test
+    void nextArrayJson() throws IOException {
+        final JsonArray jsonObject = Json.createArrayBuilder().add(Json.createObjectBuilder().add("Hi", "John"))
+                .add(Json.createObjectBuilder().add("Hi", "Java")).add(Json.createObjectBuilder().add("Hi", "Kotlin")).build();
+
+        final String content = jsonObject.toString();
+        final GSDataSet dataset = storeContent("bucketTest", "jsonArray", content);
+
+        final FormatConfiguration configuration = new FormatConfiguration();
+        configuration.setContentFormat(FormatConfiguration.Type.JSON);
+        dataset.setContentFormat(configuration);
+
+        final GoogleStorageSource source = buildSource(dataset);
+
+        final Record record1 = source.next();
+        Assertions.assertNotNull(record1);
+        Assertions.assertEquals("John", record1.getString("Hi"));
+
+        final Record record2 = source.next();
+        Assertions.assertNotNull(record2);
+        Assertions.assertEquals("Java", record2.getString("Hi"));
+
+        final Record record3 = source.next();
+        Assertions.assertNotNull(record3);
+        Assertions.assertEquals("Kotlin", record3.getString("Hi"));
+
+        final Record record4 = source.next();
+        Assertions.assertNull(record4);
+
+        source.release();
+    }
+
+    private GSDataSet storeContent(final String bucketName, final String blobName, final String content) throws IOException {
+        final BlobInfo blobInfo = BlobInfo.newBuilder(BlobId.of(bucketName, blobName)).build();
+        this.storage.create(blobInfo, content.getBytes(StandardCharsets.UTF_8));
+
+        final GSDataSet dataset = new GSDataSet();
+        dataset.setDataStore(this.buildDataStore());
+        dataset.setBucket(bucketName);
+        dataset.setBlob(blobName);
+        return dataset;
+    }
+
+    private GoogleStorageSource buildSource(final GSDataSet dataset) {
+        final InputConfiguration config = new InputConfiguration();
+        config.setDataset(dataset);
+        final GoogleStorageSource source = new GoogleStorageSource(config, this.factory, this.repository, credentialService,
+                i18n) {
+
+            @Override
+            protected void checkBucket(Storage storage, String bucketName) {
+            }
+        };
+
+        source.init();
+        return source;
+    }
+
+    private GSDataStore buildDataStore() throws IOException {
+        final GSDataStore ds = new GSDataStore();
+        String jwtContent = this.getContentFile("./engineering-test.json");
+        ds.setJsonCredentials(jwtContent);
+        return ds;
     }
 
     private void checkRecord(Record record, String col1, String col2) {

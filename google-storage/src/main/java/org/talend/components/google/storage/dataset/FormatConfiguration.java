@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 @GridLayout({ @GridLayout.Row("contentFormat"), //
-        @GridLayout.Row({ "csvConfiguration", "avroConfiguration", "excelConfiguration" }) })
+        @GridLayout.Row({ "csvConfiguration", "avroConfiguration", "excelConfiguration", "jsonConfiguration" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "csvConfiguration" }) })
 @Documentation("Stream content configuration.")
 public class FormatConfiguration implements Serializable {
@@ -41,27 +41,33 @@ public class FormatConfiguration implements Serializable {
     public enum Type {
         CSV,
         AVRO,
-        EXCEL
+        EXCEL,
+        JSON
     }
 
     @Option
     @Documentation("Type of stream content format.")
-    private FormatConfiguration.Type contentFormat;
+    private FormatConfiguration.Type contentFormat = FormatConfiguration.Type.CSV;
 
     @Option
     @ActiveIf(target = "contentFormat", value = "CSV")
     @Documentation("CSV format.")
-    private CSVConfiguration csvConfiguration;
+    private CSVConfiguration csvConfiguration = new CSVConfiguration();
 
     @Option
     @ActiveIf(target = "contentFormat", value = "AVRO")
     @Documentation("Avro format.")
-    private AvroConfiguration avroConfiguration;
+    private AvroConfiguration avroConfiguration = new AvroConfiguration();
 
     @Option
     @ActiveIf(target = "contentFormat", value = "EXCEL")
     @Documentation("Excel format.")
-    private ExcelConfiguration excelConfiguration;
+    private ExcelConfiguration excelConfiguration = new ExcelConfiguration();
+
+    @Option
+    @ActiveIf(target = "contentFormat", value = "JSON")
+    @Documentation("Json format.")
+    private JsonAllConfiguration jsonConfiguration = new JsonAllConfiguration();
 
     public ContentFormat findFormat() {
         if (this.contentFormat == FormatConfiguration.Type.CSV) {
@@ -72,6 +78,9 @@ public class FormatConfiguration implements Serializable {
         }
         if (this.contentFormat == FormatConfiguration.Type.EXCEL) {
             return this.excelConfiguration;
+        }
+        if (this.contentFormat == FormatConfiguration.Type.JSON) {
+            return this.jsonConfiguration;
         }
         throw new IllegalArgumentException(
                 "Wrong value for contentFormat : " + (contentFormat == null ? "null" : this.contentFormat.name()));
