@@ -33,7 +33,7 @@ public class OptionalLine implements Serializable {
     private boolean active;
 
     @Option
-    @Min(0)
+    @Min(-1) // min doesn't work correctly yet
     @ActiveIf(target = "active", value = "true")
     @Documentation("Number of ignored lines.")
     private int size;
