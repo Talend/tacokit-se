@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bindings version="2.1"
+          xmlns="http://java.sun.com/xml/ns/jaxb"
+          xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+          extensionBindingPrefixes="xjc">
+
+    <bindings>
+        <globalBindings typesafeEnumMaxMembers="2000">
+        </globalBindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.inventory_2019_2.transactions.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.transactions.inventory.types"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:website_2019_2.lists.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.lists.website"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.communication_2019_2.general.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.general.communication.types"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:sales_2019_2.transactions.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.transactions.sales"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:inventory_2019_2.transactions.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.transactions.inventory"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:general_2019_2.transactions.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.transactions.general"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:bank_2019_2.transactions.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.transactions.bank"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:support_2019_2.lists.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.lists.support"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:employees_2019_2.lists.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.lists.employees"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.employees_2019_2.transactions.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.transactions.employees.types"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.core_2019_2.platform.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.platform.core.types"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:scheduling_2019_2.activities.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.activities.scheduling"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.common_2019_2.platform.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.platform.common.types"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.scheduling_2019_2.activities.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.activities.scheduling.types"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.employees_2019_2.lists.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.lists.employees.types"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:financial_2019_2.transactions.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.transactions.financial"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:accounting_2019_2.lists.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.lists.accounting"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.faults_2019_2.platform.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.platform.faults.types"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.sales_2019_2.transactions.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.transactions.sales.types"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:demandplanning_2019_2.transactions.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.transactions.demandplanning"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.demandplanning_2019_2.transactions.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.transactions.demandplanning.types"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:employees_2019_2.transactions.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.transactions.employees"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:supplychain_2019_2.lists.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.lists.supplychain"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.supplychain_2019_2.lists.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.lists.supplychain.types"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:relationships_2019_2.lists.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.lists.relationships"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.relationships_2019_2.lists.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.lists.relationships.types"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:common_2019_2.platform.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.platform.common"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:core_2019_2.platform.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.platform.core"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.support_2019_2.lists.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.lists.support.types"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:customization_2019_2.setup.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.setup.customization"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:messages_2019_2.platform.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.platform.messages"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:customers_2019_2.transactions.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.transactions.customers"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.financial_2019_2.transactions.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.transactions.financial.types"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:marketing_2019_2.lists.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.lists.marketing"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.customization_2019_2.setup.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.setup.customization.types"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:purchases_2019_2.transactions.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.transactions.purchases"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.filecabinet_2019_2.documents.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.documents.filecabinet.types"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.purchases_2019_2.transactions.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.transactions.purchases.types"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.accounting_2019_2.lists.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.lists.accounting.types"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:communication_2019_2.general.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.general.communication"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.website_2019_2.lists.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.lists.website.types"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:filecabinet_2019_2.documents.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.documents.filecabinet"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:faults_2019_2.platform.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.platform.faults"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.customers_2019_2.transactions.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.transactions.customers.types"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.marketing_2019_2.lists.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.lists.marketing.types"/>
+            </schemaBindings>
+        </bindings>
+        <bindings scd="x-schema::tns" xmlns:tns="urn:types.bank_2019_2.transactions.webservices.netsuite.com">
+            <schemaBindings>
+                <package name="com.netsuite.webservices.v2019_2.transactions.bank.types"/>
+            </schemaBindings>
+        </bindings>
+    </bindings>
+
+</bindings>

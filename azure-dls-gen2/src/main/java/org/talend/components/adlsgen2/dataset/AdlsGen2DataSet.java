@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -11,6 +11,9 @@
  * specific language governing permissions and limitations under the License.
  */
 package org.talend.components.adlsgen2.dataset;
+
+import static org.talend.components.adlsgen2.service.UIActionService.ACTION_FILESYSTEMS;
+import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
 
 import java.io.Serializable;
 
@@ -31,8 +34,6 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
 
-import static org.talend.components.adlsgen2.service.UIActionService.ACTION_FILESYSTEMS;
-
 @Data
 @DataSet("AdlsGen2DataSet")
 @GridLayout({ //
@@ -45,6 +46,7 @@ import static org.talend.components.adlsgen2.service.UIActionService.ACTION_FILE
         @GridLayout.Row("parquetConfiguration"), //
         @GridLayout.Row("jsonConfiguration"), //
 })
+@GridLayout(names = ADVANCED, value = { @GridLayout.Row({ "connection" }) })
 @Documentation("ADLS DataSet")
 public class AdlsGen2DataSet implements Serializable {
 

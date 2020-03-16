@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -73,11 +73,9 @@ public class OutputConfig implements Serializable {
 
     @Option
     @ActiveIfs(operator = OR, value = { @ActiveIf(target = "../createTableIfNotExists", value = { "true" }),
-            @ActiveIf(target = "../actionOnData", value = { "INSERT", "BULK_LOAD" }, negate = true),
-            @ActiveIf(target = "../dataset.connection.dbType", value = { "SQLDWH" }, negate = true) })
-    @Suggestable(value = ACTION_SUGGESTION_TABLE_COLUMNS_NAMES, parameters = { "dataset" })
+            @ActiveIf(target = "../actionOnData", value = { "INSERT", "BULK_LOAD" }, negate = true) })
     @Documentation("List of columns to be used as keys for this operation")
-    private List<String> keys = new ArrayList<>();
+    private OperationKey keys = new OperationKey();
 
     @Option
     @ActiveIfs(operator = AND, value = { @ActiveIf(target = "../dataset.connection.dbType", value = { "Redshift" }),
@@ -149,4 +147,13 @@ public class OutputConfig implements Serializable {
     public boolean isCreateTableIfNotExists() {
         return createTableIfNotExists && getActionOnData().isAllowTableCreation();
     }
+
+    public List<String> getKeys() {
+        return keys.getKeys();
+    }
+
+    public void setKeys(List<String> keys) {
+        this.keys.setKeys(keys);
+    }
+
 }

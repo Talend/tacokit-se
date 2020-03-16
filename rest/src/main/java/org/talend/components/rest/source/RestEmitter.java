@@ -35,8 +35,6 @@ public class RestEmitter implements Serializable {
 
     private final RestService client;
 
-    private boolean done;
-
     public RestEmitter(@Option("configuration") final RequestConfig config, final RestService client) {
         this.config = config;
         this.client = client;
@@ -44,12 +42,7 @@ public class RestEmitter implements Serializable {
 
     @Producer
     public CompletePayload next() {
-        if (!done) {
-            done = true;
-            return client.buildFixedRecord(client.execute(config));
-        }
-
-        return null;
+        return client.buildFixedRecord(client.execute(config));
     }
 
 }

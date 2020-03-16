@@ -64,7 +64,7 @@ public class ExcelHTMLBlobFileReader extends BlobFileReader {
                 Elements rows = body.getElementsByTag("tr");
                 rowIterator = rows.iterator();
                 if (rows.first().getElementsByTag("th").size() > 0) {
-                    //infer schema of html header row and ignore result
+                    // infer schema of html header row and ignore result
                     convertToRecord(rowIterator.next());
                 }
             } catch (Exception e) {
