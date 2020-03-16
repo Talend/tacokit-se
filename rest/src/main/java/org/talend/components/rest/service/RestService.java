@@ -270,11 +270,23 @@ public class RestService {
             bodyType = Schema.Type.STRING;
         }
 
-        final Schema schema = this.recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD)
-                .withEntry(this.recordBuilderFactory.newEntryBuilder().withName("status").withType(Schema.Type.INT).build())
-                .withEntry(headersEntry).withEntry(this.recordBuilderFactory.newEntryBuilder().withName("body").withType(bodyType)
-                        .withNullable(true).build())
+        final Schema.Entry statusEntry = this.recordBuilderFactory.newEntryBuilder().withName("status").withType(Schema.Type.INT)
                 .build();
+        final Schema.Entry.Builder bodyBuilder = this.recordBuilderFactory.newEntryBuilder().withName("body").withType(bodyType)
+                .withNullable(true);
+
+        if (Schema.Type.RECORD.equals(bodyType)) {
+            // Need a schema, it will be replace by the real one later
+            bodyBuilder.withElementSchema(this.recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD)
+                    .withEntry(newEntry("tmp", Schema.Type.STRING)).build());
+        }
+
+        final Schema.Entry bodyEntry = bodyBuilder.build();
+        final Schema.Builder builder = this.recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD);
+        if (isCompletePayload) {
+            builder.withEntry(statusEntry).withEntry(headersEntry);
+        }
+        final Schema schema = builder.withEntry(bodyEntry).build();
 
         final List<Record> headerRecords = headers.entrySet().stream().map(this::convertHeadersToRecords)
                 .collect(Collectors.toList());
@@ -291,18 +303,27 @@ public class RestService {
 
     private Record buildRecord(final Schema schema, final Schema.Entry headersEntry, final Record body, final int status,
             final List<Record> headers, final boolean isCompletePayload) {
-        if (!isCompletePayload) {
+
+        final boolean isRawText = schema.getEntries().stream().filter(e -> "body".equals(e.getName())).findFirst().get()
+                .getType() == Schema.Type.STRING;
+
+        final Record.Builder bodyBuilder;
+        if (isRawText && isCompletePayload) {
+            String v = body == null ? null : body.getString("content");
+            bodyBuilder = this.recordBuilderFactory.newRecordBuilder(schema).withString("body", v);
+            return bodyBuilder.withInt("status", status).withArray(headersEntry, headers).build();
+
+        } else if (!isRawText && isCompletePayload) {
+            bodyBuilder = this.recordBuilderFactory.newRecordBuilder(schema).withRecord("body", body);
+            return bodyBuilder.withInt("status", status).withArray(headersEntry, headers).build();
+        } else if (isRawText && !isCompletePayload) {
+            String v = body == null ? null : body.getString("content");
+            return this.recordBuilderFactory.newRecordBuilder(schema).withString("body", v).build();
+        } else if (!isRawText && !isCompletePayload) {
             return body;
         }
 
-        if (schema.getEntries().get(2).getType() == Schema.Type.STRING) {
-            String v = body == null ? null : body.getString("content");
-            return this.recordBuilderFactory.newRecordBuilder(schema).withString("body", v).withInt("status", status)
-                    .withArray(headersEntry, headers).build();
-        } else {
-            return this.recordBuilderFactory.newRecordBuilder(schema).withRecord("body", body).withInt("status", status)
-                    .withArray(headersEntry, headers).build();
-        }
+        throw new IllegalStateException("Unsuported record build.");
     }
 
     private Schema.Entry newEntry(String name, Schema.Type type) {

@@ -56,20 +56,14 @@ public class RestEmitter implements Serializable {
 
     @Producer
     public Record next() {
+        if (done && items == null) {
+            return null;
+        }
+
         if (items == null && !done) {
             done = true;
             final boolean isCompletePayload = config.getDataset().isCompletePayload();
-            // final CompletePayload completePayload = client.buildFixedRecord(client.execute(config), isCompletePayload);
             items = client.buildFixedRecord(client.execute(config), isCompletePayload);
-
-            /*
-             * final boolean isJson = !String.class.isInstance(completePayload.getBody());
-             * if (isJson) {
-             * processJsonResponse(completePayload, isCompletePayload);
-             * } else {
-             * processOtherResponse(completePayload, isCompletePayload);
-             * }
-             */
         }
 
         final Record r = items.hasNext() ? items.next() : null;
@@ -81,29 +75,5 @@ public class RestEmitter implements Serializable {
         return r;
 
     }
-
-    /*
-     * private void processOtherResponse(CompletePayload global, boolean isCompletePayload) {
-     * if (isCompletePayload) {
-     * items.add(global);
-     * } else {
-     * items.add(new StringBody((String) global.getBody()));
-     * }
-     * }
-     * 
-     * private void processJsonResponse(CompletePayload completePayload, boolean isCompletePayload) {
-     * if (isCompletePayload) {
-     * items.add(completePayload);
-     * } else {
-     * final JsonStructure body = (JsonStructure) completePayload.getBody();
-     * 
-     * if (body.getValueType() == JsonValue.ValueType.ARRAY) {
-     * items.addAll(body.asJsonArray());
-     * } else {
-     * items.add(body);
-     * }
-     * }
-     * }
-     */
 
 }

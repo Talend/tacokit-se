@@ -128,6 +128,8 @@ public class ClientTestWithMockProxyTest {
         assertEquals(1, records.size());
         Record record = records.get(0);
         valideCompletePayloadSchema(record, Schema.Type.RECORD);
+
+        assertEquals("000001", record.getRecord("body").getRecord("one_element").getString("_id"));
     }
 
     @EnvironmentalTest
@@ -340,11 +342,14 @@ public class ClientTestWithMockProxyTest {
 
         Schema.Entry headers = record.getSchema().getEntries().get(1);
         assertEquals("headers", headers.getName());
-        assertEquals(Schema.Type.RECORD, headers.getType());
+        assertEquals(Schema.Type.ARRAY, headers.getType());
+        assertEquals(Schema.Type.RECORD, headers.getElementSchema().getType());
+        assertEquals("key", headers.getElementSchema().getEntries().get(0).getName());
+        assertEquals("value", headers.getElementSchema().getEntries().get(1).getName());
 
         Schema.Entry status = record.getSchema().getEntries().get(0);
         assertEquals("status", status.getName());
-        assertEquals(Schema.Type.DOUBLE, status.getType());
+        assertEquals(Schema.Type.INT, status.getType());
     }
 
     @EnvironmentalTest

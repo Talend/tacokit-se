@@ -404,6 +404,10 @@ public class ClientTestWithHttpbinTest {
         final Record resp = respIt.next();
         assertFalse(respIt.hasNext());
         assertEquals(200, resp.getInt("status"));
+
+        if ("json".equals(type)) {
+            assertEquals("Sample Slide Show", resp.getRecord("body").getRecord("slideshow").getString("title"));
+        }
     }
 
     @Test
@@ -419,17 +423,12 @@ public class ClientTestWithHttpbinTest {
 
         final Iterator<Record> respIt = service.buildFixedRecord(service.execute(config),
                 config.getDataset().isCompletePayload());
+
         final Record resp = respIt.next();
         assertFalse(respIt.hasNext());
 
-        // todo: A REVOIR
-        /*
-         * JsonObject payload = (JsonObject) resp.getBody();
-         * JsonObject form = payload.getJsonObject("form");
-         *
-         * assertEquals(form.getString("form_data_1"), "<000 001");
-         * assertEquals(form.getString("form_data_2"), "<000 002");
-         */
+        assertEquals("<000 001", resp.getRecord("body").getRecord("form").getString("form_data_1"));
+        assertEquals("<000 002", resp.getRecord("body").getRecord("form").getString("form_data_2"));
     }
 
     @Test
@@ -449,14 +448,8 @@ public class ClientTestWithHttpbinTest {
         final Record resp = respIt.next();
         assertFalse(respIt.hasNext());
 
-        // todo: A REVOIR
-        /*
-         * JsonObject payload = (JsonObject) resp.getBody();
-         * JsonObject form = payload.getJsonObject("form");
-         *
-         * assertEquals(form.getString("form_data_1"), "<000 001");
-         * assertEquals(form.getString("form_data_2"), "<000 002");
-         */
+        assertEquals("<000 001", resp.getRecord("body").getRecord("form").getString("form_data_1"));
+        assertEquals("<000 002", resp.getRecord("body").getRecord("form").getString("form_data_2"));
     }
 
 }
