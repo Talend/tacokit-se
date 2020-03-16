@@ -15,6 +15,7 @@ package org.talend.components.jdbc.service;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -42,11 +43,14 @@ import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.dependency.Resolver;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.operator.InputDecryptorProvider;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8DecryptorProviderBuilder;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
+import org.bouncycastle.pkcs.PKCSException;
 import org.bouncycastle.util.encoders.Base64;
+import org.bouncycastle.util.encoders.DecoderException;
 
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -72,6 +76,11 @@ public class JdbcService {
 
     @Service
     private LocalConfiguration localConfiguration;
+
+    static {
+        // Define Bouncy Castle Provider for Snowflake Key Pair authentication
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
     public boolean driverNotDisabled(JdbcConfiguration.Driver driver) {
         return !ofNullable(localConfiguration.get("jdbc.driver." + driver.getId().toLowerCase(Locale.ROOT) + ".skip"))
@@ -154,7 +163,7 @@ public class JdbcService {
                 dataSource.setUsername(connection.getUserId());
                 if (AuthenticationType.KEY_PAIR == connection.getAuthenticationType()) {
                     dataSource.addDataSourceProperty("privateKey",
-                            getPrivateKey(connection.getPrivateKeyContent(), connection.getPrivateKeyPassword()));
+                            getPrivateKey(connection.getPrivateKey(), connection.getPrivateKeyPassword(), i18nMessage));
                 } else {
                     dataSource.setPassword(connection.getPassword());
                 }
@@ -180,29 +189,30 @@ public class JdbcService {
             }
         }
 
-        private PrivateKey getPrivateKey(String privateKeyContent, String privateKeyPassword) {
+        private PrivateKey getPrivateKey(String privateKey, String privateKeyPassword, final I18nMessage i18nMessage) {
             try {
-                return privateKeyContent.contains("ENCRYPTED") ? getFromEncrypted(privateKeyContent, privateKeyPassword)
-                        : getFromRegular(privateKeyContent);
-            } catch (Exception e) {
-                // Provide better exception handling
-                throw new RuntimeException(e);
+                return privateKey.contains("ENCRYPTED") ? getFromEncrypted(privateKey, privateKeyPassword)
+                        : getFromRegular(privateKey);
+            } catch (PKCSException pkcse) {
+                throw new IllegalArgumentException(i18nMessage.errorPrivateKeyPasswordIncorrect(), pkcse);
+            } catch (InvalidKeySpecException | IOException | OperatorCreationException | NoSuchAlgorithmException
+                    | DecoderException e) {
+                throw new IllegalArgumentException(i18nMessage.errorPrivateKeyIncorrect(e.getMessage()), e);
             }
         }
 
-        private PrivateKey getFromEncrypted(String privateKeyContent, String privateKeyPassword) throws Exception {
-            // Maybe move to some Static block? For All JDBC then?
-            Security.addProvider(new BouncyCastleProvider());
+        private PrivateKey getFromEncrypted(String privateKey, String privateKeyPassword)
+                throws IOException, OperatorCreationException, PKCSException {
             PKCS8EncryptedPrivateKeyInfo pkcs8EncryptedPrivateKeyInfo = new PKCS8EncryptedPrivateKeyInfo(
-                    decodeString(replaceString(privateKeyContent, true)));
+                    decodeString(replaceString(privateKey, true)));
             InputDecryptorProvider inputDecryptorProvider = new JceOpenSSLPKCS8DecryptorProviderBuilder().setProvider("BC")
                     .build(privateKeyPassword.toCharArray());
-            PrivateKeyInfo pkInfo_bc1 = pkcs8EncryptedPrivateKeyInfo.decryptPrivateKeyInfo(inputDecryptorProvider);
-            return new JcaPEMKeyConverter().setProvider("BC").getPrivateKey(pkInfo_bc1);
+            PrivateKeyInfo privateKeyInfo = pkcs8EncryptedPrivateKeyInfo.decryptPrivateKeyInfo(inputDecryptorProvider);
+            return new JcaPEMKeyConverter().setProvider("BC").getPrivateKey(privateKeyInfo);
         }
 
-        private PrivateKey getFromRegular(String privateKeyContent) throws InvalidKeySpecException, NoSuchAlgorithmException {
-            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodeString(replaceString(privateKeyContent, false)));
+        private PrivateKey getFromRegular(String privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodeString(replaceString(privateKey, false)));
             return KeyFactory.getInstance("RSA").generatePrivate(keySpec);
         }
 
@@ -210,12 +220,11 @@ public class JdbcService {
             return Base64.decode(privateKeyContent);
         }
 
-        private String replaceString(String privateKeyContent, boolean isEncrypted) {
+        private String replaceString(String privateKey, boolean isEncrypted) {
             return isEncrypted
-                    ? privateKeyContent.replace("-----BEGIN ENCRYPTED PRIVATE KEY-----", "")
+                    ? privateKey.replace("-----BEGIN ENCRYPTED PRIVATE KEY-----", "")
                             .replace("-----END ENCRYPTED PRIVATE KEY-----", "")
-                    : privateKeyContent.replace("-----BEGIN RSA PRIVATE KEY-----", "")
-                            .replace("-----END RSA PRIVATE KEY-----", "");
+                    : privateKey.replace("-----BEGIN RSA PRIVATE KEY-----", "").replace("-----END RSA PRIVATE KEY-----", "");
         }
 
         public Connection getConnection() throws SQLException {

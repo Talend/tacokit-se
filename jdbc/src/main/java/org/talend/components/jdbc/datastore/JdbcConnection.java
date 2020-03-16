@@ -15,6 +15,7 @@ package org.talend.components.jdbc.datastore;
 import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_HANDLERS_DB;
 import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_SUPPORTED_DB;
 import static org.talend.sdk.component.api.configuration.condition.ActiveIf.EvaluationStrategy.CONTAINS;
+import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.OR;
 
 import java.io.Serializable;
 
@@ -37,9 +38,9 @@ import lombok.Data;
 import lombok.ToString;
 
 @Data
-@ToString(exclude = { "password", "privateKeyContent", "privateKeyPassword" })
+@ToString(exclude = { "password", "privateKey", "privateKeyPassword" })
 @GridLayout({ @GridLayout.Row({ "dbType", "handler" }), @GridLayout.Row("jdbcUrl"), @GridLayout.Row("authenticationType"),
-        @GridLayout.Row("userId"), @GridLayout.Row("password"), @GridLayout.Row("privateKeyContent"),
+        @GridLayout.Row("userId"), @GridLayout.Row("password"), @GridLayout.Row("privateKey"),
         @GridLayout.Row("privateKeyPassword") })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("connectionTimeOut"),
         @GridLayout.Row("connectionValidationTimeOut") })
@@ -67,7 +68,7 @@ public class JdbcConnection implements Serializable {
 
     @Option
     @ActiveIf(target = "dbType", value = "Snowflake")
-    @Documentation("authentication type")
+    @Documentation("Authentication type")
     private AuthenticationType authenticationType = AuthenticationType.BASIC;
 
     @Option
@@ -76,8 +77,8 @@ public class JdbcConnection implements Serializable {
     private String userId;
 
     @Option
-    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake", negate = true),
-            @ActiveIf(target = "authenticationType", value = "KEY_PAIR", negate = true) })
+    @ActiveIfs(value = { @ActiveIf(target = "dbType", value = "Snowflake", negate = true),
+            @ActiveIf(target = "authenticationType", value = "KEY_PAIR", negate = true) }, operator = OR)
     @Credential
     @Documentation("database password")
     private String password;
@@ -85,17 +86,17 @@ public class JdbcConnection implements Serializable {
     @Option
     @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"),
             @ActiveIf(target = "authenticationType", value = "KEY_PAIR") })
-    @Pattern("^-----BEGIN( [A-Z]+){0,1} PRIVATE KEY-----\\r?\\n([A-Za-z0-9+\\/=]{64}\\r?\\n)+[A-Za-z0-9+\\/=]+\\r?\\n-----END( [A-Z]+){0,1} PRIVATE KEY-----\\r?\\n?$")
     @Credential
-    @Documentation("private ket file raw data")
-    private String privateKeyContent;
+    @Documentation("Private key")
+    private String privateKey;
 
     @Option
-    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "KEY_PAIR"),
-            @ActiveIf(target = "privateKeyContent", evaluationStrategy = CONTAINS, value = {
-                    "-----BEGIN ENCRYPTED PRIVATE KEY-----" }) })
+    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "KEY_PAIR")
+            // ,@ActiveIf(target = "privateKey", evaluationStrategy = CONTAINS, value = {"-----BEGIN ENCRYPTED PRIVATE
+            // KEY-----" })
+    })
     @Credential
-    @Documentation("private key password")
+    @Documentation("Private key password")
     private String privateKeyPassword;
 
     @Min(0)
