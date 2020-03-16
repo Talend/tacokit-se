@@ -126,7 +126,8 @@ public class JsonToRecord {
     private Entry createEntry(String name, JsonValue jsonValue) {
         log.debug("[createEntry#{}] ({}) {} ", name, jsonValue.getValueType(), jsonValue);
         Entry.Builder builder = recordBuilderFactory.newEntryBuilder();
-        builder.withName(name).withNullable(true);
+        // use comment to store the real element name, for example, "$oid"
+        builder.withName(name).withNullable(true).withComment(name);
 
         switch (jsonValue.getValueType()) {
         case ARRAY:
@@ -162,61 +163,67 @@ public class JsonToRecord {
         return builder.build();
     }
 
+    private String getElementName(Entry entry) {
+        // not use entry.getName() here as "$oid" will be correct to "oid"
+        // comment store "$oid", so use comment here
+        return entry.getComment();
+    }
+
     private void integrateEntryToRecord(Entry entry, Record.Builder builder, JsonObject json) {
-        if (!json.containsKey(entry.getName()) || json.isNull(entry.getName())) {
+        if (!json.containsKey(getElementName(entry)) || json.isNull(getElementName(entry))) {
             return;
         }
         switch (entry.getType()) {
         case RECORD: {
-            final JsonObject jsonObject = json.getJsonObject(entry.getName());
+            final JsonObject jsonObject = json.getJsonObject(getElementName(entry));
             final Record record = convertJsonObjectToRecord(entry.getElementSchema(), jsonObject);
             builder.withRecord(entry, record);
         }
             break;
         case ARRAY:
-            final List<?> objects = convertJsonArray(entry.getElementSchema(), json.getJsonArray(entry.getName()));
+            final List<?> objects = convertJsonArray(entry.getElementSchema(), json.getJsonArray(getElementName(entry)));
             if (objects != null) {
                 builder.withArray(entry, objects);
             }
             break;
         case STRING: {
-            String value = json.getString(entry.getName());
+            String value = json.getString(getElementName(entry));
             builder.withString(entry, value);
         }
             break;
         case INT: {
-            int value = json.getInt(entry.getName());
+            int value = json.getInt(getElementName(entry));
             builder.withInt(entry, value);
         }
             break;
         case LONG: {
-            long value = json.getJsonNumber(entry.getName()).longValue();
+            long value = json.getJsonNumber(getElementName(entry)).longValue();
             builder.withLong(entry, value);
         }
             break;
         case FLOAT:
         case DOUBLE: {
-            double value = json.getJsonNumber(entry.getName()).doubleValue();
+            double value = json.getJsonNumber(getElementName(entry)).doubleValue();
             builder.withDouble(entry, value);
         }
             break;
         case BOOLEAN: {
-            boolean value = json.getBoolean(entry.getName());
+            boolean value = json.getBoolean(getElementName(entry));
             builder.withBoolean(entry, value);
         }
             break;
         case BYTES: {
-            String value = json.getString(entry.getName());
+            String value = json.getString(getElementName(entry));
             builder.withBytes(entry, value.getBytes());
         }
             break;
         case DATETIME:
             try {
-                String value = json.getString(entry.getName());
+                String value = json.getString(getElementName(entry));
                 builder.withDateTime(entry, ZonedDateTime.parse(value));
             } catch (DateTimeException e) {
-                log.error("[convertJsonObjectToRecord] parse ZonedDateTime failed for {} : {}.", entry.getName(),
-                        json.get(entry.getName()));
+                log.error("[convertJsonObjectToRecord] parse ZonedDateTime failed for {} : {}.", getElementName(entry),
+                        json.get(getElementName(entry)));
             }
             break;
         }

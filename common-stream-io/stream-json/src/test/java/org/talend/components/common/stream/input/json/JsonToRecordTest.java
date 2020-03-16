@@ -15,6 +15,7 @@ package org.talend.components.common.stream.input.json;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
+import javax.json.JsonReader;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -25,6 +26,8 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
+
+import java.io.StringReader;
 
 class JsonToRecordTest {
 
@@ -79,5 +82,20 @@ class JsonToRecordTest {
         Assertions.assertEquals(array.get(0).asJsonObject().getString("f1"), resultArray.get(0).asJsonObject().getString("f1"));
         Assertions.assertEquals(array.get(1).asJsonObject().getString("f1"), resultArray.get(1).asJsonObject().getString("f1"));
         Assertions.assertEquals(array.get(1).asJsonObject().getString("f2"), resultArray.get(1).asJsonObject().getString("f2"));
+    }
+
+    @Test
+    void toRecordWithDollarChar() {
+        JsonObject jsonWithDollarChar = getJsonObject(
+                "{\"_id\": {\"$oid\": \"5e66158f6eddd6049f309ddb\"}, \"date\": {\"$date\": 1543622400000}, \"item\": \"Cake - Chocolate\", \"quantity\": 2.0, \"amount\": {\"$numberDecimal\": \"60\"}}");
+        final Record record = toRecord.toRecord(jsonWithDollarChar);
+        Assertions.assertNotNull(record);
+        Assertions.assertNotNull(record.getRecord("_id").getString("oid"));
+    }
+
+    private JsonObject getJsonObject(String content) {
+        try (JsonReader reader = Json.createReader(new StringReader(content))) {
+            return reader.readObject();
+        }
     }
 }
