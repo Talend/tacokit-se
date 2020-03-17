@@ -10,6 +10,8 @@
 
     <artifactId>stream-rawtext</artifactId>
 
+    <name>Common :: stream-rawtext</name>
+
     <dependencies>
         <dependency>
             <groupId>org.talend.components</groupId>

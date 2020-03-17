@@ -12,6 +12,8 @@
  */
 package org.talend.components.rest.service;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.common.collections.IteratorMap;
 import org.talend.components.common.stream.api.RecordIORepository;
@@ -61,40 +63,11 @@ public class RecordBuilderService {
         final RecordReader reader = recordReaderSupplier.getReader(recordBuilderFactory, contentFormat,
                 new ExtendedRawTextConfiguration(encoding, isCompletePayload));
 
-        final Schema.Entry headersEntry = this.recordBuilderFactory.newEntryBuilder().withName("headers")
-                .withType(Schema.Type.ARRAY)
-                .withElementSchema(this.recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD)
-                        .withEntry(newEntry("key", Schema.Type.STRING)).withEntry(newEntry("value", Schema.Type.STRING)).build())
-                .build();
-
-        Schema.Type bodyType = Schema.Type.RECORD;
-        if (RawTextConfiguration.class.equals(contentFormat.getClass())) {
-            bodyType = Schema.Type.STRING;
-        }
-
-        final Schema.Entry statusEntry = this.recordBuilderFactory.newEntryBuilder().withName("status").withType(Schema.Type.INT)
-                .build();
-        final Schema.Entry.Builder bodyBuilder = this.recordBuilderFactory.newEntryBuilder().withName("body").withType(bodyType)
-                .withNullable(true);
-
-        if (Schema.Type.RECORD.equals(bodyType)) {
-            // Need a schema, it will be replace by the real one later
-            bodyBuilder.withElementSchema(this.recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD)
-                    .withEntry(newEntry("tmp", Schema.Type.STRING)).build());
-        }
-
-        final Schema.Entry bodyEntry = bodyBuilder.build();
-        final Schema.Builder builder = this.recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD);
-        if (isCompletePayload) {
-            builder.withEntry(statusEntry).withEntry(headersEntry);
-        }
-        final Schema schema = builder.withEntry(bodyEntry).build();
-
         final List<Record> headerRecords = headers.entrySet().stream().map(this::convertHeadersToRecords)
                 .collect(Collectors.toList());
 
         return new IteratorMap<Record, Record>(reader.read(resp.body()),
-                r -> this.buildRecord(schema, headersEntry, r, resp.status(), headerRecords, isCompletePayload), true);
+                r -> this.buildRecord(r, resp.status(), headerRecords, isCompletePayload, format), true);
     }
 
     private ContentFormat findFormat(final Map<String, String> headers, final Format format) {
@@ -116,29 +89,68 @@ public class RecordBuilderService {
                 .withString("value", header.getValue()).build();
     }
 
-    private Record buildRecord(final Schema schema, final Schema.Entry headersEntry, final Record body, final int status,
-            final List<Record> headers, final boolean isCompletePayload) {
+    private Record buildRecord(final Record body, final int status, final List<Record> headers, final boolean isCompletePayload,
+            final Format format) {
 
-        final boolean isRawText = schema.getEntries().stream().filter(e -> "body".equals(e.getName())).findFirst().get()
-                .getType() == Schema.Type.STRING;
+        final SchemaContainer schema = buildShema(body, isCompletePayload, format);
+
+        final boolean isRawText = schema.getRecordSchema().getEntries().stream().filter(e -> "body".equals(e.getName()))
+                .findFirst().get().getType() == Schema.Type.STRING;
 
         final Record.Builder bodyBuilder;
         if (isRawText && isCompletePayload) {
             String v = body == null ? null : body.getString("content");
-            bodyBuilder = this.recordBuilderFactory.newRecordBuilder(schema).withString("body", v);
-            return bodyBuilder.withInt("status", status).withArray(headersEntry, headers).build();
-
+            bodyBuilder = this.recordBuilderFactory.newRecordBuilder(schema.getRecordSchema()).withString("body", v);
+            return bodyBuilder.withInt("status", status).withArray(schema.getHeadersEntry(), headers).build();
         } else if (!isRawText && isCompletePayload) {
-            bodyBuilder = this.recordBuilderFactory.newRecordBuilder(schema).withRecord("body", body);
-            return bodyBuilder.withInt("status", status).withArray(headersEntry, headers).build();
+            bodyBuilder = this.recordBuilderFactory.newRecordBuilder(schema.getRecordSchema()).withRecord("body", body);
+            return bodyBuilder.withInt("status", status).withArray(schema.getHeadersEntry(), headers).build();
         } else if (isRawText && !isCompletePayload) {
             String v = body == null ? null : body.getString("content");
-            return this.recordBuilderFactory.newRecordBuilder(schema).withString("body", v).build();
+            return this.recordBuilderFactory.newRecordBuilder(schema.getRecordSchema()).withString("body", v).build();
         } else if (!isRawText && !isCompletePayload) {
             return body;
         }
 
         throw new IllegalStateException("Unsupported record build.");
+    }
+
+    private SchemaContainer buildShema(final Record body, final boolean isCompletePayload, final Format format) {
+        final Schema.Entry headersEntry = this.recordBuilderFactory.newEntryBuilder().withName("headers")
+                .withType(Schema.Type.ARRAY)
+                .withElementSchema(this.recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD)
+                        .withEntry(newEntry("key", Schema.Type.STRING)).withEntry(newEntry("value", Schema.Type.STRING)).build())
+                .build();
+
+        final Schema.Entry statusEntry = this.recordBuilderFactory.newEntryBuilder().withName("status").withType(Schema.Type.INT)
+                .build();
+
+        final Schema.Entry.Builder bodyBuilder = this.recordBuilderFactory.newEntryBuilder().withName("body");
+
+        // If body is null we always return same schema as a RAW_TEXT
+        if (format == Format.RAW_TEXT || body == null) {
+            bodyBuilder.withType(Schema.Type.STRING).withNullable(true);
+        } else {
+            bodyBuilder.withType(Schema.Type.RECORD).withNullable(true).withElementSchema(body.getSchema());
+        }
+        final Schema.Entry bodyEntry = bodyBuilder.build();
+
+        final Schema.Builder builder = this.recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD);
+        if (isCompletePayload) {
+            builder.withEntry(statusEntry).withEntry(headersEntry);
+        }
+        final Schema schema = builder.withEntry(bodyEntry).build();
+        return new SchemaContainer(headersEntry, schema);
+    }
+
+    @Data
+    @AllArgsConstructor
+    private static class SchemaContainer {
+
+        final private Schema.Entry headersEntry;
+
+        final private Schema recordSchema;
+
     }
 
 }
