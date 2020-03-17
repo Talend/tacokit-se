@@ -41,6 +41,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -167,10 +168,11 @@ class RestOutputTest {
             Map<String, String> queryParams = Arrays.stream(queryParamsAsArray)
                     .collect(Collectors.toMap(s -> s.split("=")[0], s -> s.split("=")[1]));
 
-            receivedQueryParam1.set(URLDecoder.decode(queryParams.get("param_1"), "UTF-8"));
-            receivedQueryParam2.set(URLDecoder.decode(queryParams.get("param_2"), "UTF-8"));
+            receivedQueryParam1.set(URLDecoder.decode(queryParams.get("param_1"), StandardCharsets.UTF_8.name()));
+            receivedQueryParam2.set(URLDecoder.decode(queryParams.get("param_2"), StandardCharsets.UTF_8.name()));
 
-            BufferedReader br = new BufferedReader(new InputStreamReader(httpExchange.getRequestBody(), "UTF-8"));
+            BufferedReader br = new BufferedReader(
+                    new InputStreamReader(httpExchange.getRequestBody(), StandardCharsets.UTF_8.name()));
             String requestBody = br.lines().collect(Collectors.joining("\n"));
             receivedBody.set(requestBody);
 
@@ -257,7 +259,8 @@ class RestOutputTest {
             Assertions.assertTrue(httpExchange.getRequestURI().toASCIIString().indexOf('?') < 0);
 
             // Check body
-            BufferedReader br = new BufferedReader(new InputStreamReader(httpExchange.getRequestBody(), "UTF-8"));
+            BufferedReader br = new BufferedReader(
+                    new InputStreamReader(httpExchange.getRequestBody(), StandardCharsets.UTF_8.name()));
             byte[] queryBody = br.lines().collect(Collectors.joining("\n")).getBytes();
             Assertions.assertEquals(0, queryBody.length);
 

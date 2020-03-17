@@ -19,7 +19,7 @@ public interface I18n {
 
     String healthCheckStatus(final String url, final int code);
 
-    String healthChecException(final String trace);
+    String healthCheckException(final String trace);
 
     String healthCheckOk();
 
@@ -56,9 +56,5 @@ public interface I18n {
     String bodyParameters();
 
     String withoutFollowRedirectsDegradedMode();
-
-    String parseJsonOk();
-
-    String parseJsonKo();
 
 }

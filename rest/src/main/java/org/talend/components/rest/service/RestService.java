@@ -14,41 +14,26 @@ package org.talend.components.rest.service;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.common.collections.IteratorComposer;
-import org.talend.components.common.collections.IteratorMap;
 import org.talend.components.common.service.http.RedirectContext;
 import org.talend.components.common.service.http.RedirectService;
 import org.talend.components.common.service.http.common.UserNamePassword;
 import org.talend.components.common.service.http.digest.DigestAuthContext;
 import org.talend.components.common.service.http.digest.DigestAuthService;
-import org.talend.components.common.stream.api.RecordIORepository;
-import org.talend.components.common.stream.api.input.RecordReader;
-import org.talend.components.common.stream.api.input.RecordReaderSupplier;
-import org.talend.components.common.stream.format.ContentFormat;
-import org.talend.components.common.stream.format.json.JsonConfiguration;
-import org.talend.components.common.stream.format.rawtext.ExtendedRawTextConfiguration;
-import org.talend.components.common.stream.format.rawtext.RawTextConfiguration;
 import org.talend.components.common.text.Substitutor;
 import org.talend.components.rest.configuration.Datastore;
-import org.talend.components.rest.configuration.Format;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.configuration.auth.Authorization;
 import org.talend.components.rest.service.client.Body;
 import org.talend.components.rest.service.client.Client;
-import org.talend.components.rest.service.client.ContentType;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.RecordPointerFactory;
-import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.http.Response;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import javax.json.JsonReaderFactory;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -57,12 +42,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -261,7 +242,7 @@ public class RestService {
             final StringWriter sw = new StringWriter();
             final PrintWriter pw = new PrintWriter(sw);
             e.printStackTrace(pw);
-            log.debug(i18n.healthChecException(sw.toString()));
+            log.debug(i18n.healthCheckException(sw.toString()));
         }
 
         return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.healthCheckFailed(datastore.getBase()));

@@ -46,6 +46,7 @@ public class RestOutput implements Serializable {
 
     @PostConstruct
     public void init() {
+        // no-op
     }
 
     @ElementListener

@@ -59,7 +59,7 @@ public class Dataset implements Serializable {
 
     @Option
     @Required
-    @Documentation("How to format the body ?")
+    @Documentation("Format ofthe answer body.")
     private Format format = Format.RAW_TEXT;
 
     @Option
@@ -100,7 +100,7 @@ public class Dataset implements Serializable {
     private List<Param> headers = new ArrayList<>(Collections.singleton(new Param("", "")));
 
     @Option
-    @Documentation("Does the request have query paramters ?")
+    @Documentation("Does the request have query parameters ?")
     private boolean hasQueryParams = false;
 
     @Option

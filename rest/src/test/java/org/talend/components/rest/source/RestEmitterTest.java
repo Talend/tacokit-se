@@ -150,7 +150,7 @@ class RestEmitterTest {
         testOptionsPathFlags(false);
     }
 
-    private void testOptionsPathFlags(final boolean hasOptions) throws IOException {
+    private void testOptionsPathFlags(final boolean hasOptions) {
         config.getDataset().setMethodType(HttpMethod.POST);
         config.getDataset().setResource("post/{module}/{id}");
 

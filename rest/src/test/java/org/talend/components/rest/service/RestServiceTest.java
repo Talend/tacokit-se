@@ -209,7 +209,7 @@ public class RestServiceTest {
         assertEquals("", config.queryParams().get("xxx1"));
         assertEquals("", config.headers().get("xxx1"));
 
-        config.getDataset().getBody().getParams().stream().forEach(p -> {
+        config.getDataset().getBody().getParams().forEach(p -> {
             assertFalse(p.getValue() == null);
             if ("xxx1".equals(p.getKey())) {
                 assertTrue(p.getValue().isEmpty());

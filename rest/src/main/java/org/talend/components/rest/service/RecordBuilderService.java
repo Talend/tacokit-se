@@ -138,7 +138,7 @@ public class RecordBuilderService {
             return body;
         }
 
-        throw new IllegalStateException("Unsuported record build.");
+        throw new IllegalStateException("Unsupported record build.");
     }
 
 }
