@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.talend.components.extension.polling.api.Pollable;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.service.RecordBuilderService;
@@ -124,13 +125,19 @@ public class PollingTest {
         });
 
         RestEmitter input = new RestEmitter(config, restService, recordBuilderService);
-        final Record first = input.next();
-        final String body1 = first.getString("body");
-        Assertions.assertEquals("1", body1);
-        input.resume("Not used parameter");
-        final Record second = input.next();
-        final String body2 = second.getString("body");
-        Assertions.assertEquals("2", body2);
+
+        for (int i = 1; i < 10; i++) {
+            final Record rec = input.next();
+            final String body = rec.getString("body");
+            Assertions.assertEquals(String.valueOf(i), body);
+            input.resume("Not used parameter");
+        }
+    }
+
+    @EnvironmentalTest
+    void testResumeAnnotation() {
+        final String resumeMethod = RestEmitter.class.getAnnotation(Pollable.class).resumeMethod();
+        Assertions.assertEquals("resume", resumeMethod);
     }
 
 }
