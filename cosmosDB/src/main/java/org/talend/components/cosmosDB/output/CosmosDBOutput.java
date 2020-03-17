@@ -1,0 +1,194 @@
+/*
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+package org.talend.components.cosmosDB.output;
+
+import com.microsoft.azure.documentdb.DataType;
+import com.microsoft.azure.documentdb.Document;
+import com.microsoft.azure.documentdb.DocumentClient;
+import com.microsoft.azure.documentdb.DocumentClientException;
+import com.microsoft.azure.documentdb.DocumentCollection;
+import com.microsoft.azure.documentdb.Index;
+import com.microsoft.azure.documentdb.IndexingPolicy;
+import com.microsoft.azure.documentdb.RangeIndex;
+import com.microsoft.azure.documentdb.RequestOptions;
+import lombok.extern.slf4j.Slf4j;
+import org.talend.components.cosmosDB.service.CosmosDBService;
+import org.talend.components.cosmosDB.service.I18nMessage;
+import org.talend.sdk.component.api.component.Icon;
+import org.talend.sdk.component.api.component.Version;
+import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.meta.Documentation;
+import org.talend.sdk.component.api.processor.ElementListener;
+import org.talend.sdk.component.api.processor.Input;
+import org.talend.sdk.component.api.processor.Processor;
+import org.talend.sdk.component.api.record.Record;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.io.Serializable;
+
+@Version(1)
+@Slf4j
+@Icon(value = Icon.IconType.CUSTOM, custom = "CosmosDBOutput")
+@Processor(name = "SQLAPIOutput")
+@Documentation("This component writes data to cosmosDB")
+public class CosmosDBOutput implements Serializable {
+
+    private I18nMessage i18n;
+
+    private String idFieldName;
+
+    private final CosmosDBOutputConfiguration configuration;
+
+    private final CosmosDBService service;
+
+    private DocumentClient client;
+
+    final String databaseName;
+
+    final String collectionName;
+
+    private IOut out;
+
+    public CosmosDBOutput(@Option("configuration") final CosmosDBOutputConfiguration configuration, final CosmosDBService service,
+            final I18nMessage i18n) {
+        this.configuration = configuration;
+        this.service = service;
+        this.i18n = i18n;
+        databaseName = configuration.getDataset().getDatastore().getDatabaseID();
+        collectionName = configuration.getDataset().getCollectionID();
+    }
+
+    @PostConstruct
+    public void init() {
+
+        client = service.documentClientFrom(configuration.getDataset().getDatastore());
+        if (configuration.isCreateCollection()) {
+            createDocumentCollectionIfNotExists();
+        }
+        switch (configuration.getDataAction()) {
+        case INSERT:
+            out = new Create();
+            break;
+        case DELETE:
+            out = new Delete();
+            break;
+        case UPDATE:
+        case UPSERT:
+        }
+    }
+
+    @ElementListener
+    public void onNext(@Input final Record record) {
+
+        out.output(record);
+    }
+
+    @PreDestroy
+    public void release() {
+        if (client != null) {
+            client.close();
+        }
+    }
+
+    private void createDocumentCollectionIfNotExists() {
+        final String databaseName = configuration.getDataset().getDatastore().getDatabaseID();
+        final String collectionName = configuration.getDataset().getCollectionID();
+        String databaseLink = String.format("/dbs/%s", databaseName);
+        String collectionLink = String.format("/dbs/%s/colls/%s", databaseName, collectionName);
+
+        try {
+            this.client.readCollection(collectionLink, null);
+            log.info(String.format("Found %s", collectionName));
+        } catch (DocumentClientException de) {
+            // If the document collection does not exist, create a new
+            // collection
+            if (de.getStatusCode() == 404) {
+                DocumentCollection collectionInfo = new DocumentCollection();
+                collectionInfo.setId(collectionName);
+
+                // Optionally, you can configure the indexing policy of a
+                // collection. Here we configure collections for maximum query
+                // flexibility including string range queries.
+                RangeIndex index = new RangeIndex(DataType.String);
+                index.setPrecision(-1);
+
+                collectionInfo.setIndexingPolicy(new IndexingPolicy(new Index[] { index }));
+
+                // DocumentDB collections can be reserved with throughput
+                // specified in request units/second. 1 RU is a normalized
+                // request equivalent to the read of a 1KB document. Here we
+                // create a collection with 400 RU/s.
+                RequestOptions requestOptions = new RequestOptions();
+                requestOptions.setOfferThroughput(configuration.getOfferThroughput());
+
+                try {
+                    this.client.createCollection(databaseLink, collectionInfo, requestOptions);
+                } catch (DocumentClientException e) {
+                    throw new IllegalArgumentException(e);
+                }
+
+                log.info(String.format("Created %s", collectionName));
+            } else {
+                throw new IllegalArgumentException(de);
+            }
+        }
+    }
+
+    interface IOut {
+
+        void output(Record record);
+    }
+
+    class Create implements IOut {
+
+        String collectionLink = String.format("/dbs/%s/colls/%s", databaseName, collectionName);
+
+        @Override
+        public void output(Record record) {
+            try {
+                client.createDocument(collectionLink, new Document(record.toString()), new RequestOptions(), false);
+            } catch (DocumentClientException e) {
+                throw new IllegalArgumentException(e);
+            }
+        }
+    }
+
+    class Delete implements IOut {
+
+        @Override
+        public void output(Record record) {
+            final String documentLink = String.format("/dbs/%s/colls/%s/docs/%s", databaseName, collectionName,
+                    record.getString(configuration.getIdFieldName()));
+            try {
+                client.deleteDocument(documentLink, null);
+            } catch (DocumentClientException e) {
+                throw new IllegalArgumentException(e);
+            }
+        }
+    }
+
+    class Update implements IOut {
+
+        @Override
+        public void output(Record record) {
+            final String collectionLink = String.format("/dbs/%s/colls/%s", databaseName, collectionName);
+            try {
+                client.upsertDocument(collectionLink, new Document(record.toString()), new RequestOptions(), false);
+            } catch (DocumentClientException e) {
+                throw new IllegalArgumentException(e);
+            }
+        }
+    }
+
+}
