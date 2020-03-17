@@ -49,14 +49,8 @@ public class RecordBuilderService {
     @Service
     private RecordBuilderFactory recordBuilderFactory;
 
-    @Service
-    private I18n i18n;
-
     public Iterator<Record> buildFixedRecord(final Response<InputStream> resp, final boolean isCompletePayload,
             final Format format) {
-        int status = resp.status();
-        log.info(i18n.requestStatus(status));
-
         Map<String, String> headers = Optional.ofNullable(resp.headers()).orElseGet(Collections::emptyMap).entrySet().stream()
                 .collect(toMap((Map.Entry<String, List<String>> e) -> e.getKey(), e -> String.join(",", e.getValue())));
 
@@ -100,7 +94,7 @@ public class RecordBuilderService {
                 .collect(Collectors.toList());
 
         return new IteratorMap<Record, Record>(reader.read(resp.body()),
-                r -> this.buildRecord(schema, headersEntry, r, status, headerRecords, isCompletePayload), true);
+                r -> this.buildRecord(schema, headersEntry, r, resp.status(), headerRecords, isCompletePayload), true);
     }
 
     private ContentFormat findFormat(final Map<String, String> headers, final Format format) {

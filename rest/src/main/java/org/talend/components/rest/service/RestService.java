@@ -206,6 +206,8 @@ public class RestService {
             }
         }
 
+        log.info(i18n.requestStatus(resp.status()));
+
         return resp;
     }
 
@@ -238,8 +240,7 @@ public class RestService {
     }
 
     private String substitute(final String value, final Substitutor substitutor) {
-        String substitute = substitutor.replace(value);
-        return substitute;
+        return substitutor.replace(value);
     }
 
     @HealthCheck(HEALTHCHECK)
