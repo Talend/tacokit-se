@@ -30,6 +30,7 @@ import org.talend.components.common.stream.format.rawtext.ExtendedRawTextConfigu
 import org.talend.components.common.stream.format.rawtext.RawTextConfiguration;
 import org.talend.components.common.text.Substitutor;
 import org.talend.components.rest.configuration.Datastore;
+import org.talend.components.rest.configuration.Format;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.configuration.auth.Authorization;
@@ -245,7 +246,8 @@ public class RestService {
         return params.entrySet().stream().collect(toMap(e -> e.getKey(), e -> substitute(e.getValue(), substitutor)));
     }
 
-    public Iterator<Record> buildFixedRecord(final Response<InputStream> resp, final boolean isCompletePayload) {
+    public Iterator<Record> buildFixedRecord(final Response<InputStream> resp, final boolean isCompletePayload,
+            final Format format) {
         int status = resp.status();
         log.info(i18n.requestStatus(status));
 
@@ -254,9 +256,9 @@ public class RestService {
 
         final String encoding = ContentType.getCharsetName(resp.headers());
 
-        final ContentFormat format = findFormat(headers);
-        final RecordReaderSupplier recordReaderSupplier = this.ioRepository.findReader(format.getClass());
-        final RecordReader reader = recordReaderSupplier.getReader(recordBuilderFactory, format,
+        final ContentFormat contentFormat = findFormat(headers, format);
+        final RecordReaderSupplier recordReaderSupplier = this.ioRepository.findReader(contentFormat.getClass());
+        final RecordReader reader = recordReaderSupplier.getReader(recordBuilderFactory, contentFormat,
                 new ExtendedRawTextConfiguration(encoding, isCompletePayload));
 
         final Schema.Entry headersEntry = this.recordBuilderFactory.newEntryBuilder().withName("headers")
@@ -266,7 +268,7 @@ public class RestService {
                 .build();
 
         Schema.Type bodyType = Schema.Type.RECORD;
-        if (RawTextConfiguration.class.equals(format.getClass())) {
+        if (RawTextConfiguration.class.equals(contentFormat.getClass())) {
             bodyType = Schema.Type.STRING;
         }
 
@@ -291,9 +293,8 @@ public class RestService {
         final List<Record> headerRecords = headers.entrySet().stream().map(this::convertHeadersToRecords)
                 .collect(Collectors.toList());
 
-        // InputStream inputStreamBody = Optional.ofNullable(resp.body()).orElse(new ByteArrayInputStream(new byte[0]));
         return new IteratorMap<Record, Record>(reader.read(resp.body()),
-                r -> this.buildRecord(schema, headersEntry, r, status, headerRecords, isCompletePayload));
+                r -> this.buildRecord(schema, headersEntry, r, status, headerRecords, isCompletePayload), true);
     }
 
     private Record convertHeadersToRecords(final Map.Entry<String, String> header) {
@@ -330,10 +331,8 @@ public class RestService {
         return this.recordBuilderFactory.newEntryBuilder().withName(name).withType(type).build();
     }
 
-    private ContentFormat findFormat(final Map<String, String> headers) {
-        final String contentType = Optional.ofNullable(headers.get(ContentType.HEADER_KEY))
-                .orElse(ContentType.DEFAULT_CONTENT_TYPE);
-        if (contentType.contains("json")) {
+    private ContentFormat findFormat(final Map<String, String> headers, final Format format) {
+        if (format == Format.JSON) {
             JsonConfiguration jsonConfiguration = new JsonConfiguration();
             jsonConfiguration.setJsonPointer("/");
             return jsonConfiguration;

@@ -14,6 +14,7 @@ package org.talend.components.rest.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
+import org.talend.components.rest.configuration.Format;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.configuration.auth.Authentication;
@@ -102,7 +103,8 @@ public class ClientTestWithMockProxyTest {
         config.getDataset().getDatastore().setAuthentication(auth);
         config.getDataset().setMethodType(HttpMethod.GET);
 
-        Iterator<Record> resp = service.buildFixedRecord(service.execute(config), config.getDataset().isCompletePayload());
+        Iterator<Record> resp = service.buildFixedRecord(service.execute(config), config.getDataset().isCompletePayload(),
+                config.getDataset().getFormat());
         assertEquals(200, resp.next().getInt("status"));
     }
 
@@ -112,6 +114,7 @@ public class ClientTestWithMockProxyTest {
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("facts");
         config.getDataset().setCompletePayload(true);
+        config.getDataset().setFormat(Format.JSON);
 
         final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
         Job.components() //
@@ -138,6 +141,7 @@ public class ClientTestWithMockProxyTest {
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("facts");
         config.getDataset().setCompletePayload(true);
+        config.getDataset().setFormat(Format.JSON);
 
         final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
         Job.components() //
@@ -162,6 +166,7 @@ public class ClientTestWithMockProxyTest {
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("facts");
         config.getDataset().setCompletePayload(false);
+        config.getDataset().setFormat(Format.JSON);
 
         final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
         Job.components() //
@@ -187,6 +192,7 @@ public class ClientTestWithMockProxyTest {
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("facts");
         config.getDataset().setCompletePayload(false);
+        config.getDataset().setFormat(Format.JSON);
 
         final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
         Job.components() //
@@ -223,6 +229,7 @@ public class ClientTestWithMockProxyTest {
         config.getDataset().setMethodType(HttpMethod.TRACE);
         config.getDataset().setResource("facts");
         config.getDataset().setCompletePayload(false);
+        config.getDataset().setFormat(Format.JSON);
 
         final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
         Job.components() //
@@ -358,6 +365,7 @@ public class ClientTestWithMockProxyTest {
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("facts");
         config.getDataset().setCompletePayload(false);
+        config.getDataset().setFormat(Format.JSON);
 
         final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
         Job.components() //

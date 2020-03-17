@@ -62,8 +62,8 @@ public class RestEmitter implements Serializable {
 
         if (items == null && !done) {
             done = true;
-            final boolean isCompletePayload = config.getDataset().isCompletePayload();
-            items = client.buildFixedRecord(client.execute(config), isCompletePayload);
+            items = client.buildFixedRecord(client.execute(config), config.getDataset().isCompletePayload(),
+                    config.getDataset().getFormat());
         }
 
         final Record r = items.hasNext() ? items.next() : null;

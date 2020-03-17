@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.talend.components.rest.configuration.Format;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestBody;
@@ -121,8 +122,10 @@ public class ClientTestWithHttpbinTest {
     void httpbinGet() throws MalformedURLException {
         config.getDataset().setResource("get");
         config.getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().setFormat(Format.JSON);
 
-        Iterator<Record> respIt = service.buildFixedRecord(service.execute(config), config.getDataset().isCompletePayload());
+        Iterator<Record> respIt = service.buildFixedRecord(service.execute(config), config.getDataset().isCompletePayload(),
+                config.getDataset().getFormat());
 
         final Record resp = respIt.next();
 
@@ -145,6 +148,7 @@ public class ClientTestWithHttpbinTest {
         HttpMethod[] verbs = { HttpMethod.DELETE, HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT };
         config.getDataset().setResource("get");
         config.getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().setFormat(Format.JSON);
 
         List<Param> queryParams = new ArrayList<>();
         queryParams.add(new Param("params1", "value1"));
@@ -156,7 +160,8 @@ public class ClientTestWithHttpbinTest {
         config.getDataset().setHasHeaders(false);
         config.getDataset().setHeaders(headerParams);
 
-        Iterator<Record> respIt = service.buildFixedRecord(service.execute(config), config.getDataset().isCompletePayload());
+        Iterator<Record> respIt = service.buildFixedRecord(service.execute(config), config.getDataset().isCompletePayload(),
+                config.getDataset().getFormat());
 
         final Record resp = respIt.next();
         assertFalse(respIt.hasNext());
@@ -174,6 +179,7 @@ public class ClientTestWithHttpbinTest {
         for (HttpMethod m : verbs) {
             config.getDataset().setResource(m.name().toLowerCase());
             config.getDataset().setMethodType(m);
+            config.getDataset().setFormat(Format.JSON);
 
             List<Param> queryParams = new ArrayList<>();
             queryParams.add(new Param("params1", "value1"));
@@ -188,7 +194,7 @@ public class ClientTestWithHttpbinTest {
             config.getDataset().setHeaders(headerParams);
 
             final Iterator<Record> respIt = service.buildFixedRecord(service.execute(config),
-                    config.getDataset().isCompletePayload());
+                    config.getDataset().isCompletePayload(), config.getDataset().getFormat());
 
             final Record resp = respIt.next();
             assertFalse(respIt.hasNext());
@@ -220,14 +226,14 @@ public class ClientTestWithHttpbinTest {
 
         config.getDataset().setResource("/basic-auth/" + user + "/wrong_" + pwd);
         final Iterator<Record> respForbiddenIt = service.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload());
+                config.getDataset().isCompletePayload(), config.getDataset().getFormat());
         final Record respForbidden = respForbiddenIt.next();
         assertFalse(respForbiddenIt.hasNext());
         assertEquals(401, respForbidden.getInt("status"));
 
         config.getDataset().setResource("/basic-auth/" + user + "/" + pwd);
         final Iterator<Record> respOkIt = service.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload());
+                config.getDataset().isCompletePayload(), config.getDataset().getFormat());
         final Record respOk = respOkIt.next();
         assertFalse(respOkIt.hasNext());
         assertEquals(200, respOk.getInt("status"));
@@ -245,14 +251,14 @@ public class ClientTestWithHttpbinTest {
 
         auth.setBearerToken("");
         final Iterator<Record> respKoIt = service.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload());
+                config.getDataset().isCompletePayload(), config.getDataset().getFormat());
         final Record respKo = respKoIt.next();
         assertFalse(respKoIt.hasNext());
         assertEquals(401, respKo.getInt("status"));
 
         auth.setBearerToken("token-123456789");
         final Iterator<Record> respOkIt = service.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload());
+                config.getDataset().isCompletePayload(), config.getDataset().getFormat());
         final Record respOk = respOkIt.next();
         assertFalse(respOkIt.hasNext());
         assertEquals(200, respOk.getInt("status"));
@@ -267,8 +273,8 @@ public class ClientTestWithHttpbinTest {
         config.getDataset().setMethodType(HttpMethod.valueOf(method));
         config.getDataset().setMaxRedirect(1);
 
-        final Iterator<Record> respIt = service.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload());
+        final Iterator<Record> respIt = service.buildFixedRecord(service.execute(config), config.getDataset().isCompletePayload(),
+                config.getDataset().getFormat());
         final Record resp = respIt.next();
         assertFalse(respIt.hasNext());
         assertEquals(200, resp.getInt("status"));
@@ -293,7 +299,7 @@ public class ClientTestWithHttpbinTest {
 
         if ("".equals(redirect_url)) {
             final Iterator<Record> respIt = service.buildFixedRecord(service.execute(config),
-                    config.getDataset().isCompletePayload());
+                    config.getDataset().isCompletePayload(), config.getDataset().getFormat());
             final Record resp = respIt.next();
             assertFalse(respIt.hasNext());
             assertEquals(200, resp.getInt("status"));
@@ -305,8 +311,8 @@ public class ClientTestWithHttpbinTest {
              * assertEquals("ok", payload.getJsonObject("args").getString("redirect"));
              */
         } else {
-            assertThrows(IllegalArgumentException.class,
-                    () -> service.buildFixedRecord(service.execute(config), config.getDataset().isCompletePayload()));
+            assertThrows(IllegalArgumentException.class, () -> service.buildFixedRecord(service.execute(config),
+                    config.getDataset().isCompletePayload(), config.getDataset().getFormat()));
         }
     }
 
@@ -317,8 +323,8 @@ public class ClientTestWithHttpbinTest {
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setMaxRedirect(maxRedict);
 
-        final Iterator<Record> respIt = service.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload());
+        final Iterator<Record> respIt = service.buildFixedRecord(service.execute(config), config.getDataset().isCompletePayload(),
+                config.getDataset().getFormat());
         final Record resp = respIt.next();
         assertFalse(respIt.hasNext());
         assertEquals(200, resp.getInt("status"));
@@ -335,13 +341,13 @@ public class ClientTestWithHttpbinTest {
             // When maxRedirect == 0 then redirect is disabled
             // we only return the response
             final Iterator<Record> respIt = service.buildFixedRecord(service.execute(config),
-                    config.getDataset().isCompletePayload());
+                    config.getDataset().isCompletePayload(), config.getDataset().getFormat());
             final Record resp = respIt.next();
             assertFalse(respIt.hasNext());
             assertEquals(302, resp.getInt("status"));
         } else {
-            Exception e = assertThrows(IllegalArgumentException.class,
-                    () -> service.buildFixedRecord(service.execute(config), config.getDataset().isCompletePayload()));
+            Exception e = assertThrows(IllegalArgumentException.class, () -> service.buildFixedRecord(service.execute(config),
+                    config.getDataset().isCompletePayload(), config.getDataset().getFormat()));
         }
     }
 
@@ -373,8 +379,8 @@ public class ClientTestWithHttpbinTest {
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("digest-auth/" + qop + "/" + user + "/" + pwd);
 
-        final Iterator<Record> respIt = service.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload());
+        final Iterator<Record> respIt = service.buildFixedRecord(service.execute(config), config.getDataset().isCompletePayload(),
+                config.getDataset().getFormat());
         final Record resp = respIt.next();
         assertFalse(respIt.hasNext());
         assertEquals(expected, resp.getInt("status"));
@@ -386,27 +392,57 @@ public class ClientTestWithHttpbinTest {
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("digest-auth/" + qop + "/" + user + "/" + pwd + "/" + algo);
 
-        final Iterator<Record> respIt = service.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload());
+        final Iterator<Record> respIt = service.buildFixedRecord(service.execute(config), config.getDataset().isCompletePayload(),
+                config.getDataset().getFormat());
         final Record resp = respIt.next();
         assertFalse(respIt.hasNext());
         assertEquals(expected, resp.getInt("status"));
     }
 
     @ParameterizedTest
-    @CsvSource(value = { "json", "xml", "html" })
+    @CsvSource(value = { "json", "json_notparsed", "xml", "html" })
     void testformats(final String type) {
         config.getDataset().setMethodType(HttpMethod.GET);
-        config.getDataset().setResource(type);
+        config.getDataset().setResource(type.endsWith("_notparsed") ? type.substring(0, type.length() - 10) : type);
+        if ("json".equals(type)) {
+            config.getDataset().setFormat(Format.JSON);
+        }
 
-        final Iterator<Record> respIt = service.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload());
+        final Iterator<Record> respIt = service.buildFixedRecord(service.execute(config), config.getDataset().isCompletePayload(),
+                config.getDataset().getFormat());
         final Record resp = respIt.next();
         assertFalse(respIt.hasNext());
         assertEquals(200, resp.getInt("status"));
 
         if ("json".equals(type)) {
             assertEquals("Sample Slide Show", resp.getRecord("body").getRecord("slideshow").getString("title"));
+        } else if ("json_notparsed".equals(type)) {
+            final String body = resp.getString("body");
+            final String expected = "{\n" + "  \"slideshow\": {\n" + "    \"author\": \"Yours Truly\", \n"
+                    + "    \"date\": \"date of publication\", \n" + "    \"slides\": [\n" + "      {\n"
+                    + "        \"title\": \"Wake up to WonderWidgets!\", \n" + "        \"type\": \"all\"\n" + "      }, \n"
+                    + "      {\n" + "        \"items\": [\n" + "          \"Why <em>WonderWidgets</em> are great\", \n"
+                    + "          \"Who <em>buys</em> WonderWidgets\"\n" + "        ], \n" + "        \"title\": \"Overview\", \n"
+                    + "        \"type\": \"all\"\n" + "      }\n" + "    ], \n" + "    \"title\": \"Sample Slide Show\"\n"
+                    + "  }\n" + "}\n";
+            assertEquals(expected, body);
+        } else if ("xml".equals(type)) {
+            final String body = resp.getString("body");
+            final String expected = "<?xml version='1.0' encoding='us-ascii'?>\n" + "\n" + "<!--  A SAMPLE set of slides  -->\n"
+                    + "\n" + "<slideshow \n" + "    title=\"Sample Slide Show\"\n" + "    date=\"Date of publication\"\n"
+                    + "    author=\"Yours Truly\"\n" + "    >\n" + "\n" + "    <!-- TITLE SLIDE -->\n"
+                    + "    <slide type=\"all\">\n" + "      <title>Wake up to WonderWidgets!</title>\n" + "    </slide>\n" + "\n"
+                    + "    <!-- OVERVIEW -->\n" + "    <slide type=\"all\">\n" + "        <title>Overview</title>\n"
+                    + "        <item>Why <em>WonderWidgets</em> are great</item>\n" + "        <item/>\n"
+                    + "        <item>Who <em>buys</em> WonderWidgets</item>\n" + "    </slide>\n" + "\n" + "</slideshow>";
+            assertEquals(expected, body);
+        } else if ("html".equals(type)) {
+            final String body = resp.getString("body");
+            final String expected = "<!DOCTYPE html>\n" + "<html>\n" + "  <head>\n" + "  </head>\n" + "  <body>\n"
+                    + "      <h1>Herman Melville - Moby-Dick</h1>\n" + "\n" + "      <div>\n" + "        <p>\n"
+                    + "          Availing himself of the mild, summer-cool weather that now reigned in these latitudes, and in preparation for the peculiarly active pursuits shortly to be anticipated, Perth, the begrimed, blistered old blacksmith, had not removed his portable forge to the hold again, after concluding his contributory work for Ahab's leg, but still retained it on deck, fast lashed to ringbolts by the foremast; being now almost incessantly invoked by the headsmen, and harpooneers, and bowsmen to do some little job for them; altering, or repairing, or new shaping their various weapons and boat furniture. Often he would be surrounded by an eager circle, all waiting to be served; holding boat-spades, pike-heads, harpoons, and lances, and jealously watching his every sooty movement, as he toiled. Nevertheless, this old man's was a patient hammer wielded by a patient arm. No murmur, no impatience, no petulance did come from him. Silent, slow, and solemn; bowing over still further his chronically broken back, he toiled away, as if toil were life itself, and the heavy beating of his hammer the heavy beating of his heart. And so it was.—Most miserable! A peculiar walk in this old man, a certain slight but painful appearing yawing in his gait, had at an early period of the voyage excited the curiosity of the mariners. And to the importunity of their persisted questionings he had finally given in; and so it came to pass that every one now knew the shameful story of his wretched fate. Belated, and not innocently, one bitter winter's midnight, on the road running between two country towns, the blacksmith half-stupidly felt the deadly numbness stealing over him, and sought refuge in a leaning, dilapidated barn. The issue was, the loss of the extremities of both feet. Out of this revelation, part by part, at last came out the four acts of the gladness, and the one long, and as yet uncatastrophied fifth act of the grief of his life's drama. He was an old man, who, at the age of nearly sixty, had postponedly encountered that thing in sorrow's technicals called ruin. He had been an artisan of famed excellence, and with plenty to do; owned a house and garden; embraced a youthful, daughter-like, loving wife, and three blithe, ruddy children; every Sunday went to a cheerful-looking church, planted in a grove. But one night, under cover of darkness, and further concealed in a most cunning disguisement, a desperate burglar slid into his happy home, and robbed them all of everything. And darker yet to tell, the blacksmith himself did ignorantly conduct this burglar into his family's heart. It was the Bottle Conjuror! Upon the opening of that fatal cork, forth flew the fiend, and shrivelled up his home. Now, for prudent, most wise, and economic reasons, the blacksmith's shop was in the basement of his dwelling, but with a separate entrance to it; so that always had the young and loving healthy wife listened with no unhappy nervousness, but with vigorous pleasure, to the stout ringing of her young-armed old husband's hammer; whose reverberations, muffled by passing through the floors and walls, came up to her, not unsweetly, in her nursery; and so, to stout Labor's iron lullaby, the blacksmith's infants were rocked to slumber. Oh, woe on woe! Oh, Death, why canst thou not sometimes be timely? Hadst thou taken this old blacksmith to thyself ere his full ruin came upon him, then had the young widow had a delicious grief, and her orphans a truly venerable, legendary sire to dream of in their after years; and all of them a care-killing competency.\n"
+                    + "        </p>\n" + "      </div>\n" + "  </body>\n" + "</html>";
+            assertEquals(expected, body);
         }
     }
 
@@ -420,9 +456,10 @@ public class ClientTestWithHttpbinTest {
         config.getDataset().setBody(body);
         config.getDataset().setMethodType(HttpMethod.POST);
         config.getDataset().setResource("post");
+        config.getDataset().setFormat(Format.JSON);
 
-        final Iterator<Record> respIt = service.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload());
+        final Iterator<Record> respIt = service.buildFixedRecord(service.execute(config), config.getDataset().isCompletePayload(),
+                config.getDataset().getFormat());
 
         final Record resp = respIt.next();
         assertFalse(respIt.hasNext());
@@ -441,9 +478,10 @@ public class ClientTestWithHttpbinTest {
         config.getDataset().setBody(body);
         config.getDataset().setMethodType(HttpMethod.POST);
         config.getDataset().setResource("post");
+        config.getDataset().setFormat(Format.JSON);
 
-        final Iterator<Record> respIt = service.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload());
+        final Iterator<Record> respIt = service.buildFixedRecord(service.execute(config), config.getDataset().isCompletePayload(),
+                config.getDataset().getFormat());
 
         final Record resp = respIt.next();
         assertFalse(respIt.hasNext());
