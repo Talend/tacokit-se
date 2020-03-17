@@ -19,10 +19,12 @@
         <!-- To run ITs test give the following option to mvn : -Dtest.excluded="" -->
         <test.excluded>ITs</test.excluded>
         <talend.scan.scannedDependencies>org.talend.components:stream-api</talend.scan.scannedDependencies>
+        <!-- I have removed some i18n keys and I have validation errors since it uses _en for validation -->
+        <!-- I should have used talend.validation.locale="root" but only with TCK 1.1.16 -->
+        <talend.validation.internationalization>false</talend.validation.internationalization>
     </properties>
 
     <dependencies>
-        <!-- traductions -->
         <dependency>
             <groupId>org.talend.components</groupId>
             <artifactId>rest-locales</artifactId>
