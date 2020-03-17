@@ -15,6 +15,7 @@ package org.talend.components.rest.source;
 import org.talend.components.extension.polling.api.Pollable;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.service.CompletePayload;
+import org.talend.components.rest.service.RecordBuilderService;
 import org.talend.components.rest.service.RestService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -41,6 +42,8 @@ public class RestEmitter implements Serializable {
 
     private final RestService client;
 
+    private final RecordBuilderService recordBuilder;
+
     private Iterator<Record> items;
 
     private boolean done;
@@ -49,9 +52,11 @@ public class RestEmitter implements Serializable {
         done = false;
     }
 
-    public RestEmitter(@Option("configuration") final RequestConfig config, final RestService client) {
+    public RestEmitter(@Option("configuration") final RequestConfig config, final RestService client,
+            final RecordBuilderService recordBuilder) {
         this.config = config;
         this.client = client;
+        this.recordBuilder = recordBuilder;
     }
 
     @Producer
@@ -62,7 +67,7 @@ public class RestEmitter implements Serializable {
 
         if (items == null && !done) {
             done = true;
-            items = client.buildFixedRecord(client.execute(config), config.getDataset().isCompletePayload(),
+            items = recordBuilder.buildFixedRecord(client.execute(config), config.getDataset().isCompletePayload(),
                     config.getDataset().getFormat());
         }
 
