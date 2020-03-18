@@ -16,6 +16,7 @@ import lombok.Data;
 import org.talend.components.cosmosDB.datastore.CosmosDBDataStore;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -29,8 +30,9 @@ import java.util.List;
 @Data
 @DataSet("CosmosDBDataset")
 @GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "collectionID" }), @GridLayout.Row({ "documentType" }),
-        @GridLayout.Row({ "schema" }),
-        // @GridLayout.Row({ "documentType" })
+        // @GridLayout.Row({ "schema" }),
+        @GridLayout.Row({ "useQuery" }), //
+        @GridLayout.Row({ "query" }) //
 })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "datastore" }) })
 
@@ -41,10 +43,10 @@ public class CosmosDBDataset implements Serializable {
     @Documentation("Connection")
     private CosmosDBDataStore datastore;
 
-    @Option
-    @Documentation("Schema")
-    @Structure(type = Structure.Type.OUT, discoverSchema = "discover")
-    private List<String> schema;
+    // @Option
+    // @Documentation("Schema")
+    // @Structure(type = Structure.Type.OUT, discoverSchema = "discover")
+    // private List<String> schema;
 
     @Option
     @Required
@@ -55,5 +57,14 @@ public class CosmosDBDataset implements Serializable {
     @Required
     @Documentation("Document type")
     private DocumentType documentType = DocumentType.JSON;
+
+    @Option
+    @Documentation("use Query")
+    private boolean useQuery;
+
+    @Option
+    @Documentation("SimpleQuery")
+    @ActiveIf(target = "useQuery", value = "true")
+    private String query = "SELECT * FROM c";
 
 }

@@ -92,9 +92,9 @@ public class CosmosDBService {
     }
 
     @DiscoverSchema("discover")
-    public Schema addColumns(@Option("dataset") final CosmosDBDataset dataSet) {
+    public Schema addColumns(@Option("dataset") final CosmosDBDataset dataset) {
         CosmosDBInputConfiguration configuration = new CosmosDBInputConfiguration();
-        configuration.setDataset(dataSet);
+        configuration.setDataset(dataset);
         CosmosDBInput cosmosDBInput = new CosmosDBInput(configuration, this, builderFactory, i18n);
         cosmosDBInput.init();
         Record record = cosmosDBInput.next();

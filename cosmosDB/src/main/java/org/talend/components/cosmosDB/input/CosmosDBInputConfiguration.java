@@ -27,8 +27,6 @@ import lombok.Data;
 @Version(1)
 @Data
 @GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataset" }), //
-        @GridLayout.Row({ "useQuery" }), //
-        @GridLayout.Row({ "query" }), //
         }), @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataset" }) }) })
 @Documentation("cosmosDB input Mapper Configuration")
 public class CosmosDBInputConfiguration implements Serializable {
@@ -36,14 +34,5 @@ public class CosmosDBInputConfiguration implements Serializable {
     @Option
     @Documentation("dataset")
     private CosmosDBDataset dataset;
-
-    @Option
-    @Documentation("use Query")
-    private boolean useQuery;
-
-    @Option
-    @Documentation("SimpleQuery")
-    @ActiveIf(target = "useQuery", value = "true")
-    private String query = "SELECT * FROM c";
 
 }

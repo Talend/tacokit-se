@@ -103,9 +103,9 @@ public class CosmosDBInput implements Serializable {
         queryOptions.setEnableCrossPartitionQuery(true);
 
         String collectionLink = String.format("/dbs/%s/colls/%s", databaseName, collectionName);
-        final String query = configuration.isUseQuery() ? configuration.getQuery() : "SELECT * FROM c";
+        final String query = configuration.getDataset().isUseQuery() ? configuration.getDataset().getQuery() : "SELECT * FROM c";
         FeedResponse<Document> queryResults = this.client.queryDocuments(collectionLink, query, queryOptions);
-        log.info("Query [{}] execution success.", configuration.getQuery());
+        log.info("Query [{}] execution success.", configuration.getDataset().getQuery());
 
         iterator = queryResults.getQueryIterator();
     }
