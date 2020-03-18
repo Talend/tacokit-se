@@ -126,12 +126,13 @@ public class RecordBuilderService {
                 .build();
 
         final Schema.Entry.Builder bodyBuilder = this.recordBuilderFactory.newEntryBuilder().withName("body");
-
         // If body is null we always return same schema as a RAW_TEXT
         if (format == Format.RAW_TEXT || body == null) {
             bodyBuilder.withType(Schema.Type.STRING).withNullable(true);
         } else {
-            bodyBuilder.withType(Schema.Type.RECORD).withNullable(true).withElementSchema(body.getSchema());
+            final Schema.Builder bodySchema = this.recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD);
+            body.getSchema().getEntries().forEach(e -> bodySchema.withEntry(e));
+            bodyBuilder.withType(Schema.Type.RECORD).withElementSchema(bodySchema.build());
         }
         final Schema.Entry bodyEntry = bodyBuilder.build();
 
@@ -139,6 +140,7 @@ public class RecordBuilderService {
         if (isCompletePayload) {
             builder.withEntry(statusEntry).withEntry(headersEntry);
         }
+
         final Schema schema = builder.withEntry(bodyEntry).build();
         return new SchemaContainer(headersEntry, schema);
     }

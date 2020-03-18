@@ -36,7 +36,7 @@ public class IteratorMap<T, U> implements Iterator<U> {
     /**
      * If true, null value are computed, else they are returned as is
      */
-    private boolean computeNull;
+    private final boolean computeNull;
 
     public IteratorMap(Iterator<T> primaryIterator, Function<T, U> mapFunction) {
         this(primaryIterator, mapFunction, false);

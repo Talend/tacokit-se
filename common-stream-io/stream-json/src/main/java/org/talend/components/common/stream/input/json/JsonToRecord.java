@@ -127,7 +127,11 @@ public class JsonToRecord {
         log.debug("[createEntry#{}] ({}) {} ", name, jsonValue.getValueType(), jsonValue);
         Entry.Builder builder = recordBuilderFactory.newEntryBuilder();
         // use comment to store the real element name, for example, "$oid"
-        builder.withName(name).withNullable(true).withComment(name);
+        builder.withName(name).withComment(name);
+
+        if (ValueType.OBJECT != jsonValue.getValueType()) {
+            builder.withNullable(true);
+        }
 
         switch (jsonValue.getValueType()) {
         case ARRAY:
