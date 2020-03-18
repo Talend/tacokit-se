@@ -91,10 +91,7 @@ public class JdbcConnection implements Serializable {
     private String privateKey;
 
     @Option
-    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "KEY_PAIR")
-            // ,@ActiveIf(target = "privateKey", evaluationStrategy = CONTAINS, value = {"-----BEGIN ENCRYPTED PRIVATE
-            // KEY-----" })
-    })
+    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "KEY_PAIR")})
     @Credential
     @Documentation("Private key password")
     private String privateKeyPassword;

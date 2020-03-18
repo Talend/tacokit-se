@@ -204,7 +204,7 @@ public class JdbcService {
         private PrivateKey getFromEncrypted(String privateKey, String privateKeyPassword)
                 throws IOException, OperatorCreationException, PKCSException {
             PKCS8EncryptedPrivateKeyInfo pkcs8EncryptedPrivateKeyInfo = new PKCS8EncryptedPrivateKeyInfo(
-                    decodeString(replaceString(privateKey, true)));
+                    decodeString(replaceGeneratedExtraString(privateKey, true)));
             InputDecryptorProvider inputDecryptorProvider = new JceOpenSSLPKCS8DecryptorProviderBuilder().setProvider("BC")
                     .build(privateKeyPassword.toCharArray());
             PrivateKeyInfo privateKeyInfo = pkcs8EncryptedPrivateKeyInfo.decryptPrivateKeyInfo(inputDecryptorProvider);
@@ -212,7 +212,7 @@ public class JdbcService {
         }
 
         private PrivateKey getFromRegular(String privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
-            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodeString(replaceString(privateKey, false)));
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodeString(replaceGeneratedExtraString(privateKey, false)));
             return KeyFactory.getInstance("RSA").generatePrivate(keySpec);
         }
 
@@ -220,7 +220,7 @@ public class JdbcService {
             return Base64.decode(privateKeyContent);
         }
 
-        private String replaceString(String privateKey, boolean isEncrypted) {
+        private String replaceGeneratedExtraString(String privateKey, boolean isEncrypted) {
             return isEncrypted
                     ? privateKey.replace("-----BEGIN ENCRYPTED PRIVATE KEY-----", "")
                             .replace("-----END ENCRYPTED PRIVATE KEY-----", "")
