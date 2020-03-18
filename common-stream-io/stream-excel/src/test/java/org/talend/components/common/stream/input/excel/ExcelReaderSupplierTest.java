@@ -57,6 +57,22 @@ class ExcelReaderSupplierTest {
         this.testOneValueFile("excel97/excel_97_1_record_no_header.xls");
     }
 
+    @Test
+    public void testSimple() throws IOException {
+        final String path = "excel2007/excel2007_File.xlsx";
+        try (final InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
+                final RecordReader reader = new ExcelReaderSupplier().getReader(factory, config)) {
+
+            config.getHeader().setActive(true);
+            config.getHeader().setSize(1);
+            config.setSheetName("Another Sheet");
+            final Iterator<Record> records = reader.read(stream);
+            while (records.hasNext()) {
+                Record rec = records.next();
+            }
+        }
+    }
+
     private void testOneValueFile(String path) throws IOException {
 
         double idValue = 1.0;

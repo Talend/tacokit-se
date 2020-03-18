@@ -44,7 +44,7 @@ public class FieldSeparator implements Serializable {
 
     @Option
     @Documentation("Field delimiter type.")
-    private Type fieldSeparatorType;
+    private Type fieldSeparatorType = FieldSeparator.Type.COMMA;
 
     @Option
     @ActiveIf(target = "fieldSeparatorType", value = "OTHER")

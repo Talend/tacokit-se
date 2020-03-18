@@ -27,12 +27,14 @@ import javax.json.JsonObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.RecordIORepository;
+import org.talend.components.common.stream.api.input.RecordReaderSupplier;
 import org.talend.components.common.stream.format.LineConfiguration;
 import org.talend.components.common.stream.format.LineConfiguration.LineSeparatorType;
 import org.talend.components.common.stream.format.csv.CSVConfiguration;
 import org.talend.components.common.stream.format.csv.FieldSeparator;
 import org.talend.components.google.storage.dataset.FormatConfiguration;
 import org.talend.components.google.storage.dataset.GSDataSet;
+import org.talend.components.google.storage.dataset.JsonAllConfiguration;
 import org.talend.components.google.storage.datastore.GSDataStore;
 import org.talend.components.google.storage.service.CredentialService;
 import org.talend.components.google.storage.service.I18nMessage;
@@ -106,6 +108,13 @@ class GoogleStorageSourceTest {
         Assertions.assertNull(record5);
 
         source.release();
+    }
+
+    @Test
+    public void testRepoLoad() {
+        final RecordReaderSupplier reader = this.repository.findReader(JsonAllConfiguration.class);
+        Assertions.assertNotNull(reader);
+        Assertions.assertEquals(JsonAllReaderSupplier.class, reader.getClass());
     }
 
     @Test
