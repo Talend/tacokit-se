@@ -47,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Version
 @Slf4j
-@Icon(value = Icon.IconType.CUSTOM, custom = "cloudstorageInput")
+@Icon(value = Icon.IconType.CUSTOM, custom = "cloudstorage")
 @Emitter(family = "GoogleStorage", name = "Input")
 @Documentation("This component read content file from google cloud storage.")
 public class GoogleStorageSource implements Serializable {

@@ -48,7 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Version
-@Icon(value = IconType.CUSTOM, custom = "cloudstorageOutput")
+@Icon(value = IconType.CUSTOM, custom = "cloudstorage")
 @Processor(family = "GoogleStorage", name = "Output")
 @Documentation("Google storage output")
 public class GoogleStorageOutput implements Serializable {
