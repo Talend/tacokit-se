@@ -51,11 +51,11 @@ public class RawTextRecordReader implements RecordReader {
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
-            final byte[] tt = new byte[512];
-            int nbe = reader.read(tt);
+            final byte[] buffer = new byte[512];
+            int nbe = reader.read(buffer);
             while (nbe > 0) {
-                out.write(tt, 0, nbe);
-                nbe = reader.read(tt);
+                out.write(buffer, 0, nbe);
+                nbe = reader.read(buffer);
             }
         } catch (IOException e) {
             throw new UncheckedIOException("Can't build raw text record.", e);
