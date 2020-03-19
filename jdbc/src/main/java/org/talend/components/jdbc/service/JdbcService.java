@@ -33,6 +33,16 @@ import java.util.Locale;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8DecryptorProviderBuilder;
+import org.bouncycastle.operator.InputDecryptorProvider;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
+import org.bouncycastle.pkcs.PKCSException;
+import org.bouncycastle.util.encoders.Base64;
+import org.bouncycastle.util.encoders.DecoderException;
 import org.talend.components.jdbc.configuration.JdbcConfiguration;
 import org.talend.components.jdbc.datastore.AuthenticationType;
 import org.talend.components.jdbc.datastore.JdbcConnection;
@@ -41,16 +51,6 @@ import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.dependency.Resolver;
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-import org.bouncycastle.operator.InputDecryptorProvider;
-import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8DecryptorProviderBuilder;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
-import org.bouncycastle.pkcs.PKCSException;
-import org.bouncycastle.util.encoders.Base64;
-import org.bouncycastle.util.encoders.DecoderException;
 
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -197,7 +197,7 @@ public class JdbcService {
                 throw new IllegalArgumentException(i18nMessage.errorPrivateKeyPasswordIncorrect(), pkcse);
             } catch (InvalidKeySpecException | IOException | OperatorCreationException | NoSuchAlgorithmException
                     | DecoderException e) {
-                throw new IllegalArgumentException(i18nMessage.errorPrivateKeyIncorrect(e.getMessage()), e);
+                throw new IllegalArgumentException(i18nMessage.errorPrivateKeyIncorrect(), e);
             }
         }
 
@@ -206,7 +206,7 @@ public class JdbcService {
             PKCS8EncryptedPrivateKeyInfo pkcs8EncryptedPrivateKeyInfo = new PKCS8EncryptedPrivateKeyInfo(
                     decodeString(replaceGeneratedExtraString(privateKey, true)));
             InputDecryptorProvider inputDecryptorProvider = new JceOpenSSLPKCS8DecryptorProviderBuilder().setProvider("BC")
-                    .build(privateKeyPassword.toCharArray());
+                    .build(ofNullable(privateKeyPassword).map(String::toCharArray).orElse(new char[0]));
             PrivateKeyInfo privateKeyInfo = pkcs8EncryptedPrivateKeyInfo.decryptPrivateKeyInfo(inputDecryptorProvider);
             return new JcaPEMKeyConverter().setProvider("BC").getPrivateKey(privateKeyInfo);
         }
