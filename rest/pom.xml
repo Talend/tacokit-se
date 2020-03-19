@@ -15,12 +15,12 @@
 
     <properties>
         <testcontainers.version>1.12.3</testcontainers.version>
-        <!-- Currently I can't execute httpbin tests on CI -->
+        <!-- httpbin tests can't currently be executed on CI -->
         <!-- To run ITs test give the following option to mvn : -Dtest.excluded="" -->
         <test.excluded>ITs</test.excluded>
         <talend.scan.scannedDependencies>org.talend.components:stream-api</talend.scan.scannedDependencies>
-        <!-- I have removed some i18n keys and I have validation errors since it uses _en for validation -->
-        <!-- I should have used talend.validation.locale="root" but only with TCK 1.1.16 -->
+        <!-- Some i18n keys have been removed and and so there are validation errors since it uses _en for validation which is get from release -->
+        <!-- talend.validation.locale="root" should be used but only with TCK 1.1.16 -->
         <talend.validation.internationalization>false</talend.validation.internationalization>
     </properties>
 

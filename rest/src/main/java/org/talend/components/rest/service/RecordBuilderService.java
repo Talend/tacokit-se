@@ -58,7 +58,7 @@ public class RecordBuilderService {
 
         final String encoding = ContentType.getCharsetName(resp.headers());
 
-        final ContentFormat contentFormat = findFormat(headers, format);
+        final ContentFormat contentFormat = findFormat(format);
         final RecordReaderSupplier recordReaderSupplier = this.ioRepository.findReader(contentFormat.getClass());
         final RecordReader reader = recordReaderSupplier.getReader(recordBuilderFactory, contentFormat,
                 new ExtendedRawTextConfiguration(encoding, isCompletePayload));
@@ -70,7 +70,7 @@ public class RecordBuilderService {
                 r -> this.buildRecord(r, resp.status(), headerRecords, isCompletePayload, format), true);
     }
 
-    private ContentFormat findFormat(final Map<String, String> headers, final Format format) {
+    private ContentFormat findFormat(final Format format) {
         if (format == Format.JSON) {
             JsonConfiguration jsonConfiguration = new JsonConfiguration();
             jsonConfiguration.setJsonPointer("/");

@@ -27,8 +27,6 @@ public class ContentType {
 
     public final static String HEADER_KEY = "Content-Type";
 
-    public final static String DEFAULT_CONTENT_TYPE = "text/plain";
-
     public final static String CHARSET_KEY = "charset=";
 
     public static String getCharsetName(final Map<String, List<String>> headers) {

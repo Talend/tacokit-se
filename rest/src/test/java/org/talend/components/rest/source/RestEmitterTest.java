@@ -46,16 +46,6 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 @Environment(ContextualEnvironment.class)
 @EnvironmentConfiguration(environment = "Contextual", systemProperties = {}) // EnvironmentConfiguration is necessary for each
                                                                              // @Environment
-
-/*
- * @Environment(DirectRunnerEnvironment.class) // Direct runner not necessary since already SparkRunner
- * 
- * @EnvironmentConfiguration(environment = "Direct", systemProperties = {
- * 
- * @EnvironmentConfiguration.Property(key = "talend.beam.job.runner", value = "org.apache.beam.runners.direct.DirectRunner")
- * })
- */
-
 @Environment(SparkRunnerEnvironment.class)
 @EnvironmentConfiguration(environment = "Spark", systemProperties = {
         @Property(key = "talend.beam.job.runner", value = "org.apache.beam.runners.spark.SparkRunner"),

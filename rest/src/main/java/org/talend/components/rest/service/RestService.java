@@ -23,6 +23,7 @@ import org.talend.components.common.text.Substitutor;
 import org.talend.components.rest.configuration.Datastore;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestConfig;
+import org.talend.components.rest.configuration.auth.Authentication;
 import org.talend.components.rest.configuration.auth.Authorization;
 import org.talend.components.rest.service.client.Body;
 import org.talend.components.rest.service.client.Client;
@@ -133,33 +134,34 @@ public class RestService {
 
         Response<InputStream> resp = null;
 
+        final Authentication authentication = config.getDataset().getDatastore().getAuthentication();
         log.info(i18n.request(config.getDataset().getMethodType().name(), surl,
-                config.getDataset().getDatastore().getAuthentication().getType().toString()));
+                authentication.getType().toString()));
 
         try {
-            if (config.getDataset().getDatastore().getAuthentication().getType() == Authorization.AuthorizationType.Digest) {
+            if (authentication.getType() == Authorization.AuthorizationType.Digest) {
                 try {
                     URL url = new URL(surl);
                     DigestAuthService das = new DigestAuthService();
                     DigestAuthContext context = new DigestAuthContext(url.getPath(), config.getDataset().getMethodType().name(),
                             url.getHost(), url.getPort(), body == null ? null : body.getContent(),
-                            new UserNamePassword(config.getDataset().getDatastore().getAuthentication().getBasic().getUsername(),
-                                    config.getDataset().getDatastore().getAuthentication().getBasic().getPassword()));
+                            new UserNamePassword(authentication.getBasic().getUsername(),
+                                    authentication.getBasic().getPassword()));
                     resp = das.call(context, () -> client.executeWithDigestAuth(i18n, context, config, client,
                             previousRedirectContext.getMethod(), surl, headers, queryParams, body));
                 } catch (MalformedURLException e) {
                     throw new IllegalArgumentException(i18n.malformedURL(surl, e.getMessage()));
                 }
-            } else if (config.getDataset().getDatastore().getAuthentication()
+            } else if (authentication
                     .getType() == Authorization.AuthorizationType.Basic) {
                 UserNamePassword credential = new UserNamePassword(
-                        config.getDataset().getDatastore().getAuthentication().getBasic().getUsername(),
-                        config.getDataset().getDatastore().getAuthentication().getBasic().getPassword());
+                        authentication.getBasic().getUsername(),
+                        authentication.getBasic().getPassword());
                 resp = client.executeWithBasicAuth(i18n, credential, config, client, previousRedirectContext.getMethod(), surl,
                         headers, queryParams, body);
-            } else if (config.getDataset().getDatastore().getAuthentication()
+            } else if (authentication
                     .getType() == Authorization.AuthorizationType.Bearer) {
-                String token = config.getDataset().getDatastore().getAuthentication().getBearerToken();
+                String token = authentication.getBearerToken();
                 resp = client.executeWithBearerAuth(i18n, token, config, client, previousRedirectContext.getMethod(), surl,
                         headers, queryParams, body);
             } else {
