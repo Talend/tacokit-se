@@ -16,7 +16,6 @@ import org.talend.components.common.stream.api.output.RecordWriter;
 import org.talend.components.common.stream.api.output.RecordWriterSupplier;
 import org.talend.components.common.stream.api.output.TargetFinder;
 import org.talend.components.common.stream.format.ContentFormat;
-import org.talend.components.common.stream.format.json.JsonConfiguration;
 import org.talend.components.common.stream.output.json.JsonRecordWriter;
 import org.talend.components.common.stream.output.json.RecordToJson;
 import org.talend.components.google.storage.dataset.JsonAllConfiguration;

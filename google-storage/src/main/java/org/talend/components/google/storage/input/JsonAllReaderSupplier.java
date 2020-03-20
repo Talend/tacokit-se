@@ -15,9 +15,6 @@ package org.talend.components.google.storage.input;
 import org.talend.components.common.stream.api.input.RecordReader;
 import org.talend.components.common.stream.api.input.RecordReaderSupplier;
 import org.talend.components.common.stream.format.ContentFormat;
-import org.talend.components.common.stream.format.json.JsonConfiguration;
-import org.talend.components.common.stream.format.json.JsonPointerParser;
-import org.talend.components.common.stream.input.json.JsonRecordReader;
 import org.talend.components.google.storage.dataset.JsonAllConfiguration;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 

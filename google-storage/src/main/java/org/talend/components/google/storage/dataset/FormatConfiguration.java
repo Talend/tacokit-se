@@ -18,8 +18,6 @@ import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.components.common.stream.format.avro.AvroConfiguration;
 import org.talend.components.common.stream.format.csv.CSVConfiguration;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration;
-import org.talend.components.common.stream.format.fixed.FixedConfiguration;
-import org.talend.components.common.stream.format.json.JsonConfiguration;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;

@@ -29,12 +29,10 @@ import org.talend.components.google.storage.service.CredentialService;
 import org.talend.components.google.storage.service.I18nMessage;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
-import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Emitter;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import com.google.auth.oauth2.GoogleCredentials;
@@ -43,6 +41,7 @@ import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.Storage;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Version
@@ -50,6 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 @Icon(value = Icon.IconType.CUSTOM, custom = "cloudstorage")
 @Emitter(family = "GoogleStorage", name = "Input")
 @Documentation("This component read content file from google cloud storage.")
+@RequiredArgsConstructor
 public class GoogleStorageSource implements Serializable {
 
     private static final long serialVersionUID = 7373818898514942128L;
@@ -58,16 +58,12 @@ public class GoogleStorageSource implements Serializable {
     private final InputConfiguration config;
 
     /** record factory */
-    @Service
     private final RecordBuilderFactory factory;
 
-    @Service
     private final RecordIORepository ioRepository;
 
-    @Service
     private final CredentialService credentialService;
 
-    @Service
     private final I18nMessage i18n;
 
     private transient GoogleCredentials googleCredentials = null;
@@ -76,16 +72,6 @@ public class GoogleStorageSource implements Serializable {
     private transient Iterator<Record> recordIterator = null;
 
     private transient RecordReader recordReader = null;
-
-    public GoogleStorageSource(@Option("configuration") InputConfiguration config, RecordBuilderFactory factory, // build record
-            RecordIORepository ioRepository, // find reader
-            CredentialService credentialService, I18nMessage i18n) {
-        this.config = config;
-        this.factory = factory;
-        this.ioRepository = ioRepository;
-        this.credentialService = credentialService;
-        this.i18n = i18n;
-    }
 
     @PostConstruct
     public void init() {

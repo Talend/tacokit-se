@@ -23,8 +23,6 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class JsonAllRecordReaderTest {
 
     @Test

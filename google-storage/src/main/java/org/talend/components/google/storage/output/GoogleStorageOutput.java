@@ -31,12 +31,10 @@ import org.talend.components.google.storage.service.I18nMessage;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Icon.IconType;
 import org.talend.sdk.component.api.component.Version;
-import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.processor.AfterGroup;
 import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.service.Service;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.WriteChannel;
@@ -44,6 +42,7 @@ import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -51,27 +50,18 @@ import lombok.extern.slf4j.Slf4j;
 @Icon(value = IconType.CUSTOM, custom = "cloudstorage")
 @Processor(family = "GoogleStorage", name = "Output")
 @Documentation("Google storage output")
+@RequiredArgsConstructor
 public class GoogleStorageOutput implements Serializable {
 
-    @Service
+    private final OutputConfiguration config;
+
     private final CredentialService credentialService;
 
-    @Service
     private final RecordIORepository ioRepository;
-
-    private final OutputConfiguration config;
 
     private final I18nMessage i18n;
 
     private RecordWriter recordWriter;
-
-    public GoogleStorageOutput(@Option("configuration") OutputConfiguration config, CredentialService credentialService,
-            RecordIORepository ioRepository, I18nMessage i18n) {
-        this.config = config;
-        this.credentialService = credentialService;
-        this.ioRepository = ioRepository;
-        this.i18n = i18n;
-    }
 
     @AfterGroup
     public void write(final Collection<Record> records) {

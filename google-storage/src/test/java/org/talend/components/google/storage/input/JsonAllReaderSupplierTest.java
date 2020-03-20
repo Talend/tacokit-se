@@ -19,8 +19,6 @@ import org.talend.components.google.storage.dataset.JsonAllConfiguration;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class JsonAllReaderSupplierTest {
 
     @Test
