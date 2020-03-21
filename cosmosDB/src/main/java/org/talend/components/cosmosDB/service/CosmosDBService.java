@@ -20,7 +20,7 @@ import com.microsoft.azure.documentdb.RetryOptions;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.talend.components.cosmosDB.dataset.CosmosDBDataset;
+import org.talend.components.cosmosDB.dataset.QueryDataset;
 import org.talend.components.cosmosDB.datastore.CosmosDBDataStore;
 import org.talend.components.cosmosDB.input.CosmosDBInput;
 import org.talend.components.cosmosDB.input.CosmosDBInputConfiguration;
@@ -92,7 +92,7 @@ public class CosmosDBService {
     }
 
     @DiscoverSchema("discover")
-    public Schema addColumns(@Option("dataset") final CosmosDBDataset dataset) {
+    public Schema addColumns(@Option("dataset") final QueryDataset dataset) {
         CosmosDBInputConfiguration configuration = new CosmosDBInputConfiguration();
         configuration.setDataset(dataset);
         CosmosDBInput cosmosDBInput = new CosmosDBInput(configuration, this, builderFactory, i18n);
@@ -106,7 +106,7 @@ public class CosmosDBService {
     }
 
     @Suggestions(ACTION_SUGGESTION_TABLE_COLUMNS_NAMES)
-    public SuggestionValues getTableColumns(@Option final List<String> schema) {
+    public SuggestionValues getTableColumns(@Option("schema") final List<String> schema) {
         if (schema.size() > 0) {
             return new SuggestionValues(true, schema.stream().map(columnName -> new SuggestionValues.Item(columnName, columnName))
                     .collect(Collectors.toList()));

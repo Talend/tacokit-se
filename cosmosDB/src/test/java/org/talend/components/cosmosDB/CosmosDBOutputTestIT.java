@@ -34,6 +34,7 @@ public class CosmosDBOutputTestIT extends CosmosDbTestBase {
 
     @Test
     public void outputTest() {
+        config.setAutoIDGeneration(true);
 
         CosmosDBOutput cosmosDBOutput = new CosmosDBOutput(config, service, i18n);
         cosmosDBOutput.init();

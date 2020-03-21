@@ -12,6 +12,7 @@
  */
 package org.talend.components.cosmosDB.output;
 
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.microsoft.azure.documentdb.DataType;
 import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.documentdb.DocumentClient;
@@ -46,27 +47,19 @@ public class CosmosDBOutput implements Serializable {
 
     private I18nMessage i18n;
 
-    private String idFieldName;
-
     private final CosmosDBOutputConfiguration configuration;
 
     private final CosmosDBService service;
 
     private DocumentClient client;
 
-    final String databaseName;
-
-    final String collectionName;
-
-    private IOut out;
+    private OutputParserFactory.IOutputParser out;
 
     public CosmosDBOutput(@Option("configuration") final CosmosDBOutputConfiguration configuration, final CosmosDBService service,
             final I18nMessage i18n) {
         this.configuration = configuration;
         this.service = service;
         this.i18n = i18n;
-        databaseName = configuration.getDataset().getDatastore().getDatabaseID();
-        collectionName = configuration.getDataset().getCollectionID();
     }
 
     @PostConstruct
@@ -76,21 +69,11 @@ public class CosmosDBOutput implements Serializable {
         if (configuration.isCreateCollection()) {
             createDocumentCollectionIfNotExists();
         }
-        switch (configuration.getDataAction()) {
-        case INSERT:
-            out = new Create();
-            break;
-        case DELETE:
-            out = new Delete();
-            break;
-        case UPDATE:
-        case UPSERT:
-        }
+        out = new OutputParserFactory(configuration, client).getOutputParser();
     }
 
     @ElementListener
     public void onNext(@Input final Record record) {
-
         out.output(record);
     }
 
@@ -144,51 +127,4 @@ public class CosmosDBOutput implements Serializable {
             }
         }
     }
-
-    interface IOut {
-
-        void output(Record record);
-    }
-
-    class Create implements IOut {
-
-        String collectionLink = String.format("/dbs/%s/colls/%s", databaseName, collectionName);
-
-        @Override
-        public void output(Record record) {
-            try {
-                client.createDocument(collectionLink, new Document(record.toString()), new RequestOptions(), false);
-            } catch (DocumentClientException e) {
-                throw new IllegalArgumentException(e);
-            }
-        }
-    }
-
-    class Delete implements IOut {
-
-        @Override
-        public void output(Record record) {
-            final String documentLink = String.format("/dbs/%s/colls/%s/docs/%s", databaseName, collectionName,
-                    record.getString(configuration.getIdFieldName()));
-            try {
-                client.deleteDocument(documentLink, null);
-            } catch (DocumentClientException e) {
-                throw new IllegalArgumentException(e);
-            }
-        }
-    }
-
-    class Update implements IOut {
-
-        @Override
-        public void output(Record record) {
-            final String collectionLink = String.format("/dbs/%s/colls/%s", databaseName, collectionName);
-            try {
-                client.upsertDocument(collectionLink, new Document(record.toString()), new RequestOptions(), false);
-            } catch (DocumentClientException e) {
-                throw new IllegalArgumentException(e);
-            }
-        }
-    }
-
 }

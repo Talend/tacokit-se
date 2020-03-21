@@ -12,17 +12,15 @@
  */
 package org.talend.components.cosmosDB.input;
 
-import org.talend.components.cosmosDB.dataset.CosmosDBDataset;
+import lombok.Data;
+import org.talend.components.cosmosDB.dataset.QueryDataset;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
-
-import lombok.Data;
 
 @Version(1)
 @Data
@@ -33,6 +31,6 @@ public class CosmosDBInputConfiguration implements Serializable {
 
     @Option
     @Documentation("dataset")
-    private CosmosDBDataset dataset;
+    private QueryDataset dataset;
 
 }

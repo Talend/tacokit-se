@@ -19,6 +19,7 @@ import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.condition.ActiveIfs;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -26,6 +27,8 @@ import org.talend.sdk.component.api.meta.Documentation;
 import lombok.Data;
 
 import static org.talend.components.cosmosDB.service.CosmosDBService.ACTION_SUGGESTION_TABLE_COLUMNS_NAMES;
+import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.AND;
+import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.OR;
 
 @Version(1)
 @Data
@@ -58,10 +61,12 @@ public class CosmosDBOutputConfiguration implements Serializable {
 
     @Option
     @Documentation("Auto generation ID")
+    @ActiveIf(target = "dataAction", value = { "INSERT", "UPSERT" })
     private boolean autoIDGeneration;
 
     @Option
-    @ActiveIf(target = "autoIDGeneration", value = "false")
+    @ActiveIfs(operator = AND, value = { @ActiveIf(target = "dataAction", value = "INSERT", negate = true),
+            @ActiveIf(target = "autoIDGeneration", value = "false") })
     @Suggestable(value = ACTION_SUGGESTION_TABLE_COLUMNS_NAMES, parameters = { "dataset/schema" })
     @Documentation("ID field")
     private String idFieldName;

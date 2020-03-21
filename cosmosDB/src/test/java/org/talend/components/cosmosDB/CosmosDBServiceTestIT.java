@@ -16,6 +16,7 @@ import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 
 public class CosmosDBServiceTestIT extends CosmosDbTestBase {
@@ -33,17 +34,19 @@ public class CosmosDBServiceTestIT extends CosmosDbTestBase {
 
     @Test
     public void addColumnsTest() {
-
-        Assert.assertNotNull(service.addColumns(dataSet));
-
+        Schema schema = service.addColumns(dataSet);
+        Assert.assertNotNull(schema);
+        Assert.assertEquals(Schema.Type.RECORD, schema.getType());
     }
 
     @Test
     public void record2JSONObjectTest() {
         Record record = createData(1).get(0);
         JSONObject actual = service.record2JSONObject(record);
+        System.out.println(actual);
         Assert.assertEquals(1, actual.getInt("id"));
         Assert.assertEquals(record.getDateTime("Date1").toString(), actual.get("Date1"));
+
     }
 
 }

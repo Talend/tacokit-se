@@ -23,6 +23,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 
 import org.talend.components.cosmosDB.dataset.CosmosDBDataset;
+import org.talend.components.cosmosDB.dataset.QueryDataset;
 import org.talend.components.cosmosDB.datastore.CosmosDBDataStore;
 import org.talend.components.cosmosDB.service.CosmosDBService;
 import org.talend.components.cosmosDB.service.I18nMessage;
@@ -54,7 +55,7 @@ public class CosmosDbTestBase {
 
     public static String accountName;
 
-    public static String masterkey;
+    public static String primaryKey;
 
     public static String serviceEndpoint;
 
@@ -88,7 +89,7 @@ public class CosmosDbTestBase {
             System.err.println("Did not find azure properties, you can still pass them with -D");
         }
         accountName = System.getProperty("cosmos.accountName", "pyzhou");
-        masterkey = System.getProperty("cosmos.primaryKey", "");
+        primaryKey = System.getProperty("cosmos.primaryKey", "");
         serviceEndpoint = System.getProperty("cosmos.serviceEndpoint", "accountKey");
         database = System.getProperty("cosmos.databaseID", "pyzhou");
         collectionID = System.getProperty("cosmos.collectionID", "secret");
@@ -104,15 +105,21 @@ public class CosmosDbTestBase {
 
     protected CosmosDBDataStore dataStore;
 
-    protected CosmosDBDataset dataSet;
+    protected QueryDataset dataSet;
 
     @Before
     public void prepare() {
+        Properties properties = System.getProperties();
+        properties.stringPropertyNames();
+        for (String property : properties.stringPropertyNames()) {
+            System.out.println(property + " : " + System.getProperty(property));
+        }
+
         dataStore = new CosmosDBDataStore();
         dataStore.setServiceEndpoint(serviceEndpoint);
-        dataStore.setPrimaryKey(masterkey);
+        dataStore.setPrimaryKey(primaryKey);
         dataStore.setDatabaseID(database);
-        dataSet = new CosmosDBDataset();
+        dataSet = new QueryDataset();
         dataSet.setDatastore(dataStore);
         dataSet.setCollectionID(collectionID);
 
@@ -122,8 +129,8 @@ public class CosmosDbTestBase {
         List records = new ArrayList(i);
         for (; i > 0; i--) {
             Record record = recordBuilderFactory.newRecordBuilder() //
-                    .withInt("id", i) //
-                    .withString("firstname", "firstfirst") //
+                    .withInt("id2", i) //
+                    .withString("id", "" + i).withString("firstname", "firstfirst") //
                     .withDouble("double", 3.555) //
                     .withLong("long", 7928342L) //
                     .withInt("int", 3242342) //

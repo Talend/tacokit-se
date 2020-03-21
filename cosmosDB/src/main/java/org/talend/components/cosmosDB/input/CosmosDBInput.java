@@ -24,19 +24,12 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
 import java.io.Serializable;
-import java.io.StringReader;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 
 @Slf4j
 @Documentation("This component reads data from cosmosDB.")
@@ -50,15 +43,11 @@ public class CosmosDBInput implements Serializable {
 
     private CosmosDBService service;
 
-    private transient Schema schema;
-
-    private Set<String> columnsSet;
-
     private DocumentClient client;
 
-    Iterator<Document> iterator;
-
     final JsonToRecord jsonToRecord;
+
+    InputParserFactory.IInputParser inputParser;
 
     public CosmosDBInput(@Option("configuration") final CosmosDBInputConfiguration configuration, final CosmosDBService service,
             final RecordBuilderFactory builderFactory, final I18nMessage i18n) {
@@ -72,21 +61,16 @@ public class CosmosDBInput implements Serializable {
     @PostConstruct
     public void init() {
         client = service.documentClientFrom(configuration.getDataset().getDatastore());
-        columnsSet = new HashSet<>();
-        executeSimpleQuery(configuration.getDataset().getDatastore().getDatabaseID(),
+        Iterator<Document> iterator = executeSimpleQuery(configuration.getDataset().getDatastore().getDatabaseID(),
                 configuration.getDataset().getCollectionID());
+        InputParserFactory inputParserFactory = new InputParserFactory(configuration.getDataset().getDocumentType(),
+                builderFactory, iterator);
+        this.inputParser = inputParserFactory.getInputParser();
     }
 
     @Producer
     public Record next() {
-        if (iterator.hasNext()) {
-            Document next = iterator.next();
-            JsonReader reader = Json.createReader(new StringReader(next.toJson()));
-            JsonObject jsonObject = reader.readObject();
-            jsonToRecord.toRecord(jsonObject);
-            return jsonToRecord.toRecord(jsonObject);
-        }
-        return null;
+        return inputParser.get();
     }
 
     @PreDestroy
@@ -96,7 +80,7 @@ public class CosmosDBInput implements Serializable {
         }
     }
 
-    private void executeSimpleQuery(String databaseName, String collectionName) {
+    private Iterator<Document> executeSimpleQuery(String databaseName, String collectionName) {
         // Set some common query options
         FeedOptions queryOptions = new FeedOptions();
         queryOptions.setPageSize(-1);
@@ -107,6 +91,6 @@ public class CosmosDBInput implements Serializable {
         FeedResponse<Document> queryResults = this.client.queryDocuments(collectionLink, query, queryOptions);
         log.info("Query [{}] execution success.", configuration.getDataset().getQuery());
 
-        iterator = queryResults.getQueryIterator();
+        return queryResults.getQueryIterator();
     }
 }

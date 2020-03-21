@@ -12,7 +12,19 @@
  */
 package org.talend.components.cosmosDB.dataset;
 
-public enum DocumentType {
-    JSON,
-    TEXT
+import org.talend.components.cosmosDB.datastore.CosmosDBDataStore;
+
+import java.io.Serializable;
+import java.util.List;
+
+public interface BaseDataSet extends Serializable {
+
+    CosmosDBDataStore getDatastore();
+
+    String getCollectionID();
+
+    DocumentType getDocumentType();
+
+    List<String> getSchema();
+
 }
