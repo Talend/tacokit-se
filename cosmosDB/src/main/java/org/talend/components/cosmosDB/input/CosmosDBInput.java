@@ -28,7 +28,11 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 import java.io.Serializable;
+import java.io.StringReader;
 import java.util.Iterator;
 
 @Slf4j
@@ -47,7 +51,7 @@ public class CosmosDBInput implements Serializable {
 
     final JsonToRecord jsonToRecord;
 
-    InputParserFactory.IInputParser inputParser;
+    Iterator<Document> iterator;
 
     public CosmosDBInput(@Option("configuration") final CosmosDBInputConfiguration configuration, final CosmosDBService service,
             final RecordBuilderFactory builderFactory, final I18nMessage i18n) {
@@ -61,16 +65,20 @@ public class CosmosDBInput implements Serializable {
     @PostConstruct
     public void init() {
         client = service.documentClientFrom(configuration.getDataset().getDatastore());
-        Iterator<Document> iterator = executeSimpleQuery(configuration.getDataset().getDatastore().getDatabaseID(),
+        iterator = getResults(configuration.getDataset().getDatastore().getDatabaseID(),
                 configuration.getDataset().getCollectionID());
-        InputParserFactory inputParserFactory = new InputParserFactory(configuration.getDataset().getDocumentType(),
-                builderFactory, iterator);
-        this.inputParser = inputParserFactory.getInputParser();
     }
 
     @Producer
     public Record next() {
-        return inputParser.get();
+        if (iterator.hasNext()) {
+            Document next = iterator.next();
+            JsonReader reader = Json.createReader(new StringReader(next.toJson()));
+            JsonObject jsonObject = reader.readObject();
+            Record record = jsonToRecord.toRecord(jsonObject);
+            return record;
+        }
+        return null;
     }
 
     @PreDestroy
@@ -80,17 +88,20 @@ public class CosmosDBInput implements Serializable {
         }
     }
 
-    private Iterator<Document> executeSimpleQuery(String databaseName, String collectionName) {
-        // Set some common query options
-        FeedOptions queryOptions = new FeedOptions();
-        queryOptions.setPageSize(-1);
-        queryOptions.setEnableCrossPartitionQuery(true);
-
+    private Iterator<Document> getResults(String databaseName, String collectionName) {
         String collectionLink = String.format("/dbs/%s/colls/%s", databaseName, collectionName);
-        final String query = configuration.getDataset().isUseQuery() ? configuration.getDataset().getQuery() : "SELECT * FROM c";
-        FeedResponse<Document> queryResults = this.client.queryDocuments(collectionLink, query, queryOptions);
-        log.info("Query [{}] execution success.", configuration.getDataset().getQuery());
-
+        FeedResponse<Document> queryResults;
+        if (configuration.getDataset().isUseQuery()) {
+            // Set some common query options
+            FeedOptions queryOptions = new FeedOptions();
+            queryOptions.setPageSize(-1);
+            queryOptions.setEnableCrossPartitionQuery(true);
+            log.debug("query: " + configuration.getDataset().getQuery());
+            queryResults = this.client.queryDocuments(collectionLink, configuration.getDataset().getQuery(), queryOptions);
+            log.info("Query [{}] execution success.", configuration.getDataset().getQuery());
+        } else {
+            queryResults = client.readDocuments(collectionLink, null);
+        }
         return queryResults.getQueryIterator();
     }
 }

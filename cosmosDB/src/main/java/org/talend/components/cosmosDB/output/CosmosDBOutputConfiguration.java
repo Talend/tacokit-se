@@ -12,23 +12,16 @@
  */
 package org.talend.components.cosmosDB.output;
 
-import java.io.Serializable;
-
+import lombok.Data;
 import org.talend.components.cosmosDB.dataset.CosmosDBDataset;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
-import org.talend.sdk.component.api.configuration.condition.ActiveIfs;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import lombok.Data;
-
-import static org.talend.components.cosmosDB.service.CosmosDBService.ACTION_SUGGESTION_TABLE_COLUMNS_NAMES;
-import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.AND;
-import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.OR;
+import java.io.Serializable;
 
 @Version(1)
 @Data
@@ -36,7 +29,6 @@ import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Ope
         @GridLayout.Row({ "createCollection" }), //
         @GridLayout.Row({ "dataAction" }), //
         @GridLayout.Row({ "autoIDGeneration" }), //
-        @GridLayout.Row({ "idFieldName" }), //
         }), @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataset" }),
                 @GridLayout.Row({ "offerThroughput" }) }) })
 @Documentation("cosmosDB output configuration")
@@ -63,12 +55,5 @@ public class CosmosDBOutputConfiguration implements Serializable {
     @Documentation("Auto generation ID")
     @ActiveIf(target = "dataAction", value = { "INSERT", "UPSERT" })
     private boolean autoIDGeneration;
-
-    @Option
-    @ActiveIfs(operator = AND, value = { @ActiveIf(target = "dataAction", value = "INSERT", negate = true),
-            @ActiveIf(target = "autoIDGeneration", value = "false") })
-    @Suggestable(value = ACTION_SUGGESTION_TABLE_COLUMNS_NAMES, parameters = { "dataset/schema" })
-    @Documentation("ID field")
-    private String idFieldName;
 
 }

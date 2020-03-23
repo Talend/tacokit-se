@@ -16,21 +16,15 @@ import lombok.Data;
 import org.talend.components.cosmosDB.datastore.CosmosDBDataStore;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
-import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.meta.Documentation;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Version(1)
 @Data
 @DataSet("CosmosDBDataset")
-@GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "collectionID" }), @GridLayout.Row({ "documentType" }),
-        @GridLayout.Row({ "schema" }) })
+@GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "collectionID" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "datastore" }) })
 @Documentation("cosmosDB DataSet")
 public class CosmosDBDataset implements BaseDataSet {
@@ -39,19 +33,14 @@ public class CosmosDBDataset implements BaseDataSet {
     @Documentation("Connection")
     private CosmosDBDataStore datastore;
 
-    @Option
-    @Documentation("Schema")
-    @Structure(type = Structure.Type.OUT, discoverSchema = "discover")
-    private List<String> schema = new ArrayList<>();
+    // @Option
+    // @Documentation("Schema")
+    // @Structure(type = Structure.Type.OUT, discoverSchema = "discover")
+    // private List<String> schema = new ArrayList<>();
 
     @Option
     @Required
     @Documentation("Collection ID")
     private String collectionID;
-
-    @Option
-    @Required
-    @Documentation("Document type")
-    private DocumentType documentType = DocumentType.JSON;
 
 }

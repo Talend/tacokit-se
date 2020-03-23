@@ -17,33 +17,9 @@ import org.talend.sdk.component.api.internationalization.Internationalized;
 @Internationalized
 public interface I18nMessage {
 
-    String bootstrapNodes(int num, String address);
+    String noResultFetched();
 
-    String connectionOK();
-
-    String connectionKO();
-
-    String bucketWasClosed(String bucketName);
-
-    String cannotCloseBucket(String bucketName);
-
-    String clusterWasClosed();
-
-    String cannotCloseCluster();
-
-    String cosmosDBEnvWasClosed();
-
-    String cannotCloseCosmosDBEnv();
-
-    String cannotGuessWhenDataIsNull();
-
-    String queryResultError();
-
-    String cannotOpenBucket();
-
-    String connectedToCluster(String clusterName);
-
-    String invalidPassword();
+    String databaseNotExist(String database);
 
     String destinationUnreachable();
 

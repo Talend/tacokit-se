@@ -12,9 +12,7 @@
  */
 package org.talend.components.cosmosDB.output;
 
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.microsoft.azure.documentdb.DataType;
-import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.documentdb.DocumentClientException;
 import com.microsoft.azure.documentdb.DocumentCollection;

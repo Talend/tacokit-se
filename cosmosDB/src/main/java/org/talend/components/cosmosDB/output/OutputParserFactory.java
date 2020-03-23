@@ -88,7 +88,7 @@ public class OutputParserFactory {
 
         @Override
         public void output(Record record) {
-            String id = record.getString(configuration.getIdFieldName());
+            String id = record.getString("id");
             final String documentLink = String.format("/dbs/%s/colls/%s/docs/%s", databaseName, collectionName, id);
             try {
                 client.deleteDocument(documentLink, null);
@@ -102,7 +102,7 @@ public class OutputParserFactory {
 
         @Override
         public void output(Record record) {
-            String id = record.getString(configuration.getIdFieldName());
+            String id = record.getString("id");
             final String documentLink = String.format("/dbs/%s/colls/%s/docs/%s", databaseName, collectionName, id);
             String jsonString = getJsonString(record);
             try {
@@ -117,13 +117,14 @@ public class OutputParserFactory {
 
         boolean disAbleautoID = !configuration.isAutoIDGeneration();
 
+        String collectionLink = String.format("/dbs/%s/colls/%s", databaseName, collectionName);
+
         @Override
         public void output(Record record) {
-            String id = record.getString(configuration.getIdFieldName());
-            final String documentLink = String.format("/dbs/%s/colls/%s/docs/%s", databaseName, collectionName, id);
+            // final String documentLink = String.format("/dbs/%s/colls/%s/docs/%s", databaseName, collectionName, id);
             String jsonString = getJsonString(record);
             try {
-                client.upsertDocument(documentLink, new Document(jsonString), new RequestOptions(), disAbleautoID);
+                client.upsertDocument(collectionLink, new Document(jsonString), new RequestOptions(), disAbleautoID);
             } catch (DocumentClientException e) {
                 throw new IllegalArgumentException(e);
             }

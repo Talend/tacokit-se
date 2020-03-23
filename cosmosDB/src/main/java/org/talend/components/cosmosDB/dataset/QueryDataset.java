@@ -23,8 +23,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 @Version(1)
 @Data
 @DataSet("QueryDataset")
-@GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "collectionID" }), @GridLayout.Row({ "documentType" }),
-        @GridLayout.Row({ "schema" }), @GridLayout.Row({ "useQuery" }), //
+@GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "collectionID" }), @GridLayout.Row({ "useQuery" }), //
         @GridLayout.Row({ "query" }) //
 })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "datastore" }) })

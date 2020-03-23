@@ -16,10 +16,9 @@ import com.microsoft.azure.documentdb.ConnectionMode;
 import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.documentdb.ConsistencyLevel;
 import com.microsoft.azure.documentdb.DocumentClient;
+import com.microsoft.azure.documentdb.DocumentClientException;
 import com.microsoft.azure.documentdb.RetryOptions;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.talend.components.cosmosDB.dataset.QueryDataset;
 import org.talend.components.cosmosDB.datastore.CosmosDBDataStore;
 import org.talend.components.cosmosDB.input.CosmosDBInput;
@@ -36,7 +35,6 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.api.service.schema.DiscoverSchema;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
@@ -79,6 +77,13 @@ public class CosmosDBService {
             String databaseLink = String.format("/dbs/%s", datastore.getDatabaseID());
             client.readDatabase(databaseLink, null);
             return new HealthCheckStatus(HealthCheckStatus.Status.OK, "Connection OK");
+        } catch (DocumentClientException de) {
+            // If the database does not exist, create a new database
+            if (de.getStatusCode() == 404) {
+                return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.databaseNotExist(datastore.getDatabaseID()));
+            } else {
+                return new HealthCheckStatus(HealthCheckStatus.Status.KO, de.getLocalizedMessage());
+            }
         } catch (Exception exception) {
             String message = "";
             if (exception.getCause() instanceof RuntimeException && exception.getCause().getCause() instanceof TimeoutException) {
@@ -100,7 +105,7 @@ public class CosmosDBService {
         Record record = cosmosDBInput.next();
         cosmosDBInput.release();
         if (record == null) {
-            throw new IllegalArgumentException("No result fetched from source collection");
+            throw new IllegalArgumentException(i18n.noResultFetched());
         }
         return record.getSchema();
     }
@@ -113,87 +118,4 @@ public class CosmosDBService {
         }
         return new SuggestionValues(false, emptyList());
     }
-
-    public JSONObject record2JSONObject(Record record) {
-        if (record == null) {
-            return null;
-        }
-        JSONObject json = new JSONObject();
-
-        for (Schema.Entry entry : record.getSchema().getEntries()) {
-            final String fieldName = entry.getName();
-            Object val = record.get(Object.class, fieldName);
-            log.debug("[convertRecordToJsonObject] entry: {}; type: {}; value: {}.", fieldName, entry.getType(), val);
-            if (null == val) {
-                json.put(fieldName, JSONObject.NULL);
-            } else {
-                this.addField(json, record, entry);
-            }
-        }
-        return json;
-    }
-
-    private JSONArray toJsonArray(Collection<Object> objects) {
-        JSONArray array = new JSONArray();
-        for (Object obj : objects) {
-            if (obj instanceof Collection) {
-                JSONArray subArray = toJsonArray((Collection) obj);
-                array.put(subArray);
-            } else if (obj instanceof String) {
-                array.put((String) obj);
-            } else if (obj instanceof Record) {
-                JSONObject subObject = record2JSONObject((Record) obj);
-                array.put(subObject);
-            } else if (obj instanceof Integer) {
-                array.put((Integer) obj);
-            } else if (obj instanceof Long) {
-                array.put((Long) obj);
-            } else if (obj instanceof Double) {
-                array.put((Double) obj);
-            } else if (obj instanceof Boolean) {
-                array.put((Boolean) obj);
-            }
-        }
-        return array;
-    }
-
-    private void addField(JSONObject json, Record record, Schema.Entry entry) {
-        final String fieldName = entry.getName();
-        switch (entry.getType()) {
-        case RECORD:
-            final Record subRecord = record.getRecord(fieldName);
-            json.put(fieldName, record2JSONObject(subRecord));
-            break;
-        case ARRAY:
-            final Collection<Object> array = record.getArray(Object.class, fieldName);
-            final JSONArray jarray = toJsonArray(array);
-            json.put(fieldName, jarray);
-            break;
-        case STRING:
-            json.put(fieldName, record.getString(fieldName));
-            break;
-        case BYTES:
-            json.put(fieldName, new String(record.getBytes(fieldName)));
-            break;
-        case INT:
-            json.put(fieldName, record.getInt(fieldName));
-            break;
-        case LONG:
-            json.put(fieldName, record.getLong(fieldName));
-            break;
-        case FLOAT:
-            json.put(fieldName, record.getFloat(fieldName));
-            break;
-        case DOUBLE:
-            json.put(fieldName, record.getDouble(fieldName));
-            break;
-        case BOOLEAN:
-            json.put(fieldName, record.getBoolean(fieldName));
-            break;
-        case DATETIME:
-            json.put(fieldName, record.getDateTime(fieldName).toString());
-            break;
-        }
-    }
-
 }

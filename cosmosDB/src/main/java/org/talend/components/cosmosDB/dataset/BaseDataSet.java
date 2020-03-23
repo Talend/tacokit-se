@@ -23,8 +23,4 @@ public interface BaseDataSet extends Serializable {
 
     String getCollectionID();
 
-    DocumentType getDocumentType();
-
-    List<String> getSchema();
-
 }

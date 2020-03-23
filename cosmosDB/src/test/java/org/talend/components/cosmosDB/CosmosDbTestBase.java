@@ -12,17 +12,9 @@
  */
 package org.talend.components.cosmosDB;
 
-import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Properties;
-
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
-
-import org.talend.components.cosmosDB.dataset.CosmosDBDataset;
 import org.talend.components.cosmosDB.dataset.QueryDataset;
 import org.talend.components.cosmosDB.datastore.CosmosDBDataStore;
 import org.talend.components.cosmosDB.service.CosmosDBService;
@@ -34,6 +26,12 @@ import org.talend.sdk.component.junit.ServiceInjectionRule;
 import org.talend.sdk.component.junit.SimpleComponentRule;
 import org.talend.sdk.component.junit.environment.Environment;
 import org.talend.sdk.component.junit.environment.builtin.beam.DirectRunnerEnvironment;
+
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Properties;
 
 @Environment(DirectRunnerEnvironment.class)
 public class CosmosDbTestBase {
@@ -63,18 +61,6 @@ public class CosmosDbTestBase {
 
     public static String collectionID;
 
-    public static String tenantId;
-
-    public static String sas;
-
-    public static String password;
-
-    public static String BLOBAccountName;
-
-    public static String BLOBAccountKey;
-
-    public static String SQLDWHUrl;
-
     static {
         Properties prop = new Properties();
         java.io.InputStream input = null;
@@ -93,12 +79,6 @@ public class CosmosDbTestBase {
         serviceEndpoint = System.getProperty("cosmos.serviceEndpoint", "accountKey");
         database = System.getProperty("cosmos.databaseID", "pyzhou");
         collectionID = System.getProperty("cosmos.collectionID", "secret");
-        tenantId = System.getProperty("adlsgen2.tenantId", "talendId");
-        sas = System.getProperty("adlsgen2.sas", "ZZZ_SAS");
-        password = System.getProperty("SQLDWH.password");
-        SQLDWHUrl = System.getProperty("SQLDWH.url");
-        BLOBAccountName = System.getProperty("BLOB.accountName");
-        BLOBAccountKey = System.getProperty("BLOB.accountKey");
 
         System.setProperty("talend.junit.http.capture", "true");
     }
