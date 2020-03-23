@@ -121,7 +121,6 @@ public class OutputParserFactory {
 
         @Override
         public void output(Record record) {
-            // final String documentLink = String.format("/dbs/%s/colls/%s/docs/%s", databaseName, collectionName, id);
             String jsonString = getJsonString(record);
             try {
                 client.upsertDocument(collectionLink, new Document(jsonString), new RequestOptions(), disAbleautoID);
