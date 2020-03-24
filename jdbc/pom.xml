@@ -15,7 +15,7 @@
 
     <properties>
         <xbean-finder-shaded.version>4.8</xbean-finder-shaded.version>
-        <HikariCP.version>3.4.2-talend20200324</HikariCP.version>
+        <HikariCP.version>3.4.2-talend20200325</HikariCP.version>
         <bouncycastle.version>1.64</bouncycastle.version>
         <commons-codec.version>1.11</commons-codec.version>
         <!-- test version -->
