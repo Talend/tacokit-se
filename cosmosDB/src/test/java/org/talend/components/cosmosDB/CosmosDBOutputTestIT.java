@@ -35,26 +35,11 @@ public class CosmosDBOutputTestIT extends CosmosDbTestBase {
     @Test
     public void outputTest() {
         config.setAutoIDGeneration(true);
-
         CosmosDBOutput cosmosDBOutput = new CosmosDBOutput(config, service, i18n);
         cosmosDBOutput.init();
         Record record = createData(1).get(0);
-        System.out.println(record);
         cosmosDBOutput.onNext(record);
         cosmosDBOutput.release();
-
-    }
-
-    @Test
-    public void Documenttest() {
-
-        Record record = createData(1).get(0);
-        System.out.println(record);
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("id2", "dsdsd");
-        System.out.println(jsonObject);
-        Document document = new Document(record.toString());
-        System.out.println(document);
-
+        //no Exception means success
     }
 }

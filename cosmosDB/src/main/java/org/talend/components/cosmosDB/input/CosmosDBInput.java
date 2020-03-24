@@ -45,9 +45,9 @@ public class CosmosDBInput implements Serializable {
 
     private final RecordBuilderFactory builderFactory;
 
-    private CosmosDBService service;
+    private transient CosmosDBService service;
 
-    private DocumentClient client;
+    private transient DocumentClient client;
 
     final JsonToRecord jsonToRecord;
 

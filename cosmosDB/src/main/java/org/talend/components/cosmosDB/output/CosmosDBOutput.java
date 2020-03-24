@@ -47,9 +47,9 @@ public class CosmosDBOutput implements Serializable {
 
     private final CosmosDBOutputConfiguration configuration;
 
-    private final CosmosDBService service;
+    private transient final CosmosDBService service;
 
-    private DocumentClient client;
+    private transient DocumentClient client;
 
     private OutputParserFactory.IOutputParser out;
 

@@ -38,7 +38,6 @@ public class CosmosInputTestIT extends CosmosDbTestBase {
         CosmosDBInput input = new CosmosDBInput(config, service, recordBuilderFactory, i18n);
         input.init();
         Record next = input.next();
-        System.out.println(next);
         input.release();
         Assert.assertEquals("Wakefield.7", next.getRecord("Family").getString("Name"));
 
@@ -52,7 +51,6 @@ public class CosmosInputTestIT extends CosmosDbTestBase {
         CosmosDBInput input = new CosmosDBInput(config, service, recordBuilderFactory, i18n);
         input.init();
         Record next = input.next();
-        System.out.println(next);
         input.release();
         Assert.assertNotNull(next);
 

@@ -53,7 +53,7 @@
         <module>extensions</module>
         <module>pubsub</module>
         <module>netsuite</module>
-		<module>cosmosDB</module>
+        <module>cosmosDB</module>
     </modules>
 
     <scm>
