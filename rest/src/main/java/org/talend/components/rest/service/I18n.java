@@ -57,4 +57,10 @@ public interface I18n {
 
     String withoutFollowRedirectsDegradedMode();
 
+    String invalideBodyContent(String format, String cause);
+
+    String formatText();
+
+    String formatJSON();
+
 }

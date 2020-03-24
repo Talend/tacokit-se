@@ -40,6 +40,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 /*
@@ -262,6 +263,28 @@ public class ClientTestWithMockProxyTest {
         assertEquals("Last fact.", record.getString("text"));
         assertEquals("fact", record.getString("type"));
         assertEquals(5.0d, record.getDouble("upvotes"));
+    }
+
+    @EnvironmentalTest
+    void jsonWithError(){
+        config.getDataset().getDatastore().setBase("https://fakefacts.com/");
+        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().setResource("jsonWithError");
+        config.getDataset().setCompletePayload(false);
+        config.getDataset().setFormat(Format.JSON);
+
+        final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
+        assertThrows(IllegalArgumentException.class, () -> {
+            Job.components() //
+                    .component("emitter", "REST://Input?" + configStr) //
+                    .component("out", "test://collector") //
+                    .connections() //
+                    .from("emitter") //
+                    .to("out") //
+                    .build() //
+                    .run();
+        });
+
     }
 
     @EnvironmentalTest

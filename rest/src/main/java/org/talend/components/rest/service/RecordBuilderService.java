@@ -46,6 +46,9 @@ import static java.util.stream.Collectors.toMap;
 public class RecordBuilderService {
 
     @Service
+    private I18n i18n;
+
+    @Service
     private RecordIORepository ioRepository;
 
     @Service
@@ -66,7 +69,17 @@ public class RecordBuilderService {
         final List<Record> headerRecords = headers.entrySet().stream().map(this::convertHeadersToRecords)
                 .collect(Collectors.toList());
 
-        return new IteratorMap<Record, Record>(reader.read(resp.body()),
+
+        final Iterator<Record> readIterator;
+
+        try {
+            readIterator = reader.read(resp.body());
+        }
+        catch (RuntimeException e){
+            throw new IllegalArgumentException(i18n.invalideBodyContent(format == Format.RAW_TEXT ? i18n.formatText() : i18n.formatJSON(), e.getMessage()));
+        }
+
+        return new IteratorMap<Record, Record>(readIterator,
                 r -> this.buildRecord(r, resp.status(), headerRecords, isCompletePayload, format), true);
     }
 
