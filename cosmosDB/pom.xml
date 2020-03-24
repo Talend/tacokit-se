@@ -58,7 +58,7 @@
     <dependency>
       <groupId>org.talend.components</groupId>
       <artifactId>stream-json</artifactId>
-      <version>1.7.0-SNAPSHOT</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.json</groupId>
