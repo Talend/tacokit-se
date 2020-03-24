@@ -35,6 +35,7 @@ import org.talend.sdk.component.junit5.environment.EnvironmentalTest;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -390,6 +391,40 @@ public class ClientTestWithMockProxyTest {
         record = records.get(6);
         assertEquals("black", record.getString("color"));
         assertEquals("#000", record.getString("value"));
+    }
+
+    // A nested array of records
+    @EnvironmentalTest
+    void testJSONNestedArray() {
+        config.getDataset().getDatastore().setBase("https://fakefacts.com/");
+        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().setResource("facts");
+        config.getDataset().setCompletePayload(false);
+        config.getDataset().setFormat(Format.JSON);
+
+        final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
+        Job.components() //
+                .component("emitter", "REST://Input?" + configStr) //
+                .component("out", "test://collector") //
+                .connections() //
+                .from("emitter") //
+                .to("out") //
+                .build() //
+                .run();
+
+        final List<Record> records = handler.getCollectedData(Record.class);
+        assertEquals(1, records.size());
+
+        Record record = records.get(0);
+        assertEquals("Durance", record.getString("name"));
+        assertEquals("4, allée d'Orléans 4400 NANTES", record.getString("adresse"));
+        final Collection<Record> books = record.getArray(Record.class, "books");
+        assertEquals(3, books.size());
+
+        final Record civilization = books.stream().findFirst().get();
+        assertEquals("12345", civilization.getString("isbn"));
+        assertEquals("Civilizations", civilization.getString("title"));
+        assertEquals("Laurent Binet", civilization.getString("author"));
     }
 
 }
