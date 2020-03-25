@@ -163,25 +163,28 @@ public class OutputConfig implements Serializable {
     }
 
     @Slf4j
-    public class Migration implements MigrationHandler {
+    public static class Migration implements MigrationHandler {
 
         @Override
         public Map<String, String> migrate(int incomingVersion, Map<String, String> incomingData) {
             log.debug("Starting JDBC sink component migration");
-            String old_property_path = "configuration.outputConfig.keys";
-            String new_property_path = "configuration.outputConfig.keys.keys";
-            String value = incomingData.get(old_property_path);
 
-            //as the new ui have been released, so need to do the special process for not breaking the right data
-            if(needMigration(value)) {
-                incomingData.put(new_property_path, value);
+            if (incomingVersion == 1) {
+                String old_property_path = "configuration.outputConfig.keys";
+                String new_property_path = "configuration.outputConfig.keys.keys";
+                String value = incomingData.get(old_property_path);
+
+                // as the new ui have been released, so need to do the special process for not breaking the right data
+                if (needMigration(value)) {
+                    incomingData.put(new_property_path, value);
+                }
             }
 
             return incomingData;
         }
 
         private boolean needMigration(String value) {
-            return value!=null && !value.isEmpty() && value.startsWith("[");
+            return value != null && !value.isEmpty() && value.startsWith("[");
         }
 
     }
