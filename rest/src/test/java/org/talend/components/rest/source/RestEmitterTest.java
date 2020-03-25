@@ -14,13 +14,16 @@ package org.talend.components.rest.source;
 
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
+import org.talend.components.rest.configuration.RequestBody;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.service.RequestConfigBuilderTest;
+import org.talend.components.rest.service.client.ContentType;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit.environment.Environment;
@@ -36,8 +39,10 @@ import org.talend.sdk.component.runtime.manager.chain.Job;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
@@ -177,7 +182,59 @@ class RestEmitterTest {
         } else {
             assertEquals(400, records.get(0).getInt("status"));
         }
+    }
 
+    @EnvironmentalTest
+    void testQueryContentType(){
+        List<ContentTypeParams> params = new ArrayList<>();
+        params.add(new ContentTypeParams(RequestBody.Type.JSON, "{\"key\" : \"value\"}", RequestBody.Type.JSON.getContentType()));
+
+        for(ContentTypeParams p : params){
+            _testQueryContentType(p.getType(), p.getContent(), p.getContentType());
+        }
+    }
+
+    private void _testQueryContentType(final RequestBody.Type type, final String body, final String contentType) {
+        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().setResource("get");
+        config.getDataset().setHasBody(true);
+
+        final RequestBody requestBody = new RequestBody();
+        requestBody.setType(RequestBody.Type.JSON);
+        requestBody.setJsonValue("{\"key\" : \"value\"}");
+        config.getDataset().setBody(requestBody);
+
+        final StringBuilder receivedContentType = new StringBuilder();
+
+        this.setServerContextAndStart(httpExchange -> {
+            receivedContentType.append(httpExchange.getRequestHeaders().getFirst(ContentType.HEADER_KEY));
+
+            httpExchange.sendResponseHeaders(200, 0);
+            OutputStream os = httpExchange.getResponseBody();
+            os.write(new byte[0]);
+            os.close();
+        });
+
+        final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
+        Job.components() //
+                .component("emitter", "REST://Input?" + configStr) //
+                .component("out", "test://collector") //
+                .connections() //
+                .from("emitter") //
+                .to("out") //
+                .build() //
+                .run();
+
+        final List<Record> records = handler.getCollectedData(Record.class);
+        assertEquals(1, records.size());
+        assertEquals(type.getContentType(), receivedContentType.toString());
+    }
+
+    @Data
+    private static class ContentTypeParams {
+        final RequestBody.Type type;
+        final String content;
+        final String contentType;
     }
 
 }
