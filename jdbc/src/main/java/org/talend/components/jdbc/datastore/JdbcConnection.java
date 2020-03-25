@@ -85,7 +85,7 @@ public class JdbcConnection implements Serializable {
     @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"),
             @ActiveIf(target = "authenticationType", value = "KEY_PAIR") })
     @Credential
-    // @Required // Cannot be required due to: https://jira.talendforge.org/browse/TDC-2711
+    // @Required // Cannot be required due to: https://jira.talendforge.org/browse/TCOMP-1682
     @Documentation("Private key")
     private String privateKey;
 
