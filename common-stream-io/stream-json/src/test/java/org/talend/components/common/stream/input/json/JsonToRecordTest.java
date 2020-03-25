@@ -93,6 +93,15 @@ class JsonToRecordTest {
         Assertions.assertNotNull(record.getRecord("_id").getString("oid"));
     }
 
+    @Test
+    void toRecordWithHyphen() {
+        JsonObject jsonWithDollarChar = getJsonObject(
+                "{\"_id\": {\"Content-Type\" : \"text/plain\"}}");
+        final Record record = toRecord.toRecord(jsonWithDollarChar);
+        Assertions.assertNotNull(record);
+        Assertions.assertNotNull("text/plain", record.getRecord("_id").getString("Content_Type"));
+    }
+
     private JsonObject getJsonObject(String content) {
         try (JsonReader reader = Json.createReader(new StringReader(content))) {
             return reader.readObject();
