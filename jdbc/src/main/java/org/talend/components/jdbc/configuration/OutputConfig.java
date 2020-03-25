@@ -43,7 +43,7 @@ import static org.talend.sdk.component.api.configuration.condition.ActiveIf.Eval
 import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.AND;
 import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.OR;
 
-@Version(value = 1, migrationHandler = OutputConfig.Migration.class)
+@Version(value = 2, migrationHandler = OutputConfig.Migration.class)
 @Data
 @GridLayout(value = { @GridLayout.Row("dataset"), @GridLayout.Row({ "actionOnData" }), @GridLayout.Row("createTableIfNotExists"),
         @GridLayout.Row("varcharLength"), @GridLayout.Row("keys"), @GridLayout.Row("sortStrategy"), @GridLayout.Row("sortKeys"),
@@ -177,6 +177,7 @@ public class OutputConfig implements Serializable {
                 // as the new ui have been released, so need to do the special process for not breaking the right data
                 if (needMigration(value)) {
                     incomingData.put(new_property_path, value);
+                    incomingData.remove(old_property_path);
                 }
             }
 
