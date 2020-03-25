@@ -185,11 +185,11 @@ class RestEmitterTest {
     }
 
     @EnvironmentalTest
-    void testQueryContentType(){
+    void testQueryContentType() {
         List<ContentTypeParams> params = new ArrayList<>();
         params.add(new ContentTypeParams(RequestBody.Type.JSON, "{\"key\" : \"value\"}", RequestBody.Type.JSON.getContentType()));
 
-        for(ContentTypeParams p : params){
+        for (ContentTypeParams p : params) {
             _testQueryContentType(p.getType(), p.getContent(), p.getContentType());
         }
     }
@@ -232,8 +232,11 @@ class RestEmitterTest {
 
     @Data
     private static class ContentTypeParams {
+
         final RequestBody.Type type;
+
         final String content;
+
         final String contentType;
     }
 

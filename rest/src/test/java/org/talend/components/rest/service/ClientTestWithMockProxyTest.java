@@ -13,6 +13,7 @@
 package org.talend.components.rest.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.beam.sdk.Pipeline;
 import org.junit.jupiter.api.BeforeEach;
 import org.talend.components.rest.configuration.Format;
 import org.talend.components.rest.configuration.HttpMethod;
@@ -41,6 +42,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 /*
@@ -51,16 +53,8 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 @Slf4j
 
 @Environment(ContextualEnvironment.class)
-@EnvironmentConfiguration(environment = "Contextual", systemProperties = {}) // EnvironmentConfiguration is necessary for each
+@EnvironmentConfiguration(environment = "Contextual", systemProperties = {})
 
-/*
- * @Environment(DirectRunnerEnvironment.class) // Direct runner not necessary since already SparkRunner
- *
- * @EnvironmentConfiguration(environment = "Direct", systemProperties = {
- *
- * @EnvironmentConfiguration.Property(key = "talend.beam.job.runner", value = "org.apache.beam.runners.direct.DirectRunner")
- * })
- */
 
 @Environment(SparkRunnerEnvironment.class)
 @EnvironmentConfiguration(environment = "Spark", systemProperties = {
@@ -266,7 +260,7 @@ public class ClientTestWithMockProxyTest {
     }
 
     @EnvironmentalTest
-    void jsonWithError(){
+    void jsonWithError() {
         config.getDataset().getDatastore().setBase("https://fakefacts.com/");
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("jsonWithError");
@@ -274,16 +268,20 @@ public class ClientTestWithMockProxyTest {
         config.getDataset().setFormat(Format.JSON);
 
         final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
-        assertThrows(IllegalArgumentException.class, () -> {
+        try {
             Job.components() //
                     .component("emitter", "REST://Input?" + configStr) //
                     .component("out", "test://collector") //
                     .connections() //
                     .from("emitter") //
-                    .to("out") //
+                    .to("out") // The body's answer can't be read as JSON.
                     .build() //
                     .run();
-        });
+            fail("JSON file has error and shouldn't be parsed.");
+        } catch (IllegalArgumentException | Pipeline.PipelineExecutionException e) {
+            assertEquals("The body's answer can't be read as JSON.",
+                    (e instanceof IllegalArgumentException) ? e.getMessage() : e.getCause().getCause().getMessage());
+        }
 
     }
 
