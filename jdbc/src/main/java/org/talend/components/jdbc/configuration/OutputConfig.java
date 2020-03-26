@@ -15,12 +15,8 @@ package org.talend.components.jdbc.configuration;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.StringUtils;
 import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.service.I18nMessage;
-import org.talend.sdk.component.api.component.MigrationHandler;
-import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.action.Validable;
@@ -33,17 +29,13 @@ import org.talend.sdk.component.api.meta.Documentation;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
-import static org.talend.components.jdbc.service.UIActionService.ACTION_SUGGESTION_ACTION_ON_DATA;
-import static org.talend.components.jdbc.service.UIActionService.ACTION_SUGGESTION_TABLE_COLUMNS_NAMES;
-import static org.talend.components.jdbc.service.UIActionService.ACTION_VALIDATE_SORT_KEYS;
+import static org.talend.components.jdbc.service.UIActionService.*;
 import static org.talend.sdk.component.api.configuration.condition.ActiveIf.EvaluationStrategy.CONTAINS;
 import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.AND;
 import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.OR;
 
-@Version(value = 2, migrationHandler = OutputConfig.Migration.class)
 @Data
 @GridLayout(value = { @GridLayout.Row("dataset"), @GridLayout.Row({ "actionOnData" }), @GridLayout.Row("createTableIfNotExists"),
         @GridLayout.Row("varcharLength"), @GridLayout.Row("keys"), @GridLayout.Row("sortStrategy"), @GridLayout.Row("sortKeys"),
@@ -162,31 +154,4 @@ public class OutputConfig implements Serializable {
         this.keys.setKeys(keys);
     }
 
-    @Slf4j
-    public static class Migration implements MigrationHandler {
-
-        @Override
-        public Map<String, String> migrate(int incomingVersion, Map<String, String> incomingData) {
-            log.debug("Starting JDBC sink component migration");
-
-            if (incomingVersion == 1) {
-                String old_property_path = "configuration.outputConfig.keys";
-                String new_property_path = "configuration.outputConfig.keys.keys";
-                String value = incomingData.get(old_property_path);
-
-                // as the new ui have been released, so need to do the special process for not breaking the right data
-                if (needMigration(value)) {
-                    incomingData.put(new_property_path, value);
-                    incomingData.remove(old_property_path);
-                }
-            }
-
-            return incomingData;
-        }
-
-        private boolean needMigration(String value) {
-            return value != null && !value.isEmpty() && value.startsWith("[");
-        }
-
-    }
 }
