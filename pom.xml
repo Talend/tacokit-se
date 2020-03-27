@@ -120,6 +120,7 @@
 
         <!-- CVE fix -->
         <netty-codec.version>4.1.48.Final</netty-codec.version>
+        <jetty.version>9.4.17.v20190418</jetty.version>
     </properties>
 
     <dependencyManagement>
@@ -250,6 +251,26 @@
                 <groupId>io.netty</groupId>
                 <artifactId>netty-codec-http2</artifactId>
                 <version>${netty-codec.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-server</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-util</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-servlet</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-webapp</artifactId>
+                <version>${jetty.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
