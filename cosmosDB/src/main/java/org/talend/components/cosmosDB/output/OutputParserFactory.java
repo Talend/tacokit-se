@@ -15,8 +15,10 @@ package org.talend.components.cosmosDB.output;
 import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.documentdb.DocumentClientException;
+import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.documentdb.RequestOptions;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.talend.sdk.component.api.record.Record;
 
 @Slf4j
@@ -86,15 +88,35 @@ public class OutputParserFactory {
 
     class Delete implements IOutputParser {
 
+        String partitionKey;
+
+        Delete() {
+            String partitionKeyForDelete = configuration.getPartitionKeyForDelete();
+            if (StringUtils.isNotEmpty(partitionKeyForDelete)) {
+                partitionKey = partitionKeyForDelete.startsWith("/") ? partitionKeyForDelete.substring(1) : partitionKeyForDelete;
+            }
+        }
+
         @Override
         public void output(Record record) {
             String id = record.getString("id");
             final String documentLink = String.format("/dbs/%s/colls/%s/docs/%s", databaseName, collectionName, id);
             try {
-                client.deleteDocument(documentLink, null);
+                client.deleteDocument(documentLink, getPartitionKey(record));
             } catch (DocumentClientException e) {
                 throw new IllegalArgumentException(e);
             }
+        }
+
+        public RequestOptions getPartitionKey(Record record) {
+            RequestOptions requestOptions = null;
+            if (StringUtils.isNotEmpty(partitionKey)) {
+                // TODO support complex partition key
+                requestOptions = new RequestOptions();
+                requestOptions.setPartitionKey(new PartitionKey(record.get(Object.class, partitionKey)));
+
+            }
+            return requestOptions;
         }
     }
 

@@ -32,12 +32,14 @@ public class CosmosInputTestIT extends CosmosDbTestBase {
     @Test
     public void QueryTest() {
         dataSet.setUseQuery(true);
-        dataSet.setQuery("SELECT {\"Name\":f.id, \"City\":f.address.city} AS Family\n" + "    FROM Families f\n"
-                + "    WHERE f.address.city = f.address.state");
+        // dataSet.setQuery("SELECT {\"Name\":f.id, \"City\":f.address.city} AS Family\n" + " FROM Families f\n"
+        // + " WHERE f.address.city = f.address.state");
+        dataSet.setQuery("SELECT * FROM c where c.firstname = \"firstfirst\"");
         config.setDataset(dataSet);
         CosmosDBInput input = new CosmosDBInput(config, service, recordBuilderFactory, i18n);
         input.init();
         Record next = input.next();
+        System.out.println(next);
         input.release();
         Assert.assertEquals("Wakefield.7", next.getRecord("Family").getString("Name"));
 

@@ -18,9 +18,11 @@ import com.microsoft.azure.documentdb.DocumentClientException;
 import com.microsoft.azure.documentdb.DocumentCollection;
 import com.microsoft.azure.documentdb.Index;
 import com.microsoft.azure.documentdb.IndexingPolicy;
+import com.microsoft.azure.documentdb.PartitionKeyDefinition;
 import com.microsoft.azure.documentdb.RangeIndex;
 import com.microsoft.azure.documentdb.RequestOptions;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.talend.components.cosmosDB.service.CosmosDBService;
 import org.talend.components.cosmosDB.service.I18nMessage;
 import org.talend.sdk.component.api.component.Icon;
@@ -35,6 +37,7 @@ import org.talend.sdk.component.api.record.Record;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.Serializable;
+import java.util.Arrays;
 
 @Version(1)
 @Slf4j
@@ -95,6 +98,9 @@ public class CosmosDBOutput implements Serializable {
             // If the document collection does not exist, create a new
             // collection
             if (de.getStatusCode() == 404) {
+                if (configuration.getDataAction() == DataAction.DELETE || configuration.getDataAction() == DataAction.UPDATE) {
+                    throw new IllegalArgumentException(de);
+                }
                 DocumentCollection collectionInfo = new DocumentCollection();
                 collectionInfo.setId(collectionName);
 
@@ -103,15 +109,22 @@ public class CosmosDBOutput implements Serializable {
                 // flexibility including string range queries.
                 RangeIndex index = new RangeIndex(DataType.String);
                 index.setPrecision(-1);
+                IndexingPolicy indexingPolicy = new IndexingPolicy();
 
                 collectionInfo.setIndexingPolicy(new IndexingPolicy(new Index[] { index }));
-
+                if (StringUtils.isNotEmpty(configuration.getPartitionKey())) {
+                    PartitionKeyDefinition pkd = new PartitionKeyDefinition();
+                    pkd.setPaths(Arrays.asList(configuration.getPartitionKey().split(",")));
+                    collectionInfo.setPartitionKey(pkd);
+                }
                 // DocumentDB collections can be reserved with throughput
                 // specified in request units/second. 1 RU is a normalized
                 // request equivalent to the read of a 1KB document. Here we
                 // create a collection with 400 RU/s.
                 RequestOptions requestOptions = new RequestOptions();
-                requestOptions.setOfferThroughput(configuration.getOfferThroughput());
+                if (configuration.getOfferThroughput() > 0) {
+                    requestOptions.setOfferThroughput(configuration.getOfferThroughput());
+                }
 
                 try {
                     this.client.createCollection(databaseLink, collectionInfo, requestOptions);

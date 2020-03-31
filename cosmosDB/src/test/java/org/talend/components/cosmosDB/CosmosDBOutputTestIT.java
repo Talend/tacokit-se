@@ -12,12 +12,11 @@
  */
 package org.talend.components.cosmosDB;
 
-import com.microsoft.azure.documentdb.Document;
-import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.talend.components.cosmosDB.output.CosmosDBOutput;
 import org.talend.components.cosmosDB.output.CosmosDBOutputConfiguration;
+import org.talend.components.cosmosDB.output.DataAction;
 import org.talend.sdk.component.api.record.Record;
 
 public class CosmosDBOutputTestIT extends CosmosDbTestBase {
@@ -40,6 +39,41 @@ public class CosmosDBOutputTestIT extends CosmosDbTestBase {
         Record record = createData(1).get(0);
         cosmosDBOutput.onNext(record);
         cosmosDBOutput.release();
-        //no Exception means success
+        // no Exception means success
+    }
+
+    @Test
+    public void createCollectionTest() {
+        config.setAutoIDGeneration(true);
+        dataStore.setDatabaseID("ComponentQA");
+        dataSet.setDatastore(dataStore);
+        dataSet.setCollectionID("pyzhouTest2");
+        config.setDataset(dataSet);
+        config.setPartitionKey("/id2");
+        config.setCreateCollection(true);
+        CosmosDBOutput cosmosDBOutput = new CosmosDBOutput(config, service, i18n);
+        cosmosDBOutput.init();
+        Record record = createData(1).get(0);
+        cosmosDBOutput.onNext(record);
+        cosmosDBOutput.release();
+        // no Exception means success
+    }
+
+    @Test
+    public void DeleteTest() {
+        config.setAutoIDGeneration(true);
+        dataStore.setDatabaseID("ComponentQA");
+        dataSet.setDatastore(dataStore);
+        dataSet.setCollectionID("Test1");
+        config.setDataAction(DataAction.DELETE);
+        config.setDataset(dataSet);
+        config.setPartitionKeyForDelete("address");
+        config.setCreateCollection(true);
+        CosmosDBOutput cosmosDBOutput = new CosmosDBOutput(config, service, i18n);
+        cosmosDBOutput.init();
+        Record record = createData3().get(0);
+        cosmosDBOutput.onNext(record);
+        cosmosDBOutput.release();
+        // no Exception means success
     }
 }

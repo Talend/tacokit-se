@@ -17,11 +17,14 @@ import org.talend.components.cosmosDB.dataset.CosmosDBDataset;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.condition.ActiveIfs;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
+
+import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.AND;
 
 @Version(1)
 @Data
@@ -29,8 +32,10 @@ import java.io.Serializable;
         @GridLayout.Row({ "createCollection" }), //
         @GridLayout.Row({ "dataAction" }), //
         @GridLayout.Row({ "autoIDGeneration" }), //
-        }), @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataset" }),
-                @GridLayout.Row({ "offerThroughput" }) }) })
+        }),
+        @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataset" }),
+                @GridLayout.Row({ "offerThroughput" }), @GridLayout.Row({ "partitionKey" }),
+                @GridLayout.Row({ "partitionKeyForDelete" }) }) })
 @Documentation("cosmosDB output configuration")
 public class CosmosDBOutputConfiguration implements Serializable {
 
@@ -43,13 +48,26 @@ public class CosmosDBOutputConfiguration implements Serializable {
     private DataAction dataAction = DataAction.INSERT;
 
     @Option
+    @ActiveIf(target = "dataAction", value = { "INSERT", "UPSERT" })
     @Documentation("Create collection if not exist")
     private boolean createCollection;
 
     @Option
-    @ActiveIf(target = "createCollection", value = "true")
+    @ActiveIfs(operator = AND, value = { @ActiveIf(target = "dataAction", value = { "INSERT", "UPSERT" }),
+            @ActiveIf(target = "createCollection", value = "true") })
     @Documentation("Collection Offer Throughput")
     private int offerThroughput = 400;
+
+    @Option
+    @Documentation("Partition Key ")
+    @ActiveIfs(operator = AND, value = { @ActiveIf(target = "dataAction", value = { "INSERT", "UPSERT" }),
+            @ActiveIf(target = "createCollection", value = "true") })
+    private String partitionKey;
+
+    @Option
+    @Documentation("Partition Key ")
+    @ActiveIf(target = "dataAction", value = "DELETE")
+    private String partitionKeyForDelete;
 
     @Option
     @Documentation("Auto generation ID")

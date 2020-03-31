@@ -136,10 +136,9 @@ public class CosmosDbTestBase {
     protected List<Record> createData3() {
         List records = new ArrayList();
         Record record = recordBuilderFactory.newRecordBuilder() //
-                .withInt("id", 1) //
-                .withString("firstname", "firstfirst") //
-                .withString("lastname", "lastlast") //
-                .withString("address", "addressaddr") //
+                .withInt("sdfds", 1) //
+                .withString("id", "795d0b45-fbde-4011-9d0b-45fbded0118b") //
+                .withString("address", "444") //
                 .withString("enrolled", "Datedsldsk") //
                 .withString("zip", "89100") //
                 .withString("state", "YO") //
@@ -149,7 +148,7 @@ public class CosmosDbTestBase {
                 .withInt("id", 2) //
                 .withString("firstname", "firstfirst") //
                 .withString("lastname", "lastlast") //
-                .withString("address", "addressaddr") //
+                .withString("address", "444") //
                 .withString("enrolled", "Dated,sldsk") //
                 .withString("zip", "89100") //
                 .withString("state", "YO") //
