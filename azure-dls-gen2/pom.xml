@@ -80,7 +80,15 @@
                     <groupId>org.eclipse.jetty</groupId>
                     <artifactId>jetty-webapp</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.nimbusds</groupId>
+                    <artifactId>nimbus-jose-jwt</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
