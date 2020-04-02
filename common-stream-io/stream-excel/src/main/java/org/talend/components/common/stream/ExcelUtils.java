@@ -20,10 +20,6 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration.ExcelFormat;
 
-import com.monitorjbl.xlsx.StreamingReader;
-import com.monitorjbl.xlsx.impl.StreamingSheet;
-import com.monitorjbl.xlsx.impl.StreamingWorkbook;
-
 public class ExcelUtils {
 
     public static Workbook createWorkBook(ExcelFormat format) {
@@ -33,7 +29,8 @@ public class ExcelUtils {
     public static Workbook readWorkBook(ExcelFormat format, InputStream input) throws IOException {
         // return StreamingReader.builder().rowCacheSize(4096).open(input);
 
-        return format == ExcelFormat.EXCEL97 ? new HSSFWorkbook(input) : StreamingReader.builder().rowCacheSize(4096).open(input);
+        return format == ExcelFormat.EXCEL97 ? new HSSFWorkbook(input) : new XSSFWorkbook(input);
+        // format == ExcelFormat.EXCEL97 ? new HSSFWorkbook(input) : StreamingReader.builder().rowCacheSize(4096).open(input);
 
     }
 }

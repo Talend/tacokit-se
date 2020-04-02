@@ -22,7 +22,6 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.talend.components.common.stream.ExcelUtils;
 import org.talend.components.common.stream.api.output.RecordWriter;
 import org.talend.components.common.stream.api.output.TargetFinder;
-import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration;
 import org.talend.sdk.component.api.record.Record;
 
