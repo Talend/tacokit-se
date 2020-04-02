@@ -18,6 +18,7 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.widget.TextArea;
 import org.talend.sdk.component.api.meta.Documentation;
 
 @Version(1)
@@ -36,6 +37,7 @@ public class QueryDataset extends CosmosDBDataset {
 
     @Option
     @Documentation("SimpleQuery")
+    @TextArea
     @ActiveIf(target = "useQuery", value = "true")
     private String query = "SELECT * FROM c";
 }
