@@ -90,6 +90,7 @@
         <slf4j.version>1.7.25</slf4j.version>
 
         <beam.version>2.12.0</beam.version>
+        <beanutils.version>1.9.4</beanutils.version>
         <jackson.version>2.10.1</jackson.version>
         <jackson-codehaus.version>1.9.14-TALEND</jackson-codehaus.version>
 
@@ -117,6 +118,10 @@
         <!-- The XTM customer id that manage the translation of this project-->
         <xtm.customer.id>12240076</xtm.customer.id>
         <xtm.api.url>https://www.xtm-cloud.com/rest-api</xtm.api.url>
+
+        <!-- CVE fix -->
+        <netty-codec.version>4.1.48.Final</netty-codec.version>
+        <jetty.version>9.4.17.v20190418</jetty.version>
     </properties>
 
     <dependencyManagement>
@@ -156,6 +161,11 @@
                 <artifactId>beam-sdks-java-core</artifactId>
                 <version>${beam.version}</version>
                 <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils</artifactId>
+                <version>${beanutils.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
@@ -242,6 +252,31 @@
                 <groupId>org.codehaus.jackson</groupId>
                 <artifactId>jackson-mapper-asl</artifactId>
                 <version>${jackson-codehaus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-codec-http2</artifactId>
+                <version>${netty-codec.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-server</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-util</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-servlet</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-webapp</artifactId>
+                <version>${jetty.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

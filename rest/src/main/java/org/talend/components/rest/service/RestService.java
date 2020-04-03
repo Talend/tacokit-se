@@ -23,10 +23,10 @@ import org.talend.components.common.text.Substitutor;
 import org.talend.components.rest.configuration.Datastore;
 import org.talend.components.rest.configuration.Param;
 import org.talend.components.rest.configuration.RequestConfig;
+import org.talend.components.rest.configuration.auth.Authentication;
 import org.talend.components.rest.configuration.auth.Authorization;
 import org.talend.components.rest.service.client.Body;
 import org.talend.components.rest.service.client.Client;
-import org.talend.components.rest.service.client.ContentType;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.RecordPointerFactory;
@@ -35,21 +35,16 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.http.Response;
 
-import javax.json.JsonReader;
-import javax.json.JsonReaderFactory;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.nio.charset.Charset;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -89,18 +84,15 @@ public class RestService {
     @Service
     private RecordPointerFactory recordPointerFactory;
 
-    @Service
-    private JsonReaderFactory jsonReaderFactory;
-
-    public Response<byte[]> execute(final RequestConfig config, final Record record) {
+    public Response<InputStream> execute(final RequestConfig config, final Record record) {
         return _execute(config, record);
     }
 
-    public Response<byte[]> execute(final RequestConfig config) {
+    public Response<InputStream> execute(final RequestConfig config) {
         return _execute(config, null);
     }
 
-    private Response<byte[]> _execute(final RequestConfig config, final Record record) {
+    private Response<InputStream> _execute(final RequestConfig config, final Record record) {
         final RecordDictionary dictionary = new RecordDictionary(record, recordPointerFactory);
         final Substitutor substitutor = new Substitutor(parameterFinder, dictionary);
 
@@ -136,39 +128,40 @@ public class RestService {
         return this.call(config, headers, queryParams, body, this.buildUrl(config, pathParams), redirectContext);
     }
 
-    private Response<byte[]> call(final RequestConfig config, final Map<String, String> headers,
+    private Response<InputStream> call(final RequestConfig config, final Map<String, String> headers,
             final Map<String, String> queryParams, final Body body, final String surl,
             final RedirectContext previousRedirectContext) {
 
-        Response<byte[]> resp = null;
+        Response<InputStream> resp = null;
 
+        final Authentication authentication = config.getDataset().getDatastore().getAuthentication();
         log.info(i18n.request(config.getDataset().getMethodType().name(), surl,
-                config.getDataset().getDatastore().getAuthentication().getType().toString()));
+                authentication.getType().toString()));
 
         try {
-            if (config.getDataset().getDatastore().getAuthentication().getType() == Authorization.AuthorizationType.Digest) {
+            if (authentication.getType() == Authorization.AuthorizationType.Digest) {
                 try {
                     URL url = new URL(surl);
                     DigestAuthService das = new DigestAuthService();
                     DigestAuthContext context = new DigestAuthContext(url.getPath(), config.getDataset().getMethodType().name(),
                             url.getHost(), url.getPort(), body == null ? null : body.getContent(),
-                            new UserNamePassword(config.getDataset().getDatastore().getAuthentication().getBasic().getUsername(),
-                                    config.getDataset().getDatastore().getAuthentication().getBasic().getPassword()));
+                            new UserNamePassword(authentication.getBasic().getUsername(),
+                                    authentication.getBasic().getPassword()));
                     resp = das.call(context, () -> client.executeWithDigestAuth(i18n, context, config, client,
                             previousRedirectContext.getMethod(), surl, headers, queryParams, body));
                 } catch (MalformedURLException e) {
                     throw new IllegalArgumentException(i18n.malformedURL(surl, e.getMessage()));
                 }
-            } else if (config.getDataset().getDatastore().getAuthentication()
+            } else if (authentication
                     .getType() == Authorization.AuthorizationType.Basic) {
                 UserNamePassword credential = new UserNamePassword(
-                        config.getDataset().getDatastore().getAuthentication().getBasic().getUsername(),
-                        config.getDataset().getDatastore().getAuthentication().getBasic().getPassword());
+                        authentication.getBasic().getUsername(),
+                        authentication.getBasic().getPassword());
                 resp = client.executeWithBasicAuth(i18n, credential, config, client, previousRedirectContext.getMethod(), surl,
                         headers, queryParams, body);
-            } else if (config.getDataset().getDatastore().getAuthentication()
+            } else if (authentication
                     .getType() == Authorization.AuthorizationType.Bearer) {
-                String token = config.getDataset().getDatastore().getAuthentication().getBearerToken();
+                String token = authentication.getBearerToken();
                 resp = client.executeWithBearerAuth(i18n, token, config, client, previousRedirectContext.getMethod(), surl,
                         headers, queryParams, body);
             } else {
@@ -196,10 +189,12 @@ public class RestService {
             }
         }
 
+        log.info(i18n.requestStatus(resp.status()));
+
         return resp;
     }
 
-    String buildUrl(final RequestConfig config, final Map<String, String> params) {
+    public String buildUrl(final RequestConfig config, final Map<String, String> params) {
         String base = config.getDataset().getDatastore().getBase().trim();
         String segments = this.setPathParams(config.getDataset().getResource().trim(), config.getDataset().isHasPathParams(),
                 params);
@@ -215,7 +210,7 @@ public class RestService {
         return base + segments;
     }
 
-    public String setPathParams(String resource, boolean hasPathParams, Map<String, String> params) {
+    public String setPathParams(final String resource, final boolean hasPathParams, final Map<String, String> params) {
         if (!hasPathParams) {
             return resource;
         }
@@ -227,39 +222,8 @@ public class RestService {
         return params.entrySet().stream().collect(toMap(e -> e.getKey(), e -> substitute(e.getValue(), substitutor)));
     }
 
-    public CompletePayload buildFixedRecord(final Response<byte[]> resp) {
-        int status = resp.status();
-        log.info(i18n.requestStatus(status));
-
-        Map<String, String> headers = Optional.ofNullable(resp.headers()).orElseGet(Collections::emptyMap).entrySet().stream()
-                .collect(toMap((Map.Entry<String, List<String>> e) -> e.getKey(), e -> String.join(",", e.getValue())));
-
-        final String receivedBody = getBody(resp);
-        Object body;
-        try (final JsonReader reader = jsonReaderFactory.createReader(new StringReader(receivedBody))) {
-            body = reader.read();
-            log.info(i18n.parseJsonOk());
-        } catch (Exception e) {
-            // It is not a json, we return the raw String payload
-            body = receivedBody;
-            log.info(i18n.parseJsonKo());
-        }
-
-        return new CompletePayload(status, headers, body);
-    }
-
-    private static String getBody(final Response<byte[]> resp) {
-        String encoding = ContentType.getCharsetName(resp);
-        byte[] bytes = Optional.ofNullable(resp.body()).orElse(new byte[0]);
-        String receivedBody = (encoding == null) ? //
-                new String(bytes) : //
-                new String(bytes, Charset.forName(encoding));
-        return receivedBody;
-    }
-
     private String substitute(final String value, final Substitutor substitutor) {
-        String substitute = substitutor.replace(value);
-        return substitute;
+        return substitutor.replace(value);
     }
 
     @HealthCheck(HEALTHCHECK)
@@ -280,7 +244,7 @@ public class RestService {
             final StringWriter sw = new StringWriter();
             final PrintWriter pw = new PrintWriter(sw);
             e.printStackTrace(pw);
-            log.debug(i18n.healthChecException(sw.toString()));
+            log.debug(i18n.healthCheckException(sw.toString()));
         }
 
         return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.healthCheckFailed(datastore.getBase()));

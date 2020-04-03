@@ -339,4 +339,27 @@ class Excel97IT extends BaseIT {
 
         Assert.assertEquals("Records amount is different", recordSize, records.size());
     }
+
+    @Test
+    void testSeveralFilesWithHeaderAndFooters() throws Exception {
+        final int recordSize = 3 * (5 - 1); // 3 files, 1 record as a footer in each
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excel97/excel_97_5_records_with_big_header.xls",
+                "excel_97_5_records_with_big_header1.xls");
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excel97/excel_97_5_records_with_big_header.xls",
+                "excel_97_5_records_with_big_header2.xls");
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excel97/excel_97_5_records_with_big_header.xls",
+                "excel_97_5_records_with_big_header3.xls");
+
+        blobInputProperties.getDataset().getExcelOptions().setUseHeader(true);
+        blobInputProperties.getDataset().getExcelOptions().setHeader(2);
+        blobInputProperties.getDataset().getExcelOptions().setUseFooter(true);
+        blobInputProperties.getDataset().getExcelOptions().setFooter(1);
+
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("azureInput").to("collector").build().run();
+        List<Record> records = componentsHandler.getCollectedData(Record.class);
+
+        Assert.assertEquals("Records amount is different", recordSize, records.size());
+    }
 }

@@ -10,15 +10,9 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.rest.virtual;
+package org.talend.components.common.stream.format.rawtext;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import org.talend.components.common.stream.format.ContentFormat;
 
-@Data
-@RequiredArgsConstructor
-public class StringBody {
-
-    final String body;
-
+public class RawTextConfiguration implements ContentFormat {
 }

@@ -14,6 +14,7 @@ package org.talend.components.rest.service.client;
 
 import org.talend.sdk.component.api.service.http.Response;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,15 +22,12 @@ import java.util.Optional;
 
 public class ContentType {
 
-    final static String DEFAULT_ENCODING = System.getProperty("org.talend.components.rest.default_encoding");
+    final static String DEFAULT_ENCODING = System.getProperty("org.talend.components.rest.default_encoding",
+            StandardCharsets.UTF_8.name());
 
     public final static String HEADER_KEY = "Content-Type";
 
     public final static String CHARSET_KEY = "charset=";
-
-    public static String getCharsetName(final Response<byte[]> resp) {
-        return getCharsetName(resp.headers());
-    }
 
     public static String getCharsetName(final Map<String, List<String>> headers) {
         return getCharsetName(headers, DEFAULT_ENCODING);

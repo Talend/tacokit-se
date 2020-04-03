@@ -16,7 +16,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.service.RestService;
-import org.talend.components.rest.virtual.ComplexRestConfiguration;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -40,13 +39,14 @@ public class RestOutput implements Serializable {
 
     private final RestService client;
 
-    public RestOutput(@Option("configuration") final ComplexRestConfiguration config, final RestService client) {
-        this.config = config.getDataset().getRestConfiguration();
+    public RestOutput(@Option("configuration") final RequestConfig config, final RestService client) {
+        this.config = config;
         this.client = client;
     }
 
     @PostConstruct
     public void init() {
+        // no-op
     }
 
     @ElementListener

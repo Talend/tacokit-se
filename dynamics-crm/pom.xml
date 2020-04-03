@@ -45,13 +45,14 @@
         TIP: it is recommended to set this property into your settings.xml in an active by default profile.
         -->
         <talend.component.studioHome />
+        <talend-mscrm.version>3.4-20200330</talend-mscrm.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.talend.libraries</groupId>
             <artifactId>talend-mscrm</artifactId>
-            <version>3.4-20200303</version>
+            <version>${talend-mscrm.version}</version>
         </dependency>
     </dependencies>
 

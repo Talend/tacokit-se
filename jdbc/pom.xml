@@ -15,7 +15,8 @@
 
     <properties>
         <xbean-finder-shaded.version>4.8</xbean-finder-shaded.version>
-        <HikariCP.version>3.1.0</HikariCP.version>
+        <HikariCP.version>3.4.2-talend20200325</HikariCP.version>
+        <bouncycastle.version>1.64</bouncycastle.version>
         <commons-codec.version>1.11</commons-codec.version>
         <!-- test version -->
         <derby.version>10.12.1.1</derby.version>
@@ -34,6 +35,16 @@
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
             <version>${HikariCP.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>${bouncycastle.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk15on</artifactId>
+            <version>${bouncycastle.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>

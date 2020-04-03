@@ -15,17 +15,35 @@
 
     <properties>
         <testcontainers.version>1.12.3</testcontainers.version>
-        <!-- Currently I can't execute httpbin tests on CI -->
+        <!-- httpbin tests can't currently be executed on CI -->
         <!-- To run ITs test give the following option to mvn : -Dtest.excluded="" -->
         <test.excluded>ITs</test.excluded>
+        <talend.scan.scannedDependencies>org.talend.components:stream-api</talend.scan.scannedDependencies>
+        <!-- Some i18n keys have been removed and and so there are validation errors since it uses _en for validation which is get from release -->
+        <!-- talend.validation.locale="root" should be used but only with TCK 1.1.16 -->
+        <talend.validation.internationalization>false</talend.validation.internationalization>
     </properties>
 
     <dependencies>
-        <!-- traductions -->
         <dependency>
             <groupId>org.talend.components</groupId>
             <artifactId>rest-locales</artifactId>
             <version>${locales.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.talend.components</groupId>
+            <artifactId>common-io</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.talend.components</groupId>
+            <artifactId>stream-json</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.talend.components</groupId>
+            <artifactId>stream-rawtext</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.talend.components</groupId>

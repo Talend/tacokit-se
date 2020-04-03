@@ -12,11 +12,39 @@
  */
 package org.talend.components.jdbc.service;
 
-import com.zaxxer.hikari.HikariDataSource;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.talend.components.jdbc.ErrorFactory;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.joining;
+
+import java.io.IOException;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.Security;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Locale;
+import java.util.function.Supplier;
+import java.util.regex.Pattern;
+
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8DecryptorProviderBuilder;
+import org.bouncycastle.operator.InputDecryptorProvider;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
+import org.bouncycastle.pkcs.PKCSException;
+import org.bouncycastle.util.encoders.Base64;
+import org.bouncycastle.util.encoders.DecoderException;
 import org.talend.components.jdbc.configuration.JdbcConfiguration;
+import org.talend.components.jdbc.datastore.AuthenticationType;
 import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.output.platforms.PlatformFactory;
 import org.talend.sdk.component.api.service.Service;
@@ -24,29 +52,10 @@ import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.dependency.Resolver;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.function.Supplier;
-import java.util.regex.Pattern;
+import com.zaxxer.hikari.HikariDataSource;
 
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.joining;
-import static org.talend.components.jdbc.ErrorFactory.toIllegalStateException;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -55,8 +64,6 @@ public class JdbcService {
     private static Pattern READ_ONLY_QUERY_PATTERN = Pattern.compile(
             "^SELECT\\s+((?!((\\bINTO\\b)|(\\bFOR\\s+UPDATE\\b)|(\\bLOCK\\s+IN\\s+SHARE\\s+MODE\\b))).)+$",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.MULTILINE);
-
-    private final Map<JdbcConfiguration.Driver, URL[]> drivers = new HashMap<>();
 
     @Service
     private Resolver resolver;
@@ -69,6 +76,11 @@ public class JdbcService {
 
     @Service
     private LocalConfiguration localConfiguration;
+
+    static {
+        // Define Bouncy Castle Provider for Snowflake Key Pair authentication
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
     public boolean driverNotDisabled(JdbcConfiguration.Driver driver) {
         return !ofNullable(localConfiguration.get("jdbc.driver." + driver.getId().toLowerCase(Locale.ROOT) + ".skip"))
@@ -149,7 +161,12 @@ public class JdbcService {
                 thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
                 dataSource = new HikariDataSource();
                 dataSource.setUsername(connection.getUserId());
-                dataSource.setPassword(connection.getPassword());
+                if (AuthenticationType.KEY_PAIR == connection.getAuthenticationType()) {
+                    dataSource.addDataSourceProperty("privateKey",
+                            getPrivateKey(connection.getPrivateKey(), connection.getPrivateKeyPassword(), i18nMessage));
+                } else {
+                    dataSource.setPassword(connection.getPassword());
+                }
                 dataSource.setDriverClassName(driver.getClassName());
                 dataSource.setJdbcUrl(connection.getJdbcUrl());
                 dataSource.setAutoCommit(isAutoCommit);
@@ -170,6 +187,44 @@ public class JdbcService {
             } finally {
                 thread.setContextClassLoader(prev);
             }
+        }
+
+        private PrivateKey getPrivateKey(String privateKey, String privateKeyPassword, final I18nMessage i18nMessage) {
+            try {
+                return privateKey.contains("ENCRYPTED") ? getFromEncrypted(privateKey, privateKeyPassword)
+                        : getFromRegular(privateKey);
+            } catch (PKCSException pkcse) {
+                throw new IllegalArgumentException(i18nMessage.errorPrivateKeyPasswordIncorrect(), pkcse);
+            } catch (InvalidKeySpecException | IOException | OperatorCreationException | NoSuchAlgorithmException
+                    | DecoderException e) {
+                throw new IllegalArgumentException(i18nMessage.errorPrivateKeyIncorrect(), e);
+            }
+        }
+
+        private PrivateKey getFromEncrypted(String privateKey, String privateKeyPassword)
+                throws IOException, OperatorCreationException, PKCSException {
+            PKCS8EncryptedPrivateKeyInfo pkcs8EncryptedPrivateKeyInfo = new PKCS8EncryptedPrivateKeyInfo(
+                    decodeString(replaceGeneratedExtraString(privateKey, true)));
+            InputDecryptorProvider inputDecryptorProvider = new JceOpenSSLPKCS8DecryptorProviderBuilder().setProvider("BC")
+                    .build(ofNullable(privateKeyPassword).map(String::toCharArray).orElse(new char[0]));
+            PrivateKeyInfo privateKeyInfo = pkcs8EncryptedPrivateKeyInfo.decryptPrivateKeyInfo(inputDecryptorProvider);
+            return new JcaPEMKeyConverter().setProvider("BC").getPrivateKey(privateKeyInfo);
+        }
+
+        private PrivateKey getFromRegular(String privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodeString(replaceGeneratedExtraString(privateKey, false)));
+            return KeyFactory.getInstance("RSA").generatePrivate(keySpec);
+        }
+
+        private byte[] decodeString(String privateKeyContent) {
+            return Base64.decode(privateKeyContent);
+        }
+
+        private String replaceGeneratedExtraString(String privateKey, boolean isEncrypted) {
+            return isEncrypted
+                    ? privateKey.replace("-----BEGIN ENCRYPTED PRIVATE KEY-----", "")
+                            .replace("-----END ENCRYPTED PRIVATE KEY-----", "")
+                    : privateKey.replace("-----BEGIN RSA PRIVATE KEY-----", "").replace("-----END RSA PRIVATE KEY-----", "");
         }
 
         public Connection getConnection() throws SQLException {

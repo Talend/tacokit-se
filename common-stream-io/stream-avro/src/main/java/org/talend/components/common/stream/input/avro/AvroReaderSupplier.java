@@ -21,7 +21,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 public class AvroReaderSupplier implements RecordReaderSupplier {
 
     @Override
-    public RecordReader getReader(RecordBuilderFactory factory, ContentFormat config) {
+    public RecordReader getReader(RecordBuilderFactory factory, ContentFormat config, Object extraParameter) {
         if (!AvroConfiguration.class.isInstance(config)) {
             throw new IllegalArgumentException("Try to get avro-reader with other than avro config.");
         }

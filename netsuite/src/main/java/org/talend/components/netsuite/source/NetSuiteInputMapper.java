@@ -20,6 +20,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 
 import org.talend.components.netsuite.dataset.NetSuiteInputProperties;
+import org.talend.components.netsuite.datastore.NetSuiteDataStore;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NsSearchResult;
 import org.talend.components.netsuite.runtime.client.search.PageSelection;
@@ -89,7 +90,10 @@ public class NetSuiteInputMapper implements Serializable {
 
     @Assessor
     public long estimateSize() {
-        return pageSelection.getPageCount();
+        if (configuration.getDataSet().getDataStore().getLoginType() == NetSuiteDataStore.LoginType.TBA)
+            return pageSelection.getPageCount();
+        else
+            return 0;
     }
 
     @Split

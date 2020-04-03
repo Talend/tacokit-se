@@ -10,21 +10,17 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.rest.processor;
+package org.talend.components.common.stream.format.rawtext;
 
-import lombok.Getter;
-import org.talend.sdk.component.api.service.Service;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-import javax.json.spi.JsonProvider;
+@Data
+@AllArgsConstructor
+public class ExtendedRawTextConfiguration {
 
-@Service
-@Getter
-public class JsonExtractorService {
+    private final String charset;
 
-    @Service
-    private JsonProvider jsonProvider;
-
-    @Service
-    private JsonExtractorI18n jsonExtractorI18n;
+    private final boolean forceOneRow;
 
 }
