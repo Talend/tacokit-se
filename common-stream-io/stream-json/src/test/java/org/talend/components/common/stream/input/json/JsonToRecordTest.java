@@ -95,8 +95,7 @@ class JsonToRecordTest {
 
     @Test
     void toRecordWithHyphen() {
-        JsonObject jsonWithDollarChar = getJsonObject(
-                "{\"_id\": {\"Content-Type\" : \"text/plain\"}}");
+        JsonObject jsonWithDollarChar = getJsonObject("{\"_id\": {\"Content-Type\" : \"text/plain\"}}");
         final Record record = toRecord.toRecord(jsonWithDollarChar);
         Assertions.assertNotNull(record);
         Assertions.assertNotNull("text/plain", record.getRecord("_id").getString("Content_Type"));

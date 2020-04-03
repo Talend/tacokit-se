@@ -69,14 +69,13 @@ public class RecordBuilderService {
         final List<Record> headerRecords = headers.entrySet().stream().map(this::convertHeadersToRecords)
                 .collect(Collectors.toList());
 
-
         final Iterator<Record> readIterator;
 
         try {
             readIterator = reader.read(resp.body());
-        }
-        catch (RuntimeException e){
-            throw new IllegalArgumentException(i18n.invalideBodyContent(format == Format.RAW_TEXT ? i18n.formatText() : i18n.formatJSON(), e.getMessage()));
+        } catch (RuntimeException e) {
+            throw new IllegalArgumentException(
+                    i18n.invalideBodyContent(format == Format.RAW_TEXT ? i18n.formatText() : i18n.formatJSON(), e.getMessage()));
         }
 
         return new IteratorMap<Record, Record>(readIterator,
