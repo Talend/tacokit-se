@@ -111,7 +111,7 @@
         <frontend.version>1.7.5</frontend.version>
         <node.version>v12.13.1</node.version>
         <yarn.version>v1.15.2</yarn.version>
-        <spotbugs.version>4.0.0-RC1</spotbugs.version>
+        <spotbugs.version>4.0.0</spotbugs.version>
         <spotbugs-maven-plugin.version>3.1.12.2</spotbugs-maven-plugin.version>
         <spotless.version>1.24.0</spotless.version>
 
