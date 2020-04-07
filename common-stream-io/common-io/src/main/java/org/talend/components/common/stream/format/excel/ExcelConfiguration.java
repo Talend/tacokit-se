@@ -25,7 +25,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
 
-@GridLayout({ @GridLayout.Row("excelFormat"), @GridLayout.Row("sheetName"), @GridLayout.Row("encoding"),
+@GridLayout({ @GridLayout.Row("excelFormat"), @GridLayout.Row("sheetName"), // @GridLayout.Row("encoding"),
         @GridLayout.Row({ "header" }), // headers
         @GridLayout.Row({ "footer" }) // footers
 })
@@ -37,8 +37,7 @@ public class ExcelConfiguration implements ContentFormat {
 
     public enum ExcelFormat {
         EXCEL2007,
-        EXCEL97,
-        HTML
+        EXCEL97
     }
 
     @Option
@@ -50,10 +49,14 @@ public class ExcelConfiguration implements ContentFormat {
     @Documentation("Excel sheet name.")
     private String sheetName;
 
-    @Option
-    @ActiveIf(target = "excelFormat", value = "HTML")
-    @Documentation("Content encoding.")
-    private Encoding encoding = new Encoding();
+    /*
+     * @Option
+     * 
+     * @ActiveIf(target = "excelFormat", value = "HTML")
+     * 
+     * @Documentation("Content encoding.")
+     * private Encoding encoding = new Encoding();
+     */
 
     @Option
     @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" })

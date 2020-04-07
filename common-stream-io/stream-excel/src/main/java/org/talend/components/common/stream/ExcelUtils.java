@@ -17,6 +17,7 @@ import java.io.InputStream;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration.ExcelFormat;
 
@@ -27,10 +28,12 @@ public class ExcelUtils {
     }
 
     public static Workbook readWorkBook(ExcelFormat format, InputStream input) throws IOException {
-        // return StreamingReader.builder().rowCacheSize(4096).open(input);
-
-        return format == ExcelFormat.EXCEL97 ? new HSSFWorkbook(input) : new XSSFWorkbook(input);
-        // format == ExcelFormat.EXCEL97 ? new HSSFWorkbook(input) : StreamingReader.builder().rowCacheSize(4096).open(input);
-
+        if (format == ExcelFormat.EXCEL97) {
+            return new HSSFWorkbook(input);
+        }
+        if (format == ExcelFormat.EXCEL2007) {
+            return new XSSFWorkbook(input);
+        }
+        return new HSSFWorkbook(input);
     }
 }
