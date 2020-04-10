@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -27,9 +27,8 @@ import org.talend.sdk.component.api.meta.Documentation;
 import lombok.Data;
 
 @Data
-@GridLayout({ @GridLayout.Row({ "dataset" }), //
-        @GridLayout.Row({ "partitionType" }), //
-        @GridLayout.Row({ "keyColumn" }) })
+@GridLayout({ @GridLayout.Row({ "dataset" }), @GridLayout.Row({ "partitionType" }), @GridLayout.Row({ "keyColumn" }),
+        @GridLayout.Row({ "partitionId" }) })
 @Documentation("Consume message from eventhubs configuration")
 public class AzureEventHubsOutputConfiguration implements Serializable {
 
@@ -48,11 +47,20 @@ public class AzureEventHubsOutputConfiguration implements Serializable {
     @Documentation("Partition by hash value of this key column")
     private String keyColumn;
 
+    @Option
+    @ActiveIf(target = "partitionType", value = "SPECIFY_PARTITION_ID")
+    @DefaultValue("0")
+    @Suggestable(value = "listPartitionIds", parameters = { "../dataset" })
+    @Documentation("The partition Id that the receiver belongs to. All data received will be from this partition only")
+    private String partitionId;
+
     public enum PartitionType {
         // no key provided, use default partition strategy
         ROUND_ROBIN,
         // use the value of one column in the record as the key, would use this value to calculate partition
         COLUMN,
+        // send message to specified partition
+        SPECIFY_PARTITION_ID,
     }
 
 }

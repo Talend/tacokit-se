@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -19,21 +19,11 @@ public interface Messages {
 
     String healthCheckOk();
 
-    String healthCheckFailed();
+    String healthCheckFailed(final String cause);
 
     String errorUnsupportedType(String fieldType, String fieldName);
 
     String errorWrongSequenceNumber(long seq, long latestSeq);
 
-    String errorMissingElement(String element);
-
-    String invalidatedSASURL();
-
-    String missingConsumerGroup();
-
-    String missingEnqueuedDateTime();
-
-    String missingContainerName();
-
-    String missingCheckpointStore();
+    String errorNoAvailableReceiver();
 }

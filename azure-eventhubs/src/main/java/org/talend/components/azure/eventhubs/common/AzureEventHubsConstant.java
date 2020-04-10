@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -18,15 +18,10 @@ public class AzureEventHubsConstant {
 
     public static final String DEFAULT_CONSUMER_GROUP = "$Default";
 
-    public static final String PARTITION_ID = "PARTITION_ID";
-
     public static final String DEFAULT_PARTITION_ID = "0";
 
     public static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
-    public static final String PAYLOAD_COLUMN = "Event";
+    public static final String PAYLOAD_COLUMN = "payload";
 
-    public static final String DEFAULT_DOMAIN_NAME = "servicebus.windows.net";
-
-    public static final String EH_CONNECTION_PATTERN = "Endpoint=%s;SharedAccessKeyName=%s;SharedAccessKey=%s;EntityPath=%s";
 }

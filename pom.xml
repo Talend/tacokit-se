@@ -39,7 +39,10 @@
         <module>azure</module>
         <module>rest</module>
         <module>dynamics-crm</module>
-        <module>azure-eventhubs</module>
+        <!-- disable eventhubs build before all ready
+	<module>azure-eventhubs</module>
+	-->
+
         <module>azure-dls-gen2</module>
         <module>marketo</module>
         <module>common</module>
