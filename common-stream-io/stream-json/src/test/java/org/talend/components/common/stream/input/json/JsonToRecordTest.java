@@ -12,21 +12,19 @@
  */
 package org.talend.components.common.stream.input.json;
 
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.output.json.RecordToJson;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 import java.io.StringReader;
 
 class JsonToRecordTest {
@@ -52,13 +50,6 @@ class JsonToRecordTest {
     void start() {
         final RecordBuilderFactory recordBuilderFactory = new RecordBuilderFactoryImpl("test");
         this.toRecord = new JsonToRecord(recordBuilderFactory);
-    }
-
-    @Test
-    void inferSchema() {
-        final Schema schema = this.toRecord.inferSchema(this.jsonObject);
-        Assertions.assertNotNull(schema);
-        Assertions.assertSame(schema.getType(), Schema.Type.RECORD);
     }
 
     @Test
@@ -95,8 +86,7 @@ class JsonToRecordTest {
 
     @Test
     void toRecordWithHyphen() {
-        JsonObject jsonWithDollarChar = getJsonObject(
-                "{\"_id\": {\"Content-Type\" : \"text/plain\"}}");
+        JsonObject jsonWithDollarChar = getJsonObject("{\"_id\": {\"Content-Type\" : \"text/plain\"}}");
         final Record record = toRecord.toRecord(jsonWithDollarChar);
         Assertions.assertNotNull(record);
         Assertions.assertNotNull("text/plain", record.getRecord("_id").getString("Content_Type"));

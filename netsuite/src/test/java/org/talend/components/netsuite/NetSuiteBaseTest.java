@@ -62,6 +62,8 @@ public abstract class NetSuiteBaseTest {
 
     protected static NetSuiteDataStore dataStore;
 
+    protected static NetSuiteDataStore dataStoreLoginPassword;
+
     protected static NetSuiteService netSuiteService;
 
     protected static NetSuiteClientConnectionService netSuiteClientConnectionService;
@@ -85,6 +87,8 @@ public abstract class NetSuiteBaseTest {
         final MavenDecrypter decrypter = new MavenDecrypter();
         Server consumer = decrypter.find("netsuite.consumer");
         Server token = decrypter.find("netsuite.token");
+        Server credentialsLogin = decrypter.find("netsuite");
+
         dataStore = new NetSuiteDataStore();
         dataStore.setApiVersion(ApiVersion.V2019_2);
         dataStore.setAccount(NETSUITE_ACCOUNT);
@@ -93,6 +97,16 @@ public abstract class NetSuiteBaseTest {
         dataStore.setConsumerSecret(consumer.getPassword());
         dataStore.setTokenId(token.getUsername());
         dataStore.setTokenSecret(token.getPassword());
+
+        dataStoreLoginPassword = new NetSuiteDataStore();
+        dataStoreLoginPassword.setApiVersion(NetSuiteDataStore.ApiVersion.V2019_2);
+        dataStoreLoginPassword.setAccount(NETSUITE_ACCOUNT);
+        dataStoreLoginPassword.setLoginType(NetSuiteDataStore.LoginType.BASIC);
+        dataStoreLoginPassword.setEmail(credentialsLogin.getUsername());
+        String[] passwordParts = credentialsLogin.getPassword().split("\\|\\|\\|");
+        dataStoreLoginPassword.setPassword(passwordParts.length >= 1 ? passwordParts[0] : "");
+        dataStoreLoginPassword.setRole(passwordParts.length >= 2 ? passwordParts[1] : "");
+        dataStoreLoginPassword.setApplicationId(passwordParts.length >= 3 ? passwordParts[2] : "");
     }
 
     private static void readPropertiesFile() throws IOException {
@@ -151,6 +165,14 @@ public abstract class NetSuiteBaseTest {
         NetSuiteDataSet dataSet = createDefaultDataSet();
         inputProperties.setDataSet(dataSet);
         return inputProperties;
+    }
+
+    protected NetSuiteInputProperties createInputPropertiesLoginPassword() {
+        NetSuiteInputProperties inputPropertiesLoginPassword = new NetSuiteInputProperties();
+        NetSuiteDataSet dataSet = new NetSuiteDataSet();
+        dataSet.setDataStore(dataStoreLoginPassword);
+        inputPropertiesLoginPassword.setDataSet(dataSet);
+        return inputPropertiesLoginPassword;
     }
 
     protected NetSuiteDataSet createDefaultDataSet() {

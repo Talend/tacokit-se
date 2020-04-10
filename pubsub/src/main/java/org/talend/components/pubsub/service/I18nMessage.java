@@ -74,4 +74,6 @@ public interface I18nMessage {
     String errorLoadTopic(String message);
 
     String topicDoesNotExist(String topic);
+
+    String infoNoTextContent(String message);
 }

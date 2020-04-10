@@ -19,12 +19,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.talend.components.netsuite.NetSuiteBaseTest;
 import org.talend.components.netsuite.dataset.NetSuiteDataSet;
 import org.talend.components.netsuite.dataset.NetSuiteInputProperties;
@@ -47,8 +51,10 @@ import com.netsuite.webservices.v2019_2.platform.core.types.SearchStringFieldOpe
 
 import lombok.extern.slf4j.Slf4j;
 
+import static org.junit.jupiter.params.provider.Arguments.arguments;
+
 @Slf4j
-@Disabled
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @WithComponents("org.talend.components.netsuite")
 public class NetSuiteSourceTest extends NetSuiteBaseTest {
 
@@ -129,15 +135,15 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
         Assertions.assertEquals("FirstRecord", records.get(0).get(String.class, "Name"));
     }
 
-    @Test
-    @Disabled
     @DisplayName("Partition input data")
-    void partitionInputDataTest() {
-        log.info("Test 'partition input data' start ");
-        String testIdPrefix = "PartitionInputDataTest_";
+    @ParameterizedTest
+    @MethodSource("partitionInputDataTestProvider")
+    void partitionInputDataTest(NetSuiteInputProperties inputProperties) {
+        String methodSourceId = inputProperties.getDataSet().getDataStore().getLoginType().name();
+        log.info("Test 'partition input data " + methodSourceId + "' start ");
+        String testIdPrefix = "PartitionInputDataTest_" + methodSourceId + "_";
         int concurrency = 5;
         int numberOfRecords = 500;
-        NetSuiteInputProperties inputProperties = createInputProperties();
         NetSuiteDataSet dataSet = inputProperties.getDataSet();
         NetSuiteOutputProperties outputProperties = createOutputProperties();
         outputProperties.setDataSet(dataSet);
@@ -188,5 +194,13 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
         }
         log.info("Test 'partition input data' check cleaned start ");
         Assertions.assertTrue(buildAndRunEmitterJob(inputProperties).isEmpty());
+    }
+
+    Stream<Arguments> partitionInputDataTestProvider() {
+        NetSuiteInputProperties inputPropertiesToken = createInputProperties();
+        NetSuiteInputProperties inputPropertiesLoginPassword = createInputPropertiesLoginPassword();
+        inputPropertiesLoginPassword.setBodyFieldsOnly(false);
+
+        return Stream.of(arguments(inputPropertiesToken), arguments(inputPropertiesLoginPassword));
     }
 }

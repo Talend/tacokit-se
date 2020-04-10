@@ -53,6 +53,8 @@
         <module>extensions</module>
         <module>pubsub</module>
         <module>netsuite</module>
+        <module>cosmosDB</module>
+        <module>google-storage</module>
     </modules>
 
     <scm>
@@ -111,7 +113,7 @@
         <frontend.version>1.7.5</frontend.version>
         <node.version>v12.13.1</node.version>
         <yarn.version>v1.15.2</yarn.version>
-        <spotbugs.version>4.0.0-RC1</spotbugs.version>
+        <spotbugs.version>4.0.0</spotbugs.version>
         <spotbugs-maven-plugin.version>3.1.12.2</spotbugs-maven-plugin.version>
         <spotless.version>1.24.0</spotless.version>
 
@@ -122,6 +124,7 @@
         <!-- CVE fix -->
         <netty-codec.version>4.1.48.Final</netty-codec.version>
         <jetty.version>9.4.17.v20190418</jetty.version>
+        <nimbus-jose-jwt.version>8.11</nimbus-jose-jwt.version>
     </properties>
 
     <dependencyManagement>
@@ -277,6 +280,11 @@
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-webapp</artifactId>
                 <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nimbusds</groupId>
+                <artifactId>nimbus-jose-jwt</artifactId>
+                <version>${nimbus-jose-jwt.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -468,6 +476,13 @@
                 <artifactId>talend-component-maven-plugin</artifactId>
                 <version>${component-runtime.version}</version>
                 <executions>
+                    <execution>
+                        <id>talend-svg2png</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>svg2png</goal>
+                        </goals>
+                    </execution>
                     <execution>
                         <id>talend-dita-documentation</id>
                         <phase>process-classes</phase>

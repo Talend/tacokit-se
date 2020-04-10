@@ -37,7 +37,7 @@ public class DefaultLineReader implements LineReader {
     private Scanner scanner = null;
 
     public DefaultLineReader(String recordSeparator, String chartSetName, HeaderHandler headers) {
-        this(Pattern.compile(DefaultLineReader.escapeChars(recordSeparator)), chartSetName, headers);
+        this(Pattern.compile(Pattern.quote(recordSeparator)), chartSetName, headers);
     }
 
     public DefaultLineReader(Pattern regExpSeparator, String chartSetName, HeaderHandler headers) {
@@ -60,18 +60,5 @@ public class DefaultLineReader implements LineReader {
             this.scanner.close();
             this.scanner = null;
         }
-    }
-
-    /**
-     * Refine prefix and suffix for regular expression.
-     * 
-     * @param val : prefix of suffix expression.
-     * @return expression with reg exp compatibility.
-     */
-    private static String escapeChars(String val) {
-        val = val.replace("{", "\\{").replace("}", "\\}").replace("(", "\\(").replace(")", "\\)").replace("[", "\\[")
-                .replace("]", "\\]").replace("$", "\\$");
-
-        return val;
     }
 }

@@ -135,8 +135,7 @@ public class RestService {
         Response<InputStream> resp = null;
 
         final Authentication authentication = config.getDataset().getDatastore().getAuthentication();
-        log.info(i18n.request(config.getDataset().getMethodType().name(), surl,
-                authentication.getType().toString()));
+        log.info(i18n.request(config.getDataset().getMethodType().name(), surl, authentication.getType().toString()));
 
         try {
             if (authentication.getType() == Authorization.AuthorizationType.Digest) {
@@ -144,23 +143,19 @@ public class RestService {
                     URL url = new URL(surl);
                     DigestAuthService das = new DigestAuthService();
                     DigestAuthContext context = new DigestAuthContext(url.getPath(), config.getDataset().getMethodType().name(),
-                            url.getHost(), url.getPort(), body == null ? null : body.getContent(),
-                            new UserNamePassword(authentication.getBasic().getUsername(),
-                                    authentication.getBasic().getPassword()));
+                            url.getHost(), url.getPort(), body == null ? null : body.getContent(), new UserNamePassword(
+                                    authentication.getBasic().getUsername(), authentication.getBasic().getPassword()));
                     resp = das.call(context, () -> client.executeWithDigestAuth(i18n, context, config, client,
                             previousRedirectContext.getMethod(), surl, headers, queryParams, body));
                 } catch (MalformedURLException e) {
                     throw new IllegalArgumentException(i18n.malformedURL(surl, e.getMessage()));
                 }
-            } else if (authentication
-                    .getType() == Authorization.AuthorizationType.Basic) {
-                UserNamePassword credential = new UserNamePassword(
-                        authentication.getBasic().getUsername(),
+            } else if (authentication.getType() == Authorization.AuthorizationType.Basic) {
+                UserNamePassword credential = new UserNamePassword(authentication.getBasic().getUsername(),
                         authentication.getBasic().getPassword());
                 resp = client.executeWithBasicAuth(i18n, credential, config, client, previousRedirectContext.getMethod(), surl,
                         headers, queryParams, body);
-            } else if (authentication
-                    .getType() == Authorization.AuthorizationType.Bearer) {
+            } else if (authentication.getType() == Authorization.AuthorizationType.Bearer) {
                 String token = authentication.getBearerToken();
                 resp = client.executeWithBearerAuth(i18n, token, config, client, previousRedirectContext.getMethod(), surl,
                         headers, queryParams, body);

@@ -11,7 +11,7 @@
     <artifactId>stream-excel</artifactId>
 
     <properties>
-        <apache.poi.version>4.0.1</apache.poi.version>
+        <apache.poi.version>3.17</apache.poi.version>
         <excel.streamer.version>2.1.0</excel.streamer.version>
     </properties>
 
@@ -33,11 +33,11 @@
             <artifactId>poi-ooxml</artifactId>
             <version>${apache.poi.version}</version>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>com.monitorjbl</groupId>
             <artifactId>xlsx-streamer</artifactId>
             <version>${excel.streamer.version}</version>
-        </dependency>
+        </dependency>-->
 
     </dependencies>
 </project>

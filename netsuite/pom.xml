@@ -122,13 +122,6 @@
                             </classpathDependencyExcludes>
                         </configuration>
                     </execution>
-
-                    <execution>
-                        <id>surefire-beam-test</id>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                    </execution>
                 </executions>
             </plugin>
 

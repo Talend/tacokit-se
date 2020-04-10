@@ -1,0 +1,6 @@
+{
+  "org.talend.components.google.storage.dataset.JsonAllConfiguration": {
+    "reader": "org.talend.components.google.storage.input.JsonAllReaderSupplier",
+    "writer": "org.talend.components.google.storage.output.JsonAllWriterSupplier"
+  }
+}

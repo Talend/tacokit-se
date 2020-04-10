@@ -47,8 +47,8 @@ class ExcelWriterTest {
         cfg.getHeader().setActive(true);
         cfg.getHeader().setSize(2);
 
-        cfg.setEncoding(new Encoding());
-        cfg.getEncoding().setEncodingType(Type.UFT8);
+        // cfg.setEncoding(new Encoding());
+        // cfg.getEncoding().setEncodingType(Type.UFT8);
 
         cfg.setExcelFormat(ExcelFormat.EXCEL2007);
         cfg.setSheetName("talend_sheet");
