@@ -242,9 +242,7 @@ public class MongoDBProcessor implements Serializable {
             if (this.recordToJson == null) {
                 this.recordToJson = new RecordToJson();
             }
-            JsonObject jsonObject = this.recordToJson.fromRecord(record);
-            String jsonContent = jsonObject.toString();
-            Document document = Document.parse(jsonContent);
+            Document document = convertRecord2Document(record);
 
             doDataAction(record, document);
         } else {
@@ -269,6 +267,16 @@ public class MongoDBProcessor implements Serializable {
              * doDataAction(record, dg.getDocument());
              */
         }
+    }
+
+    private Document convertRecord2Document(@Input Record record) {
+        JsonObject jsonObject = this.recordToJson.fromRecord(record);
+        String jsonContent = jsonObject.toString();
+        return Document.parse(jsonContent);
+    }
+
+    private Document convertRecord2DocumentDirectly(@Input Record record) {
+        return null;
     }
 
     private void doDataAction(@Input Record record, Document document) {

@@ -14,6 +14,7 @@ package org.talend.components.mongodb;
 
 import com.mongodb.MongoClientOptions;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.Document;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -36,6 +37,7 @@ import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
+import javax.json.JsonObject;
 import java.util.*;
 
 // TODO current only for local test which have mongo env, will refactor it later
@@ -534,6 +536,42 @@ public class MongoDBTestIT {
         final List<Record> res = getRecords(dataset);
 
         System.out.println(res);
+    }
+
+    @Test
+    void testDataTypeRoundTrip4TextMode() {
+        MongoDBReadDataSet dataset = getMongoDBDataSet("my_collection_01");
+        dataset.setMode(Mode.TEXT);
+        final List<Record> res = getRecords(dataset);
+
+        String jsonContent = res.get(0).getString("my_collection_01");
+        //the json string should be readable, no too much convert as not only for mongodb, the sink also for other target type like database
+        System.out.println(jsonContent);
+
+        //can parse it back with 100% the same
+        System.out.println(Document.parse(jsonContent));
+    }
+
+    @Test
+    void testDataTypeRoundTrip4JsonMode() {
+        MongoDBReadDataSet dataset = getMongoDBDataSet("my_collection_01");
+        final List<Record> res = getRecords(dataset);
+
+        //the json string should be readable, no too much convert as not only for mongodb, the sink also for other target type like database
+        Record record = res.get(0);
+        System.out.println(record);
+
+        //should can parse it back with 100% the same
+        JsonObject jsonObject = new RecordToJson().fromRecord(record);
+        String jsonContent = jsonObject.toString();
+        System.out.println(jsonContent);
+        Document document = Document.parse(jsonContent);
+        System.out.println(document);
+    }
+
+    @Test
+    void testSpecialDataTypeStructFromPipeLine() {
+        //TODO
     }
 
     @Test

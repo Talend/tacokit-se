@@ -35,6 +35,7 @@ import org.talend.components.mongodb.service.MongoDBService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
+import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -139,12 +140,12 @@ public class MongoDBReader implements Serializable {
     public Record next() {
         if (iterator.hasNext()) {
             Document document = iterator.next();
-            return convertDocument2Record(document);
+            return doConvert(document);
         }
         return null;
     }
 
-    private Record convertDocument2Record(Document document) {
+    private Record doConvert(Document document) {
         switch (configuration.getDataset().getMode()) {
         case TEXT:
             return toRecordWithWSingleDocumentContentColumn(document);
@@ -152,11 +153,11 @@ public class MongoDBReader implements Serializable {
         // return toFlatRecordWithMapping(document);
         case JSON:
         default:
-            return toFlatRecord(document);
+            return convertDocument2Record(document);
         }
     }
 
-    private Record toFlatRecord(Document document) {
+    private Record convertDocument2Record(Document document) {
         // TODO bson can convert to json with loss data? check it
         String jsonContnt = document2Json(document);
         // can't use org.talend.components.common.stream.input.json.JsonRecordReader here, please see
@@ -164,6 +165,10 @@ public class MongoDBReader implements Serializable {
         // here we expect one document, one record always
         Record result = jsonToRecord.toRecord(getJsonObject(jsonContnt));
         return result;
+    }
+
+    private Record convertDocument2RecordDirectly(@Input Record record) {
+        return null;
     }
 
     // TODO check it
