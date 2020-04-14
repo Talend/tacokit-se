@@ -30,6 +30,7 @@ import org.talend.components.mongodb.PathMapping;
 import org.talend.components.mongodb.dataset.BaseDataSet;
 import org.talend.components.mongodb.dataset.MongoDBReadDataSet;
 import org.talend.components.mongodb.datastore.MongoDBDataStore;
+import org.talend.components.mongodb.service.DocumentToRecord;
 import org.talend.components.mongodb.service.I18nMessage;
 import org.talend.components.mongodb.service.MongoDBService;
 import org.talend.sdk.component.api.configuration.Option;
@@ -69,6 +70,7 @@ public class MongoDBReader implements Serializable {
     private transient MongoClient client;
 
     private transient JsonToRecord jsonToRecord;
+    private transient DocumentToRecord documentToRecord;
 
     public MongoDBReader(@Option("configuration") final BaseSourceConfiguration configuration, final MongoDBService service,
             final RecordBuilderFactory builderFactory, final I18nMessage i18n) {
@@ -76,14 +78,15 @@ public class MongoDBReader implements Serializable {
         this.service = service;
         this.builderFactory = builderFactory;
         this.i18n = i18n;
-
-        this.jsonToRecord = new JsonToRecord(builderFactory);
     }
 
     Iterator<Document> iterator = null;
 
     @PostConstruct
     public void init() {
+        jsonToRecord = new JsonToRecord(this.builderFactory);
+        documentToRecord = new DocumentToRecord(this.builderFactory);
+
         BaseDataSet dataset = configuration.getDataset();
         MongoDBDataStore datastore = dataset.getDatastore();
         client = service.createClient(datastore);
@@ -153,7 +156,7 @@ public class MongoDBReader implements Serializable {
         // return toFlatRecordWithMapping(document);
         case JSON:
         default:
-            return convertDocument2Record(document);
+            return convertDocument2RecordDirectly(document);
         }
     }
 
@@ -167,8 +170,8 @@ public class MongoDBReader implements Serializable {
         return result;
     }
 
-    private Record convertDocument2RecordDirectly(@Input Record record) {
-        return null;
+    private Record convertDocument2RecordDirectly(Document document) {
+        return documentToRecord.toRecord(document);
     }
 
     // TODO check it

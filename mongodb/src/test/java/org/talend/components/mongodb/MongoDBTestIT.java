@@ -532,10 +532,11 @@ public class MongoDBTestIT {
     @Test
     void testSourceNullProcess() {
         MongoDBReadDataSet dataset = getMongoDBDataSet("my_collection_01");
-        // dataset.setMode(Mode.TEXT);
+
         final List<Record> res = getRecords(dataset);
 
-        System.out.println(res);
+        //"a" exists in schema
+        System.out.println(res.get(0).getSchema());
     }
 
     @Test
