@@ -52,7 +52,7 @@ public class SnowflakeDelete extends Delete {
                 try (final Statement statement = connection.createStatement()) {
                     statement.execute("delete from " + fqTableName + " target using " + fqTmpTableName + " as source where "
                             + getConfiguration().getKeys().stream().map(key -> getPlatform().identifier(key))
-                                    .map(key -> "source." + key + "= target." + key).collect(joining("AND", " ", " ")));
+                                    .map(key -> "source." + key + "= target." + key).collect(joining(" AND ")));
                 }
             }
             connection.commit();

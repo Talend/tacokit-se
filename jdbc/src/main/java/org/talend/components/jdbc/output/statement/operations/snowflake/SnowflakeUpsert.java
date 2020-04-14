@@ -55,7 +55,7 @@ public class SnowflakeUpsert extends UpsertDefault {
                 try (final Statement statement = connection.createStatement()) {
                     statement.execute("merge into " + fqTableName + " target using " + fqTmpTableName + " as source on "
                             + getConfiguration().getKeys().stream().map(key -> getPlatform().identifier(key))
-                                    .map(key -> "source." + key + "= target." + key).collect(joining("AND", " ", " "))
+                                    .map(key -> "source." + key + "= target." + key).collect(joining(" AND "))
                             + " when matched then update set "
                             + getUpdate().getQueryParams().values().stream()
                                     .filter(p -> !getUpdate().getIgnoreColumns().contains(p.getName())

@@ -76,7 +76,7 @@ public interface I18nMessage {
     String errorUnsupportedDatabase(String dbType);
 
     String errorUnsupportedType(String type, String field);
-    
+
     String errorUnsupportedBooleanType4Oracle(String field);
 
     //

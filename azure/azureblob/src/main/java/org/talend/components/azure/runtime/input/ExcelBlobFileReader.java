@@ -79,7 +79,7 @@ public class ExcelBlobFileReader extends BlobFileReader {
 
         @Override
         protected void readItem() {
-            rows.clear(); //remove footer of previous item
+            rows.clear(); // remove footer of previous item
 
             if (converter == null) {
                 converter = ExcelConverter.of(super.getRecordBuilderFactory());
@@ -156,7 +156,7 @@ public class ExcelBlobFileReader extends BlobFileReader {
 
         @Override
         protected void readItem() {
-            batch.clear(); //clear footer of previous item
+            batch.clear(); // clear footer of previous item
 
             if (converter == null) {
                 converter = ExcelConverter.of(getRecordBuilderFactory());

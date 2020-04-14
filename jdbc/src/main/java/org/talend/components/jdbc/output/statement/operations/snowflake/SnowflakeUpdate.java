@@ -52,7 +52,7 @@ public class SnowflakeUpdate extends Update {
                 try (final Statement statement = connection.createStatement()) {
                     statement.execute("merge into " + fqTableName + " target using " + fqTmpTableName + " as source on "
                             + getConfiguration().getKeys().stream().map(key -> getPlatform().identifier(key))
-                                    .map(key -> "source." + key + "= target." + key).collect(joining("AND", " ", " "))
+                                    .map(key -> "source." + key + "= target." + key).collect(joining(" AND "))
                             + " when matched then update set "
                             + getQueryParams().values().stream()
                                     .filter(p -> !getIgnoreColumns().contains(p.getName()) && !getKeys().contains(p.getName()))

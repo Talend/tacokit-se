@@ -17,10 +17,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import org.apache.poi.ss.formula.FormulaType;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.FormulaError;
 import org.apache.poi.ss.usermodel.Row;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -53,7 +51,7 @@ public class ExcelToRecord {
             if (this.type == null) {
                 final Cell currentCell = record.getCell(this.index);
                 if (currentCell != null) {
-                    this.type = currentCell.getCellType();
+                    this.type = currentCell.getCellTypeEnum();// getCellType();
                 }
             }
 
@@ -61,7 +59,7 @@ public class ExcelToRecord {
             CellType cellType = this.type;
             if (this.type == CellType.FORMULA) {
                 Cell cell = record.getCell(this.index);
-                cellType = cell.getCachedFormulaResultType();
+                cellType = cell.getCachedFormulaResultTypeEnum(); // getCachedFormulaResultType();
             }
             return cellType;
         }
@@ -161,7 +159,7 @@ public class ExcelToRecord {
         } else {
             columnName = "field" + cell.getColumnIndex();
         }
-        final CellType cellType = cell.getCellType();
+        final CellType cellType = cell.getCellTypeEnum();
         return new Column(columnName, isHeader ? null : cellType, cell.getColumnIndex());
     }
 }
