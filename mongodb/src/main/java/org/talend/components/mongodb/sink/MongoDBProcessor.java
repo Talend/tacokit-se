@@ -28,6 +28,7 @@ import org.talend.components.mongodb.dataset.MongoDBReadAndWriteDataSet;
 import org.talend.components.mongodb.datastore.MongoDBDataStore;
 import org.talend.components.mongodb.service.I18nMessage;
 import org.talend.components.mongodb.service.MongoDBService;
+import org.talend.components.mongodb.service.RecordToDocument;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -63,6 +64,7 @@ public class MongoDBProcessor implements Serializable {
     private transient MongoCollection<Document> collection;
 
     private transient RecordToJson recordToJson;
+    private transient RecordToDocument recordToDocument;
 
     public MongoDBProcessor(@Option("configuration") final MongoDBSinkConfiguration configuration, final MongoDBService service,
             final I18nMessage i18n) {
@@ -73,6 +75,9 @@ public class MongoDBProcessor implements Serializable {
 
     @PostConstruct
     public void init() {
+        this.recordToJson = new RecordToJson();
+        this.recordToDocument = new RecordToDocument();
+
         MongoDBReadAndWriteDataSet dataset = configuration.getDataset();
         MongoDBDataStore datastore = dataset.getDatastore();
         client = service.createClient(datastore);
@@ -239,10 +244,7 @@ public class MongoDBProcessor implements Serializable {
 
             doDataAction(record, document);
         } else if (configuration.getDataset().getMode() == Mode.JSON) {
-            if (this.recordToJson == null) {
-                this.recordToJson = new RecordToJson();
-            }
-            Document document = convertRecord2Document(record);
+            Document document = convertRecord2DocumentDirectly(record);
 
             doDataAction(record, document);
         } else {
@@ -276,7 +278,7 @@ public class MongoDBProcessor implements Serializable {
     }
 
     private Document convertRecord2DocumentDirectly(@Input Record record) {
-        return null;
+        return recordToDocument.fromRecord(record);
     }
 
     private void doDataAction(@Input Record record, Document document) {

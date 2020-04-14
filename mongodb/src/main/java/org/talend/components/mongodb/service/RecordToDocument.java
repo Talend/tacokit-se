@@ -12,16 +12,11 @@
  */
 package org.talend.components.mongodb.service;
 
+import java.util.ArrayList;
 import java.util.Collection;
-
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
+import java.util.List;
 
 import org.bson.Document;
-import org.talend.components.common.stream.api.output.RecordConverter;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Entry;
@@ -29,50 +24,41 @@ import org.talend.sdk.component.api.record.Schema.Entry;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Transform record to json object.
- * here, currently no need of json schema.
- * if needed, could use https://github.com/leadpony/justify
- * (java lib for json schema, can be used with johnzon lib.
+ * Transform record to document object.
  */
 @Slf4j
-public class RecordToDocument implements RecordConverter<JsonObject, Void> {
+public class RecordToDocument {
 
-    @Override
-    public JsonObject fromRecord(Record record) {
-        return convertRecordToJsonObject(record);
+    public Document fromRecord(Record record) {
+        return convertRecordToDocument(record);
     }
 
-    @Override
-    public Void fromRecordSchema(Schema record) {
-        return null;
-    }
-
-    private JsonObject convertRecordToJsonObject(Record record) {
-        final JsonObjectBuilder json = Json.createObjectBuilder();
+    private Document convertRecordToDocument(Record record) {
+        final Document document = new Document();
 
         for (Entry entry : record.getSchema().getEntries()) {
             final String fieldName = entry.getName();
             Object val = record.get(Object.class, fieldName);
             log.debug("[convertRecordToJsonObject] entry: {}; type: {}; value: {}.", fieldName, entry.getType(), val);
             if (null == val) {
-                json.addNull(fieldName);
+                document.put(fieldName, null);
             } else {
-                this.addField(json, record, entry);
+                this.addField(document, record, entry);
             }
         }
-        return json.build();
+        return document;
     }
 
-    private JsonArray toJsonArray(Collection<Object> objects) {
-        JsonArrayBuilder array = Json.createArrayBuilder();
+    private List toArray(Collection<Object> objects) {
+        List array = new ArrayList();
         for (Object obj : objects) {
             if (obj instanceof Collection) {
-                JsonArray subArray = toJsonArray((Collection) obj);
+                List subArray = toArray((Collection) obj);
                 array.add(subArray);
             } else if (obj instanceof String) {
                 array.add((String) obj);
             } else if (obj instanceof Record) {
-                JsonObject subObject = convertRecordToJsonObject((Record) obj);
+                Document subObject = convertRecordToDocument((Record) obj);
                 array.add(subObject);
             } else if (obj instanceof Integer) {
                 array.add((Integer) obj);
@@ -82,46 +68,48 @@ public class RecordToDocument implements RecordConverter<JsonObject, Void> {
                 array.add((Double) obj);
             } else if (obj instanceof Boolean) {
                 array.add((Boolean) obj);
+            } else {
+                array.add(obj);
             }
         }
-        return array.build();
+        return array;
     }
 
-    private void addField(JsonObjectBuilder json, Record record, Entry entry) {
+    private void addField(Document document, Record record, Entry entry) {
         final String fieldName = entry.getName();
         switch (entry.getType()) {
             case RECORD:
                 final Record subRecord = record.getRecord(fieldName);
-                json.add(fieldName, convertRecordToJsonObject(subRecord));
+                document.put(fieldName, convertRecordToDocument(subRecord));
                 break;
             case ARRAY:
-                final Collection<Object> array = record.getArray(Object.class, fieldName);
-                final JsonArray jarray = toJsonArray(array);
-                json.add(fieldName, jarray);
+                final Collection<Object> list = record.getArray(Object.class, fieldName);
+                final List array = toArray(list);
+                document.put(fieldName, array);
                 break;
             case STRING:
-                json.add(fieldName, record.getString(fieldName));
+                document.put(fieldName, record.getString(fieldName));
                 break;
             case BYTES:
-                json.add(fieldName, new String(record.getBytes(fieldName)));
+                document.put(fieldName, new String(record.getBytes(fieldName)));
                 break;
             case INT:
-                json.add(fieldName, record.getInt(fieldName));
+                document.put(fieldName, record.getInt(fieldName));
                 break;
             case LONG:
-                json.add(fieldName, record.getLong(fieldName));
+                document.put(fieldName, record.getLong(fieldName));
                 break;
             case FLOAT:
-                json.add(fieldName, record.getFloat(fieldName));
+                document.put(fieldName, record.getFloat(fieldName));
                 break;
             case DOUBLE:
-                json.add(fieldName, record.getDouble(fieldName));
+                document.put(fieldName, record.getDouble(fieldName));
                 break;
             case BOOLEAN:
-                json.add(fieldName, record.getBoolean(fieldName));
+                document.put(fieldName, record.getBoolean(fieldName));
                 break;
             case DATETIME:
-                json.add(fieldName, record.getDateTime(fieldName).toString());
+                document.put(fieldName, record.getDateTime(fieldName).toString());
                 break;
         }
     }
