@@ -154,7 +154,7 @@ public class ApacheFTPClient extends GenericFTPClient {
     private <R> GenericFTPFile toGenericFTPFile(FTPFile ftpFile) {
         GenericFTPFile genericFTPFile = new GenericFTPFile();
 
-        genericFTPFile.setName(ftpFile.getName());
+        genericFTPFile.setName(getFilename(ftpFile.getName()));
         genericFTPFile.setDirectory(ftpFile.isDirectory());
         genericFTPFile.setSize(ftpFile.getSize());
 

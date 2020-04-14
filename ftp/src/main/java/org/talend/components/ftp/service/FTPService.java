@@ -120,8 +120,7 @@ public class FTPService implements Serializable {
             String[] pathElements = dataset.getPath().split(PATH_SEPARATOR);
             String pathLastElement = pathElements[pathElements.length - 1];
             if (files.size() == 1) {
-                return !files.get(0).isDirectory()
-                        && (files.get(0).getName().equals(pathLastElement) || files.get(0).getName().equals(dataset.getPath()));
+                return !files.get(0).isDirectory() && (files.get(0).getName().equals(pathLastElement));
             }
 
             return false;

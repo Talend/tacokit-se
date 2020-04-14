@@ -19,6 +19,7 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.slf4j.Logger;
 import org.talend.components.ftp.datastore.FTPDataStore;
 import org.talend.components.ftp.output.FTPOutputConfiguration;
+import org.talend.components.ftp.service.FTPService;
 import org.talend.components.ftp.service.I18nMessage;
 import org.talend.components.ftp.source.FTPInputConfiguration;
 
@@ -70,4 +71,18 @@ public abstract class GenericFTPClient implements AutoCloseable {
     }
 
     public abstract void removeFile(String filePath);
+
+    /**
+     * Extract filename from fullpath
+     * 
+     * @param fullpath
+     * @return
+     */
+    protected final String getFilename(String fullpath) {
+        String[] pathElements = fullpath.split(FTPService.PATH_SEPARATOR);
+        if (pathElements.length > 0) {
+            return pathElements[pathElements.length - 1];
+        }
+        return fullpath;
+    }
 }
