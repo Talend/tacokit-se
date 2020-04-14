@@ -24,6 +24,7 @@ import org.talend.components.mongodb.dataset.MongoDBReadAndWriteDataSet;
 import org.talend.components.mongodb.dataset.MongoDBReadDataSet;
 import org.talend.components.mongodb.datastore.MongoDBDataStore;
 import org.talend.components.mongodb.service.MongoDBService;
+import org.talend.components.mongodb.service.RecordToDocument;
 import org.talend.components.mongodb.sink.MongoDBSinkConfiguration;
 import org.talend.components.mongodb.source.BaseSourceConfiguration;
 import org.talend.components.mongodb.source.MongoDBCollectionSourceConfiguration;
@@ -514,6 +515,15 @@ public class MongoDBTestIT {
                 .connections().from("emitter").to("MongoDB_Sink").build().run();
     }
 
+    private void executeSourceAndSinkTestJob(BaseSourceConfiguration source_config, MongoDBSinkConfiguration sink_config) {
+        final String sourceConfig = SimpleFactory.configurationByExample().forInstance(source_config).configured()
+                .toQueryString();
+        final String sinkConfig = SimpleFactory.configurationByExample().forInstance(sink_config).configured().toQueryString();
+
+        Job.components().component("MongoDB_CollectionQuerySource", "MongoDB://CollectionQuerySource?" + sourceConfig).component("MongoDB_Sink", "MongoDB://Sink?" + sinkConfig)
+                .connections().from("MongoDB_CollectionQuerySource").to("MongoDB_Sink").build().run();
+    }
+
     @Test
     void testSpecialWhere() {
         String query = "{$where:function() {\n" + "   return this.item == \"journal\"" + "}}";
@@ -563,11 +573,23 @@ public class MongoDBTestIT {
         System.out.println(record);
 
         //should can parse it back with 100% the same
-        JsonObject jsonObject = new RecordToJson().fromRecord(record);
-        String jsonContent = jsonObject.toString();
-        System.out.println(jsonContent);
-        Document document = Document.parse(jsonContent);
-        System.out.println(document);
+        Document document = new RecordToDocument().fromRecord(record);
+    }
+
+    @Test
+    void testDataTypeRoundTrip4JsonMode2() {
+        MongoDBReadDataSet source_dataset = getMongoDBDataSet("my_collection_01");
+        source_dataset.setMode(Mode.JSON);
+        MongoDBQuerySourceConfiguration source_config = new MongoDBQuerySourceConfiguration();
+        source_config.setDataset(source_dataset);
+
+        MongoDBReadAndWriteDataSet sink_dataset = getMongoDBReadAndWriteDataSet("target");
+        sink_dataset.setMode(Mode.JSON);
+        MongoDBSinkConfiguration sink_config = new MongoDBSinkConfiguration();
+        sink_config.setDataset(sink_dataset);
+
+        //the json string should be readable, no too much convert as not only for mongodb, the sink also for other target type like database
+        executeSourceAndSinkTestJob(source_config, sink_config);
     }
 
     @Test

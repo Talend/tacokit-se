@@ -12,17 +12,10 @@
  */
 package org.talend.components.mongodb.service;
 
-import java.sql.Types;
-import java.time.DateTimeException;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.bson.types.Code;
+import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -30,7 +23,11 @@ import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Translate mongodb document object to record.
@@ -78,7 +75,7 @@ public class DocumentToRecord {
         return convertDocumentToRecord(schema, document);
     }
 
-    private Schema inferSchema(final List array) {
+    private Schema inferSchema(final List array, DatatypeHolder data_type_holder) {
         Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Type.ARRAY);
         final Schema subSchema;
 
@@ -100,9 +97,9 @@ public class DocumentToRecord {
             final Document document = mergeAll(array);
             subSchema = inferSchema(document);
         } else if (isArray(value)) {
-            subSchema = inferSchema((List)value);
+            subSchema = inferSchema((List)value, data_type_holder);
         } else {
-            final Type type = translateType(value);
+            final Type type = translateType(value, data_type_holder);
             subSchema = recordBuilderFactory.newSchemaBuilder(type).build();
         }
         builder.withElementSchema(subSchema);
@@ -141,6 +138,8 @@ public class DocumentToRecord {
                 .forEach(builder::withEntry);
     }
 
+    static final String TYPE_SPLIT_CHARS = ":$";
+
     private Entry createEntry(String name, Object value) {
         if (log.isDebugEnabled()) {
             log.debug("[createEntry#{}] ({}) {} ", name, value == null ? null : value.getClass(), value);
@@ -153,13 +152,18 @@ public class DocumentToRecord {
             builder.withNullable(true);
         }
 
+        DatatypeHolder data_type_holder = new DatatypeHolder();
+
         if(isNull(value)) {
             //use String type for null value which no way to detect type
             builder.withType(Type.STRING);
         } else if (isArray(value)) {
-            final Schema subSchema = this.inferSchema((List) value);
+            final Schema subSchema = this.inferSchema((List) value, data_type_holder);
             if (subSchema != null) {
                 builder.withElementSchema(subSchema).withType(Type.ARRAY);
+                if(data_type_holder.data_type!=null) {
+                    builder.withComment(name + TYPE_SPLIT_CHARS + data_type_holder.data_type.origin_type);
+                }
             }
         } else if (isDocument(value))  {
             builder.withType(Type.RECORD);
@@ -167,7 +171,12 @@ public class DocumentToRecord {
             populateDocumentEntries(nestedSchemaBuilder, (Document)value);
             builder.withElementSchema(nestedSchemaBuilder.build());
         } else {
-            builder.withType(translateType(value));
+            Type type = translateType(value, data_type_holder);
+            builder.withType(type);
+            if(data_type_holder.data_type!=null) {
+                //now use comment to store the origin name and origin data type, TODO should move it to framework
+                builder.withComment(name + TYPE_SPLIT_CHARS + data_type_holder.data_type.origin_type);
+            }
         }
 
         Entry entry = builder.build();
@@ -186,7 +195,19 @@ public class DocumentToRecord {
     private String getElementName(Entry entry) {
         // not use entry.getName() here as "$oid" will be correct to "oid"
         // comment store "$oid", so use comment here
-        return entry.getComment();
+        return getOriginName(entry);
+    }
+
+    private String getOriginName(Entry entry) {
+        //now use comment to store origin name and origin type information, not good, TODO move to framework
+        final String comment = entry.getComment();
+
+        if(comment!=null && comment.contains(DocumentToRecord.TYPE_SPLIT_CHARS)) {
+            String origin_name = comment.substring(0, comment.lastIndexOf(DocumentToRecord.TYPE_SPLIT_CHARS));
+            return origin_name;
+        }
+
+        return comment;
     }
 
     private void integrateEntryToRecord(Entry entry, Record.Builder builder, Document document) {
@@ -343,7 +364,7 @@ public class DocumentToRecord {
         return result;
     }
 
-    private Type translateType(Object value) {
+    private Type translateType(Object value, DatatypeHolder data_type_holder) {
         if(value instanceof String) {
             return Type.STRING;
         } else if(value instanceof Integer) {
@@ -360,8 +381,36 @@ public class DocumentToRecord {
             return Type.BOOLEAN;
         } else if(value instanceof Date) {
             return Type.DATETIME;
+        } else if(value instanceof ObjectId) {
+            data_type_holder.data_type = DataType.OBJECTID;
+            return Type.STRING;
+        } else if(value instanceof Code) {
+            data_type_holder.data_type = DataType.CODE;
+            return Type.STRING;
+        } else if(value instanceof Decimal128) {
+            data_type_holder.data_type = DataType.DECIMAL128;
+            return Type.STRING;
         } else {
             return Type.STRING;
         }
+    }
+
+    enum DataType {
+
+        //special for MongoDB
+        OBJECTID("objectid"),
+        CODE("code"),
+        DECIMAL128("decimal128");
+
+        final String origin_type;
+
+        DataType(String origin_type) {
+            this.origin_type = origin_type;
+        }
+
+    }
+
+    class DatatypeHolder {
+        DataType data_type;
     }
 }
