@@ -64,6 +64,7 @@ public class MongoDBProcessor implements Serializable {
     private transient MongoCollection<Document> collection;
 
     private transient RecordToJson recordToJson;
+
     private transient RecordToDocument recordToDocument;
 
     public MongoDBProcessor(@Option("configuration") final MongoDBSinkConfiguration configuration, final MongoDBService service,

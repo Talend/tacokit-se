@@ -40,6 +40,7 @@ import org.talend.sdk.component.runtime.manager.chain.Job;
 
 import javax.json.JsonObject;
 import java.util.*;
+import java.util.stream.Collectors;
 
 // TODO current only for local test which have mongo env, will refactor it later
 @Disabled
@@ -520,8 +521,9 @@ public class MongoDBTestIT {
                 .toQueryString();
         final String sinkConfig = SimpleFactory.configurationByExample().forInstance(sink_config).configured().toQueryString();
 
-        Job.components().component("MongoDB_CollectionQuerySource", "MongoDB://CollectionQuerySource?" + sourceConfig).component("MongoDB_Sink", "MongoDB://Sink?" + sinkConfig)
-                .connections().from("MongoDB_CollectionQuerySource").to("MongoDB_Sink").build().run();
+        Job.components().component("MongoDB_CollectionQuerySource", "MongoDB://CollectionQuerySource?" + sourceConfig)
+                .component("MongoDB_Sink", "MongoDB://Sink?" + sinkConfig).connections().from("MongoDB_CollectionQuerySource")
+                .to("MongoDB_Sink").build().run();
     }
 
     @Test
@@ -545,7 +547,7 @@ public class MongoDBTestIT {
 
         final List<Record> res = getRecords(dataset);
 
-        //"a" exists in schema
+        // "a" exists in schema
         System.out.println(res.get(0).getSchema());
     }
 
@@ -556,10 +558,11 @@ public class MongoDBTestIT {
         final List<Record> res = getRecords(dataset);
 
         String jsonContent = res.get(0).getString("my_collection_01");
-        //the json string should be readable, no too much convert as not only for mongodb, the sink also for other target type like database
+        // the json string should be readable, no too much convert as not only for mongodb, the sink also for other target type
+        // like database
         System.out.println(jsonContent);
 
-        //can parse it back with 100% the same
+        // can parse it back with 100% the same
         System.out.println(Document.parse(jsonContent));
     }
 
@@ -568,11 +571,12 @@ public class MongoDBTestIT {
         MongoDBReadDataSet dataset = getMongoDBDataSet("my_collection_01");
         final List<Record> res = getRecords(dataset);
 
-        //the json string should be readable, no too much convert as not only for mongodb, the sink also for other target type like database
+        // the json string should be readable, no too much convert as not only for mongodb, the sink also for other target type
+        // like database
         Record record = res.get(0);
         System.out.println(record);
 
-        //should can parse it back with 100% the same
+        // should can parse it back with 100% the same
         Document document = new RecordToDocument().fromRecord(record);
     }
 
@@ -588,13 +592,14 @@ public class MongoDBTestIT {
         MongoDBSinkConfiguration sink_config = new MongoDBSinkConfiguration();
         sink_config.setDataset(sink_dataset);
 
-        //the json string should be readable, no too much convert as not only for mongodb, the sink also for other target type like database
+        // the json string should be readable, no too much convert as not only for mongodb, the sink also for other target type
+        // like database
         executeSourceAndSinkTestJob(source_config, sink_config);
     }
 
     @Test
     void testSpecialDataTypeStructFromPipeLine() {
-        //TODO
+        // TODO
     }
 
     @Test

@@ -70,6 +70,7 @@ public class MongoDBReader implements Serializable {
     private transient MongoClient client;
 
     private transient JsonToRecord jsonToRecord;
+
     private transient DocumentToRecord documentToRecord;
 
     public MongoDBReader(@Option("configuration") final BaseSourceConfiguration configuration, final MongoDBService service,

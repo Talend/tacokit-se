@@ -79,8 +79,8 @@ public class DocumentToRecord {
         Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Type.ARRAY);
         final Schema subSchema;
 
-        if(array.isEmpty()) {
-            //use String type for the miss element of empty array
+        if (array.isEmpty()) {
+            // use String type for the miss element of empty array
             subSchema = recordBuilderFactory.newSchemaBuilder(Type.STRING).build();
             builder.withElementSchema(subSchema);
             return builder.build();
@@ -88,8 +88,8 @@ public class DocumentToRecord {
 
         final Object value = array.get(0);
 
-        if(isNull(value)) {
-            //use String type for null value which no way to detect type
+        if (isNull(value)) {
+            // use String type for null value which no way to detect type
             subSchema = recordBuilderFactory.newSchemaBuilder(Type.STRING).build();
         } else if (isDocument(value)) {
             // if first element is object, supposing all elements are object (otherwise not compatible with record),
@@ -97,7 +97,7 @@ public class DocumentToRecord {
             final Document document = mergeAll(array);
             subSchema = inferSchema(document);
         } else if (isArray(value)) {
-            subSchema = inferSchema((List)value, data_type_holder);
+            subSchema = inferSchema((List) value, data_type_holder);
         } else {
             final Type type = translateType(value, data_type_holder);
             subSchema = recordBuilderFactory.newSchemaBuilder(type).build();
@@ -127,15 +127,14 @@ public class DocumentToRecord {
         final Document document = new Document();
 
         array.stream().filter((Object v) -> v instanceof Document).forEach(doc -> {
-            document.putAll((Map<String, Object>)doc);
+            document.putAll((Map<String, Object>) doc);
         });
 
         return document;
     }
 
     private void populateDocumentEntries(Schema.Builder builder, Document value) {
-        value.entrySet().stream().map(s -> createEntry(s.getKey(), s.getValue()))
-                .forEach(builder::withEntry);
+        value.entrySet().stream().map(s -> createEntry(s.getKey(), s.getValue())).forEach(builder::withEntry);
     }
 
     static final String TYPE_SPLIT_CHARS = ":$";
@@ -154,27 +153,27 @@ public class DocumentToRecord {
 
         DatatypeHolder data_type_holder = new DatatypeHolder();
 
-        if(isNull(value)) {
-            //use String type for null value which no way to detect type
+        if (isNull(value)) {
+            // use String type for null value which no way to detect type
             builder.withType(Type.STRING);
         } else if (isArray(value)) {
             final Schema subSchema = this.inferSchema((List) value, data_type_holder);
             if (subSchema != null) {
                 builder.withElementSchema(subSchema).withType(Type.ARRAY);
-                if(data_type_holder.data_type!=null) {
+                if (data_type_holder.data_type != null) {
                     builder.withComment(name + TYPE_SPLIT_CHARS + data_type_holder.data_type.origin_type);
                 }
             }
-        } else if (isDocument(value))  {
+        } else if (isDocument(value)) {
             builder.withType(Type.RECORD);
             Schema.Builder nestedSchemaBuilder = recordBuilderFactory.newSchemaBuilder(Type.RECORD);
-            populateDocumentEntries(nestedSchemaBuilder, (Document)value);
+            populateDocumentEntries(nestedSchemaBuilder, (Document) value);
             builder.withElementSchema(nestedSchemaBuilder.build());
         } else {
             Type type = translateType(value, data_type_holder);
             builder.withType(type);
-            if(data_type_holder.data_type!=null) {
-                //now use comment to store the origin name and origin data type, TODO should move it to framework
+            if (data_type_holder.data_type != null) {
+                // now use comment to store the origin name and origin data type, TODO should move it to framework
                 builder.withComment(name + TYPE_SPLIT_CHARS + data_type_holder.data_type.origin_type);
             }
         }
@@ -199,10 +198,10 @@ public class DocumentToRecord {
     }
 
     private String getOriginName(Entry entry) {
-        //now use comment to store origin name and origin type information, not good, TODO move to framework
+        // now use comment to store origin name and origin type information, not good, TODO move to framework
         final String comment = entry.getComment();
 
-        if(comment!=null && comment.contains(DocumentToRecord.TYPE_SPLIT_CHARS)) {
+        if (comment != null && comment.contains(DocumentToRecord.TYPE_SPLIT_CHARS)) {
             String origin_name = comment.substring(0, comment.lastIndexOf(DocumentToRecord.TYPE_SPLIT_CHARS));
             return origin_name;
         }
@@ -215,70 +214,71 @@ public class DocumentToRecord {
             return;
         }
         switch (entry.getType()) {
-            case RECORD: {
-                final Document subDocument = document.get(getElementName(entry), Document.class);
-                final Record record = convertDocumentToRecord(entry.getElementSchema(), subDocument);
-                builder.withRecord(entry, record);
-                break;
+        case RECORD: {
+            final Document subDocument = document.get(getElementName(entry), Document.class);
+            final Record record = convertDocumentToRecord(entry.getElementSchema(), subDocument);
+            builder.withRecord(entry, record);
+            break;
+        }
+        case ARRAY:
+            final List<?> objects = convertArray(entry.getElementSchema(), (List) document.get(getElementName(entry)));
+            if (objects != null) {
+                builder.withArray(entry, objects);
             }
-            case ARRAY:
-                final List<?> objects = convertArray(entry.getElementSchema(), (List)document.get(getElementName(entry)));
-                if (objects != null) {
-                    builder.withArray(entry, objects);
-                }
-                break;
-            case STRING: {
-                //TODO check if is right here as this is also do process for null as all null value is mapped to String type, as value may be null here
-                Object value = document.get(getElementName(entry));
-                if(isNull(value)) {
-                    builder.withString(entry, (String)value);
-                } else if(value instanceof ObjectId) {
-                    builder.withString(entry, ObjectId.class.cast(value).toString());
-                } else if(value instanceof Code) {
-                    builder.withString(entry, Code.class.cast(value).getCode());
-                } else {
-                    builder.withString(entry, value.toString());
-                }
+            break;
+        case STRING: {
+            // TODO check if is right here as this is also do process for null as all null value is mapped to String type, as
+            // value may be null here
+            Object value = document.get(getElementName(entry));
+            if (isNull(value)) {
+                builder.withString(entry, (String) value);
+            } else if (value instanceof ObjectId) {
+                builder.withString(entry, ObjectId.class.cast(value).toString());
+            } else if (value instanceof Code) {
+                builder.withString(entry, Code.class.cast(value).getCode());
+            } else {
+                builder.withString(entry, value.toString());
+            }
 
-                break;
-            }
-            case INT: {
-                Integer value = document.getInteger(getElementName(entry));
-                builder.withInt(entry, value);
-                break;
-            }
-            case LONG: {
-                Long value = document.getLong(getElementName(entry));
-                builder.withLong(entry, value);
-                break;
-            }
-            case FLOAT: {
-                //Mongo DB document don't have float type, so all double type, TODO check
-                Double value = document.getDouble(getElementName(entry));
-                builder.withDouble(entry, value);
-                break;
-            }
-            case DOUBLE: {
-                Double value = document.getDouble(getElementName(entry));
-                builder.withDouble(entry, value);
-                break;
-            }
-            case BOOLEAN: {
-                Boolean value = document.getBoolean(getElementName(entry));
-                builder.withBoolean(entry, value);
-                break;
-            }
-            case BYTES: {
-                String value = document.getString(getElementName(entry));
-                //TODO use default encoding? not UTF8
-                builder.withBytes(entry, value.getBytes());
-                break;
-            }
-            case DATETIME: {
-                Date value = document.getDate(getElementName(entry));
-                builder.withDateTime(entry, value);
-                break;
-            }
+            break;
+        }
+        case INT: {
+            Integer value = document.getInteger(getElementName(entry));
+            builder.withInt(entry, value);
+            break;
+        }
+        case LONG: {
+            Long value = document.getLong(getElementName(entry));
+            builder.withLong(entry, value);
+            break;
+        }
+        case FLOAT: {
+            // Mongo DB document don't have float type, so all double type, TODO check
+            Double value = document.getDouble(getElementName(entry));
+            builder.withDouble(entry, value);
+            break;
+        }
+        case DOUBLE: {
+            Double value = document.getDouble(getElementName(entry));
+            builder.withDouble(entry, value);
+            break;
+        }
+        case BOOLEAN: {
+            Boolean value = document.getBoolean(getElementName(entry));
+            builder.withBoolean(entry, value);
+            break;
+        }
+        case BYTES: {
+            String value = document.getString(getElementName(entry));
+            // TODO use default encoding? not UTF8
+            builder.withBytes(entry, value.getBytes());
+            break;
+        }
+        case DATETIME: {
+            Date value = document.getDate(getElementName(entry));
+            builder.withDateTime(entry, value);
+            break;
+        }
         }
     }
 
@@ -289,105 +289,113 @@ public class DocumentToRecord {
      * @param array : array.
      * @return list of value.
      */
-    private List<? extends Object> convertArray(Schema schema, List<Object> array) {
-        final List<? extends Object> result;
+    private List<Object> convertArray(Schema schema, List<Object> array) {
+        final List<Object> result;
         Schema elementSchema = schema.getElementSchema();
         switch (elementSchema.getType()) {
-            case RECORD:
-                result = array.stream().map((Object v) -> convertDocumentToRecord(elementSchema, (Document)v))
-                        .collect(Collectors.toList());
-                break;
-            case ARRAY:
-                result = array.stream().map((Object v) -> convertArray(elementSchema, (List)v))
-                        .collect(Collectors.toList());
-                break;
-            case STRING:
-                //TODO : check if right here : do process for null as all null value is mapped to String type, this is for the case : {array: []} or {array: [null]}
-                if(array.isEmpty()) {
-                    //maybe need clone?
-                    result = array;
-                } else {
-                    //String.cast can process null, so ok here, not sure how this process empty array
-                    List<String> r = new ArrayList<>();
-                    array.stream().forEach(v -> {
-                        if(isNull(v)) {
-                            r.add((String)v);
-                        } else if(v instanceof ObjectId) {
-                            r.add(ObjectId.class.cast(v).toString());
-                        } else if(v instanceof Code) {
-                            r.add(Code.class.cast(v).getCode());
-                        } else {
-                            r.add(v.toString());
-                        }
-                    });
-                    return r;
-                }
-                break;
-            case LONG:
-                //maybe need clone?
-                result = array;
-                //result = array.stream().map(Long.class::cast).collect(Collectors.toList());
-                break;
-            case FLOAT:
-                result = array;
-                //Mongo DB document don't have float type, so all double type
-                //result = array.stream().map(Double.class::cast).collect(Collectors.toList());
-                break;
-            case DOUBLE:
-                result = array;
-                //result = array.stream().map(Double.class::cast).collect(Collectors.toList());
-                break;
-            case BOOLEAN:
-                result = array;
-                //result = array.stream().map(Boolean.TRUE::equals).collect(Collectors.toList());
-                break;
-            case INT: {
-                result = array;
-                //result = array.stream().map(Integer.class::cast).collect(Collectors.toList());
-                break;
+        case RECORD:
+            result = array.stream().map((Object v) -> convertDocumentToRecord(elementSchema, (Document) v))
+                    .collect(Collectors.toList());
+            break;
+        case ARRAY:
+            // this way can't pass the complier in an old version jdk8
+            /*
+             * result = array.stream().map((Object v) -> convertArray(elementSchema, (List)v))
+             * .collect(Collectors.toList());
+             */
+            result = new ArrayList<>();
+            for (Object v : array) {
+                result.add(convertArray(elementSchema, (List) v));
             }
-            case BYTES: {
-                //TODO use default encoding? not UTF8
-                result = array.stream().map(String.class::cast).map(v-> v.getBytes()).collect(Collectors.toList());
-                break;
-            }
-            case DATETIME: {
+            break;
+        case STRING:
+            // TODO : check if right here : do process for null as all null value is mapped to String type, this is for the case :
+            // {array: []} or {array: [null]}
+            if (array.isEmpty()) {
+                // maybe need clone?
                 result = array;
-                //result = array.stream().map(Date.class::cast).collect(Collectors.toList());
-                break;
+            } else {
+                // String.cast can process null, so ok here, not sure how this process empty array
+                result = new ArrayList<>();
+                array.stream().forEach(v -> {
+                    if (isNull(v)) {
+                        result.add((String) v);
+                    } else if (v instanceof ObjectId) {
+                        result.add(ObjectId.class.cast(v).toString());
+                    } else if (v instanceof Code) {
+                        result.add(Code.class.cast(v).getCode());
+                    } else {
+                        result.add(v.toString());
+                    }
+                });
+                return result;
             }
-            default: {
-                result = array;
-            }
+            break;
+        case LONG:
+            // maybe need clone?
+            result = array;
+            // result = array.stream().map(Long.class::cast).collect(Collectors.toList());
+            break;
+        case FLOAT:
+            result = array;
+            // Mongo DB document don't have float type, so all double type
+            // result = array.stream().map(Double.class::cast).collect(Collectors.toList());
+            break;
+        case DOUBLE:
+            result = array;
+            // result = array.stream().map(Double.class::cast).collect(Collectors.toList());
+            break;
+        case BOOLEAN:
+            result = array;
+            // result = array.stream().map(Boolean.TRUE::equals).collect(Collectors.toList());
+            break;
+        case INT: {
+            result = array;
+            // result = array.stream().map(Integer.class::cast).collect(Collectors.toList());
+            break;
+        }
+        case BYTES: {
+            // TODO use default encoding? not UTF8
+            result = array.stream().map(String.class::cast).map(v -> v.getBytes()).collect(Collectors.toList());
+            break;
+        }
+        case DATETIME: {
+            result = array;
+            // result = array.stream().map(Date.class::cast).collect(Collectors.toList());
+            break;
+        }
+        default: {
+            result = array;
+        }
         }
 
         return result;
     }
 
     private Type translateType(Object value, DatatypeHolder data_type_holder) {
-        if(value instanceof String) {
+        if (value instanceof String) {
             return Type.STRING;
-        } else if(value instanceof Integer) {
+        } else if (value instanceof Integer) {
             return Type.INT;
-        } else if(value instanceof Long) {
+        } else if (value instanceof Long) {
             return Type.LONG;
-        } else if(value instanceof Short) {
+        } else if (value instanceof Short) {
             return Type.INT;
-        } else if(value instanceof Double) {
+        } else if (value instanceof Double) {
             return Type.DOUBLE;
-        } else if(value instanceof Float) {
+        } else if (value instanceof Float) {
             return Type.FLOAT;
-        } else if(value instanceof Boolean) {
+        } else if (value instanceof Boolean) {
             return Type.BOOLEAN;
-        } else if(value instanceof Date) {
+        } else if (value instanceof Date) {
             return Type.DATETIME;
-        } else if(value instanceof ObjectId) {
+        } else if (value instanceof ObjectId) {
             data_type_holder.data_type = DataType.OBJECTID;
             return Type.STRING;
-        } else if(value instanceof Code) {
+        } else if (value instanceof Code) {
             data_type_holder.data_type = DataType.CODE;
             return Type.STRING;
-        } else if(value instanceof Decimal128) {
+        } else if (value instanceof Decimal128) {
             data_type_holder.data_type = DataType.DECIMAL128;
             return Type.STRING;
         } else {
@@ -397,7 +405,7 @@ public class DocumentToRecord {
 
     enum DataType {
 
-        //special for MongoDB
+        // special for MongoDB
         OBJECTID("objectid"),
         CODE("code"),
         DECIMAL128("decimal128");
@@ -411,6 +419,7 @@ public class DocumentToRecord {
     }
 
     class DatatypeHolder {
+
         DataType data_type;
     }
 }
