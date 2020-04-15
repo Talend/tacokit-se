@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -54,6 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 @Slf4j
+@Disabled
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @WithComponents("org.talend.components.netsuite")
 public class NetSuiteSourceTest extends NetSuiteBaseTest {
