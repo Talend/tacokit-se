@@ -23,6 +23,8 @@ import org.talend.components.ftp.service.ftpclient.GenericFTPClient;
 import org.talend.components.ftp.service.ftpclient.GenericFTPFile;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.completion.SuggestionValues;
+import org.talend.sdk.component.api.service.completion.Suggestions;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +35,10 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import static java.util.Collections.emptyList;
 
 @Slf4j
 @Service
@@ -41,6 +47,8 @@ public class FTPService implements Serializable {
     public static final String ACTION_HEALTH_CHECK = "HEALTH_CHECK";
 
     public static final String PATH_SEPARATOR = "/";
+
+    public static final String ACTION_SUGGESTION_PATH = "SUGGESTION_PATH";
 
     @Service
     private I18nMessage i18n;
@@ -66,7 +74,29 @@ public class FTPService implements Serializable {
         }
     }
 
+    @Suggestions(ACTION_SUGGESTION_PATH)
+    public SuggestionValues suggestPath(@Option final FTPDataStore datastore, @Option final String path) {
+        try (GenericFTPClient ftpClient = getClient(datastore)) {
+            System.out.println("Suggestion from " + path);
+            return new SuggestionValues(false,
+                    ftpClient.listFiles(getDirectory(path)).stream().map(f -> generateFilePath(path, f.getName()))
+                            .map(p -> new SuggestionValues.Item(p, p)).collect(Collectors.toList()));
+        }
+
+    }
+
+    private String getDirectory(String path) {
+        if (path == null || "".equals(path.trim())) {
+            return "/";
+        }
+
+        return path.substring(0, path.lastIndexOf('/'));
+    }
+
     public String generateFilePath(String dirPath, String filename) {
+        if (dirPath == null) {
+            dirPath = "";
+        }
         return dirPath + (dirPath.endsWith(PATH_SEPARATOR) ? "" : PATH_SEPARATOR) + filename;
     }
 
@@ -125,7 +155,6 @@ public class FTPService implements Serializable {
 
             return false;
         }
-
     }
 
 }

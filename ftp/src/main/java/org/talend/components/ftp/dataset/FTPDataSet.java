@@ -20,8 +20,10 @@ import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.components.common.stream.format.FormatConfiguration;
 import org.talend.components.common.stream.format.csv.CSVConfiguration;
 import org.talend.components.ftp.datastore.FTPDataStore;
+import org.talend.components.ftp.service.FTPService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataSet;
@@ -48,7 +50,8 @@ public class FTPDataSet implements Serializable {
 
     @Option
     @Documentation("Path to work in.")
-    private String path = "";
+    @Suggestable(value = FTPService.ACTION_SUGGESTION_PATH, parameters = { "datastore", "." })
+    private String path;
 
     @Option
     @Documentation("Format of files")
