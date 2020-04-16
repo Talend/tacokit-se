@@ -10,29 +10,25 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.common.stream;
+package org.talend.components.common.stream.input.excel;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Iterator;
 
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.talend.components.common.stream.format.excel.ExcelConfiguration;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration.ExcelFormat;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-public class ExcelUtils {
+public interface FormatReader {
 
-    public static Workbook createWorkBook(ExcelFormat format) {
-        return format == ExcelFormat.EXCEL97 ? new HSSFWorkbook() : new XSSFWorkbook();
-    }
+    Iterator<Record> read(InputStream input, ExcelConfiguration configuration) throws IOException;
 
-    public static Workbook readWorkBook(ExcelFormat format, InputStream input) throws IOException {
-        if (format == ExcelFormat.EXCEL97) {
-            return new HSSFWorkbook(input);
+    static FormatReader findReader(ExcelFormat format, RecordBuilderFactory factory) {
+        if (format == ExcelFormat.EXCEL97 || format == ExcelFormat.EXCEL2007) {
+            return new ExcelReader(factory);
         }
-        if (format == ExcelFormat.EXCEL2007) {
-            return new XSSFWorkbook(input);
-        }
-        return new HSSFWorkbook(input);
+        return new HTMLReader(factory);
     }
 }

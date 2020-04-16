@@ -13,6 +13,7 @@
     <properties>
         <apache.poi.version>3.17</apache.poi.version>
         <excel.streamer.version>2.1.0</excel.streamer.version>
+        <jsoup.version>1.11.3</jsoup.version>
     </properties>
 
     <dependencies>
@@ -33,11 +34,14 @@
             <artifactId>poi-ooxml</artifactId>
             <version>${apache.poi.version}</version>
         </dependency>
-        <!--<dependency>
-            <groupId>com.monitorjbl</groupId>
-            <artifactId>xlsx-streamer</artifactId>
-            <version>${excel.streamer.version}</version>
-        </dependency>-->
+
+        <!-- HTML -->
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>${jsoup.version}</version>
+        </dependency>
+
 
     </dependencies>
 </project>

@@ -36,7 +36,7 @@ class FixedLineRecordTest {
         cfg.setLineConfiguration(new LineConfiguration());
         cfg.getLineConfiguration().setLineSeparator(System.lineSeparator());
         cfg.getLineConfiguration().setEncoding(new Encoding());
-        cfg.getLineConfiguration().getEncoding().setEncodingType(Type.UFT8);
+        cfg.getLineConfiguration().getEncoding().setEncodingType(Type.UTF8);
 
         FixedReaderSupplier recordReaderSupplier = new FixedReaderSupplier();
         RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");

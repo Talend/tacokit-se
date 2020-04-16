@@ -61,6 +61,11 @@ public class IteratorComposer<T> {
         return IteratorComposer.of(delayedIterator);
     }
 
+    public IteratorComposer<T> closeable(AutoCloseable closeFunction) {
+        final Iterator<T> closeableIterator = new CloseableIterator<>(this.iterator, closeFunction);
+        return IteratorComposer.of(closeableIterator);
+    }
+
     /**
      * Composed iterator with flat map function.
      * 

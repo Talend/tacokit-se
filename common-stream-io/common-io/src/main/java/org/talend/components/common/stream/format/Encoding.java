@@ -28,7 +28,7 @@ public class Encoding implements Serializable {
     private static final long serialVersionUID = -332572169846419496L;
 
     public enum Type {
-        UFT8("UTF-8"), //
+        UTF8("UTF-8"), //
         ISO_8859_15("ISO-8859-15"), //
         OTHER("OTHER");
 
@@ -45,7 +45,7 @@ public class Encoding implements Serializable {
 
     @Option
     @Documentation("Content encoding.")
-    private Encoding.Type encodingType = Encoding.Type.UFT8;
+    private Encoding.Type encodingType = Encoding.Type.UTF8;
 
     @Option
     @ActiveIf(target = "encodingType", value = "OTHER")

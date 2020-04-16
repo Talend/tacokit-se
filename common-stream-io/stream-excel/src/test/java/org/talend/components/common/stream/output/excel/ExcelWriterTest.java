@@ -23,8 +23,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.output.RecordWriter;
 import org.talend.components.common.stream.api.output.TargetFinder;
-import org.talend.components.common.stream.format.Encoding;
-import org.talend.components.common.stream.format.Encoding.Type;
 import org.talend.components.common.stream.format.OptionalLine;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration.ExcelFormat;
