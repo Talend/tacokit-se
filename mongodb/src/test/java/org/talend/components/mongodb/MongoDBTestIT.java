@@ -310,6 +310,24 @@ public class MongoDBTestIT {
     }
 
     @Test
+    void testUpdateWithDifferentPath() {
+        MongoDBReadAndWriteDataSet dataset = getMongoDBReadAndWriteDataSet("test");
+
+        dataset.setMode(Mode.JSON);
+
+        MongoDBSinkConfiguration config = new MongoDBSinkConfiguration();
+        config.setDataset(dataset);
+        config.setDataAction(DataAction.SET);
+        config.setKeyMappings(Arrays.asList(new KeyMapping("myid", "_id")));
+
+        componentsHandler.setInputData(getUpdateDataForDifferentPath());
+        executeSinkTestJob(config);
+
+        List<Record> res = getRecords(dataset);
+        System.out.println(res);
+    }
+
+    @Test
     void testUpdateWithBulkWriteOrdered() {
         MongoDBReadAndWriteDataSet dataset = getMongoDBReadAndWriteDataSet("test");
 
@@ -493,6 +511,17 @@ public class MongoDBTestIT {
         for (int i = 2; i < 10; i++) {
             Record record = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder().withLong("_id", i)
                     .withLong("id", i).withString("name", "wangwei1").withInt("score", 100).withDouble("high", 180.5)
+                    .withDateTime("birth", new Date()).build();
+            testRecords.add(record);
+        }
+        return testRecords;
+    }
+
+    private List<Record> getUpdateDataForDifferentPath() {
+        List<Record> testRecords = new ArrayList<>();
+        for (int i = 2; i < 10; i++) {
+            Record record = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder().withLong("myid", i)
+                    .withString("name", "wangwei1").withInt("score", 100).withDouble("high", 180.5)
                     .withDateTime("birth", new Date()).build();
             testRecords.add(record);
         }

@@ -203,7 +203,8 @@ public class MongoDBProcessor implements Serializable {
         }
     }
 
-    private Document getKeysQueryDocument(List<KeyMapping> keyMappings, Record record, Document document) {
+    private Document getKeysQueryDocumentAndRemoveKeysFromSourceDocument(List<KeyMapping> keyMappings, Record record,
+            Document document) {
         Document keysQueryDocument = new Document();
         if (keyMappings == null || keyMappings.isEmpty()) {
             throw new RuntimeException("need at least one key for set update/upsert action.");
@@ -211,6 +212,7 @@ public class MongoDBProcessor implements Serializable {
         for (KeyMapping keyMapping : configuration.getKeyMappings()) {
             String column = keyMapping.getColumn();
             String keyPath = keyMapping.getOriginElementPath();
+
             // TODO format it for right value format for lookup, now only follow the logic in studio,
             // so may not work for ObjectId, ISODate, NumberDecimal and so on, but they are not common as key
             // and "_id" can set in mongodb, not necessary as ObjectId type
@@ -218,14 +220,82 @@ public class MongoDBProcessor implements Serializable {
             if (configuration.getDataset().getMode() == Mode.TEXT) {
                 // when TEXT mode, record is expected only have one column which contains the whole json content as text
                 // so need to get it from document, not record
-                Object value = document.get(column);
-                keysQueryDocument.put(keyPath, value);
+                Object value = getKeyValueFromDocumentAndRemoveKeys(document, column);
+                keysQueryDocument.put(isEmpty(keyPath) ? column : keyPath, value);
             } else {
-                Object value = record.get(Object.class, column);
-                keysQueryDocument.put(keyPath, value);
+                Object value = getKeyValueFromRecord(record, column);
+                getKeyValueFromDocumentAndRemoveKeys(document, column);
+                keysQueryDocument.put(isEmpty(keyPath) ? column : keyPath, value);
             }
         }
         return keysQueryDocument;
+    }
+
+    // only support path like a.b.c, not support array
+    private Object getKeyValueFromDocumentAndRemoveKeys(Document document, String keyColumnPath) {
+        if (isEmpty(keyColumnPath)) {
+            throw new RuntimeException("Please set the key column for update or upsert.");
+        }
+
+        String[] paths = keyColumnPath.split("\\.");
+        Object result = null;
+        for (int i = 0; i < paths.length; i++) {
+            String path = paths[i];
+
+            if (isEmpty(path)) {
+                throw new RuntimeException("Please set the right key column for update or upsert.");
+            }
+
+            if (document != null) {
+                Object v = document.get(path);
+                if (v instanceof Document) {
+                    document = (Document) v;
+                } else if (i == (paths.length - 1)) {
+                    result = v;
+                    // need to remove origin key-value for update and upsert
+                    // https://jira.talendforge.org/browse/TDI-44003
+                    document.remove(path);
+                }
+            } else {
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    // only support path like a.b.c, not support array
+    private Object getKeyValueFromRecord(Record record, String keyColumnPath) {
+        if (isEmpty(keyColumnPath)) {
+            throw new RuntimeException("Please set the key column for update or upsert.");
+        }
+
+        String[] paths = keyColumnPath.split("\\.");
+        Object result = null;
+        for (int i = 0; i < paths.length; i++) {
+            String path = paths[i];
+
+            if (isEmpty(path)) {
+                throw new RuntimeException("Please set the right key column for update or upsert.");
+            }
+
+            if (record != null) {
+                Object v = record.get(Object.class, path);
+                if (v instanceof Record) {
+                    record = (Record) v;
+                } else if (i == (paths.length - 1)) {
+                    result = v;
+                }
+            } else {
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    private boolean isEmpty(String str) {
+        return str == null || str.trim().isEmpty();
     }
 
     @ElementListener
@@ -294,20 +364,22 @@ public class MongoDBProcessor implements Serializable {
         case SET:
             if (configuration.isBulkWrite()) {
                 if (configuration.isUpdateAllDocuments()) {
-                    writeModels.add(
-                            new UpdateManyModel<Document>(getKeysQueryDocument(configuration.getKeyMappings(), record, document),
-                                    new Document("$set", document)));
+                    writeModels.add(new UpdateManyModel<Document>(
+                            getKeysQueryDocumentAndRemoveKeysFromSourceDocument(configuration.getKeyMappings(), record, document),
+                            new Document("$set", document)));
                 } else {
-                    writeModels.add(
-                            new UpdateOneModel<Document>(getKeysQueryDocument(configuration.getKeyMappings(), record, document),
-                                    new Document("$set", document)));
+                    writeModels.add(new UpdateOneModel<Document>(
+                            getKeysQueryDocumentAndRemoveKeysFromSourceDocument(configuration.getKeyMappings(), record, document),
+                            new Document("$set", document)));
                 }
             } else {
                 if (configuration.isUpdateAllDocuments()) {
-                    collection.updateMany(getKeysQueryDocument(configuration.getKeyMappings(), record, document),
+                    collection.updateMany(
+                            getKeysQueryDocumentAndRemoveKeysFromSourceDocument(configuration.getKeyMappings(), record, document),
                             new Document("$set", document));
                 } else {
-                    collection.updateOne(getKeysQueryDocument(configuration.getKeyMappings(), record, document),
+                    collection.updateOne(
+                            getKeysQueryDocumentAndRemoveKeysFromSourceDocument(configuration.getKeyMappings(), record, document),
                             new Document("$set", document));
                 }
             }
@@ -322,20 +394,22 @@ public class MongoDBProcessor implements Serializable {
             // TODO show a more clear exception here
             if (configuration.isBulkWrite()) {
                 if (configuration.isUpdateAllDocuments()) {
-                    writeModels.add(
-                            new UpdateManyModel<Document>(getKeysQueryDocument(configuration.getKeyMappings(), record, document),
-                                    new Document("$set", document), new UpdateOptions().upsert(true)));
+                    writeModels.add(new UpdateManyModel<Document>(
+                            getKeysQueryDocumentAndRemoveKeysFromSourceDocument(configuration.getKeyMappings(), record, document),
+                            new Document("$set", document), new UpdateOptions().upsert(true)));
                 } else {
-                    writeModels.add(
-                            new UpdateOneModel<Document>(getKeysQueryDocument(configuration.getKeyMappings(), record, document),
-                                    new Document("$set", document), new UpdateOptions().upsert(true)));
+                    writeModels.add(new UpdateOneModel<Document>(
+                            getKeysQueryDocumentAndRemoveKeysFromSourceDocument(configuration.getKeyMappings(), record, document),
+                            new Document("$set", document), new UpdateOptions().upsert(true)));
                 }
             } else {
                 if (configuration.isUpdateAllDocuments()) {
-                    collection.updateMany(getKeysQueryDocument(configuration.getKeyMappings(), record, document),
+                    collection.updateMany(
+                            getKeysQueryDocumentAndRemoveKeysFromSourceDocument(configuration.getKeyMappings(), record, document),
                             new Document("$set", document), new UpdateOptions().upsert(true));
                 } else {
-                    collection.updateOne(getKeysQueryDocument(configuration.getKeyMappings(), record, document),
+                    collection.updateOne(
+                            getKeysQueryDocumentAndRemoveKeysFromSourceDocument(configuration.getKeyMappings(), record, document),
                             new Document("$set", document), new UpdateOptions().upsert(true));
                 }
             }
