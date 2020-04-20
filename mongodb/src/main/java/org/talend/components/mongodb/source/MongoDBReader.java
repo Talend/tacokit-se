@@ -73,12 +73,16 @@ public class MongoDBReader implements Serializable {
 
     private transient DocumentToRecord documentToRecord;
 
+    private transient String query4Split;
+
     public MongoDBReader(@Option("configuration") final BaseSourceConfiguration configuration, final MongoDBService service,
-            final RecordBuilderFactory builderFactory, final I18nMessage i18n) {
+            final RecordBuilderFactory builderFactory, final I18nMessage i18n, String query4Split) {
         this.configuration = configuration;
         this.service = service;
         this.builderFactory = builderFactory;
         this.i18n = i18n;
+
+        this.query4Split = query4Split;
     }
 
     Iterator<Document> iterator = null;
@@ -99,6 +103,11 @@ public class MongoDBReader implements Serializable {
 
     // TODO make it generic
     private Iterator<Document> fetchData(BaseDataSet dataset, MongoCollection<Document> collection) {
+        if (query4Split != null) {
+            log.info("query for mongodb split : " + query4Split);
+            return collection.find(service.getBsonDocument(query4Split)).iterator();
+        }
+
         if (dataset instanceof MongoDBReadDataSet) {
             // return fetchData((MongoDBReadDataSet) dataset, collection);
             BsonDocument query = service.getBsonDocument(((MongoDBReadDataSet) dataset).getQuery());

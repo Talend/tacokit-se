@@ -12,9 +12,15 @@
  */
 package org.talend.components.mongodb.source;
 
-import org.talend.components.mongodb.service.MongoDBService;
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import lombok.Setter;
+import org.bson.Document;
+import org.talend.components.mongodb.dataset.BaseDataSet;
+import org.talend.components.mongodb.datastore.MongoDBDataStore;
 import org.talend.components.mongodb.service.I18nMessage;
-
+import org.talend.components.mongodb.service.MongoDBService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -24,6 +30,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 
@@ -41,6 +48,9 @@ public class MongoDBQueryMapper implements Serializable {
 
     private final I18nMessage i18nMessage;
 
+    @Setter
+    private String query4Split;
+
     public MongoDBQueryMapper(@Option("configuration") final MongoDBQuerySourceConfiguration configuration,
             final MongoDBService service, final RecordBuilderFactory recordBuilderFactory, final I18nMessage i18nMessage) {
         this.configuration = configuration;
@@ -51,26 +61,39 @@ public class MongoDBQueryMapper implements Serializable {
 
     @Assessor
     public long estimateSize() {
-        // TODO support split
+        if (!SplitUtil.isSplit(configuration.getDataset().getQuery())) {
+            return 1l;
+        }
 
-        // this method should return the estimation of the dataset size
-        // it is recommended to return a byte value
-        // if you don't have the exact size you can use a rough estimation
-        return 1L;
+        return SplitUtil.getEstimatedSizeBytes(configuration, service);
     }
 
     @Split
     public List<MongoDBQueryMapper> split(@PartitionSize final long bundles) {
-        // TODO support split
+        if (!SplitUtil.isSplit(configuration.getDataset().getQuery())) {
+            return singletonList(this);
+        }
 
-        // overall idea here is to split the work related to configuration in bundles of size "bundles"
-        //
-        // for instance if your estimateSize() returned 1000 and you can run on 10 nodes
-        // then the environment can decide to run it concurrently (10 * 100).
-        // In this case bundles = 100 and we must try to return 10 MongoDBMapper with 1/10 of the overall work each.
-        //
-        // default implementation returns this which means it doesn't support the work to be split
-        return singletonList(this);
+        if (bundles < 2) {
+            return singletonList(this);
+        }
+
+        int splitCount = (int) (estimateSize() / bundles);
+
+        List<String> queries4Split = SplitUtil.getQueries4Split(configuration, service, splitCount);
+
+        if (queries4Split == null || queries4Split.size() < 2) {
+            return singletonList(this);
+        }
+
+        return queries4Split.stream().map(query4Split -> cloneMapperAndSetSplitParameter4Reader(query4Split))
+                .collect(Collectors.toList());
+    }
+
+    private MongoDBQueryMapper cloneMapperAndSetSplitParameter4Reader(String query4Split) {
+        MongoDBQueryMapper mapper = new MongoDBQueryMapper(configuration, service, recordBuilderFactory, i18nMessage);
+        mapper.setQuery4Split(query4Split);
+        return mapper;
     }
 
     @Emitter
@@ -78,6 +101,6 @@ public class MongoDBQueryMapper implements Serializable {
         // here we create an actual worker,
         // you are free to rework the configuration etc but our default generated implementation
         // propagates the partition mapper entries.
-        return new MongoDBReader(configuration, service, recordBuilderFactory, i18nMessage);
+        return new MongoDBReader(configuration, service, recordBuilderFactory, i18nMessage, query4Split);
     }
 }

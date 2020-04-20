@@ -194,7 +194,7 @@ public class MongoDBService {
     public Schema retrieveSchema(@Option("dataset") final MongoDBReadDataSet dataset) {
         MongoDBQuerySourceConfiguration configuration = new MongoDBQuerySourceConfiguration();
         configuration.setDataset(dataset);
-        MongoDBReader reader = new MongoDBReader(configuration, this, builderFactory, i18n);
+        MongoDBReader reader = new MongoDBReader(configuration, this, builderFactory, i18n, null);
         reader.init();
         Record record = reader.next();
         reader.release();
@@ -204,7 +204,9 @@ public class MongoDBService {
 
     public void closeClient(MongoClient client) {
         try {
-            client.close();
+            if (client != null) {
+                client.close();
+            }
         } catch (Exception e) {
             LOG.warn("Error closing MongoDB client", e);
         }

@@ -12,9 +12,17 @@
  */
 package org.talend.components.mongodb;
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
+import com.mongodb.client.model.Filters;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.BsonDocument;
 import org.bson.Document;
+import org.bson.codecs.DocumentCodec;
+import org.bson.json.JsonMode;
+import org.bson.json.JsonWriterSettings;
+import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -29,6 +37,7 @@ import org.talend.components.mongodb.sink.MongoDBSinkConfiguration;
 import org.talend.components.mongodb.source.BaseSourceConfiguration;
 import org.talend.components.mongodb.source.MongoDBCollectionSourceConfiguration;
 import org.talend.components.mongodb.source.MongoDBQuerySourceConfiguration;
+import org.talend.components.mongodb.source.SplitUtil;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -658,6 +667,21 @@ public class MongoDBTestIT {
     @Test
     void testSpecialDataTypeStructFromPipeLine() {
         // TODO
+    }
+
+    @Test
+    void testSplit() {
+        MongoDBReadDataSet source_dataset = getMongoDBDataSet("test");
+        source_dataset.setMode(Mode.JSON);
+        MongoDBQuerySourceConfiguration source_config = new MongoDBQuerySourceConfiguration();
+        source_config.setDataset(source_dataset);
+
+        List<String> result = SplitUtil.getQueries4Split(source_config, new MongoDBService(), 5);
+        System.out.println(result);
+        result.stream().forEach(query -> {
+            BsonDocument doc = new MongoDBService().getBsonDocument(query);
+            System.out.println(doc);
+        });
     }
 
     @Test
