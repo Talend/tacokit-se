@@ -13,7 +13,6 @@
 package org.talend.components.netsuite.service;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.talend.components.netsuite.NetSuiteBaseTest;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore;
@@ -27,7 +26,6 @@ import org.talend.sdk.component.maven.Server;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Disabled
 @WithComponents("org.talend.components.netsuite")
 public class NetSuiteClientConnectionServiceTest extends NetSuiteBaseTest {
 
