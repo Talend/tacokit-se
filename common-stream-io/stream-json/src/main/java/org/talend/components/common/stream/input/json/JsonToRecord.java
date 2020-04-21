@@ -12,21 +12,22 @@
  */
 package org.talend.components.common.stream.input.json;
 
-import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-
-import javax.json.JsonArray;
-import javax.json.JsonNumber;
-import javax.json.JsonObject;
-import javax.json.JsonString;
-import javax.json.JsonValue;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+
+import javax.json.JsonArray;
+import javax.json.JsonNumber;
+import javax.json.JsonObject;
+import javax.json.JsonString;
+import javax.json.JsonValue;
+
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -92,7 +93,7 @@ public class JsonToRecord {
             return JsonString.class.cast(it).getString();
         }
         if (JsonNumber.class.isInstance(it)) {
-            return JsonNumber.class.cast(it).numberValue();
+            return JsonNumber.class.cast(it).doubleValue();
         }
         if (JsonValue.FALSE.equals(it)) {
             return false;

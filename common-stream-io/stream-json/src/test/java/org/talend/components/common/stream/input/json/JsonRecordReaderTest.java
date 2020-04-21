@@ -157,13 +157,13 @@ class JsonRecordReaderTest {
 
         Assertions.assertEquals(Schema.Type.ARRAY, next.getSchema().getEntries().get(0).getElementSchema().getEntries().get(0)
                 .getElementSchema().getEntries().get(1).getType());
-        Assertions.assertEquals(Schema.Type.LONG, next.getSchema().getEntries().get(0).getElementSchema().getEntries().get(0)
+        Assertions.assertEquals(Schema.Type.DOUBLE, next.getSchema().getEntries().get(0).getElementSchema().getEntries().get(0)
                 .getElementSchema().getEntries().get(1).getElementSchema().getType());
 
         Assertions.assertEquals(1.0d, next.getArray(Record.class, "data").iterator().next().getRecord("coordinates")
                 .getArray(Record.class, "latitude").iterator().next().getDouble("aa"));
-        Assertions.assertEquals(1L, next.getArray(Record.class, "data").iterator().next().getRecord("coordinates")
-                .getArray(Long.class, "longitude").iterator().next());
+        Assertions.assertEquals(1.0d, next.getArray(Record.class, "data").iterator().next().getRecord("coordinates")
+                .getArray(Double.class, "longitude").iterator().next());
 
         Assertions.assertFalse(recordIterator.hasNext());
 

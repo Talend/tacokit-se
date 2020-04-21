@@ -136,7 +136,7 @@ class GoogleStorageSourceTest {
         final Collection<Long> items = record1.getArray(Long.TYPE, "items");
         Assertions.assertNotNull(items);
         Assertions.assertEquals(3, items.size());
-        Assertions.assertTrue(items.contains(1L));
+        Assertions.assertTrue(items.contains(1.0d));
 
         final Record record2 = source.next();
         Assertions.assertNull(record2);
