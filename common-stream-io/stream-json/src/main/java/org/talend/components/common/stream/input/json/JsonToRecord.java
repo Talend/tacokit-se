@@ -125,7 +125,7 @@ public class JsonToRecord {
         final Schema firstSchema = toSchema(items.get(0));
         if (firstSchema.getType() == Schema.Type.RECORD) {
             // This code merges schema of all record of the array [{aaa, bbb}, {aaa, ccc}] => {aaa, bbb, ccc}
-            return items.stream().map(it -> toSchema(it)).reduce(null, (Schema s1, Schema s2) -> {
+            return items.stream().skip(1).map(this::toSchema).reduce(firstSchema, (Schema s1, Schema s2) -> {
                 if (s1 == null) {
                     return s2;
                 }
