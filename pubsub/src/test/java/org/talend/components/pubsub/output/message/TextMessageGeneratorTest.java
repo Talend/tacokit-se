@@ -40,7 +40,7 @@ public class TextMessageGeneratorTest {
         beanUnderTest = new TextMessageGenerator();
         beanUnderTest.setI18nMessage(new InternationalizationServiceFactory(() -> Locale.US).create(I18nMessage.class,
                 Thread.currentThread().getContextClassLoader()));
-        beanUnderTest.setRecordService(new RecordServiceImpl(null, null));
+        beanUnderTest.setRecordService(new RecordServiceImpl(null, null, null, null, null));
         beanUnderTest.setRecordPointerFactory(new RecordPointerFactoryImpl(null));
 
         dataSet = new PubSubDataSet();
