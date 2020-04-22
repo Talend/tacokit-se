@@ -40,6 +40,7 @@ import org.talend.components.mongodb.source.MongoDBQuerySourceConfiguration;
 import org.talend.components.mongodb.source.SplitUtil;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit.SimpleFactory;
@@ -216,7 +217,31 @@ public class MongoDBTestIT {
 
     @Test
     void testMultiServers() {
+        MongoDBDataStore datastore = new MongoDBDataStore();
+        datastore.setAddressType(AddressType.REPLICA_SET);
+        datastore.setReplicaSetAddress(Arrays.asList(
+                new Address("192.168.31.228", 27017),
+                new Address("192.168.31.228", 27018),
+                new Address("192.168.31.228", 27019)));
+        datastore.setDatabase("admin");
+        datastore.setAuth(new Auth());
 
+        HealthCheckStatus status = mongoDBService.healthCheck(datastore);
+        System.out.println(status);
+
+        MongoDBReadAndWriteDataSet dataset = new MongoDBReadAndWriteDataSet();
+        dataset.setDatastore(datastore);
+        dataset.setCollection("test123");
+
+//        MongoDBSinkConfiguration config = new MongoDBSinkConfiguration();
+//        config.setDataset(dataset);
+//
+//        componentsHandler.setInputData(getTestData());
+//        executeSinkTestJob(config);
+
+        final List<Record> res = getRecords(dataset);
+
+        System.out.println(res);
     }
 
     @Test
