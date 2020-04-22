@@ -44,6 +44,8 @@ class JsonToRecordTest {
 
     private JsonToRecord toRecord;
 
+    private JsonToRecord toRecordDoubleOption;
+
     @BeforeAll
     static void initLog() {
         System.setProperty("org.slf4j.simpleLogger.log.org.talend.components.common.stream", "debug");
@@ -53,6 +55,7 @@ class JsonToRecordTest {
     void start() {
         final RecordBuilderFactory recordBuilderFactory = new RecordBuilderFactoryImpl("test");
         this.toRecord = new JsonToRecord(recordBuilderFactory);
+        toRecordDoubleOption = new JsonToRecord(recordBuilderFactory, true);
     }
 
     @Test
@@ -106,15 +109,25 @@ class JsonToRecordTest {
         Assertions.assertNotNull(aaaEntry);
 
         Assertions.assertEquals(Schema.Type.ARRAY, aaaEntry.getType());
-        Assertions.assertEquals(Schema.Type.DOUBLE, aaaEntry.getElementSchema().getType());
+        Assertions.assertEquals(Schema.Type.LONG, aaaEntry.getElementSchema().getType());
 
         final Entry aNumberEntry = findEntry(record.getSchema(), "aNumber");
-        Assertions.assertEquals(Schema.Type.DOUBLE, aNumberEntry.getType());
+        Assertions.assertEquals(Schema.Type.LONG, aNumberEntry.getType());
 
         RecordToJson toJson = new RecordToJson();
         final JsonObject jsonObject = toJson.fromRecord(record);
         Assertions.assertNotNull(jsonObject);
 
+        final Record recordDouble = toRecordDoubleOption.toRecord(json);
+        Assertions.assertNotNull(recordDouble);
+        final Entry aaaEntryDouble = findEntry(recordDouble.getSchema(), "aaa");
+        Assertions.assertNotNull(aaaEntry);
+
+        Assertions.assertEquals(Schema.Type.ARRAY, aaaEntryDouble.getType());
+        Assertions.assertEquals(Schema.Type.DOUBLE, aaaEntryDouble.getElementSchema().getType());
+
+        final Entry aNumberEntryDouble = findEntry(recordDouble.getSchema(), "aNumber");
+        Assertions.assertEquals(Schema.Type.DOUBLE, aNumberEntryDouble.getType());
     }
 
     private Entry findEntry(Schema schema, String entryName) {
