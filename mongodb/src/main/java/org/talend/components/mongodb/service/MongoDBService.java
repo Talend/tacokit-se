@@ -85,7 +85,7 @@ public class MongoDBService {
             return null;
         } catch (Exception e) {
             // TODO use i18n
-            LOG.error(i18n.example("p1", "p2"));
+            LOG.error(e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }
