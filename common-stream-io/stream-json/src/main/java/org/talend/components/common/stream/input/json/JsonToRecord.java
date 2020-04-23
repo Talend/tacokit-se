@@ -45,9 +45,9 @@ public class JsonToRecord {
     public JsonToRecord(RecordBuilderFactory factory, boolean forceNumberAsDouble) {
         this.factory = factory;
         if (forceNumberAsDouble) {
-            this.numberOption = NumberOption.ForceDoubleOption;
+            this.numberOption = NumberOption.ForceDoubleType;
         } else {
-            this.numberOption = NumberOption.LongIfPossible;
+            this.numberOption = NumberOption.InferType;
         }
     }
 
@@ -197,7 +197,7 @@ public class JsonToRecord {
     }
 
     private enum NumberOption {
-        ForceDoubleOption {
+        ForceDoubleType {
 
             public Number getNumber(JsonNumber number) {
                 return number.doubleValue();
@@ -211,7 +211,7 @@ public class JsonToRecord {
                 return Schema.Type.DOUBLE;
             }
         },
-        LongIfPossible {
+        InferType {
 
             public Number getNumber(JsonNumber number) {
                 return number.numberValue();

@@ -14,13 +14,14 @@ package org.talend.components.common.stream.format.json;
 
 import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
 
 @Data
-@GridLayout({ @GridLayout.Row("jsonPointer") })
+@GridLayout({ @GridLayout.Row("jsonPointer"), @GridLayout.Row("forceDouble") })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = {})
 @Documentation("Json Configuration with json pointer rules.")
 public class JsonConfiguration implements ContentFormat {
@@ -28,5 +29,10 @@ public class JsonConfiguration implements ContentFormat {
     @Option
     @Documentation("Json pointer expression.")
     private String jsonPointer;
+
+    @Option
+    @DefaultValue("false")
+    @Documentation("force json numbe to double.")
+    private boolean forceDouble = false;
 
 }

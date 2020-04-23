@@ -27,8 +27,9 @@ public class JsonReaderSupplier implements RecordReaderSupplier {
             throw new IllegalArgumentException("try to get json-reader with other than json-config");
         }
 
-        JsonConfiguration jsonConfig = (JsonConfiguration) config;
+        final JsonConfiguration jsonConfig = (JsonConfiguration) config;
         final JsonPointerParser parser = JsonPointerParser.of(jsonConfig.getJsonPointer());
-        return new JsonRecordReader(parser, factory);
+        final JsonToRecord toRecord = new JsonToRecord(factory, jsonConfig.isForceDouble());
+        return new JsonRecordReader(parser, toRecord);
     }
 }
