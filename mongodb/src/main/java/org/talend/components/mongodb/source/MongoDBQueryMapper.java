@@ -16,6 +16,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.talend.components.mongodb.dataset.BaseDataSet;
 import org.talend.components.mongodb.datastore.MongoDBDataStore;
@@ -38,6 +39,7 @@ import static java.util.Collections.singletonList;
 @Icon(value = Icon.IconType.CUSTOM, custom = "MongoDB")
 @PartitionMapper(name = "CollectionQuerySource")
 @Documentation("MongoDB Source with query")
+@Slf4j
 public class MongoDBQueryMapper implements Serializable {
 
     private final MongoDBQuerySourceConfiguration configuration;
@@ -80,14 +82,19 @@ public class MongoDBQueryMapper implements Serializable {
 
         int splitCount = (int) (estimateSize() / bundles);
 
-        List<String> queries4Split = SplitUtil.getQueries4Split(configuration, service, splitCount);
+        log.info("split number : " + splitCount + ",  the size of every split from platform : " + bundles);
 
-        if (queries4Split == null || queries4Split.size() < 2) {
-            return singletonList(this);
+        if (splitCount > 1) {
+            List<String> queries4Split = SplitUtil.getQueries4Split(configuration, service, splitCount);
+            if (queries4Split == null || queries4Split.size() < 2) {
+                return singletonList(this);
+            }
+
+            return queries4Split.stream().map(query4Split -> cloneMapperAndSetSplitParameter4Reader(query4Split))
+                    .collect(Collectors.toList());
         }
 
-        return queries4Split.stream().map(query4Split -> cloneMapperAndSetSplitParameter4Reader(query4Split))
-                .collect(Collectors.toList());
+        return singletonList(this);
     }
 
     private MongoDBQueryMapper cloneMapperAndSetSplitParameter4Reader(String query4Split) {

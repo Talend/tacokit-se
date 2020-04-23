@@ -94,7 +94,7 @@ public class SplitUtil {
         BsonDocument bucketAuto = new BsonDocument("$bucketAuto", bucketAutoConfig);
         List<BsonDocument> aggregates = new ArrayList<>();
         aggregates.add(bucketAuto);
-        AggregateIterable<Document> buckets = mongoCollection.aggregate(aggregates);
+        AggregateIterable<Document> buckets = mongoCollection.aggregate(aggregates).allowDiskUse(true);
 
         // [1,3) [3,5) and so on
         Iterator<Document> iterator = buckets.iterator();
