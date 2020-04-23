@@ -100,8 +100,10 @@ public class MongoDBService {
         switch (auth.getAuthMech()) {
         case NEGOTIATE:
             return MongoCredential.createCredential(auth.getUsername(), authDatabase, auth.getPassword().toCharArray());
-        case PLAIN_SASL:
-            return MongoCredential.createPlainCredential(auth.getUsername(), "$external", auth.getPassword().toCharArray());
+        /*
+         * case PLAIN_SASL:
+         * return MongoCredential.createPlainCredential(auth.getUsername(), "$external", auth.getPassword().toCharArray());
+         */
         case SCRAM_SHA_1_SASL:
             return MongoCredential.createScramSha1Credential(auth.getUsername(), authDatabase, auth.getPassword().toCharArray());
         }
