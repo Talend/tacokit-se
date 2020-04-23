@@ -119,13 +119,27 @@ public class SplitUtil {
         return document.toJson(JsonWriterSettings.builder().outputMode(JsonMode.SHELL).build());
     }
 
-    public static boolean isSplit(String query) {
+    public static boolean isSplit(String query, Long limit) {
+        // limit is passed by platform, so mean getSample here, so no split as we will set limit for query
+        if (limit != null && limit > 0) {
+            return false;
+        }
+
         // have set filter, then not split now, maybe should too?
         if (query == null || query.trim().isEmpty() || "{}".equals(query)) {
             return true;
         }
 
         return false;
+    }
+
+    public static boolean isSplit(Long limit) {
+        // limit is passed by platform, so mean getSample here, so no split as we will set limit for query
+        if (limit != null && limit > 0) {
+            return false;
+        }
+
+        return true;
     }
 
 }

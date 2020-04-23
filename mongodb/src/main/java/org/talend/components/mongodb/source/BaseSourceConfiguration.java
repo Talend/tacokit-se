@@ -21,4 +21,6 @@ public interface BaseSourceConfiguration extends Serializable {
 
     BaseDataSet getDataset();
 
+    Long getSampleLimit();
+
 }

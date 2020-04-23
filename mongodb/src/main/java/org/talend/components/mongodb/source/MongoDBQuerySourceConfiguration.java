@@ -39,4 +39,6 @@ public class MongoDBQuerySourceConfiguration implements BaseSourceConfiguration 
     @Documentation("dataset")
     private MongoDBReadDataSet dataset;
 
+    private Long sampleLimit = -1L;
+
 }

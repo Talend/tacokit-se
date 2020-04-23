@@ -108,12 +108,21 @@ public class MongoDBReader implements Serializable {
             return collection.find(service.getBsonDocument(query4Split)).iterator();
         }
 
+        Long sampleLimit = configuration.getSampleLimit();
         if (dataset instanceof MongoDBReadDataSet) {
             // return fetchData((MongoDBReadDataSet) dataset, collection);
             BsonDocument query = service.getBsonDocument(((MongoDBReadDataSet) dataset).getQuery());
-            return collection.find(query).iterator();
+            FindIterable<Document> fi = collection.find(query);
+            if (sampleLimit != null && sampleLimit > 0) {
+                fi = fi.limit(sampleLimit.intValue());
+            }
+            return fi.iterator();
         } else {
-            return collection.find().iterator();
+            FindIterable<Document> fi = collection.find();
+            if (sampleLimit != null && sampleLimit > 0) {
+                fi = fi.limit(sampleLimit.intValue());
+            }
+            return fi.iterator();
         }
     }
 

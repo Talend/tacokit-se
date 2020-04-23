@@ -63,7 +63,7 @@ public class MongoDBQueryMapper implements Serializable {
 
     @Assessor
     public long estimateSize() {
-        if (!SplitUtil.isSplit(configuration.getDataset().getQuery())) {
+        if (!SplitUtil.isSplit(configuration.getDataset().getQuery(), configuration.getSampleLimit())) {
             return 1l;
         }
 
@@ -72,7 +72,7 @@ public class MongoDBQueryMapper implements Serializable {
 
     @Split
     public List<MongoDBQueryMapper> split(@PartitionSize final long bundles) {
-        if (!SplitUtil.isSplit(configuration.getDataset().getQuery())) {
+        if (!SplitUtil.isSplit(configuration.getDataset().getQuery(), configuration.getSampleLimit())) {
             return singletonList(this);
         }
 

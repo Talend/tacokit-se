@@ -32,4 +32,6 @@ public class MongoDBCollectionSourceConfiguration implements BaseSourceConfigura
     @Documentation("dataset")
     private MongoDBReadAndWriteDataSet dataset;
 
+    private Long sampleLimit = -1L;
+
 }

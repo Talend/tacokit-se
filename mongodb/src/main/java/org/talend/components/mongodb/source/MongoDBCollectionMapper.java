@@ -64,11 +64,19 @@ public class MongoDBCollectionMapper implements Serializable {
 
     @Assessor
     public long estimateSize() {
+        if (!SplitUtil.isSplit(configuration.getSampleLimit())) {
+            return 1l;
+        }
+
         return SplitUtil.getEstimatedSizeBytes(configuration, service);
     }
 
     @Split
     public List<MongoDBCollectionMapper> split(@PartitionSize final long bundles) {
+        if (!SplitUtil.isSplit(configuration.getSampleLimit())) {
+            return singletonList(this);
+        }
+
         if (bundles < 2) {
             return singletonList(this);
         }
