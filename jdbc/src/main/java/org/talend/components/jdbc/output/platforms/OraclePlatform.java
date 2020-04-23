@@ -12,13 +12,15 @@
  */
 package org.talend.components.jdbc.output.platforms;
 
-import com.zaxxer.hikari.HikariDataSource;
-import lombok.extern.slf4j.Slf4j;
-import org.talend.components.jdbc.service.I18nMessage;
-
 import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.talend.components.jdbc.service.I18nMessage;
+
+import com.zaxxer.hikari.HikariDataSource;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * https://docs.oracle.com/cd/B28359_01/server.111/b28310/tables003.htm#ADMIN01503
@@ -88,6 +90,16 @@ public class OraclePlatform extends Platform {
                 + " " + toDBType(column)//
                 + " " + isRequired(column)//
         ;
+    }
+
+    @Override
+    protected String pkConstraintName(String table, List<Column> primaryKeys) {
+        // Avoid 'ORA-00972: identifier is too long' that limit oracle id to 30 chars max
+        final String name = super.pkConstraintName(table, primaryKeys);
+        if (name == null || name.length() <= 30) {
+            return name;
+        }
+        return name.substring(0, 30);
     }
 
     private String toDBType(final Column column) {

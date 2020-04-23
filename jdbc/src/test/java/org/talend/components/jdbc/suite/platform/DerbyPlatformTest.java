@@ -10,34 +10,18 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.jdbc.containers;
+package org.talend.components.jdbc.suite.platform;
 
-public interface JdbcTestContainer extends AutoCloseable {
+import org.talend.components.jdbc.containers.DerbyTestContainer;
+import org.talend.components.jdbc.containers.JdbcTestContainer;
+import org.talend.components.jdbc.suite.PlatformTests;
+import org.talend.sdk.component.junit5.WithComponents;
 
-    /**
-     * @return Database as defined in the configuration file with en property <code>jdbc.drivers[].id</code>
-     */
-    String getDatabaseType();
-
-    String getUsername();
-
-    String getPassword();
-
-    String getJdbcUrl();
-
-    default String getDriverClassName() {
-        return "";
-    }
-
-    void start();
-
-    void stop();
+@WithComponents("org.talend.components.jdbc")
+public class DerbyPlatformTest extends PlatformTests {
 
     @Override
-    default void close() {
-        stop();
+    public JdbcTestContainer buildContainer() {
+        return new DerbyTestContainer();
     }
-
-    boolean isRunning();
-
 }

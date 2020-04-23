@@ -10,34 +10,20 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.jdbc.containers;
+package org.talend.components.jdbc.suite.output;
 
-public interface JdbcTestContainer extends AutoCloseable {
+import org.junit.jupiter.api.Tag;
+import org.talend.components.jdbc.containers.JdbcTestContainer;
+import org.talend.components.jdbc.containers.OracleTestContainer;
+import org.talend.components.jdbc.suite.OutputTest;
+import org.talend.sdk.component.junit5.WithComponents;
 
-    /**
-     * @return Database as defined in the configuration file with en property <code>jdbc.drivers[].id</code>
-     */
-    String getDatabaseType();
-
-    String getUsername();
-
-    String getPassword();
-
-    String getJdbcUrl();
-
-    default String getDriverClassName() {
-        return "";
-    }
-
-    void start();
-
-    void stop();
+@Tag("IT")
+@WithComponents("org.talend.components.jdbc")
+public class OracleOutputTest extends OutputTest {
 
     @Override
-    default void close() {
-        stop();
+    public JdbcTestContainer buildContainer() {
+        return new OracleTestContainer();
     }
-
-    boolean isRunning();
-
 }

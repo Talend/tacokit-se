@@ -10,50 +10,37 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.jdbc.testsuite;
+package org.talend.components.jdbc.suite;
+
+import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
-import org.junit.jupiter.api.TestTemplate;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.talend.components.jdbc.BaseJdbcTest;
-import org.talend.components.jdbc.Disabled;
-import org.talend.components.jdbc.DisabledDatabases;
-import org.talend.components.jdbc.WithDatabasesEnvironments;
 import org.talend.components.jdbc.configuration.InputQueryConfig;
 import org.talend.components.jdbc.configuration.InputTableNameConfig;
-import org.talend.components.jdbc.containers.JdbcTestContainer;
 import org.talend.components.jdbc.dataset.SqlQueryDataset;
 import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.output.platforms.PlatformFactory;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.junit.environment.Environment;
-import org.talend.sdk.component.junit.environment.builtin.beam.DirectRunnerEnvironment;
 import org.talend.sdk.component.runtime.manager.chain.Job;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.talend.components.jdbc.Database.SNOWFLAKE;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @DisplayName("Input")
-@Environment(DirectRunnerEnvironment.class)
-// @Environment(ContextualEnvironment.class)
-@ExtendWith(WithDatabasesEnvironments.class)
-@DisabledDatabases({ @Disabled(value = SNOWFLAKE, reason = "Snowflake credentials need to be setup on ci") })
-class InputTest extends BaseJdbcTest {
+public abstract class InputTest extends JDBCBaseTest {
 
-    @TestTemplate
+    @Test
     @DisplayName("Query - valid select query")
-    void validQuery(final TestInfo testInfo, final JdbcTestContainer container) {
+    void validQuery(final TestInfo testInfo) {
         final int rowCount = 50;
         final String testTableName = getTestTableName(testInfo);
-        insertRows(testTableName, container, rowCount, false, null);
+        insertRows(testTableName, rowCount, false, null);
         final SqlQueryDataset sqlQueryDataset = new SqlQueryDataset();
-        final JdbcConnection connection = newConnection(container);
+        final JdbcConnection connection = newConnection();
         sqlQueryDataset.setConnection(connection);
         sqlQueryDataset.setFetchSize(rowCount / 3);
         sqlQueryDataset
@@ -68,11 +55,11 @@ class InputTest extends BaseJdbcTest {
         assertEquals(rowCount, collectedData.size());
     }
 
-    @TestTemplate
+    @Test
     @DisplayName("Query - unvalid query ")
-    void invalidQuery(final TestInfo testInfo, final JdbcTestContainer container) {
+    void invalidQuery(final TestInfo testInfo) {
         final SqlQueryDataset sqlQueryDataset = new SqlQueryDataset();
-        final JdbcConnection connection = newConnection(container);
+        final JdbcConnection connection = newConnection();
         sqlQueryDataset.setConnection(connection);
         sqlQueryDataset.setSqlQuery("select fromm " + getTestTableName(testInfo));
         final InputQueryConfig config = new InputQueryConfig();
@@ -82,11 +69,11 @@ class InputTest extends BaseJdbcTest {
                 .component("collector", "test://collector").connections().from("jdbcInput").to("collector").build().run());
     }
 
-    @TestTemplate
+    @Test
     @DisplayName("Query -  non authorized query (drop table)")
-    void unauthorizedDropQuery(final JdbcTestContainer container) {
+    void unauthorizedDropQuery() {
         final SqlQueryDataset dataset = new SqlQueryDataset();
-        dataset.setConnection(newConnection(container));
+        dataset.setConnection(newConnection());
         dataset.setSqlQuery("drop table abc");
         final InputQueryConfig config = new InputQueryConfig();
         config.setDataSet(dataset);
@@ -97,11 +84,11 @@ class InputTest extends BaseJdbcTest {
                         .run());
     }
 
-    @TestTemplate
+    @Test
     @DisplayName("Query -  non authorized query (insert into)")
-    void unauthorizedInsertQuery(final JdbcTestContainer container) {
+    void unauthorizedInsertQuery() {
         final SqlQueryDataset dataset = new SqlQueryDataset();
-        dataset.setConnection(newConnection(container));
+        dataset.setConnection(newConnection());
         dataset.setSqlQuery("INSERT INTO users(id, name) VALUES (1, 'user1')");
         final InputQueryConfig config = new InputQueryConfig();
         config.setDataSet(dataset);
@@ -112,14 +99,14 @@ class InputTest extends BaseJdbcTest {
                         .run());
     }
 
-    @TestTemplate
+    @Test
     @DisplayName("TableName - valid table name")
-    void validTableName(final TestInfo testInfo, final JdbcTestContainer container) {
+    void validTableName(final TestInfo testInfo) {
         final int rowCount = 50;
         final String testTableName = getTestTableName(testInfo);
-        insertRows(testTableName, container, rowCount, false, null);
+        insertRows(testTableName, rowCount, false, null);
         final InputTableNameConfig config = new InputTableNameConfig();
-        config.setDataSet(newTableNameDataset(testTableName, container));
+        config.setDataSet(newTableNameDataset(testTableName));
         final String configURI = configurationByExample().forInstance(config).configured().toQueryString();
         Job.components().component("jdbcInput", "Jdbc://TableNameInput?" + configURI).component("collector", "test://collector")
                 .connections().from("jdbcInput").to("collector").build().run();
@@ -128,11 +115,11 @@ class InputTest extends BaseJdbcTest {
         assertEquals(rowCount, collectedData.size());
     }
 
-    @TestTemplate
+    @Test
     @DisplayName("TableName - invalid table name")
-    void invalidTableName(final JdbcTestContainer container) {
+    void invalidTableName() {
         final TableNameDataset dataset = new TableNameDataset();
-        dataset.setConnection(newConnection(container));
+        dataset.setConnection(newConnection());
         dataset.setTableName("xxx");
         final InputTableNameConfig config = new InputTableNameConfig();
         config.setDataSet(dataset);
@@ -143,14 +130,14 @@ class InputTest extends BaseJdbcTest {
                         .run());
     }
 
-    @TestTemplate
+    @Test
     @DisplayName("TableName - valid table name with null values")
-    void validTableNameWithNullValues(final TestInfo testInfo, final JdbcTestContainer container) {
+    void validTableNameWithNullValues(final TestInfo testInfo) {
         final int rowCount = 1;
         final String testTableName = getTestTableName(testInfo);
-        insertRows(testTableName, container, rowCount, true, null);
+        insertRows(testTableName, rowCount, true, null);
         final InputTableNameConfig config = new InputTableNameConfig();
-        config.setDataSet(newTableNameDataset(testTableName, container));
+        config.setDataSet(newTableNameDataset(testTableName));
         final String configURI = configurationByExample().forInstance(config).configured().toQueryString();
         Job.components().component("jdbcInput", "Jdbc://TableNameInput?" + configURI).component("collector", "test://collector")
                 .connections().from("jdbcInput").to("collector").build().run();

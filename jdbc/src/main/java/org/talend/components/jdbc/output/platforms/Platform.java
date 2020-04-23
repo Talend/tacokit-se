@@ -12,22 +12,23 @@
  */
 package org.talend.components.jdbc.output.platforms;
 
-import com.zaxxer.hikari.HikariDataSource;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.talend.components.jdbc.ErrorFactory;
-import org.talend.components.jdbc.configuration.DistributionStrategy;
-import org.talend.components.jdbc.configuration.RedshiftSortStrategy;
-import org.talend.components.jdbc.service.I18nMessage;
-import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
-
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.UUID;
+
+import org.talend.components.jdbc.configuration.DistributionStrategy;
+import org.talend.components.jdbc.configuration.RedshiftSortStrategy;
+import org.talend.components.jdbc.service.I18nMessage;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
+
+import com.zaxxer.hikari.HikariDataSource;
+
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -90,7 +91,7 @@ public abstract class Platform implements Serializable {
                         + primaryKeys.stream().map(Column::getName).map(this::identifier).collect(joining(",", "(", ")"));
     }
 
-    private String pkConstraintName(String table, List<Column> primaryKeys) {
+    protected String pkConstraintName(String table, List<Column> primaryKeys) {
         final String uuid = UUID.randomUUID().toString();
         return "pk_" + table + "_" + primaryKeys.stream().map(Column::getName).collect(joining("_")) + "_"
                 + uuid.substring(0, Math.min(4, uuid.length()));

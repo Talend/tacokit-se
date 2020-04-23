@@ -10,19 +10,18 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.jdbc.testsuite;
+package org.talend.components.jdbc.suite;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Locale;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
-import org.junit.jupiter.api.TestTemplate;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.talend.components.jdbc.BaseJdbcTest;
-import org.talend.components.jdbc.Disabled;
-import org.talend.components.jdbc.DisabledDatabases;
-import org.talend.components.jdbc.WithDatabasesEnvironments;
 import org.talend.components.jdbc.configuration.DistributionStrategy;
 import org.talend.components.jdbc.configuration.RedshiftSortStrategy;
-import org.talend.components.jdbc.containers.JdbcTestContainer;
 import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.output.platforms.PlatformFactory;
@@ -32,25 +31,17 @@ import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-import org.talend.sdk.component.junit.environment.Environment;
-import org.talend.sdk.component.junit.environment.builtin.ContextualEnvironment;
-
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Locale;
-import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toSet;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.talend.components.jdbc.Database.SNOWFLAKE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("UIActionService")
-@Environment(ContextualEnvironment.class)
-@ExtendWith({ WithDatabasesEnvironments.class })
-@DisabledDatabases({ @Disabled(value = SNOWFLAKE, reason = "Snowflake credentials need to be setup on ci") })
-class UIActionServiceTest extends BaseJdbcTest {
+public abstract class UIActionServiceTest extends JDBCBaseTest {
 
     @Service
     private UIActionService uiActionService;
@@ -58,20 +49,20 @@ class UIActionServiceTest extends BaseJdbcTest {
     @Service
     private RecordBuilderFactory recordBuilderFactory;
 
-    @TestTemplate
+    @Test
     @DisplayName("HealthCheck - Valid user")
-    void validateBasicDatastore(final JdbcTestContainer container) {
-        final HealthCheckStatus status = uiActionService.validateBasicDataStore(newConnection(container));
+    void validateBasicDatastore() {
+        final HealthCheckStatus status = uiActionService.validateBasicDataStore(newConnection());
         assertNotNull(status);
         assertEquals(HealthCheckStatus.Status.OK, status.getStatus());
     }
 
-    @TestTemplate
+    @Test
     @DisplayName("HealthCheck - Bad credentials")
-    void healthCheckWithBadCredentials(final JdbcTestContainer container) {
+    void healthCheckWithBadCredentials() {
         final JdbcConnection datastore = new JdbcConnection();
-        datastore.setDbType(container.getDatabaseType());
-        datastore.setJdbcUrl(container.getJdbcUrl());
+        datastore.setDbType(this.getContainer().getDatabaseType());
+        datastore.setJdbcUrl(this.getContainer().getJdbcUrl());
         datastore.setUserId("bad");
         datastore.setPassword("az");
         final HealthCheckStatus status = uiActionService.validateBasicDataStore(datastore);
@@ -79,12 +70,12 @@ class UIActionServiceTest extends BaseJdbcTest {
         assertEquals(HealthCheckStatus.Status.KO, status.getStatus());
     }
 
-    @TestTemplate
+    @Test
     @DisplayName("HealthCheck - Bad Database Name")
-    void healthCheckWithBadDataBaseName(final JdbcTestContainer container) {
+    void healthCheckWithBadDataBaseName() {
         final JdbcConnection datastore = new JdbcConnection();
-        datastore.setDbType(container.getDatabaseType());
-        datastore.setJdbcUrl(container.getJdbcUrl() + "DontExistUnlessyouCreatedDB");
+        datastore.setDbType(this.getContainer().getDatabaseType());
+        datastore.setJdbcUrl(this.getContainer().getJdbcUrl() + "DontExistUnlessyouCreatedDB");
         datastore.setUserId("bad");
         datastore.setPassword("az");
         final HealthCheckStatus status = uiActionService.validateBasicDataStore(datastore);
@@ -92,11 +83,11 @@ class UIActionServiceTest extends BaseJdbcTest {
         assertEquals(HealthCheckStatus.Status.KO, status.getStatus());
     }
 
-    @TestTemplate
+    @Test
     @DisplayName("HealthCheck - Bad Jdbc sub Protocol")
-    void healthCheckWithBadSubProtocol(final JdbcTestContainer container) {
+    void healthCheckWithBadSubProtocol() {
         final JdbcConnection datastore = new JdbcConnection();
-        datastore.setDbType(container.getDatabaseType());
+        datastore.setDbType(this.getContainer().getDatabaseType());
         datastore.setJdbcUrl("jdbc:darby/DB");
         datastore.setUserId("bad");
         datastore.setPassword("az");
@@ -106,10 +97,10 @@ class UIActionServiceTest extends BaseJdbcTest {
         assertFalse(status.getComment().isEmpty());
     }
 
-    @TestTemplate
+    @Test
     @DisplayName("Get Table list - valid connection")
-    void getTableFromDatabase(final TestInfo testInfo, final JdbcTestContainer container) throws SQLException {
-        final JdbcConnection datastore = newConnection(container);
+    void getTableFromDatabase(final TestInfo testInfo) throws SQLException {
+        final JdbcConnection datastore = newConnection();
         final String testTableName = getTestTableName(testInfo);
         createTestTable(testTableName, datastore);
         final SuggestionValues values = uiActionService.getTableFromDatabase(datastore);
@@ -128,12 +119,12 @@ class UIActionServiceTest extends BaseJdbcTest {
         }
     }
 
-    @TestTemplate
+    @Test
     @DisplayName("Get Table list - invalid connection")
-    void getTableFromDatabaseWithInvalidConnection(final JdbcTestContainer container) {
+    void getTableFromDatabaseWithInvalidConnection() {
         final JdbcConnection datastore = new JdbcConnection();
-        datastore.setDbType(container.getDatabaseType());
-        datastore.setJdbcUrl(container.getJdbcUrl());
+        datastore.setDbType(this.getContainer().getDatabaseType());
+        datastore.setJdbcUrl(this.getContainer().getJdbcUrl());
         datastore.setUserId("wrong");
         datastore.setPassword("wrong");
         final SuggestionValues values = uiActionService.getTableFromDatabase(datastore);
@@ -141,11 +132,11 @@ class UIActionServiceTest extends BaseJdbcTest {
         assertEquals(0, values.getItems().size());
     }
 
-    @TestTemplate
+    @Test
     @DisplayName("Get Table columns list - valid connection")
-    void getTableColumnFromDatabase(final TestInfo testInfo, final JdbcTestContainer container) throws SQLException {
+    void getTableColumnFromDatabase(final TestInfo testInfo) throws SQLException {
         final String testTableName = getTestTableName(testInfo);
-        final TableNameDataset tableNameDataset = newTableNameDataset(testTableName, container);
+        final TableNameDataset tableNameDataset = newTableNameDataset(testTableName);
         createTestTable(testTableName, tableNameDataset.getConnection());
         final SuggestionValues values = uiActionService.getTableColumns(tableNameDataset);
         assertNotNull(values);
@@ -154,12 +145,12 @@ class UIActionServiceTest extends BaseJdbcTest {
                 .map(l -> l.toUpperCase(Locale.ROOT)).collect(toSet()));
     }
 
-    @TestTemplate
+    @Test
     @DisplayName("Get Table Columns list - invalid connection")
-    void getTableColumnsFromDatabaseWithInvalidConnection(final TestInfo testInfo, final JdbcTestContainer container) {
+    void getTableColumnsFromDatabaseWithInvalidConnection(final TestInfo testInfo) {
         final JdbcConnection datastore = new JdbcConnection();
-        datastore.setDbType(container.getDatabaseType());
-        datastore.setJdbcUrl(container.getJdbcUrl());
+        datastore.setDbType(this.getContainer().getDatabaseType());
+        datastore.setJdbcUrl(this.getContainer().getJdbcUrl());
         datastore.setUserId("wrong");
         datastore.setPassword("wrong");
         final TableNameDataset tableNameDataset = new TableNameDataset();
@@ -170,10 +161,10 @@ class UIActionServiceTest extends BaseJdbcTest {
         assertTrue(values.getItems().isEmpty());
     }
 
-    @TestTemplate
+    @Test
     @DisplayName(" Get Table Columns list - invalid table name")
-    void getTableColumnsFromDatabaseWithInvalidTableName(final JdbcTestContainer container) {
-        final JdbcConnection datastore = newConnection(container);
+    void getTableColumnsFromDatabaseWithInvalidTableName() {
+        final JdbcConnection datastore = newConnection();
         final TableNameDataset tableNameDataset = new TableNameDataset();
         tableNameDataset.setTableName("tableNeverExist159");
         tableNameDataset.setConnection(datastore);

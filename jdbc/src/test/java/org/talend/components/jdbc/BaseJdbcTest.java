@@ -12,8 +12,13 @@
  */
 package org.talend.components.jdbc;
 
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
@@ -36,12 +41,8 @@ import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
-import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import static java.util.Optional.ofNullable;
 import static org.apache.derby.vti.XmlVTI.asList;

@@ -10,54 +10,42 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.jdbc.testsuite;
+package org.talend.components.jdbc.suite;
+
+import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
-import org.junit.jupiter.api.TestTemplate;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.talend.components.jdbc.BaseJdbcTest;
-import org.talend.components.jdbc.Disabled;
-import org.talend.components.jdbc.DisabledDatabases;
-import org.talend.components.jdbc.WithDatabasesEnvironments;
 import org.talend.components.jdbc.configuration.DistributionStrategy;
 import org.talend.components.jdbc.configuration.RedshiftSortStrategy;
-import org.talend.components.jdbc.containers.JdbcTestContainer;
 import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.output.platforms.Platform;
 import org.talend.components.jdbc.output.platforms.PlatformFactory;
 import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-import org.talend.sdk.component.junit.environment.Environment;
-import org.talend.sdk.component.junit.environment.builtin.ContextualEnvironment;
+import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
-
-import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static org.apache.derby.vti.XmlVTI.asList;
-import static org.talend.components.jdbc.Database.SNOWFLAKE;
 
 @DisplayName("Platforms")
-@Environment(ContextualEnvironment.class)
-@ExtendWith({ WithDatabasesEnvironments.class })
-@DisabledDatabases({ @Disabled(value = SNOWFLAKE, reason = "Snowflake credentials need to be setup on ci") })
-class PlatformTests extends BaseJdbcTest {
+public abstract class PlatformTests extends JDBCBaseTest {
 
-    @Service
-    private RecordBuilderFactory recordBuilderFactory;
+    private final RecordBuilderFactory recordBuilderFactory = new RecordBuilderFactoryImpl("test");
 
-    private final Date date = new Date(new SimpleDateFormat("yyyy-MM-dd").parse("2018-12-6").getTime());
+    private final ZonedDateTime date = ZonedDateTime.of(LocalDateTime.of(2018, 12, 6, 12, 0, 0), ZoneId.systemDefault());
 
     private final Date datetime = new Date();
 
@@ -65,34 +53,32 @@ class PlatformTests extends BaseJdbcTest {
 
     private List<Record> records;
 
-    PlatformTests() throws ParseException {
-    }
-
     @BeforeEach
-    void beforeEach(final JdbcTestContainer container) {
+    void beforeEach() {
         records = new ArrayList<>();
         Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder().withInt("id", 1)
                 .withString("email", "user@talend.com").withString("t_text", RandomStringUtils.randomAlphabetic(300))
                 .withLong("t_long", 10000000000L).withDouble("t_double", 1000.85d).withFloat("t_float", 15.50f)
                 .withDateTime("t_date", date).withDateTime("t_datetime", datetime).withDateTime("t_time", time);
 
-        if (!container.getDatabaseType().equalsIgnoreCase("oracle")) {
+        if (!this.getContainer().getDatabaseType().equalsIgnoreCase("oracle")) {
             recordBuilder.withBoolean("t_boolean", true);
         }
 
-        if (!container.getDatabaseType().equalsIgnoreCase("redshift")) {
+        if (!this.getContainer().getDatabaseType().equalsIgnoreCase("redshift")) {
             recordBuilder.withBytes("t_bytes", "some data in bytes".getBytes(StandardCharsets.UTF_8));
         }
 
         records.add(recordBuilder.build());
-
     }
 
-    @TestTemplate
+    @Test
     @DisplayName("Create table - Single primary key")
-    void createTable(final TestInfo testInfo, final JdbcTestContainer container) throws SQLException {
+    void createTable(final TestInfo testInfo) throws SQLException {
         final String testTable = getTestTableName(testInfo);
-        final JdbcConnection dataStore = newConnection(container);
+        // final DataSource dataSource = this.getDataSource();
+        final JdbcConnection dataStore = newConnection();
+
         try (final JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(dataStore)) {
             try (final Connection connection = dataSource.getConnection()) {
                 PlatformFactory.get(dataStore, getI18nMessage()).createTableIfNotExist(connection, testTable, asList("id"),
@@ -101,12 +87,15 @@ class PlatformTests extends BaseJdbcTest {
         }
     }
 
-    @TestTemplate
+    @Test
     @DisplayName("Create table - Combined primary key")
-    void createTableWithCombinedPrimaryKeys(final TestInfo testInfo, final JdbcTestContainer container) throws SQLException {
+    void createTableWithCombinedPrimaryKeys(final TestInfo testInfo) throws SQLException {
         final String testTable = getTestTableName(testInfo);
-        final JdbcConnection dataStore = newConnection(container);
+        final JdbcConnection dataStore = newConnection();
+
+        // final DataSource dataSource = this.getDataSource();
         try (final JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(dataStore)) {
+
             try (final Connection connection = dataSource.getConnection()) {
                 PlatformFactory.get(dataStore, getI18nMessage()).createTableIfNotExist(connection, testTable,
                         asList("id", "email"), RedshiftSortStrategy.COMPOUND, emptyList(), DistributionStrategy.KEYS, emptyList(),
@@ -115,11 +104,12 @@ class PlatformTests extends BaseJdbcTest {
         }
     }
 
-    @TestTemplate
+    @Test
     @DisplayName("Create table - existing table")
-    void createExistingTable(final TestInfo testInfo, final JdbcTestContainer container) throws SQLException {
+    void createExistingTable(final TestInfo testInfo) throws SQLException {
         final String testTable = getTestTableName(testInfo);
-        final JdbcConnection dataStore = newConnection(container);
+        final JdbcConnection dataStore = newConnection();
+        // final DataSource dataSource = this.getDataSource();
         try (final JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(dataStore)) {
             try (final Connection connection = dataSource.getConnection()) {
                 Platform platform = PlatformFactory.get(dataStore, getI18nMessage());
@@ -132,4 +122,25 @@ class PlatformTests extends BaseJdbcTest {
         }
     }
 
+    /*
+     * @WithComponents("org.talend.components.jdbc")
+     * public static class DerbyPlatformTest extends PlatformTests {
+     * 
+     * @Override
+     * public JdbcTestContainer buildContainer() {
+     * return new DerbyTestContainer();
+     * }
+     * }
+     */
+
+    /*
+     * @WithComponents("org.talend.components.jdbc")
+     * public static class SnowflakePlatformTest extends PlatformTests {
+     * 
+     * @Override
+     * public JdbcTestContainer buildContainer() {
+     * return new SnowflakeTestContainer();
+     * }
+     * }
+     */
 }
