@@ -221,7 +221,7 @@ class JsonFormatTest {
         _testNumbers(true);
     }
 
-    private void _testNumbers(final boolean forceDouble){
+    private void _testNumbers(final boolean forceDouble) {
         config.setJsonFile("numbers.json");
         config.setForceDouble(forceDouble);
         final List<Record> records = runPipeline();

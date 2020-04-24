@@ -21,8 +21,8 @@ import org.talend.sdk.component.api.meta.Documentation;
 import lombok.Data;
 
 @Data
-@GridLayout({ @GridLayout.Row("jsonPointer"), @GridLayout.Row("forceDouble") })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = {})
+@GridLayout({ @GridLayout.Row("jsonPointer") })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("forceDouble") })
 @Documentation("Json Configuration with json pointer rules.")
 public class JsonConfiguration implements ContentFormat {
 

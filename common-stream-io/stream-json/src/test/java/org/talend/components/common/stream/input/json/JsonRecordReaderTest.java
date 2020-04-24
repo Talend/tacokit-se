@@ -115,7 +115,7 @@ class JsonRecordReaderTest {
         expectedSchema.add(new Object[] { "coordinates", Schema.Type.RECORD });
         expectedSchema.add(new Object[] { "name", Schema.Type.STRING });
         expectedSchema.add(new Object[] { "code", Schema.Type.STRING });
-        expectedSchema.add(new Object[] { "population", Schema.Type.LONG });
+        expectedSchema.add(new Object[] { "population", Schema.Type.DOUBLE });
         expectedSchema.add(new Object[] { "updated_at", Schema.Type.STRING });
         expectedSchema.add(new Object[] { "today", Schema.Type.RECORD });
         expectedSchema.add(new Object[] { "latest_data", Schema.Type.RECORD });
@@ -139,6 +139,7 @@ class JsonRecordReaderTest {
         RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");
         JsonConfiguration jsonCfg = new JsonConfiguration();
         jsonCfg.setJsonPointer("/");
+        jsonCfg.setForceDouble(false);
 
         JsonReaderSupplier supplier = new JsonReaderSupplier();
         final RecordReader reader = supplier.getReader(factory, jsonCfg);
