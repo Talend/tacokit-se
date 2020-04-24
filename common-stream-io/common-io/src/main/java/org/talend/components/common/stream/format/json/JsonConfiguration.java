@@ -31,8 +31,8 @@ public class JsonConfiguration implements ContentFormat {
     private String jsonPointer;
 
     @Option
-    @DefaultValue("false")
-    @Documentation("force json numbe to double.")
-    private boolean forceDouble = false;
+    @DefaultValue("true")
+    @Documentation("Force json numbe to double.")
+    private boolean forceDouble = true;
 
 }
