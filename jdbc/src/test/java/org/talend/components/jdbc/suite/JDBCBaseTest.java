@@ -79,15 +79,16 @@ public abstract class JDBCBaseTest {
 
     @BeforeAll
     public void init() {
-        System.out.println(System.currentTimeMillis());
         JdbcTestContainer container = this.getContainer();
         container.start();
     }
 
     @AfterAll
     public void release() {
-        this.getContainer().close();
-        System.out.println(System.currentTimeMillis());
+        if (this.container != null) {
+            this.container.close();
+            this.container = null;
+        }
     }
 
     private DataSource buildDataSource(JdbcTestContainer container) {
