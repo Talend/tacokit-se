@@ -15,6 +15,7 @@ package org.talend.components.mongodb.dataset;
 import lombok.Data;
 import org.talend.components.mongodb.*;
 import org.talend.components.mongodb.datastore.MongoDBDataStore;
+import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -29,6 +30,7 @@ import java.util.List;
 
 @Version(1)
 @Data
+@Icon(value = Icon.IconType.CUSTOM, custom = "mongodb")
 @DataSet("MongoDBReadDataSet")
 @GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "collection" }), @GridLayout.Row({ "mode" }),
         @GridLayout.Row({ "query" }) })

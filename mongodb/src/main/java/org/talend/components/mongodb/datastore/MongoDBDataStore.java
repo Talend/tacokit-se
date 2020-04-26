@@ -17,6 +17,7 @@ import org.talend.components.mongodb.AddressType;
 import org.talend.components.mongodb.Address;
 import org.talend.components.mongodb.Auth;
 import org.talend.components.mongodb.ConnectionParameter;
+import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
@@ -32,11 +33,11 @@ import java.util.List;
 
 @Version(1)
 @Data
+@Icon(value = Icon.IconType.CUSTOM, custom = "mongodb")
 @DataStore("MongoDBDataStore")
 @Checkable("healthCheck")
 @GridLayout(names = GridLayout.FormType.MAIN, value = { @GridLayout.Row({ "addressType" }), @GridLayout.Row({ "address" }),
-        @GridLayout.Row({ "replicaSetAddress" }), @GridLayout.Row({ "shardedClusterAddress" }), @GridLayout.Row({ "database" }),
-        @GridLayout.Row({ "auth" }) })
+        @GridLayout.Row({ "replicaSetAddress" }), @GridLayout.Row({ "database" }), @GridLayout.Row({ "auth" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "connectionParameter" }) })
 @Documentation("MongoDB connection")
 public class MongoDBDataStore implements Serializable {
@@ -56,10 +57,14 @@ public class MongoDBDataStore implements Serializable {
     @Documentation("https://docs.mongodb.com/manual/reference/connection-string/")
     private List<Address> replicaSetAddress = Collections.emptyList();
 
-    @Option
-    @ActiveIf(target = "addressType", value = "SHARDED_CLUSTER")
-    @Documentation("https://docs.mongodb.com/manual/reference/connection-string/")
-    private List<Address> shardedClusterAddress = Collections.emptyList();
+    /*
+     * @Option
+     * 
+     * @ActiveIf(target = "addressType", value = "SHARDED_CLUSTER")
+     * 
+     * @Documentation("https://docs.mongodb.com/manual/reference/connection-string/")
+     * private List<Address> shardedClusterAddress = Collections.emptyList();
+     */
 
     @Option
     @Required

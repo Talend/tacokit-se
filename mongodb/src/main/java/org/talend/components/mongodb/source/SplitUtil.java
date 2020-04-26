@@ -100,7 +100,6 @@ public class SplitUtil {
         Iterator<Document> iterator = buckets.iterator();
         while (iterator.hasNext()) {
             Document bucket = iterator.next();
-            Document filter = new Document();
             Document id_document = (Document) bucket.get("_id");
             Object min = id_document.get("min");
             Object max = id_document.get("max");

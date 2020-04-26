@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 import static java.util.Collections.singletonList;
 
 @Version(1)
-@Icon(value = Icon.IconType.CUSTOM, custom = "MongoDB")
+@Icon(value = Icon.IconType.CUSTOM, custom = "mongodb")
 @PartitionMapper(name = "CollectionQuerySource")
 @Documentation("MongoDB Source with query")
 @Slf4j

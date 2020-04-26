@@ -75,12 +75,14 @@ public class MongoDBService {
                 } else {
                     return new MongoClient(getServerAddresses(datastore.getReplicaSetAddress()), getOptions(datastore));
                 }
-            case SHARDED_CLUSTER:
-                if (mc != null) {
-                    return new MongoClient(getServerAddresses(datastore.getShardedClusterAddress()), mc, getOptions(datastore));
-                } else {
-                    return new MongoClient(getServerAddresses(datastore.getShardedClusterAddress()), getOptions(datastore));
-                }
+                /*
+                 * case SHARDED_CLUSTER:
+                 * if (mc != null) {
+                 * return new MongoClient(getServerAddresses(datastore.getShardedClusterAddress()), mc, getOptions(datastore));
+                 * } else {
+                 * return new MongoClient(getServerAddresses(datastore.getShardedClusterAddress()), getOptions(datastore));
+                 * }
+                 */
             }
             return null;
         } catch (Exception e) {

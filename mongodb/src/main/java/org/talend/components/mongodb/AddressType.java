@@ -16,5 +16,5 @@ package org.talend.components.mongodb;
 public enum AddressType {
     STANDALONE,
     REPLICA_SET,
-    SHARDED_CLUSTER
+    // SHARDED_CLUSTER
 }
