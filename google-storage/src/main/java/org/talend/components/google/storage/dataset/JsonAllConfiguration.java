@@ -28,6 +28,6 @@ public class JsonAllConfiguration implements ContentFormat {
 
     @Option
     @DefaultValue("true")
-    @Documentation("Force json numbe to double.")
+    @Documentation("Force json number to double.")
     private boolean forceDouble = true;
 }
