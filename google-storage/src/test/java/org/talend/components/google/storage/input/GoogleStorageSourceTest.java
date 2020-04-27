@@ -127,6 +127,7 @@ class GoogleStorageSourceTest {
         final FormatConfiguration configuration = new FormatConfiguration();
         configuration.setContentFormat(FormatConfiguration.Type.JSON);
         dataset.setContentFormat(configuration);
+        dataset.getContentFormat().getJsonConfiguration().setForceDouble(false);
 
         final GoogleStorageSource source = buildSource(dataset);
 

@@ -23,15 +23,14 @@ import javax.json.JsonValue;
 import org.talend.components.common.stream.api.input.RecordReader;
 import org.talend.components.common.stream.input.json.JsonToRecord;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 public class JsonAllRecordReader implements RecordReader {
 
     /** converter from json object to record. */
     private final JsonToRecord toRecord;
 
-    public JsonAllRecordReader(RecordBuilderFactory recordFactory) {
-        this.toRecord = new JsonToRecord(recordFactory);
+    public JsonAllRecordReader(JsonToRecord toRecord) {
+        this.toRecord = toRecord;
     }
 
     @Override
