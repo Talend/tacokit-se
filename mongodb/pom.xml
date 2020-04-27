@@ -14,7 +14,6 @@
 
   <properties>
     <mongodb.client.version>3.12.0</mongodb.client.version>
-    <stream-json.version>1.9.0-SNAPSHOT</stream-json.version>
   </properties>
 
   <dependencies>
@@ -35,7 +34,7 @@
     <dependency>
       <groupId>org.talend.components</groupId>
       <artifactId>stream-json</artifactId>
-      <version>${stream-json.version}</version>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>
