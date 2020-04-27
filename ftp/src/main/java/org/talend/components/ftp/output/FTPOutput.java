@@ -185,6 +185,7 @@ public class FTPOutput implements Serializable {
         closeStream();
         if (ftpClient != null && ftpClient.isConnected()) {
             getFtpClient().disconnect();
+            ftpClient = null;
         }
     }
 

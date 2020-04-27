@@ -41,7 +41,8 @@ public class FTPOutputConfiguration implements Serializable {
     @Option
     @Required
     @Documentation("How to limit remote file size.")
-    private LimitBy limitBy = LimitBy.RECORDS;
+    @DefaultValue("SIZE")
+    private LimitBy limitBy = LimitBy.SIZE;
 
     @Option
     @DefaultValue("100")
