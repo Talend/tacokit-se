@@ -79,13 +79,13 @@ public class FTPInput implements Serializable {
             this.filesToRead = new ArrayList<>();
             this.filesToRead.addAll(filesToRead);
         }
-        pathIsFile = ftpService.pathIsFile(configuration.getDataSet());
     }
 
     @Producer
     public Object next() {
         if (!init) {
             init = true;
+            pathIsFile = ftpService.pathIsFile(configuration.getDataSet());
             if (filesToRead == null) {
                 GenericFTPClient currentClient = getFtpClient();
                 try {
@@ -99,14 +99,15 @@ public class FTPInput implements Serializable {
             ContentFormat contentFormat = configuration.getDataSet().getFormatConfiguration();
             recordReader = recordIORepository.findReader(contentFormat.getClass()).getReader(recordBuilderFactory, contentFormat);
 
-            recordIterator = IteratorComposer
-                    .of(filesToRead
-                            .iterator())
-                    .map(file -> configuration.getDataSet().getPath()
-                            + (configuration.getDataSet().getPath().endsWith(FTPService.PATH_SEPARATOR) || pathIsFile ? ""
-                                    : FTPService.PATH_SEPARATOR)
-                            + (pathIsFile ? "" : file.getName()))
+            recordIterator = IteratorComposer.of(filesToRead.iterator())
+                    .map(file -> pathIsFile ? configuration.getDataSet().getPath()
+                            : (configuration.getDataSet().getPath()
+                                    + (configuration.getDataSet().getPath().endsWith(FTPService.PATH_SEPARATOR) ? ""
+                                            : FTPService.PATH_SEPARATOR)
+                                    + file.getName()))
+                    .map(p -> p.endsWith(FTPService.PATH_SEPARATOR) ? p.substring(0, p.length() - 1) : p) // Need to clean path
                     .flatmap(path -> {
+                        log.info("Reading " + path);
                         final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
                         getFtpClient().retrieveFile(path, buffer);
                         return recordReader.read(new ByteArrayInputStream(buffer.toByteArray()));
