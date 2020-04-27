@@ -24,6 +24,7 @@ import org.talend.components.common.stream.format.json.JsonConfiguration;
 import org.talend.components.common.stream.format.rawtext.ExtendedRawTextConfiguration;
 import org.talend.components.common.stream.format.rawtext.RawTextConfiguration;
 import org.talend.components.rest.configuration.Format;
+import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.service.client.ContentType;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -54,14 +55,16 @@ public class RecordBuilderService {
     @Service
     private RecordBuilderFactory recordBuilderFactory;
 
-    public Iterator<Record> buildFixedRecord(final Response<InputStream> resp, final boolean isCompletePayload,
-            final Format format) {
+    public Iterator<Record> buildFixedRecord(final Response<InputStream> resp, final RequestConfig config) {
+        final Format format = config.getDataset().getFormat();
+        final boolean isCompletePayload = config.getDataset().isCompletePayload();
+
         Map<String, String> headers = Optional.ofNullable(resp.headers()).orElseGet(Collections::emptyMap).entrySet().stream()
                 .collect(toMap((Map.Entry<String, List<String>> e) -> e.getKey(), e -> String.join(",", e.getValue())));
 
         final String encoding = ContentType.getCharsetName(resp.headers());
 
-        final ContentFormat contentFormat = findFormat(format);
+        final ContentFormat contentFormat = findFormat(config);
         final RecordReaderSupplier recordReaderSupplier = this.ioRepository.findReader(contentFormat.getClass());
         final RecordReader reader = recordReaderSupplier.getReader(recordBuilderFactory, contentFormat,
                 new ExtendedRawTextConfiguration(encoding, isCompletePayload));
@@ -82,10 +85,11 @@ public class RecordBuilderService {
                 r -> this.buildRecord(r, resp.status(), headerRecords, isCompletePayload, format), true);
     }
 
-    private ContentFormat findFormat(final Format format) {
-        if (format == Format.JSON) {
+    private ContentFormat findFormat(final RequestConfig config) {
+        if (config.getDataset().getFormat() == Format.JSON) {
             JsonConfiguration jsonConfiguration = new JsonConfiguration();
             jsonConfiguration.setJsonPointer("/");
+            jsonConfiguration.setForceDouble(config.getDataset().isJsonForceDouble());
             return jsonConfiguration;
         }
 

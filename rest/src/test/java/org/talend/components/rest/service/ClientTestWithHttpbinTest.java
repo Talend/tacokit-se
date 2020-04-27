@@ -127,8 +127,7 @@ public class ClientTestWithHttpbinTest {
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setFormat(Format.JSON);
 
-        Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload(), config.getDataset().getFormat());
+        Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config), config);
 
         final Record resp = respIt.next();
 
@@ -163,8 +162,7 @@ public class ClientTestWithHttpbinTest {
         config.getDataset().setHasHeaders(false);
         config.getDataset().setHeaders(headerParams);
 
-        Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload(), config.getDataset().getFormat());
+        Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config), config);
 
         final Record resp = respIt.next();
         assertFalse(respIt.hasNext());
@@ -196,8 +194,7 @@ public class ClientTestWithHttpbinTest {
             config.getDataset().setHasHeaders(true);
             config.getDataset().setHeaders(headerParams);
 
-            final Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config),
-                    config.getDataset().isCompletePayload(), config.getDataset().getFormat());
+            final Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config), config);
 
             final Record resp = respIt.next();
             assertFalse(respIt.hasNext());
@@ -228,15 +225,13 @@ public class ClientTestWithHttpbinTest {
         config.getDataset().setMethodType(HttpMethod.GET);
 
         config.getDataset().setResource("/basic-auth/" + user + "/wrong_" + pwd);
-        final Iterator<Record> respForbiddenIt = recordBuilderService.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload(), config.getDataset().getFormat());
+        final Iterator<Record> respForbiddenIt = recordBuilderService.buildFixedRecord(service.execute(config), config);
         final Record respForbidden = respForbiddenIt.next();
         assertFalse(respForbiddenIt.hasNext());
         assertEquals(401, respForbidden.getInt("status"));
 
         config.getDataset().setResource("/basic-auth/" + user + "/" + pwd);
-        final Iterator<Record> respOkIt = recordBuilderService.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload(), config.getDataset().getFormat());
+        final Iterator<Record> respOkIt = recordBuilderService.buildFixedRecord(service.execute(config), config);
         final Record respOk = respOkIt.next();
         assertFalse(respOkIt.hasNext());
         assertEquals(200, respOk.getInt("status"));
@@ -253,15 +248,13 @@ public class ClientTestWithHttpbinTest {
         config.getDataset().setResource("/bearer");
 
         auth.setBearerToken("");
-        final Iterator<Record> respKoIt = recordBuilderService.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload(), config.getDataset().getFormat());
+        final Iterator<Record> respKoIt = recordBuilderService.buildFixedRecord(service.execute(config), config);
         final Record respKo = respKoIt.next();
         assertFalse(respKoIt.hasNext());
         assertEquals(401, respKo.getInt("status"));
 
         auth.setBearerToken("token-123456789");
-        final Iterator<Record> respOkIt = recordBuilderService.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload(), config.getDataset().getFormat());
+        final Iterator<Record> respOkIt = recordBuilderService.buildFixedRecord(service.execute(config), config);
         final Record respOk = respOkIt.next();
         assertFalse(respOkIt.hasNext());
         assertEquals(200, respOk.getInt("status"));
@@ -276,8 +269,7 @@ public class ClientTestWithHttpbinTest {
         config.getDataset().setMethodType(HttpMethod.valueOf(method));
         config.getDataset().setMaxRedirect(1);
 
-        final Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload(), config.getDataset().getFormat());
+        final Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config), config);
         final Record resp = respIt.next();
         assertFalse(respIt.hasNext());
         assertEquals(200, resp.getInt("status"));
@@ -301,8 +293,7 @@ public class ClientTestWithHttpbinTest {
         config.getDataset().setOnly_same_host(true);
 
         if ("".equals(redirect_url)) {
-            final Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config),
-                    config.getDataset().isCompletePayload(), config.getDataset().getFormat());
+            final Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config), config);
             final Record resp = respIt.next();
             assertFalse(respIt.hasNext());
             assertEquals(200, resp.getInt("status"));
@@ -314,8 +305,8 @@ public class ClientTestWithHttpbinTest {
              * assertEquals("ok", payload.getJsonObject("args").getString("redirect"));
              */
         } else {
-            assertThrows(IllegalArgumentException.class, () -> recordBuilderService.buildFixedRecord(service.execute(config),
-                    config.getDataset().isCompletePayload(), config.getDataset().getFormat()));
+            assertThrows(IllegalArgumentException.class,
+                    () -> recordBuilderService.buildFixedRecord(service.execute(config), config));
         }
     }
 
@@ -326,8 +317,7 @@ public class ClientTestWithHttpbinTest {
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setMaxRedirect(maxRedict);
 
-        final Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload(), config.getDataset().getFormat());
+        final Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config), config);
         final Record resp = respIt.next();
         assertFalse(respIt.hasNext());
         assertEquals(200, resp.getInt("status"));
@@ -343,15 +333,13 @@ public class ClientTestWithHttpbinTest {
         if (maxRedict == 0) {
             // When maxRedirect == 0 then redirect is disabled
             // we only return the response
-            final Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config),
-                    config.getDataset().isCompletePayload(), config.getDataset().getFormat());
+            final Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config), config);
             final Record resp = respIt.next();
             assertFalse(respIt.hasNext());
             assertEquals(302, resp.getInt("status"));
         } else {
             Exception e = assertThrows(IllegalArgumentException.class,
-                    () -> recordBuilderService.buildFixedRecord(service.execute(config), config.getDataset().isCompletePayload(),
-                            config.getDataset().getFormat()));
+                    () -> recordBuilderService.buildFixedRecord(service.execute(config), config));
         }
     }
 
@@ -383,8 +371,7 @@ public class ClientTestWithHttpbinTest {
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("digest-auth/" + qop + "/" + user + "/" + pwd);
 
-        final Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload(), config.getDataset().getFormat());
+        final Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config), config);
         final Record resp = respIt.next();
         assertFalse(respIt.hasNext());
         assertEquals(expected, resp.getInt("status"));
@@ -396,8 +383,7 @@ public class ClientTestWithHttpbinTest {
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("digest-auth/" + qop + "/" + user + "/" + pwd + "/" + algo);
 
-        final Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload(), config.getDataset().getFormat());
+        final Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config), config);
         final Record resp = respIt.next();
         assertFalse(respIt.hasNext());
         assertEquals(expected, resp.getInt("status"));
@@ -412,8 +398,7 @@ public class ClientTestWithHttpbinTest {
             config.getDataset().setFormat(Format.JSON);
         }
 
-        final Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload(), config.getDataset().getFormat());
+        final Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config), config);
         final Record resp = respIt.next();
         assertFalse(respIt.hasNext());
         assertEquals(200, resp.getInt("status"));
@@ -462,8 +447,7 @@ public class ClientTestWithHttpbinTest {
         config.getDataset().setResource("post");
         config.getDataset().setFormat(Format.JSON);
 
-        final Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload(), config.getDataset().getFormat());
+        final Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config), config);
 
         final Record resp = respIt.next();
         assertFalse(respIt.hasNext());
@@ -484,8 +468,7 @@ public class ClientTestWithHttpbinTest {
         config.getDataset().setResource("post");
         config.getDataset().setFormat(Format.JSON);
 
-        final Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload(), config.getDataset().getFormat());
+        final Iterator<Record> respIt = recordBuilderService.buildFixedRecord(service.execute(config), config);
 
         final Record resp = respIt.next();
         assertFalse(respIt.hasNext());

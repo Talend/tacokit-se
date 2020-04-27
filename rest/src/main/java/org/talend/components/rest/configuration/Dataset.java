@@ -38,7 +38,7 @@ import java.util.List;
         @GridLayout.Row({ "pathParams" }), @GridLayout.Row({ "hasBody" }), @GridLayout.Row({ "body" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "datastore" }),
         @GridLayout.Row({ "completePayload" }), @GridLayout.Row({ "maxRedirect" }), @GridLayout.Row({ "only_same_host" }),
-        @GridLayout.Row({ "force_302_redirect" }) })
+        @GridLayout.Row({ "force_302_redirect" }), @GridLayout.Row({ "jsonForceDouble" }) })
 @Documentation("Dataset configuration.")
 public class Dataset implements Serializable {
 
@@ -59,8 +59,14 @@ public class Dataset implements Serializable {
 
     @Option
     @Required
-    @Documentation("Format ofthe answer body.")
+    @Documentation("Format of the body's answer.")
     private Format format = Format.RAW_TEXT;
+
+    @Option
+    @Documentation("If answer body type is JSON, infer numbers type or force all to double.")
+    @ActiveIf(target = "format", value = "JSON")
+    @DefaultValue("true")
+    private boolean jsonForceDouble = true;
 
     @Option
     @Documentation("How many redirection are supported ? (-1 for infinite)")

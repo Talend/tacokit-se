@@ -36,8 +36,10 @@ import org.talend.sdk.component.junit5.environment.EnvironmentalTest;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
@@ -250,6 +252,15 @@ class JsonFormatTest {
         Assertions.assertEquals("is_array_of_double", entries.get(6).getName());
         Assertions.assertEquals(Schema.Type.ARRAY, entries.get(6).getType());
         Assertions.assertEquals(Schema.Type.DOUBLE, entries.get(6).getElementSchema().getType());
+
+        final List<Object> is_array_of_int = record.getArray(Object.class, "is_array_of_int").stream()
+                .collect(Collectors.toList());
+        Assertions.assertEquals(Double.class, is_array_of_int.get(2).getClass()); // must be instance of Double, not BigInteger
+
+        final List<Object> is_array_of_double = record.getArray(Object.class, "is_array_of_double").stream()
+                .collect(Collectors.toList());
+        Assertions.assertEquals(Double.class, is_array_of_double.get(2).getClass()); // must be instance of Double, not BigInteger
+
     }
 
     private List<Record> runPipeline() {

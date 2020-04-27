@@ -102,8 +102,7 @@ public class ClientTestWithMockProxyTest {
         config.getDataset().getDatastore().setAuthentication(auth);
         config.getDataset().setMethodType(HttpMethod.GET);
 
-        Iterator<Record> resp = recordBuilderService.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload(), config.getDataset().getFormat());
+        Iterator<Record> resp = recordBuilderService.buildFixedRecord(service.execute(config), config);
         assertEquals(200, resp.next().getInt("status"));
     }
 

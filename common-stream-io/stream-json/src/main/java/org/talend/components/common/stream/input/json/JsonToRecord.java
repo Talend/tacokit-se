@@ -214,7 +214,11 @@ public class JsonToRecord {
         InferType {
 
             public Number getNumber(JsonNumber number) {
-                return number.numberValue();
+                if (number.isIntegral()) {
+                    return number.numberValue();
+                } else {
+                    return number.doubleValue();
+                }
             }
 
             public void setNumber(Record.Builder builder, String key, JsonNumber number) {
