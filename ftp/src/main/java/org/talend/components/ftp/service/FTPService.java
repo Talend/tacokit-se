@@ -113,32 +113,6 @@ public class FTPService implements Serializable {
     }
 
     /**
-     * Checks if connection allows writting in a directory
-     * 
-     * @param dataset Dataset containing the path of the directory to test
-     * @return true if user can write, false otherwise
-     */
-    public boolean canWrite(FTPDataSet dataset) {
-        try (GenericFTPClient ftpClient = getClient(dataset.getDatastore())) {
-            ftpClient.enableDebug(log);
-            String filename = UUID.randomUUID().toString();
-            String filePath = generateFilePath(dataset.getPath(), filename);
-            OutputStream out = ftpClient.storeFileStream(filePath);
-            if (out != null) {
-                out.write("test".getBytes(StandardCharsets.UTF_8));
-                out.flush();
-                out.close();
-                ftpClient.removeFile(filePath);
-                return true;
-            }
-            return false;
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return false;
-        }
-    }
-
-    /**
      * Checks if the path in the dataset points to a single file
      * 
      * @param dataset

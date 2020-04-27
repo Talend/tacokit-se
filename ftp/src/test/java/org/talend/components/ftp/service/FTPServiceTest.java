@@ -74,21 +74,4 @@ public class FTPServiceTest {
                 "Status should be KO.");
     }
 
-    @Test
-    public void testWritable(UnixFakeFileSystem fs) {
-        DirectoryEntry writableDirectory = new DirectoryEntry("/writable");
-        writableDirectory.setPermissions(Permissions.ALL);
-        fs.add(writableDirectory);
-
-        dataset.setPath("/writable");
-        Assertions.assertTrue(beanUnderTest.canWrite(dataset), "Directory should be writable.");
-
-        DirectoryEntry nonWritableDirectory = new DirectoryEntry("/nonwritable");
-        nonWritableDirectory.setPermissions(Permissions.NONE);
-        fs.add(nonWritableDirectory);
-
-        dataset.setPath("/nonwritable");
-        Assertions.assertFalse(beanUnderTest.canWrite(dataset), "Directory should not be writable.");
-    }
-
 }

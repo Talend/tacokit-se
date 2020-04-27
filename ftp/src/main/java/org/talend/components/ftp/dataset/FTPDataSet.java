@@ -23,6 +23,7 @@ import org.talend.components.ftp.datastore.FTPDataStore;
 import org.talend.components.ftp.service.FTPService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.BuiltInSuggestable;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Required;
@@ -50,7 +51,6 @@ public class FTPDataSet implements Serializable {
 
     @Option
     @Documentation("Path to work in.")
-    @Suggestable(value = FTPService.ACTION_SUGGESTION_PATH, parameters = { "datastore", "." })
     private String path;
 
     @Option
