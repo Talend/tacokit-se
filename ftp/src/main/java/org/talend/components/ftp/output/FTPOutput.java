@@ -114,7 +114,7 @@ public class FTPOutput implements Serializable {
     }
 
     private void checkCurrentStream(int nbRetry) {
-        if (nbRetry > NB_MAX_RETRIES_PUT) {
+        if (nbRetry >= NB_MAX_RETRIES_PUT) {
             String msg = i18n.errorTooManyRetries(NB_MAX_RETRIES_PUT);
             log.error(msg);
             throw new FTPConnectorException(msg);
@@ -132,7 +132,7 @@ public class FTPOutput implements Serializable {
             OutputStream ftpout = getFtpClient().storeFileStream(path);
             if (ftpout == null) {
                 log.error(i18n.errorCreateRemoteFile(path, ftpClient.getReplyCode()));
-                checkCurrentStream(nbRetry++);
+                checkCurrentStream(++nbRetry);
                 return;
             }
             currentStream = new SizeAwareOutputStream(ftpout);
