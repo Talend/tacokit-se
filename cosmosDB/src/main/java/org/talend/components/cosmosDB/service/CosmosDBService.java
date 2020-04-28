@@ -19,6 +19,7 @@ import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.documentdb.DocumentClientException;
 import com.microsoft.azure.documentdb.RetryOptions;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.talend.components.cosmosDB.dataset.QueryDataset;
 import org.talend.components.cosmosDB.datastore.CosmosDBDataStore;
 import org.talend.components.cosmosDB.input.CosmosDBInput;
@@ -73,14 +74,18 @@ public class CosmosDBService {
 
     @HealthCheck("healthCheck")
     public HealthCheckStatus healthCheck(@Option("configuration.dataset.connection") final CosmosDBDataStore datastore) {
+        String databaseID = datastore.getDatabaseID();
+        if (StringUtils.isEmpty(databaseID)) {
+            return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18n.vacantDBID());
+        }
         try (DocumentClient client = documentClientFrom(datastore)) {
-            String databaseLink = String.format("/dbs/%s", datastore.getDatabaseID());
+            String databaseLink = String.format("/dbs/%s", databaseID);
             client.readDatabase(databaseLink, null);
-            return new HealthCheckStatus(HealthCheckStatus.Status.OK, "Connection OK");
+            return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18n.connectionSuccess());
         } catch (DocumentClientException de) {
             // If the database does not exist, create a new database
             if (de.getStatusCode() == 404) {
-                return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.databaseNotExist(datastore.getDatabaseID()));
+                return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.databaseNotExist(databaseID));
             } else {
                 return new HealthCheckStatus(HealthCheckStatus.Status.KO, de.getLocalizedMessage());
             }

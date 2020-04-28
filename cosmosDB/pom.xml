@@ -19,42 +19,22 @@
   </properties>
 
   <dependencies>
-
-
+    <dependency>
+      <groupId>org.talend.components</groupId>
+      <artifactId>cosmosDB-locales</artifactId>
+      <version>${locales.version}</version>
+    </dependency>
     <dependency>
       <groupId>joda-time</groupId>
       <artifactId>joda-time</artifactId>
       <version>2.10.5</version>
       <scope>compile</scope>
     </dependency>
-
     <dependency>
       <groupId>com.microsoft.azure</groupId>
       <artifactId>azure-documentdb</artifactId>
       <version>2.4.7</version>
     </dependency>
-
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>${jackson.version}</version>
-      <scope>compile</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-core</artifactId>
-      <version>${jackson.version}</version>
-      <scope>compile</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-annotations</artifactId>
-      <version>${jackson.version}</version>
-      <scope>compile</scope>
-    </dependency>
-
     <dependency>
       <groupId>org.talend.components</groupId>
       <artifactId>stream-json</artifactId>
@@ -65,9 +45,6 @@
       <artifactId>json</artifactId>
       <version>20190722</version>
     </dependency>
-
-
-
   </dependencies>
 
   <build>
