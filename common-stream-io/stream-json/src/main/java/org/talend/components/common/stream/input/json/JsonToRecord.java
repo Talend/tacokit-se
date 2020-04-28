@@ -215,7 +215,7 @@ public class JsonToRecord {
 
             public Number getNumber(JsonNumber number) {
                 if (number.isIntegral()) {
-                    return number.numberValue();
+                    return number.longValueExact();
                 } else {
                     return number.doubleValue();
                 }
@@ -223,7 +223,7 @@ public class JsonToRecord {
 
             public void setNumber(Record.Builder builder, String key, JsonNumber number) {
                 if (number.isIntegral()) {
-                    builder.withLong(key, number.longValue());
+                    builder.withLong(key, number.longValueExact());
                 } else {
                     builder.withDouble(key, number.doubleValue());
                 }

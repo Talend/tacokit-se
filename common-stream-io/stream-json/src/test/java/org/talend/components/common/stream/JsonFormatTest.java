@@ -253,6 +253,9 @@ class JsonFormatTest {
         Assertions.assertEquals(Schema.Type.ARRAY, entries.get(6).getType());
         Assertions.assertEquals(Schema.Type.DOUBLE, entries.get(6).getElementSchema().getType());
 
+        final Object is_int = record.get(Object.class, "is_int");
+        Assertions.assertEquals(Long.class, is_int.getClass());
+
         final List<Object> is_array_of_int = record.getArray(Object.class, "is_array_of_int").stream()
                 .collect(Collectors.toList());
         Assertions.assertEquals(Double.class, is_array_of_int.get(2).getClass()); // must be instance of Double, not BigInteger
