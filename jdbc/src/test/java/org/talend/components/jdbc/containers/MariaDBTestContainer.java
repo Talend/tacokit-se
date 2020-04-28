@@ -12,11 +12,12 @@
  */
 package org.talend.components.jdbc.containers;
 
-import lombok.experimental.Delegate;
 import org.testcontainers.containers.ContainerState;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.MariaDBContainer;
+
+import lombok.experimental.Delegate;
 
 public class MariaDBTestContainer implements JdbcTestContainer {
 

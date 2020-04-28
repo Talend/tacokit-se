@@ -10,18 +10,31 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.jdbc.suite.input;
+package org.talend.components.jdbc.suite.containers;
 
-import org.talend.components.jdbc.containers.DerbyTestContainer;
+import org.junit.jupiter.api.Tag;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
-import org.talend.components.jdbc.suite.InputTest;
-import org.talend.sdk.component.junit5.WithComponents;
+import org.talend.components.jdbc.containers.OracleTestContainer;
+import org.talend.components.jdbc.suite.JDBCBaseContainerTest;
 
-@WithComponents("org.talend.components.jdbc")
-public class DerbyInputTest extends InputTest {
+@Tag("IT")
+public class OracleContainerTest extends JDBCBaseContainerTest {
 
     @Override
     public JdbcTestContainer buildContainer() {
-        return new DerbyTestContainer();
+        return new OracleTestContainer();
     }
+
+    public class OraclePlatform extends PlatformTests {
+    }
+
+    public class OracleInput extends InputTest {
+    }
+
+    public class OracleOutput extends OutputTest {
+    }
+
+    public class OracleUI extends UIActionServiceTest {
+    }
+
 }

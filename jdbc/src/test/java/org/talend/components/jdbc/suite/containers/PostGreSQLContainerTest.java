@@ -10,20 +10,31 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.jdbc.suite.uiaction;
+package org.talend.components.jdbc.suite.containers;
 
 import org.junit.jupiter.api.Tag;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
 import org.talend.components.jdbc.containers.PostgresqlTestContainer;
-import org.talend.components.jdbc.suite.UIActionServiceTest;
-import org.talend.sdk.component.junit5.WithComponents;
+import org.talend.components.jdbc.suite.JDBCBaseContainerTest;
 
 @Tag("IT")
-@WithComponents("org.talend.components.jdbc")
-public class PostGreUIActionTest extends UIActionServiceTest {
+public class PostGreSQLContainerTest extends JDBCBaseContainerTest {
 
     @Override
     public JdbcTestContainer buildContainer() {
         return new PostgresqlTestContainer();
     }
+
+    public class PostgrePlatform extends PlatformTests {
+    }
+
+    public class PostgreInput extends InputTest {
+    }
+
+    public class PostgreOutput extends OutputTest {
+    }
+
+    public class PostgreUI extends UIActionServiceTest {
+    }
+
 }

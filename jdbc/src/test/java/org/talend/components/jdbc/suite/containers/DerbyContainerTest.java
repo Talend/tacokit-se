@@ -10,20 +10,29 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.jdbc.suite.uiaction;
+package org.talend.components.jdbc.suite.containers;
 
-import org.junit.jupiter.api.Tag;
+import org.talend.components.jdbc.containers.DerbyTestContainer;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
-import org.talend.components.jdbc.containers.MSSQLServerTestContainer;
-import org.talend.components.jdbc.suite.UIActionServiceTest;
-import org.talend.sdk.component.junit5.WithComponents;
+import org.talend.components.jdbc.suite.JDBCBaseContainerTest;
 
-@Tag("IT")
-@WithComponents("org.talend.components.jdbc")
-public class MSSQLUIActionTest extends UIActionServiceTest {
+public class DerbyContainerTest extends JDBCBaseContainerTest {
 
     @Override
     public JdbcTestContainer buildContainer() {
-        return new MSSQLServerTestContainer();
+        return new DerbyTestContainer();
     }
+
+    public class DerbyPlatform extends PlatformTests {
+    }
+
+    public class DerbyInput extends InputTest {
+    }
+
+    public class DerbyOutput extends OutputTest {
+    }
+
+    public class DerbyUI extends UIActionServiceTest {
+    }
+
 }
