@@ -152,12 +152,12 @@ public class CSVMessageGenerator extends MessageGenerator {
 
         @Override
         public RecordVisitor<String> onRecordArray(Schema.Entry entry, Optional<Collection<Record>> array) {
-            return this;
+            return new RecordVisitor<String>() {};
         }
 
         @Override
         public RecordVisitor<String> onRecord(Schema.Entry entry, Optional<Record> record) {
-            return this;
+            return new RecordVisitor<String>() {};
         }
     }
 
