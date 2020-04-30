@@ -68,30 +68,22 @@ public class CSVMessageGeneratorTest {
         RecordBuilderFactory rbf = new RecordBuilderFactoryImpl(null);
         Schema.Entry arrayEntry = rbf.newEntryBuilder().withName("array").withType(Schema.Type.ARRAY)
                 .withElementSchema(rbf.newSchemaBuilder(Schema.Type.STRING).build()).withNullable(true).build();
-        Schema.Entry innerRecordEntry = rbf.newEntryBuilder()
-                .withName("innerRecord")
-                .withType(Schema.Type.RECORD)
+        Schema.Entry innerRecordEntry = rbf.newEntryBuilder().withName("innerRecord").withType(Schema.Type.RECORD)
                 .withElementSchema(rbf.newSchemaBuilder(Schema.Type.RECORD)
-                        .withEntry(rbf.newEntryBuilder().withName("name").withType(Schema.Type.STRING).build())
-                        .build())
-                .withNullable(true)
-                .build();
+                        .withEntry(rbf.newEntryBuilder().withName("name").withType(Schema.Type.STRING).build()).build())
+                .withNullable(true).build();
         Schema schema = rbf.newSchemaBuilder(Schema.Type.RECORD)
                 .withEntry(rbf.newEntryBuilder().withName("name").withType(Schema.Type.STRING).build())
                 .withEntry(rbf.newEntryBuilder().withName("age").withType(Schema.Type.INT).build())
                 .withEntry(
                         rbf.newEntryBuilder().withName("nullableString").withType(Schema.Type.STRING).withNullable(true).build())
                 .withEntry(innerRecordEntry)
-                .withEntry(rbf.newEntryBuilder().withName("state").withType(Schema.Type.STRING).build())
-                .withEntry(arrayEntry)
+                .withEntry(rbf.newEntryBuilder().withName("state").withType(Schema.Type.STRING).build()).withEntry(arrayEntry)
                 .build();
-        Record record = rbf.newRecordBuilder(schema)
-                .withString("name", "John Smith")
-                .withInt("age", 42)
+        Record record = rbf.newRecordBuilder(schema).withString("name", "John Smith").withInt("age", 42)
                 .withArray(arrayEntry, Arrays.asList("A", "B", "C"))
-                .withRecord("innerRecord", rbf.newRecordBuilder(innerRecordEntry.getElementSchema())
-                        .withString("name", "innerName")
-                        .build())
+                .withRecord("innerRecord",
+                        rbf.newRecordBuilder(innerRecordEntry.getElementSchema()).withString("name", "innerName").build())
                 .withString("state", "CA").build();
 
         PubsubMessage message = beanUnderTest.generateMessage(record);

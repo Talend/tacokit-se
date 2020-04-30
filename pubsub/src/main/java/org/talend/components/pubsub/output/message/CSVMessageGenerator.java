@@ -43,6 +43,9 @@ public class CSVMessageGenerator extends MessageGenerator {
 
         private StringBuilder csv = new StringBuilder();
 
+        private RecordVisitor<String> doNothingVisitor = new RecordVisitor<String>() {
+        };
+
         private char fieldDelimiter;
 
         CSVRecordVisitor(char fieldDelimiter) {
@@ -107,57 +110,13 @@ public class CSVMessageGenerator extends MessageGenerator {
         }
 
         @Override
-        public void onBooleanArray(Schema.Entry entry, Optional<Collection<Boolean>> array) {
-
-        }
-
-        @Override
-        public void onBytesArray(Schema.Entry entry, Optional<Collection<byte[]>> array) {
-
-        }
-
-        @Override
-        public void onDatetimeArray(Schema.Entry entry, Optional<Collection<ZonedDateTime>> array) {
-
-        }
-
-        @Override
-        public void onDoubleArray(Schema.Entry entry, Optional<Collection<Double>> array) {
-
-        }
-
-        @Override
-        public void onFloatArray(Schema.Entry entry, Optional<Collection<Float>> array) {
-
-        }
-
-        @Override
-        public void onIntArray(Schema.Entry entry, Optional<Collection<Integer>> array) {
-
-        }
-
-        @Override
-        public void onLongArray(Schema.Entry entry, Optional<Collection<Long>> array) {
-
-        }
-
-        @Override
-        public void onStringArray(Schema.Entry entry, Optional<Collection<String>> array) {
-
-        }
-
-        public void onArray(Collection<?> array) {
-
-        }
-
-        @Override
         public RecordVisitor<String> onRecordArray(Schema.Entry entry, Optional<Collection<Record>> array) {
-            return new RecordVisitor<String>() {};
+            return doNothingVisitor;
         }
 
         @Override
         public RecordVisitor<String> onRecord(Schema.Entry entry, Optional<Record> record) {
-            return new RecordVisitor<String>() {};
+            return doNothingVisitor;
         }
     }
 
