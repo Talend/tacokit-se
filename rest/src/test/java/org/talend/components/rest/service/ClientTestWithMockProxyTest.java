@@ -12,7 +12,12 @@
  */
 package org.talend.components.rest.service;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+
 import org.apache.beam.sdk.Pipeline;
 import org.junit.jupiter.api.BeforeEach;
 import org.talend.components.rest.configuration.Format;
@@ -35,13 +40,9 @@ import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.junit5.environment.EnvironmentalTest;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
@@ -101,8 +102,7 @@ public class ClientTestWithMockProxyTest {
         config.getDataset().getDatastore().setAuthentication(auth);
         config.getDataset().setMethodType(HttpMethod.GET);
 
-        Iterator<Record> resp = recordBuilderService.buildFixedRecord(service.execute(config),
-                config.getDataset().isCompletePayload(), config.getDataset().getFormat());
+        Iterator<Record> resp = recordBuilderService.buildFixedRecord(service.execute(config), config);
         assertEquals(200, resp.next().getInt("status"));
     }
 
@@ -260,6 +260,8 @@ public class ClientTestWithMockProxyTest {
 
     @EnvironmentalTest
     void jsonWithError() {
+        final Locale aDefault = Locale.getDefault();
+        Locale.setDefault(Locale.ENGLISH);
         config.getDataset().getDatastore().setBase("https://fakefacts.com/");
         config.getDataset().setMethodType(HttpMethod.GET);
         config.getDataset().setResource("jsonWithError");
@@ -281,7 +283,7 @@ public class ClientTestWithMockProxyTest {
             assertEquals("The body's answer can't be read as JSON.",
                     (e instanceof IllegalArgumentException) ? e.getMessage() : e.getCause().getCause().getMessage());
         }
-
+        Locale.setDefault(aDefault);
     }
 
     @EnvironmentalTest

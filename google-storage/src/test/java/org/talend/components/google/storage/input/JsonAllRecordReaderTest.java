@@ -19,6 +19,7 @@ import java.util.Iterator;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.talend.components.common.stream.input.json.JsonToRecord;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
@@ -28,7 +29,7 @@ class JsonAllRecordReaderTest {
     @Test
     void read() throws IOException {
         final RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");
-        final JsonAllRecordReader reader = new JsonAllRecordReader(factory);
+        final JsonAllRecordReader reader = new JsonAllRecordReader(new JsonToRecord(factory, true));
 
         final URL jsonResource = Thread.currentThread().getContextClassLoader().getResource("./data.json");
         try (final InputStream in = jsonResource.openStream()) {

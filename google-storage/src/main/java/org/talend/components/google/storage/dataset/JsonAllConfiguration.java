@@ -13,6 +13,8 @@
 package org.talend.components.google.storage.dataset;
 
 import org.talend.components.common.stream.format.ContentFormat;
+import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
@@ -20,7 +22,12 @@ import lombok.Data;
 
 @Data
 @GridLayout({})
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("forceDouble") })
 @Documentation("Json Configuration in one object.")
 public class JsonAllConfiguration implements ContentFormat {
 
+    @Option
+    @DefaultValue("true")
+    @Documentation("Force json number to double.")
+    private boolean forceDouble = true;
 }

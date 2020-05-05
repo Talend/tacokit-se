@@ -12,21 +12,22 @@
  */
 package org.talend.components.common.stream.input.json;
 
-import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-
-import javax.json.JsonArray;
-import javax.json.JsonNumber;
-import javax.json.JsonObject;
-import javax.json.JsonString;
-import javax.json.JsonValue;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+
+import javax.json.JsonArray;
+import javax.json.JsonNumber;
+import javax.json.JsonObject;
+import javax.json.JsonString;
+import javax.json.JsonValue;
+
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -35,8 +36,19 @@ public class JsonToRecord {
 
     private final RecordBuilderFactory factory;
 
+    private final NumberOption numberOption;
+
     public JsonToRecord(final RecordBuilderFactory factory) {
+        this(factory, false);
+    }
+
+    public JsonToRecord(RecordBuilderFactory factory, boolean forceNumberAsDouble) {
         this.factory = factory;
+        if (forceNumberAsDouble) {
+            this.numberOption = NumberOption.ForceDoubleType;
+        } else {
+            this.numberOption = NumberOption.InferType;
+        }
     }
 
     /*
@@ -70,7 +82,7 @@ public class JsonToRecord {
                 break;
             case NUMBER:
                 final JsonNumber number = JsonNumber.class.cast(value);
-                builder.withDouble(key, number.doubleValue());
+                this.numberOption.setNumber(builder, key, number);
                 break;
             case NULL:
                 break;
@@ -92,7 +104,7 @@ public class JsonToRecord {
             return JsonString.class.cast(it).getString();
         }
         if (JsonNumber.class.isInstance(it)) {
-            return JsonNumber.class.cast(it).numberValue();
+            return this.numberOption.getNumber(JsonNumber.class.cast(it));
         }
         if (JsonValue.FALSE.equals(it)) {
             return false;
@@ -113,7 +125,7 @@ public class JsonToRecord {
         final Schema firstSchema = toSchema(items.get(0));
         if (firstSchema.getType() == Schema.Type.RECORD) {
             // This code merges schema of all record of the array [{aaa, bbb}, {aaa, ccc}] => {aaa, bbb, ccc}
-            return items.stream().map(it -> toSchema(it)).reduce(null, (Schema s1, Schema s2) -> {
+            return items.stream().skip(1).map(this::toSchema).reduce(firstSchema, (Schema s1, Schema s2) -> {
                 if (s1 == null) {
                     return s2;
                 }
@@ -152,10 +164,14 @@ public class JsonToRecord {
         if (Float.class.isInstance(next)) {
             return factory.newSchemaBuilder(Schema.Type.FLOAT).build();
         }
-        if (BigDecimal.class.isInstance(next) || JsonNumber.class.isInstance(next)) {
+        if (JsonNumber.class.isInstance(next)) {
+            Schema.Type schemaType = this.numberOption.getNumberType(JsonNumber.class.cast(next));
+            return factory.newSchemaBuilder(schemaType).build();
+        }
+        if (BigDecimal.class.isInstance(next)) {
             return factory.newSchemaBuilder(Schema.Type.DOUBLE).build();
         }
-        if (Double.class.isInstance(next) || JsonNumber.class.isInstance(next)) {
+        if (Double.class.isInstance(next)) {
             return factory.newSchemaBuilder(Schema.Type.DOUBLE).build();
         }
         if (Boolean.class.isInstance(next) || JsonValue.TRUE.equals(next) || JsonValue.FALSE.equals(next)) {
@@ -179,4 +195,53 @@ public class JsonToRecord {
         }
         throw new IllegalArgumentException("unsupported type for " + next);
     }
+
+    private enum NumberOption {
+        ForceDoubleType {
+
+            public Number getNumber(JsonNumber number) {
+                return number.doubleValue();
+            }
+
+            public void setNumber(Record.Builder builder, String key, JsonNumber number) {
+                builder.withDouble(key, number.doubleValue());
+            }
+
+            public Schema.Type getNumberType(JsonNumber number) {
+                return Schema.Type.DOUBLE;
+            }
+        },
+        InferType {
+
+            public Number getNumber(JsonNumber number) {
+                if (number.isIntegral()) {
+                    return number.longValueExact();
+                } else {
+                    return number.doubleValue();
+                }
+            }
+
+            public void setNumber(Record.Builder builder, String key, JsonNumber number) {
+                if (number.isIntegral()) {
+                    builder.withLong(key, number.longValueExact());
+                } else {
+                    builder.withDouble(key, number.doubleValue());
+                }
+            }
+
+            public Schema.Type getNumberType(JsonNumber number) {
+                if (number.isIntegral()) {
+                    return Schema.Type.LONG;
+                }
+                return Schema.Type.DOUBLE;
+            }
+        };
+
+        public abstract Number getNumber(JsonNumber number);
+
+        public abstract void setNumber(Record.Builder builder, String key, JsonNumber number);
+
+        public abstract Schema.Type getNumberType(JsonNumber number);
+    }
+
 }

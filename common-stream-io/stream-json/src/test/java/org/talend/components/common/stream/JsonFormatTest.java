@@ -36,8 +36,10 @@ import org.talend.sdk.component.junit5.environment.EnvironmentalTest;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
@@ -209,6 +211,59 @@ class JsonFormatTest {
         Assertions.assertEquals(Schema.Type.STRING,
                 record.getSchema().getEntries().get(0).getElementSchema().getEntries().get(2).getType());
         Assertions.assertEquals("ddd", record.getSchema().getEntries().get(0).getElementSchema().getEntries().get(2).getName());
+    }
+
+    @EnvironmentalTest
+    void testNumbersInferType() {
+        _testNumbers(false);
+    }
+
+    @EnvironmentalTest
+    void testNumbersForceDouble() {
+        _testNumbers(true);
+    }
+
+    private void _testNumbers(final boolean forceDouble) {
+        config.setJsonFile("numbers.json");
+        config.setForceDouble(forceDouble);
+        final List<Record> records = runPipeline();
+        Assertions.assertEquals(1, records.size());
+
+        final Record record = records.get(0);
+        Assertions.assertEquals(Schema.Type.RECORD, record.getSchema().getType());
+
+        final Schema schema = record.getSchema();
+        final List<Schema.Entry> entries = schema.getEntries();
+        Assertions.assertEquals(7, entries.size());
+
+        Assertions.assertEquals("is_int", entries.get(2).getName());
+        Assertions.assertEquals(forceDouble ? Schema.Type.DOUBLE : Schema.Type.LONG, entries.get(2).getType());
+
+        Assertions.assertEquals("is_a_double", entries.get(3).getName());
+        Assertions.assertEquals(Schema.Type.DOUBLE, entries.get(3).getType());
+
+        Assertions.assertEquals("is_b_double", entries.get(4).getName());
+        Assertions.assertEquals(Schema.Type.DOUBLE, entries.get(4).getType());
+
+        Assertions.assertEquals("is_array_of_int", entries.get(5).getName());
+        Assertions.assertEquals(Schema.Type.ARRAY, entries.get(5).getType());
+        Assertions.assertEquals(forceDouble ? Schema.Type.DOUBLE : Schema.Type.LONG, entries.get(5).getElementSchema().getType());
+
+        Assertions.assertEquals("is_array_of_double", entries.get(6).getName());
+        Assertions.assertEquals(Schema.Type.ARRAY, entries.get(6).getType());
+        Assertions.assertEquals(Schema.Type.DOUBLE, entries.get(6).getElementSchema().getType());
+
+        final Object is_int = record.get(Object.class, "is_int");
+        Assertions.assertEquals(forceDouble ? Double.class : Long.class, is_int.getClass());
+
+        final List<Object> is_array_of_int = record.getArray(Object.class, "is_array_of_int").stream()
+                .collect(Collectors.toList());
+        Assertions.assertEquals(Double.class, is_array_of_int.get(2).getClass()); // must be instance of Double, not BigInteger
+
+        final List<Object> is_array_of_double = record.getArray(Object.class, "is_array_of_double").stream()
+                .collect(Collectors.toList());
+        Assertions.assertEquals(Double.class, is_array_of_double.get(2).getClass()); // must be instance of Double, not BigInteger
+
     }
 
     private List<Record> runPipeline() {

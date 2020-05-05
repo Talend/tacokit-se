@@ -27,7 +27,15 @@ public class CosmosDBServiceTestIT extends CosmosDbTestBase {
     @Test
     public void cosmosDBFailConnectionTest() {
         dataStore.setPrimaryKey("fakeKey");
-        Assert.assertEquals(HealthCheckStatus.Status.KO, service.healthCheck(dataStore).getStatus());
+        HealthCheckStatus healthCheckStatus = service.healthCheck(dataStore);
+        Assert.assertEquals(HealthCheckStatus.Status.KO, healthCheckStatus.getStatus());
+    }
+
+    @Test
+    public void cosmosDBnullIDConnectionTest() {
+        dataStore.setDatabaseID("");
+        HealthCheckStatus healthCheckStatus = service.healthCheck(dataStore);
+        Assert.assertEquals(HealthCheckStatus.Status.KO, healthCheckStatus.getStatus());
     }
 
     @Test

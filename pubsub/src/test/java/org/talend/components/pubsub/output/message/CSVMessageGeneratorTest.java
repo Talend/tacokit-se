@@ -13,6 +13,7 @@
 package org.talend.components.pubsub.output.message;
 
 import com.google.pubsub.v1.PubsubMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,7 @@ import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 import java.util.Arrays;
 import java.util.Locale;
 
+@Slf4j
 public class CSVMessageGeneratorTest {
 
     private CSVMessageGenerator beanUnderTest;
@@ -64,18 +66,29 @@ public class CSVMessageGeneratorTest {
         beanUnderTest.init(dataSet);
 
         RecordBuilderFactory rbf = new RecordBuilderFactoryImpl(null);
+        Schema.Entry arrayEntry = rbf.newEntryBuilder().withName("array").withType(Schema.Type.ARRAY)
+                .withElementSchema(rbf.newSchemaBuilder(Schema.Type.STRING).build()).withNullable(true).build();
+        Schema.Entry innerRecordEntry = rbf.newEntryBuilder().withName("innerRecord").withType(Schema.Type.RECORD)
+                .withElementSchema(rbf.newSchemaBuilder(Schema.Type.RECORD)
+                        .withEntry(rbf.newEntryBuilder().withName("name").withType(Schema.Type.STRING).build()).build())
+                .withNullable(true).build();
         Schema schema = rbf.newSchemaBuilder(Schema.Type.RECORD)
                 .withEntry(rbf.newEntryBuilder().withName("name").withType(Schema.Type.STRING).build())
                 .withEntry(rbf.newEntryBuilder().withName("age").withType(Schema.Type.INT).build())
-                .withEntry(rbf.newEntryBuilder().withName("state").withType(Schema.Type.STRING).build())
                 .withEntry(
                         rbf.newEntryBuilder().withName("nullableString").withType(Schema.Type.STRING).withNullable(true).build())
-
+                .withEntry(innerRecordEntry)
+                .withEntry(rbf.newEntryBuilder().withName("state").withType(Schema.Type.STRING).build()).withEntry(arrayEntry)
                 .build();
-        Record record = rbf.newRecordBuilder(schema).withString("name", "John Smith").withInt("age", 42).withString("state", "CA")
-                .build();
+        Record record = rbf.newRecordBuilder(schema).withString("name", "John Smith").withInt("age", 42)
+                .withArray(arrayEntry, Arrays.asList("A", "B", "C"))
+                .withRecord("innerRecord",
+                        rbf.newRecordBuilder(innerRecordEntry.getElementSchema()).withString("name", "innerName").build())
+                .withString("state", "CA").build();
 
         PubsubMessage message = beanUnderTest.generateMessage(record);
         Assertions.assertNotNull(message, "Message is null");
+        String messageContent = message.getData().toStringUtf8();
+        Assertions.assertEquals("John Smith;42;;CA", messageContent);
     }
 }
