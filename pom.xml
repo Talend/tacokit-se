@@ -35,6 +35,7 @@
     <modules>
         <module>jdbc</module>
         <module>salesforce</module>
+        <module>mongodb</module>
         <module>couchbase</module>
         <module>azure</module>
         <module>rest</module>

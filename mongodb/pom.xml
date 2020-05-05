@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.talend.components</groupId>
+    <artifactId>connectors-se</artifactId>
+    <version>1.9.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>mongodb</artifactId>
+
+  <name>Components :: MongoDB</name>
+
+  <properties>
+    <mongodb.client.version>3.12.0</mongodb.client.version>
+  </properties>
+
+  <dependencies>
+    <!--
+    <dependency>
+      <groupId>org.talend.components</groupId>
+      <artifactId>mongodb-locales</artifactId>
+      <version>${locales.version}</version>
+    </dependency>
+    -->
+
+    <dependency>
+      <groupId>org.mongodb</groupId>
+      <artifactId>mongo-java-driver</artifactId>
+      <version>${mongodb.client.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.talend.components</groupId>
+      <artifactId>stream-json</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>de.flapdoodle.embed</groupId>
+      <artifactId>de.flapdoodle.embed.mongo</artifactId>
+      <version>2.2.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>de.flapdoodle.embed</groupId>
+      <artifactId>de.flapdoodle.embed.process</artifactId>
+      <version>2.1.2</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+</project>

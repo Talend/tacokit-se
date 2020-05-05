@@ -19,6 +19,7 @@ import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -46,9 +47,11 @@ import org.talend.components.netsuite.runtime.client.NsReadResponse;
 import org.talend.components.netsuite.runtime.client.NsSearchPreferences;
 import org.talend.components.netsuite.runtime.client.NsSearchResult;
 import org.talend.components.netsuite.runtime.client.NsStatus;
+import org.talend.components.netsuite.runtime.client.NsTokenPassport;
 import org.talend.components.netsuite.runtime.client.NsWriteResponse;
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.runtime.v2019_2.model.BasicMetaDataImpl;
+import org.talend.components.netsuite.service.Messages;
 
 import com.netsuite.webservices.v2019_2.platform.ExceededRequestLimitFault;
 import com.netsuite.webservices.v2019_2.platform.ExceededRequestSizeFault;
@@ -60,7 +63,6 @@ import com.netsuite.webservices.v2019_2.platform.NetSuiteService;
 import com.netsuite.webservices.v2019_2.platform.UnexpectedErrorFault;
 import com.netsuite.webservices.v2019_2.platform.core.BaseRef;
 import com.netsuite.webservices.v2019_2.platform.core.DataCenterUrls;
-import com.netsuite.webservices.v2019_2.platform.core.GetServerTimeResult;
 import com.netsuite.webservices.v2019_2.platform.core.Passport;
 import com.netsuite.webservices.v2019_2.platform.core.Record;
 import com.netsuite.webservices.v2019_2.platform.core.RecordRef;
@@ -85,14 +87,16 @@ import com.netsuite.webservices.v2019_2.platform.messages.ReadResponseList;
 import com.netsuite.webservices.v2019_2.platform.messages.SearchMoreWithIdRequest;
 import com.netsuite.webservices.v2019_2.platform.messages.SearchPreferences;
 import com.netsuite.webservices.v2019_2.platform.messages.SearchRequest;
-import com.netsuite.webservices.v2019_2.platform.messages.SessionResponse;
 import com.netsuite.webservices.v2019_2.platform.messages.UpdateListRequest;
 import com.netsuite.webservices.v2019_2.platform.messages.UpsertListRequest;
 import com.netsuite.webservices.v2019_2.platform.messages.WriteResponse;
 import com.netsuite.webservices.v2019_2.platform.messages.WriteResponseList;
 
+import lombok.extern.slf4j.Slf4j;
+
 import static java.util.stream.Collectors.toList;
 
+@Slf4j
 public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePortType> {
 
     private static final String WSDL_2019_2_NETSUITE_WSDL = "/wsdl/2019.2/netsuite.wsdl";
@@ -101,10 +105,12 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
 
     public static final String NS_URI_PLATFORM_MESSAGES = "urn:messages_2019_2.platform.webservices.netsuite.com";
 
+    // this instance is inside port's header and any change of this value affects request headers
     private TokenPassport nativeTokenPassport;
 
-    public NetSuiteClientServiceImpl() {
-        super();
+    public NetSuiteClientServiceImpl(String endpointUrl, NetSuiteCredentials credentials, NsTokenPassport tokenPassport,
+            Messages i18n) {
+        super(endpointUrl, credentials, tokenPassport, i18n);
 
         portAdapter = new PortAdapterImpl();
         metaDataSource = new DefaultMetaDataSource(this);
@@ -135,49 +141,48 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
 
     @Override
     protected void doLogin() throws NetSuiteException {
-        setNetSuitePort(endpointUrl, credentials != null ? credentials.getAccount() : tokenPassport.getAccount());
+        port = getNetSuitePort(endpointUrl,
+                getRequestAuthType() == RequestAuthType.TOKEN ? tokenPassport.getAccount() : credentials.getAccount());
         setHttpClientPolicy(port);
-        PortOperation<?, NetSuitePortType> loginOp = getLoginOperation();
+        PortOperation<Status, NetSuitePortType> loginOp = getLoginOperation();
         executeLoginOperation(loginOp);
-        if (credentials != null) {
-            removeLoginHeaders(port);
-        }
+        updateLoginHeaders(port);
     }
 
-    private PortOperation<?, NetSuitePortType> getLoginOperation() {
-        PortOperation<?, NetSuitePortType> loginOp;
-        if (credentials != null) {
-            if (!credentials.isUseSsoLogin()) {
-                setLoginHeaders(port);
-                final Passport passport = createNativePassport(credentials);
-                loginOp = (PortOperation<SessionResponse, NetSuitePortType>) port -> {
-                    LoginRequest request = new LoginRequest();
-                    request.setPassport(passport);
-                    LoginResponse response = port.login(request);
-                    return response.getSessionResponse();
-                };
-            } else {
-                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.OPERATION_NOT_SUPPORTED),
-                        i18n.ssoLoginNotSupported());
-            }
-        } else {
+    private PortOperation<Status, NetSuitePortType> getLoginOperation() {
+        PortOperation<Status, NetSuitePortType> loginOp;
+        if (getRequestAuthType() == RequestAuthType.TOKEN) {
             loginOp = (portType) -> {
                 refreshTokenSignature();
-                return portType.getServerTime(new GetServerTimeRequest()).getGetServerTimeResult();
+                return portType.getServerTime(new GetServerTimeRequest()).getGetServerTimeResult().getStatus();
             };
+        } else {
+            if (credentials.isUseSsoLogin()) {
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.OPERATION_NOT_SUPPORTED),
+                        i18n.ssoLoginNotSupported());
+            } else {
+                loginOp = (PortOperation<Status, NetSuitePortType>) port -> {
+                    if (getRequestAuthType() == RequestAuthType.LOGIN_REQUEST_LEVEL)
+                        updateLoginHeaders(port);
+                    else
+                        setHeadersAppInfo(port);
+
+                    LoginRequest request = new LoginRequest();
+                    request.setPassport(createNativePassport(credentials));
+                    LoginResponse response = port.login(request);
+                    return response.getSessionResponse().getStatus();
+                };
+            }
         }
         return loginOp;
     }
 
-    private void executeLoginOperation(PortOperation<?, NetSuitePortType> loginOp) {
+    private void executeLoginOperation(PortOperation<Status, NetSuitePortType> loginOp) {
         Status status = null;
-        Object response;
         String exceptionMessage = null;
-        for (int i = 0; i < getRetryCount(); i++) {
+        for (int i = 0; i < retryCount; i++) {
             try {
-                response = loginOp.execute(port);
-                status = response instanceof SessionResponse ? ((SessionResponse) response).getStatus()
-                        : ((GetServerTimeResult) response).getStatus();
+                status = loginOp.execute(port);
             } catch (InvalidCredentialsFault f) {
                 throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), f.getFaultInfo().getMessage());
             } catch (UnexpectedErrorFault f) {
@@ -190,7 +195,7 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
                 break;
             }
 
-            if (i != getRetryCount() - 1) {
+            if (i != retryCount - 1) {
                 waitForRetryInterval();
             }
         }
@@ -248,7 +253,8 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
     @Override
     protected TokenPassport createNativeTokenPassport() {
         final TokenPassportSignature signature = new TokenPassportSignature();
-        signature.setValue(tokenPassport.refresh());
+        String signatureStr = tokenPassport.refresh();
+        signature.setValue(signatureStr);
         signature.setAlgorithm(tokenPassport.getSignature().getAlgorithm().name());
 
         final TokenPassport tokenPass = new TokenPassport();
@@ -269,26 +275,28 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
     }
 
     @Override
-    protected void setNetSuitePort(String defaultEndpointUrl, String account) throws NetSuiteException {
+    protected NetSuitePortType getNetSuitePort(String defaultEndpointUrl, String account) throws NetSuiteException {
         try {
             URL wsdlLocationUrl = this.getClass().getResource(WSDL_2019_2_NETSUITE_WSDL);
 
             NetSuiteService service = new NetSuiteService(wsdlLocationUrl, NetSuiteService.SERVICE);
 
             WebServiceFeature[] features;
-            if (isMessageLoggingEnabled())
+            if (messageLoggingEnabled)
                 features = new WebServiceFeature[] { new LoggingFeature() };
             else
                 features = new WebServiceFeature[0];
 
-            port = service.getNetSuitePort(features);
+            NetSuitePortType port = service.getNetSuitePort(features);
             BindingProvider provider = (BindingProvider) port;
             Map<String, Object> requestContext = provider.getRequestContext();
             requestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, defaultEndpointUrl);
 
-            addTokenPassportToHeader(requestContext);
+            if (getRequestAuthType() == RequestAuthType.TOKEN) {
+                addTokenPassportToHeader(requestContext);
+            }
 
-            DataCenterUrls urls = getDataCenterUrls(account);
+            DataCenterUrls urls = getDataCenterUrls(port, account);
             if (urls == null) {
                 throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
                         i18n.couldNotGetWebServiceDomain(defaultEndpointUrl));
@@ -297,8 +305,11 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
             String wsDomain = urls.getWebservicesDomain();
             String endpointUrl = wsDomain.concat(new URL(defaultEndpointUrl).getPath());
 
-            requestContext.put(BindingProvider.SESSION_MAINTAIN_PROPERTY, true);
+            requestContext.put(BindingProvider.SESSION_MAINTAIN_PROPERTY,
+                    getRequestAuthType() != RequestAuthType.LOGIN_REQUEST_LEVEL);
             requestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpointUrl);
+
+            return port;
         } catch (WebServiceException | MalformedURLException | InsufficientPermissionFault | InvalidCredentialsFault
                 | InvalidSessionFault | UnexpectedErrorFault | ExceededRequestSizeFault | JAXBException e) {
             throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
@@ -307,20 +318,18 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
     }
 
     private void addTokenPassportToHeader(Map<String, Object> requestContext) throws JAXBException {
-        if (tokenPassport != null) {
-            nativeTokenPassport = createNativeTokenPassport();
-            Header tokenHeader = new Header(new QName(getPlatformMessageNamespaceUri(), "tokenPassport"), nativeTokenPassport,
-                    JAXBDataBindingCache.getInstance().getBinding(nativeTokenPassport.getClass()));
-            Optional.ofNullable((List<Header>) requestContext.get(Header.HEADER_LIST)).orElseGet(() -> {
-                List<Header> list = new ArrayList<>();
-                requestContext.put(Header.HEADER_LIST, list);
-                return list;
-            }).add(tokenHeader);
-        }
+        nativeTokenPassport = createNativeTokenPassport();
+        Header tokenHeader = new Header(new QName(getPlatformMessageNamespaceUri(), "tokenPassport"), nativeTokenPassport,
+                JAXBDataBindingCache.getInstance().getBinding(nativeTokenPassport.getClass()));
+        Optional.ofNullable((List<Header>) requestContext.get(Header.HEADER_LIST)).orElseGet(() -> {
+            List<Header> list = new ArrayList<>();
+            requestContext.put(Header.HEADER_LIST, list);
+            return list;
+        }).add(tokenHeader);
     }
 
-    private DataCenterUrls getDataCenterUrls(String account) throws InvalidSessionFault, InvalidCredentialsFault,
-            InsufficientPermissionFault, ExceededRequestSizeFault, UnexpectedErrorFault {
+    private DataCenterUrls getDataCenterUrls(NetSuitePortType port, String account) throws InvalidSessionFault,
+            InvalidCredentialsFault, InsufficientPermissionFault, ExceededRequestSizeFault, UnexpectedErrorFault {
         GetDataCenterUrlsRequest dataCenterRequest = new GetDataCenterUrlsRequest();
         dataCenterRequest.setAccount(account);
         DataCenterUrls urls = null;
@@ -398,7 +407,7 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
 
     /**
      * Convert response {@link StatusDetail} into internal {@link NsStatus.Detail} representation
-     * 
+     *
      * @param detail - response detail
      * @return internal status detail
      */

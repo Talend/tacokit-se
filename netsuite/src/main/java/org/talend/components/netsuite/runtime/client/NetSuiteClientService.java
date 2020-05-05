@@ -21,15 +21,16 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.BindingProvider;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.headers.Header;
+import org.apache.cxf.jaxb.JAXBDataBinding;
 import org.apache.cxf.transport.http.HTTPConduit;
 import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
 import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
@@ -37,10 +38,13 @@ import org.talend.components.netsuite.runtime.client.search.SearchQuery;
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.service.Messages;
 
-import lombok.Data;
+import com.netsuite.webservices.v2019_2.platform.NetSuitePortType;
+import com.netsuite.webservices.v2019_2.platform.core.Passport;
+import com.netsuite.webservices.v2019_2.platform.messages.ApplicationInfo;
+
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-@Data
 @Slf4j
 public abstract class NetSuiteClientService<PortT> {
 
@@ -60,6 +64,7 @@ public abstract class NetSuiteClientService<PortT> {
 
     private static final String JAXB_CONTEXT = "com.sun.xml.internal.bind.v2.runtime.JAXBContextImpl";
 
+    @Getter
     public Messages i18n;
 
     private boolean isLoggedIn = false;
@@ -70,6 +75,8 @@ public abstract class NetSuiteClientService<PortT> {
 
     protected NsTokenPassport tokenPassport;
 
+    private boolean useRequestLevelCredentials = true;
+
     protected NsSearchPreferences searchPreferences;
 
     protected NsPreferences preferences;
@@ -77,50 +84,40 @@ public abstract class NetSuiteClientService<PortT> {
     /** Used for synchronization of access to NetSuite port. */
     protected ReentrantLock lock = new ReentrantLock();
 
-    /** Specifies whether logging of SOAP messages is enabled. Intended for test/debug purposes. */
     protected boolean messageLoggingEnabled = false;
 
-    /** Web Service connection timeout, in milliseconds. */
     protected long connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
 
-    /** Web Service response receiving timeout, in milliseconds. */
     protected long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
 
-    /** Number of retries for an operation. */
     protected int retryCount = 3;
 
-    /** Number of retries before (re-)login. */
     protected int retriesBeforeLogin = 2;
 
-    /** Interval between retries. */
     protected int retryInterval = 5;
 
-    /** Size of search result page. */
     protected int searchPageSize = DEFAULT_SEARCH_PAGE_SIZE;
 
-    /** Specifies whether to return search columns. */
     protected boolean returnSearchColumns = false;
 
-    /** Specifies whether to treat warnings as errors. */
     protected boolean treatWarningsAsErrors = false;
 
-    /** Specifies whether to disable validation for mandatory custom fields. */
     protected boolean disableMandatoryCustomFieldValidation = false;
-
-    /** Specifies whether to use request level credentials. */
-    protected boolean useRequestLevelCredentials = false;
-
-    /** Specifies whether to use request token based authentication. */
-    protected boolean useTokens = false;
 
     protected PortAdapter<PortT> portAdapter;
 
     protected PortT port;
 
-    /** Source of meta data. */
+    @Getter
     protected MetaDataSource metaDataSource;
 
-    protected NetSuiteClientService() {
+    protected NetSuiteClientService(String endpointUrl, NetSuiteCredentials credentials, NsTokenPassport tokenPassport,
+            Messages i18n) {
+        this.endpointUrl = endpointUrl;
+        this.credentials = credentials;
+        this.tokenPassport = tokenPassport;
+        this.i18n = i18n;
+
         String prefix = null;
         try {
             prefix = Class.forName(JAXB_CONTEXT_OLD).getName();
@@ -263,21 +260,15 @@ public abstract class NetSuiteClientService<PortT> {
      * @return result of operation
      */
     public <R> R execute(PortOperation<R, PortT> op) {
-        boolean execUsingToken = (tokenPassport != null);
-        boolean execUsingRequestLevelCreds = !execUsingToken && useRequestLevelCredentials;
-        boolean execUsingLogin = !execUsingToken && !useRequestLevelCredentials;
-
         lock.lock();
         try {
-            if (execUsingToken)
+            if (getRequestAuthType() == RequestAuthType.TOKEN)
                 refreshTokenSignature();
-            else if (execUsingRequestLevelCreds)
-                relogin();
-            else if (execUsingLogin)
+            else if (getRequestAuthType() == RequestAuthType.LOGIN_SESSION_LEVEL)
                 login(false);
 
             R result = null;
-            for (int i = 0; i < getRetryCount(); i++) {
+            for (int i = 0; i < retryCount; i++) {
                 try {
                     result = op.execute(port);
                     break;
@@ -285,8 +276,8 @@ public abstract class NetSuiteClientService<PortT> {
                     if (errorCanBeWorkedAround(e)) {
                         log.debug("Attempting workaround, retrying ({})", (i + 1));
                         waitForRetryInterval();
-                        if (execUsingLogin) {
-                            if (errorRequiresNewLogin(e) || i >= getRetriesBeforeLogin() - 1) {
+                        if (getRequestAuthType() == RequestAuthType.LOGIN_SESSION_LEVEL) {
+                            if (errorRequiresNewLogin(e) || i >= retriesBeforeLogin - 1) {
                                 log.debug("Re-logging in ({})", (i + 1));
                                 relogin();
                             }
@@ -300,6 +291,21 @@ public abstract class NetSuiteClientService<PortT> {
         } finally {
             lock.unlock();
         }
+    }
+
+    protected enum RequestAuthType {
+        TOKEN,
+        LOGIN_REQUEST_LEVEL,
+        LOGIN_SESSION_LEVEL;
+    }
+
+    protected RequestAuthType getRequestAuthType() {
+        if (tokenPassport != null)
+            return RequestAuthType.TOKEN;
+        else if (useRequestLevelCredentials)
+            return RequestAuthType.LOGIN_REQUEST_LEVEL;
+        else
+            return RequestAuthType.LOGIN_SESSION_LEVEL;
     }
 
     /**
@@ -383,6 +389,23 @@ public abstract class NetSuiteClientService<PortT> {
         }
     }
 
+    protected void updateLoginHeaders(PortT port) throws NetSuiteException {
+        if (getRequestAuthType() == RequestAuthType.LOGIN_REQUEST_LEVEL) {
+            setHeadersAppInfo(port);
+
+            Passport passport = createNativePassport(credentials);
+            try {
+                if (passport != null) {
+                    Header passportHeader = new Header(new QName(getPlatformMessageNamespaceUri(), "passport"), passport,
+                            new JAXBDataBinding(passport.getClass()));
+                    setHeader(port, passportHeader);
+                }
+            } catch (JAXBException e) {
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR), i18n.bindingError(), e);
+            }
+        }
+    }
+
     /**
      * Forcibly re-log in the client.
      *
@@ -404,7 +427,7 @@ public abstract class NetSuiteClientService<PortT> {
             return;
         }
 
-        if (port != null && credentials != null) {
+        if (port != null && getRequestAuthType() == RequestAuthType.LOGIN_SESSION_LEVEL) {
             try {
                 doLogout();
             } catch (Exception e) {
@@ -444,7 +467,7 @@ public abstract class NetSuiteClientService<PortT> {
 
     protected void waitForRetryInterval() {
         try {
-            Thread.sleep(getRetryInterval() * 1000);
+            Thread.sleep(retryInterval * 1000);
         } catch (InterruptedException e) {
 
         }
@@ -479,13 +502,9 @@ public abstract class NetSuiteClientService<PortT> {
         Object preferences = createNativePreferences(nsPreferences);
         try {
             Header searchPreferencesHeader = new Header(new QName(getPlatformMessageNamespaceUri(), SEARCH_PREFERENCES),
-                    searchPreferences, JAXBDataBindingCache.getInstance().getBinding(searchPreferences.getClass())
-            // new JAXBDataBinding(searchPreferences.getClass())
-            );
+                    searchPreferences, JAXBDataBindingCache.getInstance().getBinding(searchPreferences.getClass()));
             Header preferencesHeader = new Header(new QName(getPlatformMessageNamespaceUri(), PREFERENCES), preferences,
-                    JAXBDataBindingCache.getInstance().getBinding(preferences.getClass())
-            // new JAXBDataBinding(preferences.getClass())
-            );
+                    JAXBDataBindingCache.getInstance().getBinding(preferences.getClass()));
             setHeader(port, preferencesHeader);
             setHeader(port, searchPreferencesHeader);
         } catch (JAXBException e) {
@@ -493,33 +512,22 @@ public abstract class NetSuiteClientService<PortT> {
         }
     }
 
-    /**
-     * Set log-in specific SOAP headers for given port.
-     *
-     * @param port port
-     */
-    protected void setLoginHeaders(PortT port) {
-        Optional.ofNullable(credentials.getApplicationId()).filter(((Predicate<String>) String::isEmpty).negate())
-                .ifPresent((appId) -> Optional.ofNullable(createNativeApplicationInfo(credentials)).ifPresent(applicationInfo -> {
-                    try {
-                        Header appInfoHeader = new Header(new QName(getPlatformMessageNamespaceUri(), APPLICATION_INFO),
-                                applicationInfo, JAXBDataBindingCache.getInstance().getBinding(applicationInfo.getClass())
-                        // new JAXBDataBinding(applicationInfo.getClass())
-                        );
-                        setHeader(port, appInfoHeader);
-                    } catch (JAXBException e) {
-                        throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR), i18n.bindingError(),
-                                e);
-                    }
-                }));
+    protected void setHeadersAppInfo(PortT port) {
+        if (!StringUtils.isEmpty(credentials.getApplicationId())) {
+            ApplicationInfo applicationInfo = createNativeApplicationInfo(credentials);
+            if (applicationInfo != null) {
+                try {
+                    Header appInfoHeader = new Header(new QName(getPlatformMessageNamespaceUri(), APPLICATION_INFO),
+                            applicationInfo, JAXBDataBindingCache.getInstance().getBinding(applicationInfo.getClass()));
+                    setHeader(port, appInfoHeader);
+                } catch (JAXBException e) {
+                    throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR), i18n.bindingError(), e);
+                }
+            }
+        }
     }
 
-    /**
-     * Remove log-in specific SOAP headers for given port.
-     *
-     * @param port port
-     */
-    protected void removeLoginHeaders(PortT port) throws NetSuiteException {
+    protected void removeHeadersAppInfo(PortT port) throws NetSuiteException {
         removeHeader(port, new QName(getPlatformMessageNamespaceUri(), APPLICATION_INFO));
     }
 
@@ -595,7 +603,7 @@ public abstract class NetSuiteClientService<PortT> {
      * @param account NetSuite account number
      * @return port
      */
-    protected abstract void setNetSuitePort(String defaultEndpointUrl, String account);
+    protected abstract NetSuitePortType getNetSuitePort(String defaultEndpointUrl, String account);
 
     /**
      * Check 'log-in' operation status and throw {@link NetSuiteException} if status indicates that

@@ -17,7 +17,6 @@ import java.io.InputStream;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration.ExcelFormat;
 
