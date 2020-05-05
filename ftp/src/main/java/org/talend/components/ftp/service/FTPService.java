@@ -77,7 +77,6 @@ public class FTPService implements Serializable {
     @Suggestions(ACTION_SUGGESTION_PATH)
     public SuggestionValues suggestPath(@Option final FTPDataStore datastore, @Option final String path) {
         try (GenericFTPClient ftpClient = getClient(datastore)) {
-            System.out.println("Suggestion from " + path);
             return new SuggestionValues(false,
                     ftpClient.listFiles(getDirectory(path)).stream().map(f -> generateFilePath(path, f.getName()))
                             .map(p -> new SuggestionValues.Item(p, p)).collect(Collectors.toList()));
