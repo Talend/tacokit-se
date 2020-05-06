@@ -72,7 +72,7 @@ public class AdlsGen2Output implements Serializable {
             blobWriter = BlobWriterFactory.getWriter(configuration, recordBuilderFactory, jsonBuilderFactory, service);
         } catch (Exception e) {
             log.error("[init] {}", e.getMessage());
-            throw new AdlsGen2RuntimeException(e.getMessage());
+            throw new AdlsGen2RuntimeException(e.getMessage(), e);
         }
     }
 
@@ -99,7 +99,7 @@ public class AdlsGen2Output implements Serializable {
             blobWriter.flush();
         } catch (Exception e) {
             log.error("[afterGroup] {}", e.getMessage());
-            throw new AdlsGen2RuntimeException(e.getMessage());
+            throw new AdlsGen2RuntimeException(e.getMessage(), e);
         }
     }
 
@@ -110,7 +110,7 @@ public class AdlsGen2Output implements Serializable {
             blobWriter.complete();
         } catch (Exception e) {
             log.error("[release] {}", e.getMessage());
-            throw new AdlsGen2RuntimeException(e.getMessage());
+            throw new AdlsGen2RuntimeException(e.getMessage(), e);
         }
     }
 

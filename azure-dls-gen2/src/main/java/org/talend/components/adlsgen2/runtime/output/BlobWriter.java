@@ -55,6 +55,10 @@ public abstract class BlobWriter {
 
     protected void generateFileWithExtension(String extension) {
         String directoryName = configuration.getDataSet().getBlobPath();
+        if (directoryName.startsWith("/") && directoryName.length() > 1) {
+            directoryName = directoryName.substring(1);
+        }
+
         if (!directoryName.endsWith("/")) {
             directoryName += "/";
         }
