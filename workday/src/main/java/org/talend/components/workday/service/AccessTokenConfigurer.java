@@ -25,6 +25,7 @@ public class AccessTokenConfigurer implements Configurer {
     public void configure(Connection connection, ConfigurerConfiguration configuration) {
         log.debug("[configure] [{}] {}", connection.getMethod(), connection.getUrl());
         connection //
-                .withHeader("Content-Type", CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED); // .withoutFollowRedirects();
+                .withHeader("Content-Type", CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED) //
+                .withoutFollowRedirects();
     }
 }

@@ -32,7 +32,7 @@ public interface QueryHelper {
         try {
             return URLEncoder.encode(raw, StandardCharsets.UTF_8.toString());
         } catch (UnsupportedEncodingException ex) {
-            throw new WorkdayException("Encoding error for '" + raw + "'", ex);
+            throw new WorkdayException("URL encoding error for '" + raw + "'", ex);
         }
     }
 
