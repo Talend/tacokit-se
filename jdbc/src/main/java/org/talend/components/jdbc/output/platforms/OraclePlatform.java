@@ -12,6 +12,7 @@
  */
 package org.talend.components.jdbc.output.platforms;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,7 +51,7 @@ public class OraclePlatform extends Platform {
     }
 
     @Override
-    protected String buildQuery(final Table table) {
+    protected String buildQuery(final Connection connection, final Table table) throws SQLException {
         // keep the string builder for readability
         final StringBuilder sql = new StringBuilder("CREATE TABLE");
         sql.append(" ");
@@ -60,7 +61,7 @@ public class OraclePlatform extends Platform {
         sql.append(identifier(table.getName()));
         sql.append("(");
         sql.append(createColumns(table.getColumns()));
-        sql.append(createPKs(table.getName(),
+        sql.append(createPKs(connection.getMetaData(), table.getName(),
                 table.getColumns().stream().filter(Column::isPrimaryKey).collect(Collectors.toList())));
         // todo create index
         sql.append(")");
@@ -78,7 +79,8 @@ public class OraclePlatform extends Platform {
 
     @Override
     protected boolean isTableExistsCreationError(final Throwable e) {
-        return e instanceof SQLException && "42000".equals(((SQLException) e).getSQLState());
+        return e instanceof SQLException && "42000".equals(((SQLException) e).getSQLState())
+                && ((SQLException) e).getErrorCode() == 955;
     }
 
     private String createColumns(final List<Column> columns) {
@@ -90,16 +92,6 @@ public class OraclePlatform extends Platform {
                 + " " + toDBType(column)//
                 + " " + isRequired(column)//
         ;
-    }
-
-    @Override
-    protected String pkConstraintName(String table, List<Column> primaryKeys) {
-        // Avoid 'ORA-00972: identifier is too long' that limit oracle id to 30 chars max
-        final String name = super.pkConstraintName(table, primaryKeys);
-        if (name == null || name.length() <= 30) {
-            return name;
-        }
-        return name.substring(0, 30);
     }
 
     private String toDBType(final Column column) {

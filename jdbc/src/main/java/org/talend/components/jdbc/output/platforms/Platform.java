@@ -14,6 +14,7 @@ package org.talend.components.jdbc.output.platforms;
 
 import java.io.Serializable;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
@@ -51,7 +52,7 @@ public abstract class Platform implements Serializable {
 
     abstract protected String delimiterToken();
 
-    protected abstract String buildQuery(final Table table);
+    protected abstract String buildQuery(final Connection connection, final Table table) throws SQLException;
 
     /**
      * @param e if the exception if a table already exist ignore it. otherwise re throw e
@@ -65,9 +66,9 @@ public abstract class Platform implements Serializable {
         if (records.isEmpty()) {
             return;
         }
-
-        final String sql = buildQuery(getTableModel(connection, name, keys, sortStrategy, sortKeys, distributionStrategy,
-                distributionKeys, varcharLength, records));
+        final Table table = getTableModel(connection, name, keys, sortStrategy, sortKeys, distributionStrategy, distributionKeys,
+                varcharLength, records);
+        final String sql = buildQuery(connection, table);
         try (final Statement statement = connection.createStatement()) {
             statement.executeUpdate(sql);
             connection.commit();
@@ -85,16 +86,21 @@ public abstract class Platform implements Serializable {
         return name == null || name.isEmpty() ? name : delimiterToken() + name + delimiterToken();
     }
 
-    String createPKs(final String table, final List<Column> primaryKeys) {
+    String createPKs(DatabaseMetaData metaData, final String table, final List<Column> primaryKeys) throws SQLException {
         return primaryKeys == null || primaryKeys.isEmpty() ? ""
-                : ", CONSTRAINT " + pkConstraintName(table, primaryKeys) + " PRIMARY KEY "
+                : ", CONSTRAINT " + pkConstraintName(metaData, table, primaryKeys) + " PRIMARY KEY "
                         + primaryKeys.stream().map(Column::getName).map(this::identifier).collect(joining(",", "(", ")"));
     }
 
-    protected String pkConstraintName(String table, List<Column> primaryKeys) {
+    protected String pkConstraintName(DatabaseMetaData metaData, String table, List<Column> primaryKeys) throws SQLException {
         final String uuid = UUID.randomUUID().toString();
-        return "pk_" + table + "_" + primaryKeys.stream().map(Column::getName).collect(joining("_")) + "_"
+        final int nameLength = metaData.getMaxColumnNameLength();
+        String constraint = "pk_" + table + "_" + primaryKeys.stream().map(Column::getName).collect(joining("_")) + "_"
                 + uuid.substring(0, Math.min(4, uuid.length()));
+        if (nameLength > 0 && constraint.length() > nameLength) {
+            constraint = constraint.substring(0, nameLength);
+        }
+        return constraint;
     }
 
     protected String isRequired(final Column column) {
