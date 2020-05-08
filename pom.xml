@@ -91,7 +91,7 @@
         <locales.version>[1.8,)</locales.version>
 
         <component-runtime.version>1.1.20</component-runtime.version>
-        <slf4j.version>1.7.25</slf4j.version>
+        <slf4j.version>1.7.28</slf4j.version>
 
         <beam.version>2.12.0</beam.version>
         <beanutils.version>1.9.4</beanutils.version>
@@ -103,6 +103,7 @@
 
         <junit5.version>5.5.1</junit5.version>
         <surefire.version>3.0.0-M3</surefire.version>
+        <maven.enforcer.version>3.0.0-M3</maven.enforcer.version>
         <jacoco.version>0.8.2</jacoco.version>
 
         <commons-csv.version>1.4</commons-csv.version>
@@ -312,7 +313,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>1.7.25</version>
+            <version>1.7.28</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -508,6 +509,7 @@
                         <configuration>
                             <validateModel>${validation.model}</validateModel>
                             <validatePlaceholder>false</validatePlaceholder>
+                            <validateDocumentation>true</validateDocumentation>
                         </configuration>
                     </execution>
                     <execution>
@@ -728,6 +730,26 @@
                         <version>${spotbugs.version}</version>
                     </dependency>
                 </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${maven.enforcer.version}</version>
+                <executions>
+                    <execution>
+                        <id>no-duplicate-declared-dependencies</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <banDuplicatePomDependencyVersions/>
+                                <dependencyConvergence/>
+                                <banDistributionManagement/>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <!-- to push to gihub pages if desired
             <plugin>
@@ -990,6 +1012,19 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <id>code-quality</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <enforcer.fail>false</enforcer.fail>
+                <validateModel>${validation.model}</validateModel>
+                <validatePlaceholder>false</validatePlaceholder>
+                <validateWording>false</validateWording>
+                <talend.validation.wording>false</talend.validation.wording>
+            </properties>
         </profile>
     </profiles>
 </project>
