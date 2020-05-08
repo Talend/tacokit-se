@@ -119,6 +119,11 @@ public class AdlsGen2Service {
         case SAS:
             SAS = Splitter.on("&").withKeyValueSeparator("=").split(connection.getSas().substring(1));
             break;
+        case ActiveDirectory:
+            //TODO
+            break;
+        default:
+            throw new IllegalArgumentException("Incorrect auth method was selected");
         }
     }
 
