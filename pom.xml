@@ -109,7 +109,6 @@
         <commons-csv.version>1.4</commons-csv.version>
         <guava.version>20.0</guava.version>
 
-        <validation.model>true</validation.model>
         <talend_oss_snapshots>https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceSnapshot/
         </talend_oss_snapshots>
 
@@ -508,8 +507,9 @@
                         </goals>
                         <configuration>
                             <validateModel>${validation.model}</validateModel>
-                            <validatePlaceholder>false</validatePlaceholder>
-                            <validateDocumentation>true</validateDocumentation>
+                            <validatePlaceholder>${validation.placeholder}</validatePlaceholder>
+                            <validateDocumentation>${validation.documentation}</validateDocumentation>
+                            <validateWording>${validation.wording}</validateWording>
                         </configuration>
                     </execution>
                     <execution>
@@ -737,7 +737,7 @@
                 <version>${maven.enforcer.version}</version>
                 <executions>
                     <execution>
-                        <id>no-duplicate-declared-dependencies</id>
+                        <id>mandatory-checks-on-project</id>
                         <goals>
                             <goal>enforce</goal>
                         </goals>
@@ -1019,11 +1019,13 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
+                <!-- should enforcing rules fail? Not yet, but soon! -->
                 <enforcer.fail>false</enforcer.fail>
-                <validateModel>${validation.model}</validateModel>
-                <validatePlaceholder>false</validatePlaceholder>
-                <validateWording>false</validateWording>
-                <talend.validation.wording>false</talend.validation.wording>
+                <!-- component-runtime validations -->
+                <validateModel>true</validateModel>
+                <validation.placeholder>false</validation.placeholder>
+                <validation.documentation>true</validation.documentation>
+                <validation.wording>false</validation.wording>
             </properties>
         </profile>
     </profiles>
