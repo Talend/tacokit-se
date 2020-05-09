@@ -127,6 +127,18 @@
         <netty-codec.version>4.1.48.Final</netty-codec.version>
         <jetty.version>9.4.17.v20190418</jetty.version>
         <nimbus-jose-jwt.version>8.11</nimbus-jose-jwt.version>
+
+        <!-- code quality enforcer default values.
+             run build w/ -Pcode-quality to have a full validation -->
+        <!-- should enforcing rules fail? Not yet, but soon! -->
+        <enforcer.fail>false</enforcer.fail>
+        <!-- component-runtime validations -->
+        <validation.model>true</validation.model>
+        <validation.placeholder>false</validation.placeholder>
+        <validation.documentation>true</validation.documentation>
+        <validation.wording>false</validation.wording>
+        <!-- TODO: replace with a 'validation.svg' -->
+        <validation.metadata>true</validation.metadata>
     </properties>
 
     <dependencyManagement>
@@ -1017,18 +1029,13 @@
         </profile>
         <profile>
             <id>code-quality</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
             <properties>
-                <!-- should enforcing rules fail? Not yet, but soon! -->
-                <enforcer.fail>false</enforcer.fail>
+                <enforcer.fail>true</enforcer.fail>
                 <!-- component-runtime validations -->
                 <validation.model>true</validation.model>
-                <validation.placeholder>false</validation.placeholder>
+                <validation.placeholder>true</validation.placeholder>
                 <validation.documentation>true</validation.documentation>
-                <validation.wording>false</validation.wording>
-                <!-- TODO: replace with a 'validation.svg' -->
+                <validation.wording>true</validation.wording>
                 <validation.metadata>true</validation.metadata>
             </properties>
         </profile>
