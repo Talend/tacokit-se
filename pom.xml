@@ -510,6 +510,8 @@
                             <validatePlaceholder>${validation.placeholder}</validatePlaceholder>
                             <validateDocumentation>${validation.documentation}</validateDocumentation>
                             <validateWording>${validation.wording}</validateWording>
+                            <!-- TODO: replace with a 'validateSvg' -->
+                            <validateMetadata>${validation.metadata}</validateMetadata>
                         </configuration>
                     </execution>
                     <execution>
@@ -1022,10 +1024,12 @@
                 <!-- should enforcing rules fail? Not yet, but soon! -->
                 <enforcer.fail>false</enforcer.fail>
                 <!-- component-runtime validations -->
-                <validateModel>true</validateModel>
+                <validation.model>true</validation.model>
                 <validation.placeholder>false</validation.placeholder>
                 <validation.documentation>true</validation.documentation>
                 <validation.wording>false</validation.wording>
+                <!-- TODO: replace with a 'validation.svg' -->
+                <validation.metadata>true</validation.metadata>
             </properties>
         </profile>
     </profiles>
