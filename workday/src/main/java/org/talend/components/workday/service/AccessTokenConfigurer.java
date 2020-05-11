@@ -12,8 +12,9 @@
  */
 package org.talend.components.workday.service;
 
-import lombok.extern.slf4j.Slf4j;
 import org.talend.sdk.component.api.service.http.Configurer;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class AccessTokenConfigurer implements Configurer {
@@ -24,6 +25,6 @@ public class AccessTokenConfigurer implements Configurer {
     public void configure(Connection connection, ConfigurerConfiguration configuration) {
         log.debug("[configure] [{}] {}", connection.getMethod(), connection.getUrl());
         connection //
-                .withHeader("Content-Type", CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED).withoutFollowRedirects();
+                .withHeader("Content-Type", CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED);
     }
 }

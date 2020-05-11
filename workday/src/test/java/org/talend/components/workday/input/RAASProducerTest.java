@@ -38,7 +38,7 @@ class RAASProducerTest extends WorkdayBaseTest {
     private WorkdayReaderService service;
 
     @BeforeEach
-    private void init() throws NoSuchFieldException, IllegalAccessException {
+    private void init() {
         RAASProducerTest.cfg = new WorkdayConfiguration();
         RAASProducerTest.dataset = new WorkdayDataSet();
         RAASProducerTest.dataset.setDatastore(this.buildDataStore());
@@ -52,6 +52,19 @@ class RAASProducerTest extends WorkdayBaseTest {
 
         RAASProducerTest.dataset.getRaas().setUser("lmcneil");
         RAASProducerTest.dataset.getRaas().setReport("billingReport");
+
+        WorkdayProducer producer = new WorkdayProducer(cfg, service);
+        JsonObject o = producer.next();
+        Assertions.assertNotNull(o);
+
+        JsonObject o2 = producer.next();
+        Assertions.assertNotNull(o2);
+    }
+
+    @Test
+    void withSpace() {
+        RAASProducerTest.dataset.getRaas().setUser("lmcneil");
+        RAASProducerTest.dataset.getRaas().setReport("billing report");
 
         WorkdayProducer producer = new WorkdayProducer(cfg, service);
         JsonObject o = producer.next();

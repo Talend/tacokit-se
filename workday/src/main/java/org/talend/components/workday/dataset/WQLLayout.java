@@ -12,20 +12,17 @@
  */
 package org.talend.components.workday.dataset;
 
-import lombok.Data;
-import org.talend.components.workday.WorkdayException;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.Map;
+
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Code;
 import org.talend.sdk.component.api.configuration.ui.widget.TextArea;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.Map;
+import lombok.Data;
 
 @Data
 @GridLayout(@GridLayout.Row("query"))
@@ -47,12 +44,8 @@ public class WQLLayout implements Serializable, QueryHelper {
 
     @Override
     public Map<String, String> extractQueryParam() {
-        try {
-            final String encodedQuery = URLEncoder.encode(this.query, StandardCharsets.UTF_8.toString());
-            return Collections.singletonMap("query", encodedQuery);
-        } catch (UnsupportedEncodingException e) {
-            throw new WorkdayException("Error with query '" + this.query + "'");
-        }
+        final String encodedQuery = this.encodeString(this.query);
+        return Collections.singletonMap("query", encodedQuery);
     }
 
 }
