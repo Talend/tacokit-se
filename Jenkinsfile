@@ -112,7 +112,7 @@ spec:
                             , netsuiteTokenCredentials
                     ]) {
                         script {
-                            sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/ -e ${talendOssRepositoryArg}"
+                            sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -e ${talendOssRepositoryArg}"
                         }
                     }
                 }
