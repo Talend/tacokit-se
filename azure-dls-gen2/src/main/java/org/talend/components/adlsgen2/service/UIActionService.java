@@ -52,8 +52,10 @@ public class UIActionService {
             String msg;
             if (connection.getAuthMethod() == AuthMethod.SAS) {
                 msg = i18n.healthCheckSAS();
-            } else {
+            } else if (connection.getAuthMethod() == AuthMethod.SharedKey) {
                 msg = i18n.healthCheckSharedKey();
+            } else {
+                msg = i18n.healthCheckActiveDirectory();
             }
             return new HealthCheckStatus(KO, i18n.healthCheckFailed(msg, e.getMessage()));
         }

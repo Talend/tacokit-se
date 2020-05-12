@@ -182,4 +182,17 @@ public interface AdlsGen2APIClient extends HttpClient {
             byte[] payload //
     );
 
+    // POST https://login.microsoftonline.com/{DIRECTORY_ID}/oauth2/token
+
+    /**
+     * @return Bearer auth token
+     */
+    @Request(path = "/", method = "POST")
+    Response<JsonObject> getADToken( //
+            @Headers() Map<String, String> headers, //
+            @QueryParams(encode = false) Map<String, String> sas, //
+            @Query("resource") String resource, //
+            @Query("timeout") Integer timeout //
+    );
+
 }

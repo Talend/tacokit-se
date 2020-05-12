@@ -83,6 +83,8 @@ public class AdlsGen2Service {
 
     private Integer timeout;
 
+    private String activeDirAuthToken;
+
     public AdlsGen2APIClient getClient(@Configuration("connection") final AdlsGen2Connection connection) {
         setDefaultRequestParameters(connection);
         return client;
@@ -120,11 +122,20 @@ public class AdlsGen2Service {
             SAS = Splitter.on("&").withKeyValueSeparator("=").split(connection.getSas().substring(1));
             break;
         case ActiveDirectory:
-            //TODO
+            if (activeDirAuthToken == null) {
+                activeDirAuthToken = getAcriveDirAuthToken(connection.getAccountName(), connection.getTenantId(),
+                        connection.getClientId(), connection.getClientSecret());
+            }
+            headers.put(HeaderConstants.AUTHORIZATION, "Bearer " + activeDirAuthToken);
             break;
         default:
             throw new IllegalArgumentException("Incorrect auth method was selected");
         }
+    }
+
+    private String getAcriveDirAuthToken(String accountName, String tenantId, String clientId, String clientSecret) {
+        // TODO stub
+        return "return the real token here";
     }
 
     @SuppressWarnings("unchecked")
