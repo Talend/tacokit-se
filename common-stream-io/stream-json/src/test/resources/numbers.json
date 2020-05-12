@@ -1,0 +1,9 @@
+{
+  "First_name": "John",
+  "Last_name" : "Doe",
+  "is_int" : 45,
+  "is_a_double" : 45.0,
+  "is_b_double" : 10.25,
+  "is_array_of_int" : [1, 2, 3.3, 4],
+  "is_array_of_double" : [1.1, 2, 3.3, 4]
+}

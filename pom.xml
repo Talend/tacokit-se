@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+  Copyright (C) 2006-2020 Talend Inc. - www.talend.com
    Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
   You may obtain a copy of the License at
@@ -18,7 +18,7 @@
 
     <groupId>org.talend.components</groupId>
     <artifactId>connectors-se</artifactId>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.10.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Components</name>
@@ -35,13 +35,28 @@
     <modules>
         <module>jdbc</module>
         <module>salesforce</module>
+        <module>mongodb</module>
         <module>couchbase</module>
         <module>azure</module>
+        <module>rest</module>
+        <module>dynamics-crm</module>
         <!-- disable eventhubs build before all ready
-        <module>azure-eventhubs</module> 
-        -->
+	<module>azure-eventhubs</module>
+	-->
+
         <module>azure-dls-gen2</module>
         <module>marketo</module>
+        <module>common</module>
+        <module>common-stream-io</module>
+        <module>connectors-test-bom</module>
+        <module>bigquery</module>
+        <module>workday</module>
+        <module>extensions</module>
+        <module>pubsub</module>
+        <module>netsuite</module>
+        <module>ftp</module>
+        <module>cosmosDB</module>
+        <module>google-storage</module>
     </modules>
 
     <scm>
@@ -66,40 +81,64 @@
     </distributionManagement>
 
     <properties>
+        <connectors-test-bom.version>1.10.0-SNAPSHOT</connectors-test-bom.version>
+        <common.version>1.10.0-SNAPSHOT</common.version>
+
+        <timestamp.year>${maven.build.timestamp}</timestamp.year>
+        <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <component-runtime.version>1.1.9</component-runtime.version>
-        <slf4j.version>1.7.25</slf4j.version>
+        <locales.version>[1.10,)</locales.version>
 
-        <beam.version>2.12.0</beam.version>
-        <jackson.version>2.9.9</jackson.version>
+        <component-runtime.version>1.1.20</component-runtime.version>
+        <slf4j.version>1.7.28</slf4j.version>
+
+        <beam.version>2.20.0</beam.version>
+        <beanutils.version>1.9.4</beanutils.version>
+        <jackson.version>2.10.1</jackson.version>
         <jackson-codehaus.version>1.9.14-TALEND</jackson-codehaus.version>
 
         <tcomp0.version>0.23.2</tcomp0.version> <!-- until they are rewritten -->
         <daikon.version>0.31.0</daikon.version>
 
         <junit5.version>5.5.1</junit5.version>
-
         <surefire.version>3.0.0-M3</surefire.version>
+        <maven.enforcer.version>3.0.0-M3</maven.enforcer.version>
         <jacoco.version>0.8.2</jacoco.version>
 
         <commons-csv.version>1.4</commons-csv.version>
         <guava.version>20.0</guava.version>
 
-        <validation.model>true</validation.model>
         <talend_oss_snapshots>https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceSnapshot/
         </talend_oss_snapshots>
 
         <frontend.version>1.7.5</frontend.version>
-        <node.version>v10.15.3</node.version>
+        <node.version>v12.13.1</node.version>
         <yarn.version>v1.15.2</yarn.version>
-        <spotbugs.version>3.1.12</spotbugs.version>
-
+        <spotbugs.version>4.0.0</spotbugs.version>
+        <spotbugs-maven-plugin.version>3.1.12.2</spotbugs-maven-plugin.version>
         <spotless.version>1.24.0</spotless.version>
 
         <!-- The XTM customer id that manage the translation of this project-->
         <xtm.customer.id>12240076</xtm.customer.id>
         <xtm.api.url>https://www.xtm-cloud.com/rest-api</xtm.api.url>
+
+        <!-- CVE fix -->
+        <netty-codec.version>4.1.48.Final</netty-codec.version>
+        <jetty.version>9.4.17.v20190418</jetty.version>
+        <nimbus-jose-jwt.version>8.11</nimbus-jose-jwt.version>
+
+        <!-- code quality enforcer default values.
+             run build w/ -Pcode-quality to have a full validation -->
+        <!-- should enforcing rules fail? Not yet, but soon! -->
+        <enforcer.fail>false</enforcer.fail>
+        <!-- component-runtime validations -->
+        <validation.model>true</validation.model>
+        <validation.placeholder>false</validation.placeholder>
+        <validation.documentation>true</validation.documentation>
+        <validation.wording>false</validation.wording>
+        <!-- TODO: replace with a 'validation.svg' -->
+        <validation.metadata>true</validation.metadata>
     </properties>
 
     <dependencyManagement>
@@ -141,6 +180,11 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils</artifactId>
+                <version>${beanutils.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
                 <version>${jackson.version}</version>
@@ -157,6 +201,21 @@
                 <artifactId>jackson-databind</artifactId>
                 <version>${jackson.version}</version>
                 <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.module</groupId>
+                <artifactId>jackson-module-jaxb-annotations</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                <artifactId>jackson-jaxrs-json-provider</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                <artifactId>jackson-jaxrs-base</artifactId>
+                <version>${jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.thoughtworks.paranamer</groupId>
@@ -183,24 +242,6 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>org.apache.beam</groupId>
-                <artifactId>beam-runners-direct-java</artifactId>
-                <version>${beam.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.talend.sdk.component</groupId>
-                <artifactId>component-runtime-beam</artifactId>
-                <version>${component-runtime.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.talend.sdk.component</groupId>
-                <artifactId>component-runtime-beam-junit</artifactId>
-                <version>${component-runtime.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
                 <groupId>org.talend.daikon</groupId>
                 <artifactId>daikon</artifactId>
                 <version>${daikon.version}</version>
@@ -208,10 +249,56 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter-params</artifactId>
-                <version>${junit5.version}</version>
+                <groupId>org.talend.components</groupId>
+                <artifactId>connectors-test-bom</artifactId>
+                <version>${connectors-test-bom.version}</version>
+                <type>pom</type>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.talend.components</groupId>
+                <artifactId>common</artifactId>
+                <version>${common.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.jackson</groupId>
+                <artifactId>jackson-core-asl</artifactId>
+                <version>${jackson-codehaus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.jackson</groupId>
+                <artifactId>jackson-mapper-asl</artifactId>
+                <version>${jackson-codehaus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-codec-http2</artifactId>
+                <version>${netty-codec.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-server</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-util</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-servlet</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-webapp</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nimbusds</groupId>
+                <artifactId>nimbus-jose-jwt</artifactId>
+                <version>${nimbus-jose-jwt.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -219,7 +306,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.8</version>
+            <version>1.18.10</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -234,7 +321,12 @@
             <version>${slf4j.version}</version>
             <scope>provided</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.28</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.talend.sdk.component</groupId>
             <artifactId>component-runtime-junit</artifactId>
@@ -243,20 +335,8 @@
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
+            <artifactId>junit-jupiter</artifactId>
             <version>${junit5.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit5.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.7.25</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -411,6 +491,20 @@
                 <version>${component-runtime.version}</version>
                 <executions>
                     <execution>
+                        <id>talend-svg2png</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>svg2png</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>talend-dita-documentation</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>dita</goal>
+                        </goals>
+                    </execution>
+                    <execution>
                         <id>talend-dependencies</id>
                         <phase>process-classes</phase>
                         <goals>
@@ -425,6 +519,11 @@
                         </goals>
                         <configuration>
                             <validateModel>${validation.model}</validateModel>
+                            <validatePlaceholder>${validation.placeholder}</validatePlaceholder>
+                            <validateDocumentation>${validation.documentation}</validateDocumentation>
+                            <validateWording>${validation.wording}</validateWording>
+                            <!-- TODO: replace with a 'validateSvg' -->
+                            <validateMetadata>${validation.metadata}</validateMetadata>
                         </configuration>
                     </execution>
                     <execution>
@@ -489,11 +588,11 @@
                 <version>${spotless.version}</version>
                 <executions>
                     <execution>
-                    <id>apply</id>
-                    <phase>process-classes</phase>
-                    <goals>
-                    <goal>apply</goal>
-                    </goals>
+                        <id>apply</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>apply</goal>
+                        </goals>
                     </execution>
                 </executions>
                 <configuration>
@@ -501,7 +600,7 @@
                         <encoding>UTF-8</encoding>
                         <licenseHeader>
                             <content><![CDATA[/*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-${timestamp.year} Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -514,7 +613,7 @@
 */]]></content>
                         </licenseHeader>
                         <eclipse>
-			    <file>talend_java_eclipse_formatter.xml</file>
+                            <file>talend_java_eclipse_formatter.xml</file>
                         </eclipse>
                     </java>
                 </configuration>
@@ -531,7 +630,6 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire.version}</version>
                 <configuration>
-                    <forkCount>1</forkCount>
                     <reuseForks>true</reuseForks>
                     <trimStackTrace>false</trimStackTrace>
                     <runOrder>alphabetical</runOrder>
@@ -540,6 +638,7 @@
                             https://artifacts-zl.talend.com/nexus/content/groups/public
                         </talend.component.junit.maven.repositories>
                     </systemPropertyVariables>
+                    <argLine>-Dfile.encoding=UTF-8</argLine>
                 </configuration>
             </plugin>
             <plugin>
@@ -620,14 +719,48 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>${spotbugs.version}</version>
+                <version>${spotbugs-maven-plugin.version}</version>
                 <executions>
                     <execution>
-                        <phase>compile</phase>
-                        <goals><goal>check</goal></goals>
+                        <!--
+                        Late late late, this is so slow that it shouldn't even be.
+                        To ensure it is still seen by dev we put it before "package" but ultimately it should be at "verify" phase.
+                        -->
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <effort>Max</effort>
+                    <failOnError>false</failOnError>
+                    <jvmArgs>-Dspotbugs.experimental.multiThread=false</jvmArgs> <!-- for now it is buggy -->
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.github.spotbugs</groupId>
+                        <artifactId>spotbugs</artifactId>
+                        <version>${spotbugs.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${maven.enforcer.version}</version>
+                <executions>
+                    <execution>
+                        <id>mandatory-checks-on-project</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
                         <configuration>
-                            <effort>Max</effort>
-                            <failOnError>false</failOnError>
+                            <rules>
+                                <banDuplicatePomDependencyVersions />
+                                <dependencyConvergence />
+                                <banDistributionManagement />
+                            </rules>
                         </configuration>
                     </execution>
                 </executions>
@@ -687,7 +820,7 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>${spotbugs.version}</version>
+                <version>${spotbugs-maven-plugin.version}</version>
             </plugin>
         </plugins>
     </reporting>
@@ -893,6 +1026,18 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <id>code-quality</id>
+            <properties>
+                <enforcer.fail>true</enforcer.fail>
+                <!-- component-runtime validations -->
+                <validation.model>true</validation.model>
+                <validation.placeholder>true</validation.placeholder>
+                <validation.documentation>true</validation.documentation>
+                <validation.wording>true</validation.wording>
+                <validation.metadata>true</validation.metadata>
+            </properties>
         </profile>
     </profiles>
 </project>

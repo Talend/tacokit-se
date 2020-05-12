@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -36,6 +36,7 @@ import com.sforce.async.BulkConnection;
 import com.sforce.soap.partner.DescribeSObjectResult;
 import com.sforce.soap.partner.Field;
 import com.sforce.soap.partner.FieldType;
+import com.sforce.soap.partner.LoginResult;
 import com.sforce.soap.partner.PartnerConnection;
 import com.sforce.soap.partner.fault.ApiFault;
 import com.sforce.ws.ConnectionException;
@@ -48,11 +49,14 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class SalesforceService {
 
+    @Service
+    private Messages messages;
+
     public static final String RETIRED_ENDPOINT = "www.salesforce.com";
 
     public static final String ACTIVE_ENDPOINT = "login.salesforce.com";
 
-    public static final String DEFAULT_API_VERSION = "45.0";
+    public static final String DEFAULT_API_VERSION = "47.0";
 
     public static final String URL = "https://" + ACTIVE_ENDPOINT + "/services/Soap/u/" + DEFAULT_API_VERSION;
 
@@ -117,7 +121,35 @@ public class SalesforceService {
             log.debug("session renewed!");
             return header;
         });
-        return new PartnerConnection(config);
+
+        config.setManualLogin(true);
+        // Creating connection and not login there.
+        PartnerConnection connection = new PartnerConnection(config);
+        // Need to discard manual login parameter in configs to avoid execution errors.
+        config.setManualLogin(false);
+        if (null == config.getSessionId()) {
+            performLogin(config, connection);
+        }
+        return connection;
+    }
+
+    /**
+     * Provides manual login as in {@link PartnerConnection} constructor, checks login result for valid connection/credentials.
+     *
+     * @param config connector configuration with endpoint/userId/password
+     * @param connection to be used for login in Salesforce.
+     * @throws ConnectionException if password has been expired or bad connection to Salesforce.
+     * @see com.sforce.soap.partner.PartnerConnection#PartnerConnection(ConnectorConfig config)
+     */
+    private void performLogin(ConnectorConfig config, PartnerConnection connection) throws ConnectionException {
+        config.setServiceEndpoint(config.getAuthEndpoint());
+        LoginResult loginResult = connection.login(config.getUsername(), config.getPassword());
+        if (loginResult.isPasswordExpired()) {
+            throw new ConnectionException(messages.errorPasswordExpired());
+        }
+        config.setSessionId(loginResult.getSessionId());
+        config.setServiceEndpoint(loginResult.getServerUrl());
+        connection.setSessionHeader(loginResult.getSessionId());
     }
 
     /**

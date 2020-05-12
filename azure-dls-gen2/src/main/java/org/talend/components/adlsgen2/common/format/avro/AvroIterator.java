@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -43,7 +43,7 @@ public class AvroIterator implements Iterator<Record>, Serializable {
             DatumReader<GenericRecord> datumReader = new GenericDatumReader<GenericRecord>();
             reader = new DataFileStream<GenericRecord>(inputStream, datumReader);
         } catch (IOException e) {
-            log.error("[AvroIterator] {}", e);
+            log.error("[AvroIterator] {}", e.getMessage());
             throw new FileFormatRuntimeException(e.getMessage());
         }
     }

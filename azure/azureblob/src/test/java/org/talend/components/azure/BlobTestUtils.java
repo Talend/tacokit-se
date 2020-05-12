@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -95,8 +95,12 @@ public class BlobTestUtils {
     public static void createAndPopulateFileInStorage(CloudStorageAccount connectionAccount, AzureBlobDataset fileOptions,
             List<String> recordSchema, int recordsSize) throws Exception {
         String fileName = "file" + RandomStringUtils.randomAlphabetic(5);
+        String directory = fileOptions.getDirectory();
+        if (directory != null) {
+            fileName = directory + "/" + fileName;
+        }
         CloudBlockBlob file = connectionAccount.createCloudBlobClient().getContainerReference(fileOptions.getContainerName())
-                .getBlockBlobReference(fileOptions.getDirectory() + "/" + fileName);
+                .getBlockBlobReference(fileName);
         byte[] content;
         if (fileOptions.getFileFormat() == FileFormat.CSV) {
             content = createCSVFileContent(recordsSize, recordSchema, fileOptions.getCsvOptions());

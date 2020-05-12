@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -21,7 +21,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 public class PostgresqlTestContainer implements JdbcTestContainer {
 
     @Delegate(types = { JdbcDatabaseContainer.class, GenericContainer.class, ContainerState.class })
-    private final JdbcDatabaseContainer container = new PostgreSQLContainer("postgres:11.1");
+    private final JdbcDatabaseContainer container = new PostgreSQLContainer("postgres:12.1");
 
     @Override
     public String getDatabaseType() {

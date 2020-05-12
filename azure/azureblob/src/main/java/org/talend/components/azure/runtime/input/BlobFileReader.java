@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,6 +16,7 @@ import java.net.URISyntaxException;
 import java.util.EnumSet;
 import java.util.Iterator;
 
+import org.talend.components.azure.common.excel.ExcelFormat;
 import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.common.service.AzureComponentServices;
 import org.talend.components.azure.dataset.AzureBlobDataset;
@@ -57,13 +58,17 @@ public abstract class BlobFileReader {
         CloudBlobContainer container = checkBlobContainer(config, blobClient);
 
         String directoryName = config.getDirectory();
-        if (!directoryName.endsWith("/")) {
+        if (directoryName == null) {
+            directoryName = "";
+        } else if (!directoryName.endsWith("/")) {
             directoryName += "/";
         }
 
         Iterable<ListBlobItem> blobItems = container.listBlobs(directoryName, false, EnumSet.noneOf(BlobListingDetails.class),
                 null, AzureComponentServices.getTalendOperationContext());
-
+        if (!blobItems.iterator().hasNext()) {
+            throw new BlobRuntimeException("Folder doesn't exist/is empty");
+        }
         this.iterator = initItemRecordIterator(blobItems);
     }
 
@@ -98,23 +103,17 @@ public abstract class BlobFileReader {
             switch (config.getFileFormat()) {
             case CSV:
                 return new CSVBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
-            // FIXME uncomment it when excel will be ready to integrate
-
             case AVRO:
                 return new AvroBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
-            /*
-             * case EXCEL: {
-             * if (config.getExcelOptions().getExcelFormat() == ExcelFormat.HTML) {
-             * return new ExcelHTMLBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
-             * } else {
-             * return new ExcelBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
-             * }
-             * }
-             */
 
+            case EXCEL:
+                if (config.getExcelOptions().getExcelFormat() == ExcelFormat.HTML) {
+                    return new ExcelHTMLBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
+                } else {
+                    return new ExcelBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
+                }
             case PARQUET:
                 return new ParquetBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
-
             default:
                 throw new IllegalArgumentException("Unsupported file format"); // shouldn't be here
             }
@@ -158,10 +157,13 @@ public abstract class BlobFileReader {
             }
 
             while (blobItems.hasNext()) {
-                currentItem = (CloudBlob) blobItems.next();
-                readItem();
-                if (hasNextRecordTaken()) {
-                    return takeNextRecord(); // read record from next item
+                Object next = blobItems.next();
+                if (next instanceof CloudBlob) {
+                    currentItem = (CloudBlob) next;
+                    readItem();
+                    if (hasNextRecordTaken()) {
+                        return takeNextRecord(); // read record from next item
+                    }
                 }
             }
 
@@ -179,9 +181,13 @@ public abstract class BlobFileReader {
         protected abstract void readItem();
 
         protected void takeFirstItem() {
-            if (blobItems.hasNext()) {
-                currentItem = (CloudBlob) blobItems.next();
-                readItem();
+            while (blobItems.hasNext()) {
+                Object next = blobItems.next();
+                if (next instanceof CloudBlob) {
+                    currentItem = (CloudBlob) next;
+                    readItem();
+                    break;
+                }
             }
         }
 

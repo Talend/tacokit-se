@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -128,7 +128,7 @@ public abstract class AbstractInputEmitter implements Serializable {
             case java.sql.Types.SMALLINT:
             case java.sql.Types.TINYINT:
             case java.sql.Types.INTEGER:
-                if (javaType.equals(Integer.class.getName())) {
+                if (javaType.equals(Integer.class.getName()) || Short.class.getName().equals(javaType)) {
                     builder.withEntry(entryBuilder.withType(INT).build());
                 } else {
                     builder.withEntry(entryBuilder.withType(LONG).build());
@@ -171,7 +171,6 @@ public abstract class AbstractInputEmitter implements Serializable {
 
     private void addColumn(final Record.Builder builder, final ResultSetMetaData metaData, final int columnIndex) {
         try {
-            final String javaType = metaData.getColumnClassName(columnIndex);
             final int sqlType = metaData.getColumnType(columnIndex);
             final Object value = resultSet.getObject(columnIndex);
             final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
@@ -182,10 +181,12 @@ public abstract class AbstractInputEmitter implements Serializable {
             case java.sql.Types.TINYINT:
             case java.sql.Types.INTEGER:
                 if (value != null) {
-                    if (javaType.equals(Integer.class.getName())) {
+                    if (value instanceof Integer) {
                         builder.withInt(entryBuilder.withType(INT).build(), (Integer) value);
+                    } else if (value instanceof Short) {
+                        builder.withInt(entryBuilder.withType(INT).build(), ((Short) value).intValue());
                     } else {
-                        builder.withLong(entryBuilder.withType(LONG).build(), (Long) value);
+                        builder.withLong(entryBuilder.withType(LONG).build(), Long.valueOf(value.toString()));
                     }
                 }
                 break;

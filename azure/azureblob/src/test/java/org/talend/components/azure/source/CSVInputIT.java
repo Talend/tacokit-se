@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -29,6 +29,7 @@ import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.dataset.AzureBlobDataset;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit5.WithComponents;
+import org.talend.sdk.component.runtime.base.lang.exception.InvocationExceptionWrapper;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
@@ -73,11 +74,10 @@ public class CSVInputIT extends BaseIT {
     void selectFromNotExistingDirectory() {
         blobInputProperties.getDataset().setDirectory("notExistingDir");
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
-        Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
-                .connections().from("azureInput").to("collector").build().run();
-        List<Record> records = componentsHandler.getCollectedData(Record.class);
-
-        Assert.assertEquals("Records were taken from empty directory", 0, records.size());
+        Job.ExecutorBuilder job = Job.components().component("azureInput", "Azure://Input?" + inputConfig)
+                .component("collector", "test://collector").connections().from("azureInput").to("collector").build();
+        Assertions.assertThrows(InvocationExceptionWrapper.ComponentException.class, job::run,
+                "Can't start reading blob items: Specified directory doesn't exist");
     }
 
     @Test
@@ -87,7 +87,7 @@ public class CSVInputIT extends BaseIT {
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
         Job.ExecutorBuilder job = Job.components().component("azureInput", "Azure://Input?" + inputConfig)
                 .component("collector", "test://collector").connections().from("azureInput").to("collector").build();
-        Assertions.assertThrows(BlobRuntimeException.class, job::run,
+        Assertions.assertThrows(InvocationExceptionWrapper.ComponentException.class, job::run,
                 "Can't start reading blob items: Specified container doesn't exist");
     }
 
@@ -98,7 +98,7 @@ public class CSVInputIT extends BaseIT {
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
         Job.ExecutorBuilder job = Job.components().component("azureInput", "Azure://Input?" + inputConfig)
                 .component("collector", "test://collector").connections().from("azureInput").to("collector").build();
-        Assertions.assertThrows(BlobRuntimeException.class, job::run,
+        Assertions.assertThrows(InvocationExceptionWrapper.ComponentException.class, job::run,
                 "Can't start reading blob items: Container name is not valid");
     }
 
@@ -144,6 +144,22 @@ public class CSVInputIT extends BaseIT {
         BlobTestUtils.createAndPopulateFileInStorage(storageAccount, blobInputProperties.getDataset(), columns, 5);
         blobInputProperties.getDataset().getCsvOptions().setUseHeader(true);
         blobInputProperties.getDataset().getCsvOptions().setHeader(1);
+
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("azureInput").to("collector").build().run();
+        List<Record> records = componentsHandler.getCollectedData(Record.class);
+
+        Assert.assertEquals("Records amount is different", recordSize, records.size());
+    }
+
+    @Test
+    void testReadFileFromRootDir() throws Exception {
+        final int recordSize = 5;
+        List<String> columns = Arrays.asList(new String[] { "a", "b", "c" });
+        blobInputProperties.getDataset().setDirectory(null);
+
+        BlobTestUtils.createAndPopulateFileInStorage(storageAccount, blobInputProperties.getDataset(), columns, 5);
 
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
         Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")

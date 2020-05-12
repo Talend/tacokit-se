@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -21,7 +21,7 @@ import java.util.Set;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.talend.components.adlsgen2.common.converter.RecordConverter;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -137,9 +137,7 @@ public class CsvConverter implements RecordConverter<CSVRecord>, Serializable {
                 builder.withEntry(entryBuilder.withName(finalName).withType(Schema.Type.STRING).withNullable(true).build());
             }
         }
-        Schema inferedSchema = builder.build();
-        log.debug("[inferSchema] {}", inferedSchema);
-        return inferedSchema;
+        return builder.build();
     }
 
     @Override
@@ -151,7 +149,7 @@ public class CsvConverter implements RecordConverter<CSVRecord>, Serializable {
         for (int i = 0; i < schema.getEntries().size(); i++) {
             String value;
             try {
-                value = csvRecord.get(i);
+                value = csvRecord.get(i).isEmpty() ? null : csvRecord.get(i);
             } catch (ArrayIndexOutOfBoundsException e) {
                 value = null;
             }

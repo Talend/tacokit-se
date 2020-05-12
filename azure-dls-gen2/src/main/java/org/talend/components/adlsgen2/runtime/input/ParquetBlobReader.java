@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -93,7 +93,7 @@ public class ParquetBlobReader extends BlobReader {
                 reader = AvroParquetReader.<GenericRecord> builder(hdpIn).build();
                 currentRecord = reader.read();
             } catch (IOException e) {
-                log.error("[ParquetIterator] {}", e);
+                log.error("[ParquetIterator] {}", e.getMessage());
                 throw new FileFormatRuntimeException(e.getMessage());
             }
         }
@@ -125,7 +125,7 @@ public class ParquetBlobReader extends BlobReader {
                 try {
                     reader.close();
                 } catch (IOException e) {
-                    log.warn("Can't close stream", e);
+                    log.error("Can't close stream: {}.", e.getMessage());
                 }
             }
         }

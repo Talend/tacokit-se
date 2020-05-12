@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -63,6 +63,10 @@ public class ExcelHTMLBlobFileReader extends BlobFileReader {
                 Element body = document.body();
                 Elements rows = body.getElementsByTag("tr");
                 rowIterator = rows.iterator();
+                if (rows.first().getElementsByTag("th").size() > 0) {
+                    // infer schema of html header row and ignore result
+                    convertToRecord(rowIterator.next());
+                }
             } catch (Exception e) {
                 throw new BlobRuntimeException(e);
             }

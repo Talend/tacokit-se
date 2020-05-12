@@ -1,0 +1,11 @@
+{
+  "unusedfield": "other",
+  "a": {
+    "b": [
+      1,
+      { "sub": "obj", "field2": [1,2,3]},
+      ["a", {"fieldArray": [1,2] }]
+    ],
+    "subobj": { "f1": "v1" }
+  }
+}

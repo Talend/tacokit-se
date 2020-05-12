@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -37,7 +37,7 @@ public class SalesforceServiceTest {
     void testGetEndpoint() {
         // 1. if endpoint is not be set, then get endpoint from local configuration file
         // maybe this would be not set in configuration file, use default endpoint would be enough
-        final String defualtConfigEndpoint = "https://login.salesforce.com/services/Soap/u/45.0";
+        final String defualtConfigEndpoint = "https://login.salesforce.com/services/Soap/u/47.0";
 
         final BasicDataStore ds_1 = new BasicDataStore();
         ds_1.setEndpoint("");

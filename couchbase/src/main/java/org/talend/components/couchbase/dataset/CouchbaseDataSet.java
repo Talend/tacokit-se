@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,6 +12,7 @@
  */
 package org.talend.components.couchbase.dataset;
 
+import lombok.Data;
 import org.talend.components.couchbase.datastore.CouchbaseDataStore;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -24,12 +25,11 @@ import org.talend.sdk.component.api.meta.Documentation;
 import java.io.Serializable;
 import java.util.List;
 
-import lombok.Data;
-
 @Version(1)
 @Data
 @DataSet("CouchbaseDataSet")
-@GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "schema" }), @GridLayout.Row({ "bucket" }) })
+@GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "schema" }), @GridLayout.Row({ "bucket" }),
+        @GridLayout.Row({ "documentType" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "datastore" }) })
 
 @Documentation("Couchbase DataSet")
@@ -48,4 +48,9 @@ public class CouchbaseDataSet implements Serializable {
     @Required
     @Documentation("Bucket name")
     private String bucket;
+
+    @Option
+    @Required
+    @Documentation("Document type")
+    private DocumentType documentType = DocumentType.JSON;
 }

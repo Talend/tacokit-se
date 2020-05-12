@@ -1,0 +1,57 @@
+{
+  "data": [
+    {
+      "coordinates": {
+        "latitude": [{"aa": 1}, {"aa": 2}],
+        "longitude": [1 ,2, 3]
+      },
+      "name": "Afghanistan",
+      "code": "AF",
+      "population": 29121286,
+      "updated_at": "2020-03-30T14:16:08.516Z",
+      "today": {
+        "deaths": 0,
+        "confirmed": 0
+      },
+      "latest_data": {
+        "deaths": 4,
+        "confirmed": 120,
+        "recovered": 2,
+        "critical": 0,
+        "calculated": {
+          "death_rate": null,
+          "recovery_rate": null,
+          "recovered_vs_death_ratio": null,
+          "cases_per_million_population": 3
+        }
+      }
+    },
+    {
+      "coordinates": {
+        "latitude": [{"aa": 1}, {"aa": 2}],
+        "longitude": [1 ,2, 3]
+      },
+      "name": "Albania",
+      "code": "AL",
+      "population": 2986952,
+      "updated_at": "2020-03-30T14:16:08.516Z",
+      "today": {
+        "deaths": 1,
+        "confirmed": 11
+      },
+      "latest_data": {
+        "deaths": 11,
+        "confirmed": 223,
+        "recovered": 44,
+        "critical": 7,
+        "calculated": {
+          "death_rate": null,
+          "recovery_rate": null,
+          "recovered_vs_death_ratio": null,
+          "cases_per_million_population": 77
+        }
+      }
+    }
+  ],
+  "_cacheHit": true
+}

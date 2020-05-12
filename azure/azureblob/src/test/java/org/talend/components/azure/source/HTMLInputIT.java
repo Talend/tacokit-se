@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -36,7 +36,6 @@ import com.microsoft.azure.storage.StorageException;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.azure")
-@Disabled
 class HTMLInputIT extends BaseIT {
 
     private static BlobInputProperties blobInputProperties;
@@ -45,7 +44,7 @@ class HTMLInputIT extends BaseIT {
     void initDataset() {
         AzureBlobDataset dataset = new AzureBlobDataset();
         dataset.setConnection(dataStore);
-        // dataset.setFileFormat(FileFormat.EXCEL);
+        dataset.setFileFormat(FileFormat.EXCEL);
         ExcelFormatOptions excelFormatOptions = new ExcelFormatOptions();
         excelFormatOptions.setExcelFormat(ExcelFormat.HTML);
         excelFormatOptions.setEncoding(Encoding.UFT8);
@@ -113,5 +112,29 @@ class HTMLInputIT extends BaseIT {
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
         Assert.assertEquals("Records amount is different", recordSize, records.size());
+    }
+
+    @Test
+    void testInputHTMLExportedFromSalesforce() throws StorageException, IOException, URISyntaxException {
+        final int recordSize = 6;
+        final int columnSize = 7;
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excelHTML/realSalesforceExportedHTML.html",
+                "realSalesforceExportedHTML.html");
+
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("azureInput").to("collector").build().run();
+        List<Record> records = componentsHandler.getCollectedData(Record.class);
+
+        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Record firstRecord = records.get(0);
+        Assert.assertEquals("Record's column amount is different", columnSize, firstRecord.getSchema().getEntries().size());
+        Assert.assertEquals("compqa talend", firstRecord.getString("Account_Owner"));
+        Assert.assertEquals("CLoud_salesforce", firstRecord.getString("Account_Name"));
+        Assert.assertTrue("Type should be empty", firstRecord.getString("Type").isEmpty());
+        Assert.assertTrue("Rating should be empty", firstRecord.getString("Rating").isEmpty());
+        Assert.assertTrue("Last_Activity should be empty", firstRecord.getString("Last_Activity").isEmpty());
+        Assert.assertEquals("2/3/2020", firstRecord.getString("Last_Modified_Date"));
+        Assert.assertTrue("Billing_State_Province should be empty", firstRecord.getString("Billing_State_Province").isEmpty());
     }
 }

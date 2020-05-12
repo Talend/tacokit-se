@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -53,7 +53,8 @@ public class AzureBlobComponentServices {
         try {
             CloudStorageAccount cloudStorageAccount = azureConnection.isUseAzureSharedSignature()
                     ? connectionService.createStorageAccount(azureConnection.getSignatureConnection())
-                    : connectionService.createStorageAccount(azureConnection.getAccountConnection());
+                    : connectionService.createStorageAccount(azureConnection.getAccountConnection(),
+                            azureConnection.getEndpointSuffix());
             return connectionService.testConnection(cloudStorageAccount);
         } catch (URISyntaxException e) {
             return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18nService.illegalContainerName());
@@ -65,7 +66,8 @@ public class AzureBlobComponentServices {
     public CloudStorageAccount createStorageAccount(AzureCloudConnection azureConnection) throws URISyntaxException {
         return azureConnection.isUseAzureSharedSignature()
                 ? connectionService.createStorageAccount(azureConnection.getSignatureConnection())
-                : connectionService.createStorageAccount(azureConnection.getAccountConnection());
+                : connectionService.createStorageAccount(azureConnection.getAccountConnection(),
+                        azureConnection.getEndpointSuffix());
     }
 
     @Suggestions(GET_CONTAINER_NAMES)

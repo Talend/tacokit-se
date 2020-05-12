@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -18,7 +18,9 @@ import java.util.Locale;
 
 public class Constants {
 
-    public static final String DFS_URL = "https://%s.dfs.core.windows.net";
+    public static final String DFS_URL_PATTERN = "https://%s.%s";
+
+    public static final String DFS_DEFAULT_ENDPOINT_SUFFIX = "dfs.core.windows.net";
 
     public static final String TOKEN_URL = "https://login.microsoftonline.com";
 

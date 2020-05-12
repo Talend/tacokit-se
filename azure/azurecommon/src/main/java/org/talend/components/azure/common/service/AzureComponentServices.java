@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -53,12 +53,17 @@ public class AzureComponentServices {
 
     private static OperationContext talendOperationContext;
 
-    public static final String SAS_PATTERN = "(http.?)?://(.*)\\.(blob|file|queue|table)\\.core\\.windows\\.net\\/(.*)";
+    public static final String SAS_PATTERN = "(http.?)?://(.*)\\.(blob|file|queue|table)\\.(.*)/(.*)";
 
     @Service
     private MessageService i18nService;
 
     public CloudStorageAccount createStorageAccount(AzureStorageConnectionAccount azureConnection) throws URISyntaxException {
+        return createStorageAccount(azureConnection, null);
+    }
+
+    public CloudStorageAccount createStorageAccount(AzureStorageConnectionAccount azureConnection, String endpointSuffix)
+            throws URISyntaxException {
         if (azureConnection == null || StringUtils.isEmpty(azureConnection.getAccountName())
                 || StringUtils.isEmpty(azureConnection.getAccountKey())) {
             throw new IllegalArgumentException(i18nService.connectionIsNull());
@@ -67,7 +72,7 @@ public class AzureComponentServices {
         try {
             StorageCredentials credentials = new StorageCredentialsAccountAndKey(azureConnection.getAccountName(),
                     azureConnection.getAccountKey());
-            return new CloudStorageAccount(credentials, azureConnection.getProtocol() == Protocol.HTTPS);
+            return new CloudStorageAccount(credentials, azureConnection.getProtocol() == Protocol.HTTPS, endpointSuffix, null);
         } catch (IndexOutOfBoundsException e) {
             throw new IllegalArgumentException(i18nService.invalidAccountKeyFormat(e.getMessage()), e);
         }
@@ -82,9 +87,9 @@ public class AzureComponentServices {
             throw new IllegalArgumentException(i18nService.wrongSASFormat());
         }
 
-        StorageCredentials credentials = new StorageCredentialsSharedAccessSignature(matcher.group(4));
+        StorageCredentials credentials = new StorageCredentialsSharedAccessSignature(matcher.group(5));
 
-        return new CloudStorageAccount(credentials, "https".equals(matcher.group(1)), null, matcher.group(2));
+        return new CloudStorageAccount(credentials, "https".equals(matcher.group(1)), matcher.group(4), matcher.group(2));
     }
 
     public CloudBlobClient createCloudBlobClient(CloudStorageAccount connection, RetryPolicy retryPolicy) {

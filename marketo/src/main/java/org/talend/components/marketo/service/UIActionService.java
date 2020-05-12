@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -17,6 +17,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -40,11 +42,15 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.http.Response;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ACCESS_TOKEN;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ID;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_NAME;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_NEXT_PAGE_TOKEN;
+import static org.talend.components.marketo.MarketoApiConstants.ATTR_RESULT;
 import static org.talend.components.marketo.service.AuthorizationClient.CLIENT_CREDENTIALS;
 
 @Slf4j
@@ -200,18 +206,42 @@ public class UIActionService extends MarketoService {
         }
     }
 
+    @AllArgsConstructor
+    @Getter
+    private class ListsPage {
+
+        String nextPageToken;
+
+        List<Item> lists;
+
+    }
+
+    private ListsPage getListsPage(String token, String nextPage) {
+        List<Item> lists = new ArrayList<>();
+        Consumer<JsonObject> listConsumer = l -> lists.add(new Item(String.valueOf(l.getInt(ATTR_ID)), l.getString(ATTR_NAME)));
+        JsonObject result = handleResponse(listClient.getLists(token, nextPage, null, "", "", ""));
+        String nextPageToken = result.getString(ATTR_NEXT_PAGE_TOKEN, null);
+        if (result.getJsonArray(ATTR_RESULT) != null) {
+            result.getJsonArray(ATTR_RESULT).getValuesAs(JsonObject.class).forEach(listConsumer);
+        }
+        return new ListsPage(nextPageToken, lists);
+    }
+
     @Suggestions(LIST_NAMES)
     public SuggestionValues getListNames(@Option final MarketoDataStore dataStore) {
         log.debug("[getListNames] {}.", dataStore);
+        List<Item> lists = new ArrayList<>();
+        Predicate<String> hasNextPageToken = token -> token != null && !token.isEmpty();
         try {
             initClients(dataStore);
             String aToken = authorizationClient.getAccessToken(dataStore);
-            List<Item> listNames = new ArrayList<>();
-            for (JsonObject l : parseResultFromResponse(listClient.getLists(aToken, null, null, "", "", ""))
-                    .getValuesAs(JsonObject.class)) {
-                listNames.add(new SuggestionValues.Item(String.valueOf(l.getInt(ATTR_ID)), l.getString(ATTR_NAME)));
+            ListsPage result = getListsPage(aToken, null);
+            lists.addAll(result.getLists());
+            while (hasNextPageToken.test(result.getNextPageToken())) {
+                result = getListsPage(aToken, result.getNextPageToken());
+                lists.addAll(result.getLists());
             }
-            return new SuggestionValues(true, listNames);
+            return new SuggestionValues(true, lists);
         } catch (Exception e) {
             throw new MarketoRuntimeException(e.getMessage());
         }
@@ -246,30 +276,6 @@ public class UIActionService extends MarketoService {
         } catch (Exception e) {
             throw new MarketoRuntimeException(e.getMessage());
         }
-    }
-
-    @Suggestions(DATE_RANGES)
-    public SuggestionValues getDateSuggestions(final String mode) {
-        List<Item> suggestedDates = new ArrayList<>();
-        final String[] labels = { //
-                i18n.periodAgo1w(), //
-                i18n.periodAgo2w(), //
-                i18n.periodAgo1m(), //
-                i18n.periodAgo3m(), //
-                i18n.periodAgo6m(), //
-                i18n.periodAgo1y(), //
-                i18n.periodAgo2y(), //
-        };
-        final String[] values = { //
-                "P7D", "P14D", "P1M", "P3M", "P6M", "P1Y", "P2Y" };
-        String label;
-        String value;
-        for (int i = 0; i < labels.length; ++i) {
-            label = labels[i];
-            value = values[i];
-            suggestedDates.add(new SuggestionValues.Item(value, label));
-        }
-        return new SuggestionValues(true, suggestedDates);
     }
 
     @AsyncValidation(VALIDATION_URL_PROPERTY)
@@ -308,7 +314,7 @@ public class UIActionService extends MarketoService {
 
     @AsyncValidation(VALIDATION_DATETIME_PATTERN)
     public ValidationResult validateDateTimePattern(final String date) {
-        log.error("[validateDateTimePattern] {}", date);
+        log.debug("[validateDateTimePattern] {}", date);
         if (date == null || date.isEmpty()) {
             return new ValidationResult(ValidationResult.Status.KO, i18n.invalidBlankProperty());
         }

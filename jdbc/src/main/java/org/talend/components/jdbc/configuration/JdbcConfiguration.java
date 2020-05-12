@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -39,7 +39,7 @@ public class JdbcConfiguration implements Serializable {
 
     @Option
     @Documentation("list of driver meta data")
-    private final List<Driver> drivers = new ArrayList<>();
+    private List<Driver> drivers = new ArrayList<>();
 
     @Data
     @NoArgsConstructor
@@ -69,7 +69,7 @@ public class JdbcConfiguration implements Serializable {
 
         @Option
         @Documentation("Jdbc driver and driver dependencies jar locations in mvn format")
-        private final List<String> paths = new ArrayList<>();
+        private List<String> paths = new ArrayList<>();
 
         public String getDisplayName() {
             return ofNullable(displayName).filter(d -> !d.isEmpty()).orElse(id);

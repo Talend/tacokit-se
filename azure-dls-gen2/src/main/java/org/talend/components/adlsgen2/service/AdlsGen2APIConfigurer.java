@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -26,14 +26,6 @@ public class AdlsGen2APIConfigurer implements Configurer {
     public void configure(final Connection connection, final ConfigurerConfiguration configuration) {
         final AdlsGen2Connection conn = configuration.get("connection", AdlsGen2Connection.class);
         final String auth = configuration.get("auth", String.class);
-        // log.warn("[configure] auth: {}", auth, connection.getHeaders().keySet().toArray());
-        for (String header : connection.getHeaders().keySet()) {
-            log.warn("[configure] {}={}", header, connection.getHeaders().get(header));
-        }
-        // connection //
-        // .withHeader(HeaderConstants.ACCEPT, HeaderConstants.ACCEPT_DEFAULT) //
-        // .withHeader(HeaderConstants.CONTENT_TYPE, HeaderConstants.DFS_CONTENT_TYPE) //
-        // .withHeader(HeaderConstants.VERSION, HeaderConstants.TARGET_STORAGE_VERSION);
         if (!AuthMethod.SAS.equals(conn.getAuthMethod())) {
             connection.withHeader(HeaderConstants.AUTHORIZATION, auth);
         }

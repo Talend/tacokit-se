@@ -1,4 +1,4 @@
 = Connectors SE
 
-Open source Tacokit connectors implementation.
+Open source Talend Component Kit (TCK) connectors implementation.
 

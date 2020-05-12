@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -108,15 +108,10 @@ public class LeadSource extends MarketoSource {
         if (DateTimeMode.absolute.equals(configuration.getDataSet().getDateTimeMode())) {
             result = configuration.getDataSet().getSinceDateTimeAbsolute();
         } else {
-            result = ZonedDateTime.now().minus(Period.parse(configuration.getDataSet().getSinceDateTimeRelative()))
+            result = ZonedDateTime.now()
+                    .minus(Period.parse(configuration.getDataSet().getSinceDateTimeRelative().getRelativeOffset()))
                     .format(DateTimeFormatter.ofPattern(DATETIME_FORMAT));
-
         }
-        log.warn("[computeDateTimeFromConfiguration] SinceDateTime [{}] : {} / {} => {}",
-                configuration.getDataSet().getDateTimeMode(), //
-                configuration.getDataSet().getSinceDateTimeRelative(), //
-                configuration.getDataSet().getSinceDateTimeAbsolute(), //
-                result);
 
         return result;
     }

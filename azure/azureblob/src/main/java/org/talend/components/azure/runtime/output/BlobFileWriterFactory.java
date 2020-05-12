@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -25,11 +25,8 @@ public class BlobFileWriterFactory {
             return new CSVBlobFileWriter(config, connectionServices);
         case AVRO:
             return new AvroBlobFileWriter(config, connectionServices);
-        // FIXME uncomment it when excel will be ready to integrate
-        /*
-         * case EXCEL:
-         * return new ExcelBlobFileWriter(config, connectionServices);
-         */
+        case EXCEL:
+            return new ExcelBlobFileWriter(config, connectionServices);
         case PARQUET:
             return new ParquetBlobFileWriter(config, connectionServices);
         default:

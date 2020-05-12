@@ -1,0 +1,56 @@
+[
+  {
+    "request": {
+      "headers": {
+        "Accept": "text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Connection": "keep-alive",
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      "method": "POST",
+      "uri": "https://auth.api.workday.com/v1/token"
+    },
+    "response": {
+      "headers": {
+        "X-Frame-Options": "DENY",
+        "Referrer-Policy": "origin-when-cross-origin, strict-origin-when-cross-origin",
+        "Request-Time": "109",
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:",
+        "Connection": "keep-alive",
+        "X-Permitted-Cross-Domain-Policies": "master-only",
+        "X-XSS-Protection": "1; mode=block",
+        "Content-Length": "70",
+        "Content-Type": "application/json",
+        "X-Talend": "Mock"
+      },
+      "payload": "{\"access_token\":\"token.jwt\",\"token_type\":\"Bearer\",\"expires_in\":\"3600\"}",
+      "status": 200
+    }
+  },
+  {
+    "request": {
+      "headers": {
+        "content-length": "0",
+        "Accept": "text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
+        "Connection": "keep-alive"
+      },
+      "method": "GET",
+      "uri": "https://api.workday.com/wql/v1/data?query=SELECT+accountCurrency%2C+bankAccountSecuritySegment%2C+priorDayAccountBalance+FROM+financialAccounts"
+    },
+    "response": {
+      "headers": {
+        "Transfer-Encoding": "chunked",
+        "oms-xo-version": "2019.33.1129.????",
+        "Cache-Control": "no-cache",
+        "Instance": "11020 on 443",
+        "Connection": "keep-alive",
+        "wd-common-request-id": "ROBOT|7FB612B9|16F23C6D",
+        "Content-Type": "application/json",
+        "X-Talend": "Mock"
+      },
+      "payload": "{\"total\":39,\"data\":[{\"accountCurrency\":{\"descriptor\":\"CLS_AUD\",\"id\":\"8a96ee707a264afe888d90ef93253305\"}},{\"accountCurrency\":{\"descriptor\":\"CAD\",\"id\":\"37534b021f344c29852ee2161b5eb745\"}},{\"accountCurrency\":{\"descriptor\":\"CAD\",\"id\":\"37534b021f344c29852ee2161b5eb745\"}},{\"accountCurrency\":{\"descriptor\":\"CHF\",\"id\":\"7f8b49efb01e4d1ea20284a86ab7f9a3\"}},{\"accountCurrency\":{\"descriptor\":\"DKK\",\"id\":\"37b3c9243ed04cb98a96bcffa9fd3466\"}},{\"accountCurrency\":{\"descriptor\":\"EUR\",\"id\":\"eae312fc5152410cb4c8b452c26320a6\"}},{\"accountCurrency\":{\"descriptor\":\"EUR\",\"id\":\"eae312fc5152410cb4c8b452c26320a6\"}},{\"accountCurrency\":{\"descriptor\":\"EUR\",\"id\":\"eae312fc5152410cb4c8b452c26320a6\"}},{\"accountCurrency\":{\"descriptor\":\"EUR\",\"id\":\"eae312fc5152410cb4c8b452c26320a6\"}},{\"accountCurrency\":{\"descriptor\":\"EUR\",\"id\":\"eae312fc5152410cb4c8b452c26320a6\"}},{\"accountCurrency\":{\"descriptor\":\"EUR\",\"id\":\"eae312fc5152410cb4c8b452c26320a6\"}},{\"accountCurrency\":{\"descriptor\":\"EUR\",\"id\":\"eae312fc5152410cb4c8b452c26320a6\"}},{\"accountCurrency\":{\"descriptor\":\"EUR\",\"id\":\"eae312fc5152410cb4c8b452c26320a6\"}},{\"accountCurrency\":{\"descriptor\":\"EUR\",\"id\":\"eae312fc5152410cb4c8b452c26320a6\"}},{\"accountCurrency\":{\"descriptor\":\"EUR\",\"id\":\"eae312fc5152410cb4c8b452c26320a6\"}},{\"accountCurrency\":{\"descriptor\":\"EUR\",\"id\":\"eae312fc5152410cb4c8b452c26320a6\"}},{\"accountCurrency\":{\"descriptor\":\"GBP\",\"id\":\"84c7000ecd1d4834a9bfa55ab2dad129\"}},{\"accountCurrency\":{\"descriptor\":\"GBP\",\"id\":\"84c7000ecd1d4834a9bfa55ab2dad129\"}},{\"accountCurrency\":{\"descriptor\":\"HKD\",\"id\":\"18a5c8af96df4bf895ccf8c6e490f9a0\"}},{\"accountCurrency\":{\"descriptor\":\"INR\",\"id\":\"c9fd03ced15e447e8bdd20d35a90164e\"}},{\"accountCurrency\":{\"descriptor\":\"JPY\",\"id\":\"da15fc700359437cb23e0b7e5c4f3d54\"}},{\"accountCurrency\":{\"descriptor\":\"MXN\",\"id\":\"81fbd108ad9748aca1ff0fc2bce59353\"}},{\"accountCurrency\":{\"descriptor\":\"NOK\",\"id\":\"49e790a35fe6409bba7dac023039d6e3\"}},{\"accountCurrency\":{\"descriptor\":\"NZD\",\"id\":\"8093577ad6e34304a36659771cfcbe9a\"}},{\"accountCurrency\":{\"descriptor\":\"PHP\",\"id\":\"d557501fc99b47aaa9fa71fe9c08b6b8\"}},{\"accountCurrency\":{\"descriptor\":\"PLN\",\"id\":\"d7a3488ab1864f17990e810838fbd4a0\"}},{\"accountCurrency\":{\"descriptor\":\"SEK\",\"id\":\"40dd7833bc1a49c09970d5cfa128d202\"}},{\"accountCurrency\":{\"descriptor\":\"SGD\",\"id\":\"c7c73931e40f4d429c7dab1e01b35569\"}},{\"accountCurrency\":{\"descriptor\":\"SGD\",\"id\":\"c7c73931e40f4d429c7dab1e01b35569\"}},{\"accountCurrency\":{\"descriptor\":\"USD\",\"id\":\"9e996ffdd3e14da0ba7275d5400bafd4\"}},{\"accountCurrency\":{\"descriptor\":\"USD\",\"id\":\"9e996ffdd3e14da0ba7275d5400bafd4\"}},{\"accountCurrency\":{\"descriptor\":\"USD\",\"id\":\"9e996ffdd3e14da0ba7275d5400bafd4\"}},{\"accountCurrency\":{\"descriptor\":\"USD\",\"id\":\"9e996ffdd3e14da0ba7275d5400bafd4\"}},{\"accountCurrency\":{\"descriptor\":\"USD\",\"id\":\"9e996ffdd3e14da0ba7275d5400bafd4\"}},{\"accountCurrency\":{\"descriptor\":\"USD\",\"id\":\"9e996ffdd3e14da0ba7275d5400bafd4\"}},{\"accountCurrency\":{\"descriptor\":\"USD\",\"id\":\"9e996ffdd3e14da0ba7275d5400bafd4\"}},{\"accountCurrency\":{\"descriptor\":\"USD\",\"id\":\"9e996ffdd3e14da0ba7275d5400bafd4\"}},{\"accountCurrency\":{\"descriptor\":\"USD\",\"id\":\"9e996ffdd3e14da0ba7275d5400bafd4\"}},{\"accountCurrency\":{\"descriptor\":\"ZAR\",\"id\":\"5eae8e2f513345fab85b68ef72261e64\"}}]}",
+      "status": 200
+    }
+  }
+]

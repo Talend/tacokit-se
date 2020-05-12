@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.talend.components.adlsgen2.common.format.csv.CsvConfiguration;
 import org.talend.components.adlsgen2.common.format.csv.CsvConverter;
 import org.talend.components.adlsgen2.output.OutputConfiguration;
@@ -73,7 +73,7 @@ public class CsvContentFormatter extends AbstractContentFormatter {
             printer.close();
             return stringWriter.toString().getBytes(csvConfiguration.effectiveFileEncoding());
         } catch (IOException e) {
-            log.error("[feedContent] exception:", e);
+            log.error("[feedContent] {}", e.getMessage());
             throw new AdlsGen2RuntimeException(e.getMessage());
         }
     }

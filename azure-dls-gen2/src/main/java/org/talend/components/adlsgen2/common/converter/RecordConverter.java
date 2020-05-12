@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -33,8 +33,8 @@ public interface RecordConverter<T> extends Serializable {
      * input : "column?!^Name", output "column___Name"
      * input : "P1_Vente_Qté", output "P1_Vente_Qt_"
      *
-     * @param name          : the name will be correct
-     * @param nameIndex     : a index which is used to generate the column name when too much underline in the name
+     * @param name : the name will be correct
+     * @param nameIndex : a index which is used to generate the column name when too much underline in the name
      * @param previousNames : the previous valid names, this is used to make sure that every name is different
      * @return the valid name, if the input name is null or empty, or the previousNames is null, return the input name directly
      */

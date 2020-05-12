@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,7 +14,7 @@ package org.talend.components.azure.common;
 
 public enum FileFormat {
     CSV,
-    /* EXCEL, */ // FIXME uncomment it when excel will be ready to integrate
+    EXCEL,
     AVRO,
     PARQUET
 }

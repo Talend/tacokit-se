@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -70,12 +70,7 @@ public class ExcelBlobFileWriter extends BlobFileWriter {
      * Generates a temp file for batch (or part of batch)
      */
     @Override
-    public void generateFile() throws URISyntaxException, StorageException {
-        String directoryName = config.getDataset().getDirectory();
-        if (!directoryName.endsWith("/")) {
-            directoryName += "/";
-        }
-
+    public void generateFile(String directoryName) throws URISyntaxException, StorageException {
         String itemName = directoryName + config.getBlobNameTemplate() + UUID.randomUUID() + fileExtension;
 
         CloudBlob excelFile = getContainer().getBlockBlobReference(itemName);

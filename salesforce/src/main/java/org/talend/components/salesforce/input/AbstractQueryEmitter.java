@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -22,11 +22,9 @@ import javax.annotation.PreDestroy;
 
 import org.talend.components.salesforce.commons.BulkResultSet;
 import org.talend.components.salesforce.configuration.InputConfig;
-import org.talend.components.salesforce.dataset.QueryDataSet;
 import org.talend.components.salesforce.service.BulkQueryService;
 import org.talend.components.salesforce.service.Messages;
 import org.talend.components.salesforce.service.SalesforceService;
-import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;

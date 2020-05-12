@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -42,7 +42,7 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_RESULT;
 @Slf4j
 @Version
 @Icon(value = Icon.IconType.CUSTOM, custom = "MarketoInput")
-@Documentation("Marketo Input Component")
+@Documentation("Marketo input component")
 public abstract class MarketoSource extends MarketoSourceOrProcessor {
 
     protected final MarketoInputConfiguration configuration;

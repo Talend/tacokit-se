@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -25,6 +25,7 @@ import org.talend.components.jdbc.output.statement.operations.snowflake.Snowflak
 import org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeUpdate;
 import org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeUpsert;
 import org.talend.components.jdbc.service.I18nMessage;
+import org.talend.components.jdbc.service.SnowflakeCopyService;
 
 import static java.util.Locale.ROOT;
 import static org.talend.components.jdbc.output.platforms.SnowflakePlatform.SNOWFLAKE;

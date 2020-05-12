@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -35,7 +35,7 @@ import org.talend.components.azure.service.AzureBlobComponentServices;
 // this class role is to enable the work to be distributed in environments supporting it.
 //
 @Version(1) // default version is 1, if some configuration changes happen between 2 versions you can add a migrationHandler
-@Icon(value = Icon.IconType.FILE_DATABASE_O)
+@Icon(value = Icon.IconType.CUSTOM, custom = "talend-azure")
 @PartitionMapper(name = "Input")
 @Documentation("Mapper for AzureBlobStorage Readers")
 public class InputMapper implements Serializable {

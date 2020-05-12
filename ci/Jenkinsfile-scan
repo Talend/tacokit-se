@@ -1,0 +1,70 @@
+def slackChannel = 'components-ci'
+
+def podLabel = "connectors-se-scan-${UUID.randomUUID().toString()}".take(53)
+
+pipeline {
+    agent {
+        kubernetes {
+            label podLabel
+            yaml """
+apiVersion: v1
+kind: Pod
+spec:
+    containers:
+        -
+            name: main
+            image: '${env.TSBI_IMAGE}'
+            command: [cat]
+            tty: true
+            volumeMounts: [{name: docker, mountPath: /var/run/docker.sock}, {name: m2main, mountPath: /root/.m2/repository}]
+            resources: {requests: {memory: 3G, cpu: '2'}, limits: {memory: 8G, cpu: '2'}}
+    volumes:
+        -
+            name: docker
+            hostPath: {path: /var/run/docker.sock}
+        -
+            name: m2main
+            hostPath: { path: /tmp/jenkins/tdi/m2/ }
+    imagePullSecrets:
+        - name: talend-registry
+"""
+        }
+    }
+
+    environment {
+        MAVEN_OPTS = '-Dmaven.artifact.threads=128 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss'
+        TALEND_REGISTRY = 'registry.datapwn.com'
+    }
+
+    options {
+        buildDiscarder(logRotator(artifactNumToKeepStr: '5', numToKeepStr: '5'))
+        timeout(time: 60, unit: 'MINUTES')
+        skipStagesAfterUnstable()
+    }
+
+    triggers {
+        cron('0 9 * * 0')
+    }
+
+    stages {
+        stage("SourceClear analysis") {
+            steps {
+                container('main') {
+                    withCredentials([string(credentialsId: 'veracode-token', variable: 'SRCCLR_API_TOKEN')]) {
+                        sh '''#!/bin/bash
+                          curl -sSL https://download.sourceclear.com/ci.sh | SRCCLR_API_TOKEN=${SRCCLR_API_TOKEN} DEBUG=1 sh -s -- scan --allow-dirty --recursive --skip-collectors npm;
+                        '''
+                    }
+                }
+            }
+        }
+    }
+    post {
+        success {
+            slackSend(color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})", channel: "${slackChannel}")
+        }
+        failure {
+            slackSend(color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})", channel: "${slackChannel}")
+        }
+    }
+}

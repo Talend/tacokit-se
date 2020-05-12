@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -62,10 +62,11 @@ public class AdlsGen2Input implements Serializable {
 
     @PostConstruct
     public void init() {
+        log.debug("[init]");
         try {
             reader = BlobFileReaderFactory.getReader(configuration, recordBuilderFactory, jsonFactory, service);
         } catch (Exception e) {
-            log.warn("[init] Error: {}", e);
+            log.error("[init] Error: {}.", e.getMessage());
             throw new AdlsGen2RuntimeException(e.getMessage());
         }
     }

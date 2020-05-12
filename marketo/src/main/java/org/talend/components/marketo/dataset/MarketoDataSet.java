@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,8 +14,6 @@ package org.talend.components.marketo.dataset;
 
 import java.io.Serializable;
 import java.time.Period;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,13 +31,12 @@ import org.talend.sdk.component.api.meta.Documentation;
 import lombok.Data;
 import lombok.ToString;
 
+import static org.talend.components.marketo.dataset.MarketoDataSet.DateTimeRelative.PERIOD_AGO_2W;
 import static org.talend.components.marketo.service.UIActionService.ACTIVITIES_LIST;
-import static org.talend.components.marketo.service.UIActionService.DATE_RANGES;
 import static org.talend.components.marketo.service.UIActionService.FIELD_NAMES;
 import static org.talend.components.marketo.service.UIActionService.LIST_NAMES;
 import static org.talend.components.marketo.service.UIActionService.VALIDATION_DATETIME_PATTERN;
 import static org.talend.components.marketo.service.UIActionService.VALIDATION_LIST_PROPERTY;
-import static org.talend.components.marketo.service.UIActionService.VALIDATION_STRING_PROPERTY;
 import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.AND;
 
 @Data
@@ -61,7 +58,7 @@ public class MarketoDataSet implements Serializable {
     private MarketoDataStore dataStore;
 
     @Option
-    @Documentation("Lead Action")
+    @Documentation("Lead action")
     private LeadAction leadAction = MarketoDataSet.LeadAction.getLeadsByList;
 
     @Option
@@ -71,39 +68,36 @@ public class MarketoDataSet implements Serializable {
 
     @Option
     @ActiveIf(target = "leadAction", value = { "getLeadActivity" })
-    @Documentation("Date Time Mode")
+    @Documentation("Date time mode")
     private DateTimeMode dateTimeMode = DateTimeMode.relative;
 
     @Option
     @ActiveIfs(operator = AND, value = { //
             @ActiveIf(target = "leadAction", value = { "getLeadActivity" }), //
             @ActiveIf(target = "dateTimeMode", value = { "relative" }) })
-    @Suggestable(value = DATE_RANGES, parameters = { "../dateTimeMode" })
-    @Validable(VALIDATION_STRING_PROPERTY)
-    @Documentation("Since Relative Date Time")
-    private String sinceDateTimeRelative = String.valueOf(Period.ofWeeks(2).getDays());
+    @Documentation("Since relative date time")
+    private DateTimeRelative sinceDateTimeRelative = PERIOD_AGO_2W;
 
     @Option
     @ActiveIfs(operator = AND, value = { //
             @ActiveIf(target = "leadAction", value = { "getLeadActivity" }), //
             @ActiveIf(target = "dateTimeMode", value = { "absolute" }) })
     @Validable(VALIDATION_DATETIME_PATTERN)
-    @Documentation("Since Absolute Date Time")
-    private String sinceDateTimeAbsolute = ZonedDateTime.now().minusMonths(2)
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+    @Documentation("Since absolute date time")
+    private String sinceDateTimeAbsolute;
 
     @Option
     @ActiveIf(target = "leadAction", value = "getLeadActivity")
     @Suggestable(value = ACTIVITIES_LIST, parameters = { "../dataStore" })
     @Validable(VALIDATION_LIST_PROPERTY)
-    @Documentation("Activity Type Ids (10 max supported)")
+    @Documentation("Activity type ids (10 max supported)")
     private List<String> activityTypeIds = Collections.emptyList();
 
     @Option
     @ActiveIf(target = "leadAction", negate = true, value = { "getLeadActivity" })
     @Suggestable(value = FIELD_NAMES, parameters = { "../dataStore" })
     @Documentation("Fields")
-    private List<String> fields = new ArrayList<>();
+    private List<String> fields = Collections.emptyList();
 
     public enum LeadAction {
         getLeadActivity,
@@ -114,4 +108,22 @@ public class MarketoDataSet implements Serializable {
         relative,
         absolute
     }
+
+    public enum DateTimeRelative {
+        PERIOD_AGO_1W("P7D"), //
+        PERIOD_AGO_2W("P14D"), //
+        PERIOD_AGO_1M("P1M"), //
+        PERIOD_AGO_3M("P3M"), //
+        PERIOD_AGO_6M("P6M"), //
+        PERIOD_AGO_1Y("P1Y"), //
+        PERIOD_AGO_2Y("P2Y"); //
+
+        @lombok.Getter
+        private String relativeOffset;
+
+        DateTimeRelative(String value) {
+            this.relativeOffset = value;
+        }
+    }
+
 }

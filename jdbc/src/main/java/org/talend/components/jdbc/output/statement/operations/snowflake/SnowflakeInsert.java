@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -18,19 +18,18 @@ import org.talend.components.jdbc.output.platforms.Platform;
 import org.talend.components.jdbc.output.statement.operations.Insert;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
+import org.talend.components.jdbc.service.SnowflakeCopyService;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.service.Service;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.stream.Collectors.joining;
-import static org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeCopy.putAndCopy;
-import static org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeCopy.tmpTableName;
-
 public class SnowflakeInsert extends Insert {
+
+    SnowflakeCopyService snowflakeCopy = new SnowflakeCopyService();
 
     public SnowflakeInsert(Platform platform, OutputConfig configuration, I18nMessage i18n) {
         super(platform, configuration, i18n);
@@ -42,20 +41,16 @@ public class SnowflakeInsert extends Insert {
         final List<Reject> rejects = new ArrayList<>();
         try (final Connection connection = dataSource.getConnection()) {
             final String tableName = getConfiguration().getDataset().getTableName();
-            final String tmpTableName = tmpTableName(tableName);
             final String fqTableName = namespace(connection) + "." + getPlatform().identifier(tableName);
-            final String fqTmpTableName = namespace(connection) + "." + getPlatform().identifier(tmpTableName);
-            final String fqStageName = namespace(connection) + ".%" + getPlatform().identifier(tmpTableName);
-            rejects.addAll(putAndCopy(connection, records, fqStageName, fqTableName, fqTmpTableName));
+            final String fqStageName = namespace(connection) + ".%" + getPlatform().identifier(tableName);
+            rejects.addAll(snowflakeCopy.putAndCopy(connection, records, fqStageName, fqTableName));
             if (rejects.isEmpty()) {
-                try (final Statement statement = connection.createStatement()) {
-                    final String fields = getQueryParams().values().stream().map(e -> getPlatform().identifier(e.getName()))
-                            .collect(joining(","));
-                    statement.execute(
-                            "insert into " + fqTableName + "(" + fields + ") select " + fields + " from " + fqTmpTableName);
-                }
+                connection.commit();
+            } else {
+                connection.rollback();
             }
-            connection.commit();
+        } finally {
+            snowflakeCopy.cleanTmpFiles();
         }
         return rejects;
     }

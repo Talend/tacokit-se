@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -18,6 +18,7 @@ import org.talend.components.jdbc.output.platforms.Platform;
 import org.talend.components.jdbc.output.statement.operations.Update;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
+import org.talend.components.jdbc.service.SnowflakeCopyService;
 import org.talend.sdk.component.api.record.Record;
 
 import java.sql.Connection;
@@ -26,12 +27,11 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.time.LocalDateTime.now;
 import static java.util.stream.Collectors.joining;
-import static org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeCopy.putAndCopy;
-import static org.talend.components.jdbc.output.statement.operations.snowflake.SnowflakeCopy.tmpTableName;
 
 public class SnowflakeUpdate extends Update {
+
+    SnowflakeCopyService snowflakeCopy = new SnowflakeCopyService();
 
     public SnowflakeUpdate(Platform platform, OutputConfig configuration, I18nMessage i18n) {
         super(platform, configuration, i18n);
@@ -43,16 +43,16 @@ public class SnowflakeUpdate extends Update {
         final List<Reject> rejects = new ArrayList<>();
         try (final Connection connection = dataSource.getConnection()) {
             final String tableName = getConfiguration().getDataset().getTableName();
-            final String tmpTableName = tmpTableName(tableName);
+            final String tmpTableName = snowflakeCopy.tmpTableName(tableName);
             final String fqTableName = namespace(connection) + "." + getPlatform().identifier(tableName);
             final String fqTmpTableName = namespace(connection) + "." + getPlatform().identifier(tmpTableName);
             final String fqStageName = namespace(connection) + ".%" + getPlatform().identifier(tmpTableName);
-            rejects.addAll(putAndCopy(connection, records, fqStageName, fqTableName, fqTmpTableName));
+            rejects.addAll(snowflakeCopy.putAndCopy(connection, records, fqStageName, fqTableName, fqTmpTableName));
             if (records.size() != rejects.size()) {
                 try (final Statement statement = connection.createStatement()) {
                     statement.execute("merge into " + fqTableName + " target using " + fqTmpTableName + " as source on "
                             + getConfiguration().getKeys().stream().map(key -> getPlatform().identifier(key))
-                                    .map(key -> "source." + key + "= target." + key).collect(joining("AND", " ", " "))
+                                    .map(key -> "source." + key + "= target." + key).collect(joining(" AND "))
                             + " when matched then update set "
                             + getQueryParams().values().stream()
                                     .filter(p -> !getIgnoreColumns().contains(p.getName()) && !getKeys().contains(p.getName()))
@@ -61,6 +61,8 @@ public class SnowflakeUpdate extends Update {
                 }
             }
             connection.commit();
+        } finally {
+            snowflakeCopy.cleanTmpFiles();
         }
         return rejects;
     }

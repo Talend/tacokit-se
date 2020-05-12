@@ -13,6 +13,20 @@ def dockerCredentials = usernamePassword(
     passwordVariable: 'DOCKER_PASSWORD',
     usernameVariable: 'DOCKER_LOGIN')
 
+def netsuiteCredentials = usernamePassword(
+                                credentialsId: 'netsuite-integration',
+                                usernameVariable: 'NETSUITE_INTEGRATION_USER',
+                                passwordVariable: 'NETSUITE_INTEGRATION_PASSWORD')
+
+def netsuiteConsumerCredentials = usernamePassword(
+                                credentialsId: 'netsuite-integration-consumer',
+                                usernameVariable: 'NETSUITE_INTEGRATION_CONSUMER_USER',
+                                passwordVariable: 'NETSUITE_INTEGRATION_CONSUMER_PASSWORD')
+
+def netsuiteTokenCredentials = usernamePassword(
+                                credentialsId: 'netsuite-integration-token',
+                                usernameVariable: 'NETSUITE_INTEGRATION_TOKEN_USER',
+                                passwordVariable: 'NETSUITE_INTEGRATION_TOKEN_PASSWORD')
 
 def PRODUCTION_DEPLOYMENT_REPOSITORY = "TalendOpenSourceSnapshot"
 
@@ -29,10 +43,12 @@ def talendOssRepositoryArg = (env.BRANCH_NAME == "master" || env.BRANCH_NAME.sta
 
 def calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
 
+def podLabel = "connectors-se-${UUID.randomUUID().toString()}".take(53)
+
 pipeline {
     agent {
         kubernetes {
-            label 'connectors-se'
+            label podLabel
             yaml """
 apiVersion: v1
 kind: Pod
@@ -40,7 +56,7 @@ spec:
     containers:
         -
             name: main
-            image: 'khabali/jenkins-java-build-container:latest'
+            image: '${env.TSBI_IMAGE}'
             command: [cat]
             tty: true
             volumeMounts: [{name: docker, mountPath: /var/run/docker.sock}, {name: m2main, mountPath: /root/.m2/repository}]
@@ -52,12 +68,14 @@ spec:
         -
             name: m2main
             hostPath: { path: ${m2} }
+    imagePullSecrets:
+        - name: talend-registry
 """
         }
     }
 
     environment {
-        MAVEN_OPTS = '-Dmaven.artifact.threads=128 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss'
+        MAVEN_OPTS = "-Dmaven.artifact.threads=128 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss -Dtalend.maven.decrypter.m2.location=${WORKSPACE}/.jenkins/"
         TALEND_REGISTRY = 'registry.datapwn.com'
     }
 
@@ -87,8 +105,15 @@ spec:
                     // for next concurrent builds
                     sh 'for i in ci_documentation ci_nexus ci_site; do rm -Rf $i; rsync -av . $i; done'
                     // real task
-                    withCredentials([nexusCredentials]) {
-                        sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -e ${talendOssRepositoryArg}"
+                    withCredentials([
+                            nexusCredentials
+                            , netsuiteCredentials
+                            , netsuiteConsumerCredentials
+                            , netsuiteTokenCredentials
+                    ]) {
+                        script {
+                            sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/ -e ${talendOssRepositoryArg}"
+                        }
                     }
                 }
             }
@@ -162,25 +187,19 @@ spec:
             when {
                 anyOf {
                     expression { params.Action == 'PUSH_TO_XTM' }
-//                    allOf{
-//                        triggeredBy 'TimerTrigger'
-//                        expression {
-//                            (calendar.get(Calendar.WEEK_OF_MONTH) == 2 ||  calendar.get(Calendar.WEEK_OF_MONTH) == 4) && calendar.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY
-//                        }
-//                    }
+                    allOf {
+                        triggeredBy 'TimerTrigger'
+                        expression { calendar.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY }
+                    }
                 }
                 anyOf {
                     branch 'master'
-                    expression { BRANCH_NAME.startsWith('maintenance/') }
+                    expression { env.BRANCH_NAME.startsWith('maintenance/') }
                 }
             }
             steps {
                 container('main') {
-                    withCredentials([nexusCredentials,
-                            string(
-                                    credentialsId: 'xtm-token',
-                                    variable: 'XTM_TOKEN')
-                    ]) {
+                    withCredentials([nexusCredentials, string(credentialsId: 'xtm-token', variable: 'XTM_TOKEN')]) {
                         script {
                             sh "mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-export"
                         }
@@ -193,19 +212,14 @@ spec:
                 expression { params.Action == 'DEPLOY_FROM_XTM' }
                 anyOf {
                     branch 'master'
-                    expression { BRANCH_NAME.startsWith('maintenance/') }
+                    expression { env.BRANCH_NAME.startsWith('maintenance/') }
                 }
             }
             steps {
                 container('main') {
-                    withCredentials([nexusCredentials,
-                            string(
-                                    credentialsId: 'xtm-token',
-                                    variable: 'XTM_TOKEN'),
-                            gitCredentials ]) {
+                    withCredentials([nexusCredentials, string(credentialsId: 'xtm-token', variable: 'XTM_TOKEN'), gitCredentials]) {
                         script {
-                            sh "mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-deploy"
-                            sh "cd tmp/repository && mvn -s ../../.jenkins/settings.xml clean deploy"
+                            sh "sh .jenkins/xtm-deploy.sh"
                         }
                     }
                 }
@@ -220,24 +234,12 @@ spec:
                 }
             }
             steps {
-            	withCredentials([gitCredentials, nexusCredentials]) {
+            	withCredentials([gitCredentials, nexusCredentials, netsuiteCredentials, netsuiteConsumerCredentials, netsuiteTokenCredentials]) {
 					container('main') {
-                		
-						sh """
-						    mvn -B -s .jenkins/settings.xml release:clean release:prepare
-						    if [[ \$? -eq 0 ]] ; then
-						        PROJECT_VERSION=\$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
-						    	mvn -B -s .jenkins/settings.xml -Darguments='-Dmaven.javadoc.skip=true' release:perform
-						    	git push origin release/\${PROJECT_VERSION}
-						    	git push
-						    fi
-						"""
-						
+                        sh "sh .jenkins/release.sh"
               		}
             	}
             }
-            
-        
         }
     }
     post {

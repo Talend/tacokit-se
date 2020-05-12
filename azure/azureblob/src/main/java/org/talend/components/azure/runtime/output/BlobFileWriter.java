@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -41,11 +41,21 @@ public abstract class BlobFileWriter {
 
     private final CloudBlobContainer container;
 
+    private String directoryName;
+
     public BlobFileWriter(BlobOutputConfiguration config, AzureBlobComponentServices connectionServices) throws Exception {
         CloudStorageAccount connection = connectionServices.createStorageAccount(config.getDataset().getConnection());
         CloudBlobClient blobClient = connectionServices.getConnectionService().createCloudBlobClient(connection,
                 AzureComponentServices.DEFAULT_RETRY_POLICY);
         container = blobClient.getContainerReference(config.getDataset().getContainerName());
+
+        directoryName = config.getDataset().getDirectory();
+
+        if (directoryName == null) {
+            directoryName = "";
+        } else if (!directoryName.endsWith("/")) {
+            directoryName += "/";
+        }
     }
 
     public void newBatch() {
@@ -53,7 +63,12 @@ public abstract class BlobFileWriter {
         log.debug("New batch created");
     }
 
-    protected abstract void generateFile() throws URISyntaxException, StorageException;
+    @Deprecated
+    protected void generateFile() throws URISyntaxException, StorageException {
+        generateFile(this.directoryName);
+    }
+
+    protected abstract void generateFile(String directoryName) throws URISyntaxException, StorageException;
 
     public void writeRecord(Record record) {
         if (schema == null) {

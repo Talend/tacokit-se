@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -108,7 +108,7 @@ public class JsonBlobReader extends BlobReader {
                     }
                 }
             } catch (Exception e) {
-                log.error("[readBlob] {}", e);
+                log.error("[readBlob] {}", e.getMessage());
                 throw new AdlsGen2RuntimeException(e.getMessage());
             }
         }
@@ -145,7 +145,7 @@ public class JsonBlobReader extends BlobReader {
                 try {
                     currentItemInputStream.close();
                 } catch (IOException e) {
-                    log.warn("Can't close stream", e);
+                    log.error("Can't close stream: {}.", e.getMessage());
                 }
             }
         }

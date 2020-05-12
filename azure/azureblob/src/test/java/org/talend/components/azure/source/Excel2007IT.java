@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -36,7 +36,6 @@ import com.microsoft.azure.storage.StorageException;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.azure")
-@Disabled
 class Excel2007IT extends BaseIT {
 
     private BlobInputProperties blobInputProperties;
@@ -57,7 +56,7 @@ class Excel2007IT extends BaseIT {
     void initDataSet() {
         AzureBlobDataset dataset = new AzureBlobDataset();
         dataset.setConnection(dataStore);
-        // dataset.setFileFormat(FileFormat.EXCEL);
+        dataset.setFileFormat(FileFormat.EXCEL);
         ExcelFormatOptions excelFormatOptions = new ExcelFormatOptions();
         excelFormatOptions.setSheetName("Sheet1");
         excelFormatOptions.setExcelFormat(ExcelFormat.EXCEL2007);
@@ -293,5 +292,68 @@ class Excel2007IT extends BaseIT {
         Assert.assertEquals(doubleValue, firstRecord.getDouble("field3"), 0.01);
         Assert.assertEquals(dateValue, firstRecord.getDouble("field4"), 0.01);
         Assert.assertEquals(booleanValue, firstRecord.getBoolean("field5"));
+    }
+
+    @Test
+    void testReadFileWithEmptyCells() throws StorageException, IOException, URISyntaxException {
+        final int recordSize = 2;
+        final int columnSizeForFullRecord = 5;
+        final int columnSizeForRecordsWithNulls = 2;
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excel2007/excel_2007_2_records_empty_cell.xlsx",
+                "excel_2007_2_records_empty_cell.xlsx");
+
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("azureInput").to("collector").build().run();
+        List<Record> records = componentsHandler.getCollectedData(Record.class);
+
+        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Record fullRecord = records.get(0);
+        Record recordWithEmptyCells = records.get(1);
+        Assert.assertEquals("Column number for row without empty cells is different", columnSizeForFullRecord,
+                fullRecord.getSchema().getEntries().size());
+        Assert.assertEquals("Column number for row with empty cells is different", columnSizeForRecordsWithNulls,
+                recordWithEmptyCells.getSchema().getEntries().size());
+    }
+
+    @Test
+    void testSkipFileWithoutSpecifiedSheetName() throws StorageException, IOException, URISyntaxException {
+        final int recordSize = 2; // 3 files, 1 with another sheet name (should be skipped)
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excel2007/excel_2007_1_record_no_header.xlsx",
+                "excel_2007_1_record_no_header.xlsx");
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excel2007/excel_2007_1_record_another_sheet_name.xlsx",
+                "excel_2007_1_record_another_sheet_name.xlsx");
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excel2007/excel_2007_1_record_no_header.xlsx",
+                "excel_2007_1_record_no_header2.xlsx");
+
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("azureInput").to("collector").build().run();
+        List<Record> records = componentsHandler.getCollectedData(Record.class);
+
+        Assert.assertEquals("Records amount is different", recordSize, records.size());
+    }
+
+    @Test
+    void testSeveralFilesWithHeaderAndFooters() throws Exception {
+        final int recordSize = 3 * (5 - 1); // 3 files, 1 record as a footer in each
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excel2007/excel_2007_5_records_with_big_header.xlsx",
+                "excel_2007_5_records_with_big_header1.xlsx");
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excel2007/excel_2007_5_records_with_big_header.xlsx",
+                "excel_2007_5_records_with_big_header2.xlsx");
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excel2007/excel_2007_5_records_with_big_header.xlsx",
+                "excel_2007_5_records_with_big_header3.xlsx");
+
+        blobInputProperties.getDataset().getExcelOptions().setUseHeader(true);
+        blobInputProperties.getDataset().getExcelOptions().setHeader(2);
+        blobInputProperties.getDataset().getExcelOptions().setUseFooter(true);
+        blobInputProperties.getDataset().getExcelOptions().setFooter(1);
+
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("azureInput").to("collector").build().run();
+        List<Record> records = componentsHandler.getCollectedData(Record.class);
+
+        Assert.assertEquals("Records amount is different", recordSize, records.size());
     }
 }

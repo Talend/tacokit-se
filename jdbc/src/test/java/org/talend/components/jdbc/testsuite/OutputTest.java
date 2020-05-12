@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -39,13 +39,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -398,5 +393,43 @@ class OutputTest extends BaseJdbcTest {
 
         assertTrue(
                 error.getMessage().contains(getI18nMessage().errorTaberDoesNotExists(configuration.getDataset().getTableName())));
+    }
+
+    // ParameterizedTest it, but need refactor if that, TODO
+    @TestTemplate
+    @DisplayName("Migration test for old job")
+    void testMigration4Old(final TestInfo testInfo, final JdbcTestContainer container) {
+        migration(testInfo, container, true);
+    }
+
+    @TestTemplate
+    @DisplayName("Migration test for new job")
+    void testMigration4New(final TestInfo testInfo, final JdbcTestContainer container) {
+        migration(testInfo, container, false);
+    }
+
+    void migration(final TestInfo testInfo, final JdbcTestContainer container, boolean old) {
+        final OutputConfig configuration = new OutputConfig();
+        final String testTableName = getTestTableName(testInfo);
+        configuration.setDataset(newTableNameDataset(testTableName, container));
+        configuration.setActionOnData(OutputConfig.ActionOnData.INSERT.name());
+        configuration.setCreateTableIfNotExists(true);
+        configuration.setKeys(asList("id"));
+        final String config = getOldComponentConfigString4MigrationTest(configuration, old);
+        final int rowCount = 50;
+        Job.components()
+                .component("rowGenerator",
+                        "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, false, null, withBoolean, withBytes))
+                .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput").build()
+                .run();
+        assertEquals(rowCount, countAll(testTableName, container));
+    }
+
+    private String getOldComponentConfigString4MigrationTest(OutputConfig configuration, boolean old) {
+        String config = configurationByExample().forInstance(configuration).configured().toQueryString() + "&__version=1";
+        if (old) {
+            config = config.replace("configuration.keys.keys[", "configuration.keys[");
+        }
+        return config;
     }
 }

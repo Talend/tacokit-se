@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -114,15 +114,14 @@ public class UIActionService {
 
     @HealthCheck(ACTION_BASIC_HEALTH_CHECK)
     public HealthCheckStatus validateBasicDataStore(@Option final JdbcConnection datastore) {
-        try (JdbcService.JdbcDatasource dataSource = this.jdbcService.createDataSource(datastore)) {
-            try (final Connection ignored = dataSource.getConnection()) {
-                // no-op
-            } catch (final Exception e) {
-                return new HealthCheckStatus(HealthCheckStatus.Status.KO, e.getMessage());
-            }
-
-            return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18n.successConnection());
+        try (JdbcService.JdbcDatasource dataSource = this.jdbcService.createDataSource(datastore);
+                final Connection ignored = dataSource.getConnection()) {
+            // no-op
+        } catch (final Exception e) {
+            return new HealthCheckStatus(HealthCheckStatus.Status.KO, e.getMessage());
         }
+
+        return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18n.successConnection());
     }
 
     @AsyncValidation(ACTION_VALIDATION_READONLY_QUERY)

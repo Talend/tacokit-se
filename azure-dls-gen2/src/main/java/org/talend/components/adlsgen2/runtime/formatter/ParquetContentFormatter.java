@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -63,7 +63,7 @@ public class ParquetContentFormatter extends AbstractContentFormatter {
             writer.close();
             return Files.readAllBytes(tempFilePath.toPath());
         } catch (IOException e) {
-            log.warn("[feedContent] {}", e);
+            log.error("[feedContent] {}", e.getMessage());
             throw new AdlsGen2RuntimeException(e.getMessage());
         } finally {
             if (tempFilePath != null) {

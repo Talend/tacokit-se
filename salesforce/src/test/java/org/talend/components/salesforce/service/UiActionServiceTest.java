@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -53,6 +53,19 @@ public class UiActionServiceTest extends SalesforceTestBase {
     }
 
     @Test
+    @DisplayName("Test connection password expired [Invalid]")
+    public void validateExpiredPassword() {
+        final BasicDataStore datasore = new BasicDataStore();
+        datasore.setUserId(EXPIRED_USER_ID);
+        datasore.setPassword(EXPIRED_PASSWORD);
+        datasore.setSecurityKey(EXPIRED_SECURITY_KEY);
+        final HealthCheckStatus status = service.validateBasicConnection(datasore, i18n);
+        assertNotNull(status);
+        assertEquals(HealthCheckStatus.Status.KO, status.getStatus());
+        assertFalse(status.getComment().isEmpty());
+    }
+
+    @Test
     @DisplayName("Test connection Failed [Invalid]")
     public void validateBasicConnectionFailed() {
         final BasicDataStore datasore = new BasicDataStore();
@@ -101,6 +114,18 @@ public class UiActionServiceTest extends SalesforceTestBase {
             datasore.setUserId("basUserName");
             datasore.setPassword("NoPass");
             service.loadSalesforceModules(datasore);
+        });
+    }
+
+    @Test
+    @DisplayName("Test connection with expired password [Invalid]")
+    public void loadModulesWithExpiredPWD() {
+        assertThrows(IllegalStateException.class, () -> {
+            final BasicDataStore datastore = new BasicDataStore();
+            datastore.setUserId(EXPIRED_USER_ID);
+            datastore.setPassword(EXPIRED_PASSWORD);
+            datastore.setSecurityKey(EXPIRED_SECURITY_KEY);
+            service.loadSalesforceModules(datastore);
         });
     }
 

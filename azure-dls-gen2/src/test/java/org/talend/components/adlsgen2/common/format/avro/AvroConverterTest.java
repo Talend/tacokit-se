@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.apache.avro.LogicalTypes;
 import org.apache.avro.SchemaBuilder;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
@@ -569,6 +570,13 @@ class AvroConverterTest extends AdlsGen2TestBase {
             assertEquals(20.5f, r.getFloat("float"));
             assertEquals(20.5, r.getDouble("double"));
         }
+    }
+
+    @Test
+    void checkLogicalTypes() {
+        assertEquals(LogicalTypes.date().getName(), AvroConverter.AVRO_LOGICAL_TYPE_DATE);
+        assertEquals(LogicalTypes.timeMillis().getName(), AvroConverter.AVRO_LOGICAL_TYPE_TIME_MILLIS);
+        assertEquals(LogicalTypes.timestampMillis().getName(), AvroConverter.AVRO_LOGICAL_TYPE_TIMESTAMP_MILLIS);
     }
 
 }

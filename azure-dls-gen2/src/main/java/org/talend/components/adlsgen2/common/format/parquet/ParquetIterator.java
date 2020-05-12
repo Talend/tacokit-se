@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -54,7 +54,7 @@ public class ParquetIterator implements Iterator<Record>, Serializable {
             HadoopInputFile hdpIn = HadoopInputFile.fromPath(new Path(tmp.getPath()), new org.apache.hadoop.conf.Configuration());
             reader = AvroParquetReader.<GenericRecord> builder(hdpIn).build();
         } catch (IOException e) {
-            log.error("[ParquetIterator] {}", e);
+            log.error("[ParquetIterator] {}", e.getMessage());
             throw new FileFormatRuntimeException(e.getMessage());
         }
     }
@@ -69,7 +69,7 @@ public class ParquetIterator implements Iterator<Record>, Serializable {
             }
             return true;
         } catch (IOException e) {
-            log.error("[hasNext] {}", e);
+            log.error("[hasNext] {}", e.getMessage());
             throw new FileFormatRuntimeException(e.getMessage());
         }
     }

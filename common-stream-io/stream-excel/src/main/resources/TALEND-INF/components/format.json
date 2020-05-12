@@ -1,0 +1,6 @@
+{
+  "org.talend.components.common.stream.format.excel.ExcelConfiguration": {
+    "reader": "org.talend.components.common.stream.input.excel.ExcelReaderSupplier",
+    "writer": "org.talend.components.common.stream.output.excel.ExcelWriterSupplier"
+  }
+}

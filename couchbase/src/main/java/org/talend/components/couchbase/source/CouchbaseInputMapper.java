@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -27,7 +27,7 @@ import java.util.List;
 
 import static java.util.Collections.singletonList;
 
-@Version(1)
+@Version(value = 2, migrationHandler = CouchbaseInputMigrationHandler.class)
 @Icon(value = Icon.IconType.CUSTOM, custom = "CouchbaseInput")
 @PartitionMapper(name = "Input")
 @Documentation("Couchbase input Mapper")
