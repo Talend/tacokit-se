@@ -20,6 +20,7 @@
         <!-- test version -->
         <derby.version>10.12.1.1</derby.version>
         <testcontainers.version>1.11.2</testcontainers.version>
+        <talend.validation.locale>root</talend.validation.locale>
     </properties>
 
     <dependencies>
