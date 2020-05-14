@@ -77,6 +77,9 @@ public class AdlsGen2Service {
     @Service
     private AdlsGen2APIClient client;
 
+    @Service
+    private AccessTokenProvider tokenGetter;
+
     private Map<String, String> SAS;
 
     private Map<String, String> headers;
@@ -123,8 +126,7 @@ public class AdlsGen2Service {
             break;
         case ActiveDirectory:
             if (activeDirAuthToken == null) {
-                activeDirAuthToken = getAcriveDirAuthToken(connection.getAccountName(), connection.getTenantId(),
-                        connection.getClientId(), connection.getClientSecret());
+                activeDirAuthToken = getActiveDirAuthToken(connection);
             }
             headers.put(HeaderConstants.AUTHORIZATION, "Bearer " + activeDirAuthToken);
             break;
@@ -133,9 +135,12 @@ public class AdlsGen2Service {
         }
     }
 
-    private String getAcriveDirAuthToken(String accountName, String tenantId, String clientId, String clientSecret) {
-        // TODO stub
-        return "return the real token here";
+    private String getActiveDirAuthToken(AdlsGen2Connection connection) {
+        String url = String.format("https://login.microsoftonline.com/%s/oauth2/token", connection.getTenantId()); // how to use
+                                                                                                                   // it?
+        Response<JsonObject> result = handleResponse(tokenGetter.getAccessToken(connection.getTenantId(), ""));
+
+        return result.body().getString("access_token");
     }
 
     @SuppressWarnings("unchecked")
