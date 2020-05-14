@@ -136,9 +136,11 @@ public class AdlsGen2Service {
     }
 
     private String getActiveDirAuthToken(AdlsGen2Connection connection) {
-        String url = String.format("https://login.microsoftonline.com/%s/oauth2/token", connection.getTenantId()); // how to use
-                                                                                                                   // it?
-        Response<JsonObject> result = handleResponse(tokenGetter.getAccessToken(connection.getTenantId(), ""));
+        tokenGetter.base("https://login.microsoftonline.com/");
+        String requestBodyFormat = "grant_type=client_credentials&scope=https://storage.azure.com/.default&client_id=%s&client_secret=%s";
+
+        Response<JsonObject> result = handleResponse(tokenGetter.getAccessToken(connection.getTenantId(),
+                String.format(requestBodyFormat, connection.getClientId(), connection.getClientSecret())));
 
         return result.body().getString("access_token");
     }
