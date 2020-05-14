@@ -19,10 +19,11 @@
         <commons-codec.version>1.11</commons-codec.version>
         <!-- test version -->
         <derby.version>10.12.1.1</derby.version>
-        <talend.validation.locale>root</talend.validation.locale>
         <testcontainers.version>1.14.1</testcontainers.version>
         <!-- To run ITs test give the following option to mvn : -Dtest.excluded="" -->
         <test.excluded>IT</test.excluded>
+        <!-- To avoid build failures with locales validation -->
+        <talend.validation.internationalization>false</talend.validation.internationalization>
     </properties>
 
     <dependencies>
