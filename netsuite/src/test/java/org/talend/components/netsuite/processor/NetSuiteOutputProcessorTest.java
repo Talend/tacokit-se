@@ -12,12 +12,18 @@
  */
 package org.talend.components.netsuite.processor;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.netsuite.webservices.v2019_2.platform.core.types.SearchStringFieldOperator;
+
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.talend.components.netsuite.NetSuiteBaseTest;
 import org.talend.components.netsuite.dataset.NetSuiteDataSet;
@@ -34,14 +40,10 @@ import org.talend.components.netsuite.utils.SampleData;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit5.WithComponents;
 
-import com.netsuite.webservices.v2019_2.platform.core.types.SearchStringFieldOperator;
-
 import lombok.extern.slf4j.Slf4j;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 @Slf4j
+@Disabled
 @WithComponents("org.talend.components.netsuite")
 public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
 

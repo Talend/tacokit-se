@@ -12,7 +12,12 @@
  */
 package org.talend.components.workday.dataset;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+
+import org.talend.components.workday.WorkdayException;
 
 /**
  * Help to build queries.
@@ -22,5 +27,13 @@ public interface QueryHelper {
     String getServiceToCall();
 
     Map<String, String> extractQueryParam();
+
+    default String encodeString(final String raw) {
+        try {
+            return URLEncoder.encode(raw, StandardCharsets.UTF_8.toString());
+        } catch (UnsupportedEncodingException ex) {
+            throw new WorkdayException("URL encoding error for '" + raw + "'", ex);
+        }
+    }
 
 }

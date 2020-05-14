@@ -12,16 +12,18 @@
  */
 package org.talend.components.jdbc.output.platforms;
 
-import lombok.extern.slf4j.Slf4j;
-import org.talend.components.jdbc.configuration.DistributionStrategy;
-import org.talend.components.jdbc.service.I18nMessage;
-import org.talend.sdk.component.api.record.Record;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.talend.components.jdbc.configuration.DistributionStrategy;
+import org.talend.components.jdbc.configuration.RedshiftSortStrategy;
+import org.talend.components.jdbc.service.I18nMessage;
+import org.talend.sdk.component.api.record.Record;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class SQLDWHPlatform extends MSSQLPlatform {
@@ -32,15 +34,16 @@ public class SQLDWHPlatform extends MSSQLPlatform {
         super(i18n);
     }
 
+    @Override
     public void createTableIfNotExist(final Connection connection, final String name, final List<String> keys,
-            final List<String> sortKeys, final DistributionStrategy distributionStrategy, final List<String> distributionKeys,
-            final int varcharLength, final List<Record> records) throws SQLException {
+            final RedshiftSortStrategy sortStrategy, final List<String> sortKeys, final DistributionStrategy distributionStrategy,
+            final List<String> distributionKeys, final int varcharLength, final List<Record> records) throws SQLException {
         if (records.isEmpty()) {
             return;
         }
-
-        final String sql = buildQuery(getTableModel(connection, name, keys, null, sortKeys, distributionStrategy,
-                distributionKeys, varcharLength, records));
+        final Table tableModel = getTableModel(connection, name, keys, null, sortKeys, distributionStrategy, distributionKeys,
+                varcharLength, records);
+        final String sql = buildQuery(connection, tableModel);
 
         try (final Statement statement = connection.createStatement()) {
             statement.executeUpdate(sql);
@@ -55,7 +58,7 @@ public class SQLDWHPlatform extends MSSQLPlatform {
     }
 
     @Override
-    protected String buildQuery(final Table table) {
+    protected String buildQuery(final Connection connection, final Table table) throws SQLException {
         // keep the string builder for readability
         final StringBuilder sql = new StringBuilder("CREATE TABLE");
         sql.append(" ");

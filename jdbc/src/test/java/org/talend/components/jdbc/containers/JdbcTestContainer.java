@@ -25,6 +25,10 @@ public interface JdbcTestContainer extends AutoCloseable {
 
     String getJdbcUrl();
 
+    default String getDriverClassName() {
+        return "";
+    }
+
     void start();
 
     void stop();

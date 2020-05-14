@@ -18,7 +18,7 @@
 
     <groupId>org.talend.components</groupId>
     <artifactId>connectors-se</artifactId>
-    <version>1.9.0-SNAPSHOT</version>
+    <version>1.10.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Components</name>
@@ -81,19 +81,19 @@
     </distributionManagement>
 
     <properties>
-        <connectors-test-bom.version>1.9.0-SNAPSHOT</connectors-test-bom.version>
-        <common.version>1.9.0-SNAPSHOT</common.version>
+        <connectors-test-bom.version>1.10.0-SNAPSHOT</connectors-test-bom.version>
+        <common.version>1.10.0-SNAPSHOT</common.version>
 
         <timestamp.year>${maven.build.timestamp}</timestamp.year>
         <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <locales.version>[1.8,)</locales.version>
+        <locales.version>[1.10,)</locales.version>
 
         <component-runtime.version>1.1.20</component-runtime.version>
-        <slf4j.version>1.7.25</slf4j.version>
+        <slf4j.version>1.7.28</slf4j.version>
 
-        <beam.version>2.12.0</beam.version>
+        <beam.version>2.20.0</beam.version>
         <beanutils.version>1.9.4</beanutils.version>
         <jackson.version>2.10.1</jackson.version>
         <jackson-codehaus.version>1.9.14-TALEND</jackson-codehaus.version>
@@ -103,12 +103,12 @@
 
         <junit5.version>5.5.1</junit5.version>
         <surefire.version>3.0.0-M3</surefire.version>
+        <maven.enforcer.version>3.0.0-M3</maven.enforcer.version>
         <jacoco.version>0.8.2</jacoco.version>
 
         <commons-csv.version>1.4</commons-csv.version>
         <guava.version>20.0</guava.version>
 
-        <validation.model>true</validation.model>
         <talend_oss_snapshots>https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceSnapshot/
         </talend_oss_snapshots>
 
@@ -127,6 +127,18 @@
         <netty-codec.version>4.1.48.Final</netty-codec.version>
         <jetty.version>9.4.17.v20190418</jetty.version>
         <nimbus-jose-jwt.version>8.11</nimbus-jose-jwt.version>
+
+        <!-- code quality enforcer default values.
+             run build w/ -Pcode-quality to have a full validation -->
+        <!-- should enforcing rules fail? Not yet, but soon! -->
+        <enforcer.fail>false</enforcer.fail>
+        <!-- component-runtime validations -->
+        <validation.model>true</validation.model>
+        <validation.placeholder>false</validation.placeholder>
+        <validation.documentation>true</validation.documentation>
+        <validation.wording>false</validation.wording>
+        <!-- TODO: replace with a 'validation.svg' -->
+        <validation.metadata>true</validation.metadata>
     </properties>
 
     <dependencyManagement>
@@ -312,7 +324,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>1.7.25</version>
+            <version>1.7.28</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -507,7 +519,11 @@
                         </goals>
                         <configuration>
                             <validateModel>${validation.model}</validateModel>
-                            <validatePlaceholder>false</validatePlaceholder>
+                            <validatePlaceholder>${validation.placeholder}</validatePlaceholder>
+                            <validateDocumentation>${validation.documentation}</validateDocumentation>
+                            <validateWording>${validation.wording}</validateWording>
+                            <!-- TODO: replace with a 'validateSvg' -->
+                            <validateMetadata>${validation.metadata}</validateMetadata>
                         </configuration>
                     </execution>
                     <execution>
@@ -728,6 +744,26 @@
                         <version>${spotbugs.version}</version>
                     </dependency>
                 </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${maven.enforcer.version}</version>
+                <executions>
+                    <execution>
+                        <id>mandatory-checks-on-project</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <banDuplicatePomDependencyVersions />
+                                <dependencyConvergence />
+                                <banDistributionManagement />
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <!-- to push to gihub pages if desired
             <plugin>
@@ -990,6 +1026,18 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <id>code-quality</id>
+            <properties>
+                <enforcer.fail>true</enforcer.fail>
+                <!-- component-runtime validations -->
+                <validation.model>true</validation.model>
+                <validation.placeholder>true</validation.placeholder>
+                <validation.documentation>true</validation.documentation>
+                <validation.wording>true</validation.wording>
+                <validation.metadata>true</validation.metadata>
+            </properties>
         </profile>
     </profiles>
 </project>
