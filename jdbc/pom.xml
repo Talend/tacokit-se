@@ -20,7 +20,9 @@
         <commons-codec.version>1.11</commons-codec.version>
         <!-- test version -->
         <derby.version>10.12.1.1</derby.version>
-        <testcontainers.version>1.11.2</testcontainers.version>
+        <testcontainers.version>1.14.1</testcontainers.version>
+        <!-- To run ITs test give the following option to mvn : -Dtest.excluded="" -->
+        <test.excluded>IT</test.excluded>
     </properties>
 
     <dependencies>
@@ -124,6 +126,43 @@
             <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.2.9</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.18</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.oracle.ojdbc</groupId>
+            <artifactId>ojdbc8</artifactId>
+            <version>19.3.0.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>2.5.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <version>7.0.0.jre8</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.snowflake</groupId>
+            <artifactId>snowflake-jdbc</artifactId>
+            <version>3.11.1</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -135,20 +174,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire.version}</version>
                 <configuration>
-                    <argLine>
-                        -Djdbc.drivers[2].paths[0]=com.oracle:ojdbc7:jar:12.1.0.2
-                        -Djdbc.driver.derby.skip=false
-                    </argLine>
-                    <systemPropertyVariables>
-                        <talend.jdbc.it>${jdbc.it}</talend.jdbc.it>
-                        <talend.jdbc.it.oracle.skip>true</talend.jdbc.it.oracle.skip>
-                        <talend.component.junit.handler.state>static</talend.component.junit.handler.state>
-                        <!--
-                           You can activate the targetParallelism to control the parallelism of the test pipeline.
-                           You can also set it to 1 to debug more easily
-                        -->
-                        <!--<talend.beam.job.targetParallelism>1</talend.beam.job.targetParallelism>-->
-                    </systemPropertyVariables>
+                    <excludedGroups>${test.excluded}</excludedGroups>
                 </configuration>
             </plugin>
         </plugins>
@@ -159,6 +185,7 @@
             <id>ITs</id>
             <properties>
                 <jdbc.it>true</jdbc.it>
+                <test.excluded></test.excluded>
             </properties>
             <dependencies>
                 <dependency>
@@ -174,9 +201,9 @@
                     <scope>provided</scope>
                 </dependency>
                 <dependency>
-                    <groupId>com.oracle</groupId>
-                    <artifactId>ojdbc7</artifactId>
-                    <version>12.1.0.2</version>
+                    <groupId>com.oracle.ojdbc</groupId>
+                    <artifactId>ojdbc8</artifactId>
+                    <version>19.3.0.0</version>
                     <scope>provided</scope>
                 </dependency>
                 <dependency>

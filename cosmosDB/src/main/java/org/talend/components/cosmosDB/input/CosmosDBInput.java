@@ -59,7 +59,7 @@ public class CosmosDBInput implements Serializable {
         this.service = service;
         this.builderFactory = builderFactory;
         this.i18n = i18n;
-        this.jsonToRecord = new JsonToRecord(builderFactory);
+        this.jsonToRecord = new JsonToRecord(builderFactory, configuration.isJsonForceDouble());
     }
 
     @PostConstruct
