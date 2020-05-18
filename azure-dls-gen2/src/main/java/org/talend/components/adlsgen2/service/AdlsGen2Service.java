@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.json.JsonArray;
@@ -52,7 +53,6 @@ import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import com.google.common.base.Splitter;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -77,16 +77,11 @@ public class AdlsGen2Service {
     @Service
     private AdlsGen2APIClient client;
 
-    @Service
-    private AccessTokenProvider tokenGetter;
-
     private Map<String, String> SAS;
 
     private Map<String, String> headers;
 
     private Integer timeout;
-
-    private String activeDirAuthToken;
 
     public AdlsGen2APIClient getClient(@Configuration("connection") final AdlsGen2Connection connection) {
         setDefaultRequestParameters(connection);
@@ -98,7 +93,8 @@ public class AdlsGen2Service {
         client.base(connection.apiUrl());
     }
 
-    public void preprareRequest(final AdlsGen2Connection connection, String url, String method, String payloadLength) {
+    public void preprareRequest(final AdlsGen2Connection connection, String url, String method, String payloadLength,
+            Map<String, Object> runtimeInfo) {
         log.debug("[preprareRequest] {} [{}].", url, method);
         headers = new HashMap<>();
         SAS = new HashMap<>();
@@ -125,28 +121,19 @@ public class AdlsGen2Service {
             SAS = Splitter.on("&").withKeyValueSeparator("=").split(connection.getSas().substring(1));
             break;
         case ActiveDirectory:
-            if (activeDirAuthToken == null) {
-                activeDirAuthToken = getActiveDirAuthToken(connection);
-            }
-            headers.put(HeaderConstants.AUTHORIZATION, "Bearer " + activeDirAuthToken);
+            String activeDirToken = Optional
+                    .ofNullable(String.valueOf(runtimeInfo.get(Constants.RuntimeInfoKeys.ACTIVE_DIRECTORY_TOKEN)))
+                    .orElseThrow(() -> new IllegalStateException("Active directory authentication token can't be null"));
+
+            headers.put(HeaderConstants.AUTHORIZATION, "Bearer " + activeDirToken);
             break;
         default:
             throw new IllegalArgumentException("Incorrect auth method was selected");
         }
     }
 
-    private String getActiveDirAuthToken(AdlsGen2Connection connection) {
-        tokenGetter.base("https://login.microsoftonline.com/");
-        String requestBodyFormat = "grant_type=client_credentials&scope=https://storage.azure.com/.default&client_id=%s&client_secret=%s";
-
-        Response<JsonObject> result = handleResponse(tokenGetter.getAccessToken(connection.getTenantId(),
-                String.format(requestBodyFormat, connection.getClientId(), connection.getClientSecret())));
-
-        return result.body().getString("access_token");
-    }
-
     @SuppressWarnings("unchecked")
-    private AdlsGen2RuntimeException handleError(final int status, final Map<String, List<String>> headers) {
+    private static AdlsGen2RuntimeException handleError(final int status, final Map<String, List<String>> headers) {
         StringBuilder sb = new StringBuilder();
         List<String> errors = headers.get(HeaderConstants.HEADER_X_MS_ERROR_CODE);
         if (errors != null && !errors.isEmpty()) {
@@ -167,7 +154,7 @@ public class AdlsGen2Service {
         return new AdlsGen2RuntimeException(sb.toString());
     }
 
-    public Response handleResponse(Response response) {
+    public static Response handleResponse(Response response) {
         if (successfulOperations.contains(response.status())) {
             return response;
         } else {
@@ -191,10 +178,11 @@ public class AdlsGen2Service {
     }
 
     @SuppressWarnings("unchecked")
-    public List<String> filesystemList(@Configuration("connection") final AdlsGen2Connection connection) {
+    public List<String> filesystemList(@Configuration("connection") final AdlsGen2Connection connection,
+            Map<String, Object> runtimeInfo) {
         setDefaultRequestParameters(connection);
         String url = String.format("%s/?resource=account&timeout=%d", connection.apiUrl(), timeout);
-        preprareRequest(connection, url, MethodConstants.GET, "");
+        preprareRequest(connection, url, MethodConstants.GET, "", runtimeInfo);
         Response<JsonObject> result = handleResponse(client.filesystemList(headers, SAS, Constants.ATTR_ACCOUNT, timeout));
         List<String> fs = new ArrayList<>();
         for (JsonValue v : result.body().getJsonArray(Constants.ATTR_FILESYSTEMS)) {
@@ -204,7 +192,8 @@ public class AdlsGen2Service {
     }
 
     @SuppressWarnings("unchecked")
-    public JsonArray pathList(@Configuration("configuration") final InputConfiguration configuration) {
+    public JsonArray pathList(@Configuration("configuration") final InputConfiguration configuration,
+            Map<String, Object> runtimeInfo) {
         setDefaultRequestParameters(configuration.getDataSet().getConnection());
         String rcfmt = "%s/%s?directory=%s&resource=filesystem&recursive=false&maxResults=5000&timeout=%d";
         String url = String.format(rcfmt, //
@@ -214,7 +203,7 @@ public class AdlsGen2Service {
                 timeout //
         );
         log.debug("[pathList] {}", url);
-        preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.GET, "");
+        preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.GET, "", runtimeInfo);
         Response<JsonObject> result = handleResponse(client.pathList( //
                 headers, //
                 configuration.getDataSet().getFilesystem(), //
@@ -245,7 +234,8 @@ public class AdlsGen2Service {
     }
 
     @SuppressWarnings("unchecked")
-    public Map<String, String> pathGetProperties(@Configuration("dataSet") final AdlsGen2DataSet dataSet) {
+    public Map<String, String> pathGetProperties(@Configuration("dataSet") final AdlsGen2DataSet dataSet,
+            Map<String, Object> runtimeInfo) {
         setDefaultRequestParameters(dataSet.getConnection());
         String rcfmt = "%s/%s/%s?timeout=%d";
         String url = String.format(rcfmt, //
@@ -255,7 +245,7 @@ public class AdlsGen2Service {
                 timeout //
         );
         log.debug("[pathGetProperties] {}", url);
-        preprareRequest(dataSet.getConnection(), url, MethodConstants.HEAD, "");
+        preprareRequest(dataSet.getConnection(), url, MethodConstants.HEAD, "", runtimeInfo);
         Map<String, String> properties = new HashMap<>();
         Response<JsonObject> result = handleResponse(client.pathGetProperties( //
                 headers, //
@@ -274,7 +264,8 @@ public class AdlsGen2Service {
         return properties;
     }
 
-    public List<BlobInformations> getBlobs(@Configuration("dataSet") final AdlsGen2DataSet dataSet) {
+    public List<BlobInformations> getBlobs(@Configuration("dataSet") final AdlsGen2DataSet dataSet,
+            Map<String, Object> runtimeInfo) {
         setDefaultRequestParameters(dataSet.getConnection());
         String rcfmt = "%s/%s?directory=%s&resource=filesystem&recursive=false&maxResults=5000&timeout=%d";
         String url = String.format(rcfmt, //
@@ -284,7 +275,7 @@ public class AdlsGen2Service {
                 timeout //
         );
         log.debug("[getBlobs] {}", url);
-        preprareRequest(dataSet.getConnection(), url, MethodConstants.GET, "");
+        preprareRequest(dataSet.getConnection(), url, MethodConstants.GET, "", runtimeInfo);
         Response<JsonObject> result = handleResponse(client.pathList( //
                 headers, //
                 dataSet.getFilesystem(), //
@@ -327,7 +318,8 @@ public class AdlsGen2Service {
         return blobs;
     }
 
-    public BlobInformations getBlobInformations(@Configuration("dataSet") final AdlsGen2DataSet dataSet) {
+    public BlobInformations getBlobInformations(@Configuration("dataSet") final AdlsGen2DataSet dataSet,
+            Map<String, Object> runtimeInfo) {
         setDefaultRequestParameters(dataSet.getConnection());
         String rcfmt = "%s/%s?directory=%s&resource=filesystem&recursive=false&maxResults=5000&timeout=%d";
         String url = String.format(rcfmt, //
@@ -337,7 +329,7 @@ public class AdlsGen2Service {
                 timeout //
         );
         log.debug("[getBlobInformations] {}", url);
-        preprareRequest(dataSet.getConnection(), url, MethodConstants.GET, "");
+        preprareRequest(dataSet.getConnection(), url, MethodConstants.GET, "", runtimeInfo);
         BlobInformations infos = new BlobInformations();
         Response<JsonObject> result = client.pathList( //
                 headers, //
@@ -376,7 +368,8 @@ public class AdlsGen2Service {
         return infos;
     }
 
-    public boolean blobExists(@Configuration("dataSet") final AdlsGen2DataSet dataSet, String blobName) {
+    public boolean blobExists(@Configuration("dataSet") final AdlsGen2DataSet dataSet, String blobName,
+            Map<String, Object> runtimeInfo) {
         setDefaultRequestParameters(dataSet.getConnection());
         String rcfmt = "%s/%s?directory=%s&resource=filesystem&recursive=false&maxResults=5000&timeout=%d";
         String url = String.format(rcfmt, //
@@ -385,7 +378,7 @@ public class AdlsGen2Service {
                 extractFolderPath(blobName), timeout //
         );
         log.debug("[blobExists] {}", url);
-        preprareRequest(dataSet.getConnection(), url, MethodConstants.GET, "");
+        preprareRequest(dataSet.getConnection(), url, MethodConstants.GET, "", runtimeInfo);
         BlobInformations infos = new BlobInformations();
         Response<JsonObject> result = client.pathList( //
                 headers, //
@@ -411,12 +404,13 @@ public class AdlsGen2Service {
         return false;
     }
 
-    public Boolean pathExists(@Configuration("dataSet") final AdlsGen2DataSet dataSet) {
-        return getBlobInformations(dataSet).isExists();
+    public Boolean pathExists(@Configuration("dataSet") final AdlsGen2DataSet dataSet, Map<String, Object> runtimeInfo) {
+        return getBlobInformations(dataSet, runtimeInfo).isExists();
     }
 
     @SuppressWarnings("unchecked")
-    public Iterator<Record> pathRead(@Configuration("configuration") final InputConfiguration configuration) {
+    public Iterator<Record> pathRead(@Configuration("configuration") final InputConfiguration configuration,
+            Map<String, Object> runtimeInfo) {
         setDefaultRequestParameters(configuration.getDataSet().getConnection());
         String rcfmt = "%s/%s/%s?timeout=%d";
         String url = String.format(rcfmt, //
@@ -426,7 +420,7 @@ public class AdlsGen2Service {
                 timeout //
         );
         log.debug("[pathRead] {}", url);
-        preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.GET, "");
+        preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.GET, "", runtimeInfo);
         Response<InputStream> result = handleResponse(client.pathRead( //
                 headers, //
                 configuration.getDataSet().getFilesystem(), //
@@ -439,7 +433,7 @@ public class AdlsGen2Service {
 
     @SuppressWarnings("unchecked")
     public InputStream getBlobInputstream(@Configuration("configuration") final InputConfiguration configuration,
-            BlobInformations blob) {
+            BlobInformations blob, Map<String, Object> runtimeInfo) {
         setDefaultRequestParameters(configuration.getDataSet().getConnection());
         String rcfmt = "%s/%s/%s?timeout=%d";
         String url = String.format(rcfmt, //
@@ -449,7 +443,7 @@ public class AdlsGen2Service {
                 timeout //
         );
         log.debug("[getBlobInputstream] {}", url);
-        preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.GET, "");
+        preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.GET, "", runtimeInfo);
         Response<InputStream> result = handleResponse(client.pathRead( //
                 headers, //
                 configuration.getDataSet().getFilesystem(), //
@@ -461,7 +455,8 @@ public class AdlsGen2Service {
     }
 
     @SuppressWarnings("unchecked")
-    public Response<JsonObject> pathCreate(@Configuration("configuration") final OutputConfiguration configuration) {
+    public Response<JsonObject> pathCreate(@Configuration("configuration") final OutputConfiguration configuration,
+            Map<String, Object> runtimeInfo) {
         setDefaultRequestParameters(configuration.getDataSet().getConnection());
         String rcfmt = "%s/%s/%s?resource=file&timeout=%d";
         String url = String.format(rcfmt, //
@@ -471,7 +466,7 @@ public class AdlsGen2Service {
                 timeout //
         );
         log.debug("[pathCreate] {}", url);
-        preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.PUT, "");
+        preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.PUT, "", runtimeInfo);
         return handleResponse(client.pathCreate( //
                 headers, //
                 configuration.getDataSet().getFilesystem(), //
@@ -484,7 +479,7 @@ public class AdlsGen2Service {
 
     @SuppressWarnings("unchecked")
     public Response<JsonObject> pathUpdate(@Configuration("configuration") final OutputConfiguration configuration,
-            byte[] content, long position) {
+            byte[] content, long position, Map<String, Object> runtimeInfo) {
         setDefaultRequestParameters(configuration.getDataSet().getConnection());
         String rcfmt = "%s/%s/%s?action=append&position=%s&timeout=%d";
         String url = String.format(rcfmt, //
@@ -495,7 +490,8 @@ public class AdlsGen2Service {
                 timeout //
         );
         log.debug("[pathUpdate] {}", url);
-        preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.PATCH, String.valueOf(content.length));
+        preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.PATCH, String.valueOf(content.length),
+                runtimeInfo);
         return handleResponse(client.pathUpdate( //
                 headers, //
                 configuration.getDataSet().getFilesystem(), //
@@ -518,7 +514,8 @@ public class AdlsGen2Service {
      * @return
      */
     @SuppressWarnings("unchecked")
-    public Response<JsonObject> flushBlob(@Configuration("configuration") OutputConfiguration configuration, long position) {
+    public Response<JsonObject> flushBlob(@Configuration("configuration") OutputConfiguration configuration, long position,
+            Map<String, Object> runtimeInfo) {
         setDefaultRequestParameters(configuration.getDataSet().getConnection());
         String rcfmt = "%s/%s/%s?action=flush&position=%s&timeout=%d";
         String url = String.format(rcfmt, //
@@ -529,7 +526,7 @@ public class AdlsGen2Service {
                 timeout //
         );
         log.debug("[flushBlob#pathUpdate] {}", url);
-        preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.PATCH, "");
+        preprareRequest(configuration.getDataSet().getConnection(), url, MethodConstants.PATCH, "", runtimeInfo);
         return handleResponse(client.pathUpdate( //
                 headers, //
                 configuration.getDataSet().getFilesystem(), //

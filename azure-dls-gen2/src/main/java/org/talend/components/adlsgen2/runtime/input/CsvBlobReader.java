@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -33,8 +34,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CsvBlobReader extends BlobReader {
 
-    CsvBlobReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory, AdlsGen2Service service) {
-        super(configuration, recordBuilderFactory, service);
+    CsvBlobReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory, AdlsGen2Service service,
+            Map<String, Object> runtimeInfoMap) {
+        super(configuration, recordBuilderFactory, service, runtimeInfoMap);
     }
 
     @Override
@@ -81,7 +83,7 @@ public class CsvBlobReader extends BlobReader {
             initMetadataIfNeeded();
             closePreviousInputStream();
             try {
-                currentItemInputStream = service.getBlobInputstream(configuration, getCurrentBlob());
+                currentItemInputStream = service.getBlobInputstream(configuration, getCurrentBlob(), getRuntimeInfoMap());
                 InputStreamReader inr = new InputStreamReader(currentItemInputStream, encodingValue);
                 parser = new CSVParser(inr, format);
                 converter.setRuntimeHeaders(parser.getHeaderMap());

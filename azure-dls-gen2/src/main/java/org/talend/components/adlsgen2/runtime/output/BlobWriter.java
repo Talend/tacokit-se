@@ -14,6 +14,7 @@ package org.talend.components.adlsgen2.runtime.output;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.json.JsonBuilderFactory;
@@ -44,12 +45,15 @@ public abstract class BlobWriter {
 
     protected BlobInformations currentItem = null;
 
+    private Map<String, Object> runtimeInfoMap;
+
     public BlobWriter(OutputConfiguration configuration, RecordBuilderFactory recordBuilderFactory,
-            JsonBuilderFactory jsonFactory, AdlsGen2Service service) {
+            JsonBuilderFactory jsonFactory, AdlsGen2Service service, Map<String, Object> runtimeInfoMap) {
         this.configuration = configuration;
         this.recordBuilderFactory = recordBuilderFactory;
         this.jsonFactory = jsonFactory;
         this.service = service;
+        this.runtimeInfoMap = runtimeInfoMap;
         currentItem = new BlobInformations();
     }
 
@@ -59,7 +63,7 @@ public abstract class BlobWriter {
             directoryName += "/";
         }
         String blobName = directoryName + configuration.getBlobNameTemplate() + UUID.randomUUID() + extension;
-        while (service.blobExists(configuration.getDataSet(), blobName)) {
+        while (service.blobExists(configuration.getDataSet(), blobName, runtimeInfoMap)) {
             blobName = directoryName + configuration.getBlobNameTemplate() + UUID.randomUUID() + extension;
         }
         currentItem.setBlobPath(blobName);
@@ -84,13 +88,13 @@ public abstract class BlobWriter {
         String oldBlobPath = configuration.getDataSet().getBlobPath();
         configuration.getDataSet().setBlobPath(currentItem.getBlobPath());
         // path create
-        service.pathCreate(configuration);
+        service.pathCreate(configuration, runtimeInfoMap);
         long position = 0;
         // update blob
-        service.pathUpdate(configuration, content, position);
+        service.pathUpdate(configuration, content, position, runtimeInfoMap);
         position += content.length; // cumulate length of written records for current offset
         // flush blob
-        service.flushBlob(configuration, position);
+        service.flushBlob(configuration, position, runtimeInfoMap);
         // reset name
         currentItem.setBlobPath("");
         configuration.getDataSet().setBlobPath(oldBlobPath);

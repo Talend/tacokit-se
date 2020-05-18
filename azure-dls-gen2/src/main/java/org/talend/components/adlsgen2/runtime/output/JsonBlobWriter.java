@@ -12,6 +12,8 @@
  */
 package org.talend.components.adlsgen2.runtime.output;
 
+import java.util.Map;
+
 import javax.json.JsonBuilderFactory;
 
 import org.talend.components.adlsgen2.output.OutputConfiguration;
@@ -29,8 +31,8 @@ public class JsonBlobWriter extends BlobWriter {
     private JsonContentFormatter formatter;
 
     public JsonBlobWriter(OutputConfiguration configuration, RecordBuilderFactory recordBuilderFactory,
-            JsonBuilderFactory jsonFactory, AdlsGen2Service service) {
-        super(configuration, recordBuilderFactory, jsonFactory, service);
+            JsonBuilderFactory jsonFactory, AdlsGen2Service service, Map<String, Object> runtimeInfoMap) {
+        super(configuration, recordBuilderFactory, jsonFactory, service, runtimeInfoMap);
         formatter = new JsonContentFormatter(configuration, recordBuilderFactory, jsonFactory);
     }
 
