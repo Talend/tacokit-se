@@ -108,6 +108,8 @@
 
         <commons-csv.version>1.4</commons-csv.version>
         <guava.version>20.0</guava.version>
+		<httpclient.version>4.5.10</httpclient.version>
+		<httpcore.version>4.4.12</httpcore.version>
 
         <talend_oss_snapshots>https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceSnapshot/
         </talend_oss_snapshots>
@@ -299,6 +301,16 @@
                 <groupId>com.nimbusds</groupId>
                 <artifactId>nimbus-jose-jwt</artifactId>
                 <version>${nimbus-jose-jwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${httpclient.version}</version>
+             </dependency>
+			 <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpcore</artifactId>
+                <version>${httpcore.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
