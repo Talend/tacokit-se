@@ -18,14 +18,14 @@ if [[ $pre_release_version != *'-SNAPSHOT' ]]; then
 fi
 
 # prepare release
-mvn -B -s .jenkins/settings.xml release:clean release:prepare
+mvn -B -s .jenkins/settings.xml release:clean release:prepare -Dtalend.maven.decrypter.m2.location=${WORKSPACE}/.jenkins/
 if [[ ! $? -eq 0 ]]; then
   echo mvn error during build
   exit 123
 fi
 
 # perform release
-mvn -B -s .jenkins/settings.xml release:perform -Darguments='-Dmaven.javadoc.skip=true'
+mvn -B -s .jenkins/settings.xml release:perform -Darguments='-Dmaven.javadoc.skip=true' -Dtalend.maven.decrypter.m2.location=${WORKSPACE}/.jenkins/
 if [[ ! $? -eq 0 ]]; then
   echo mvn error during build
   exit 123

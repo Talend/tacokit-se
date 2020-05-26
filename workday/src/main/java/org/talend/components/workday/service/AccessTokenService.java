@@ -12,12 +12,12 @@
  */
 package org.talend.components.workday.service;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
 import org.talend.components.workday.datastore.Token;
 import org.talend.components.workday.datastore.WorkdayDataStore;
 import org.talend.sdk.component.api.service.Service;
-
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
 @Service
 public class AccessTokenService {
@@ -35,7 +35,7 @@ public class AccessTokenService {
     }
 
     private boolean isTokenTooOld() {
-        return token.getExpireDate().isAfter(Instant.now().minus(30, ChronoUnit.SECONDS));
+        return token.getExpireDate().isBefore(Instant.now().plus(30, ChronoUnit.SECONDS));
     }
 
     private synchronized void newToken(WorkdayDataStore datastore) {

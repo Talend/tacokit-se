@@ -12,6 +12,8 @@
  */
 package org.talend.components.netsuite.source;
 
+import static org.junit.jupiter.params.provider.Arguments.arguments;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -21,8 +23,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.netsuite.webservices.v2019_2.lists.accounting.Account;
+import com.netsuite.webservices.v2019_2.lists.accounting.types.AccountType;
+import com.netsuite.webservices.v2019_2.platform.core.types.SearchStringFieldOperator;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -45,15 +52,10 @@ import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.input.Mapper;
 
-import com.netsuite.webservices.v2019_2.lists.accounting.Account;
-import com.netsuite.webservices.v2019_2.lists.accounting.types.AccountType;
-import com.netsuite.webservices.v2019_2.platform.core.types.SearchStringFieldOperator;
-
 import lombok.extern.slf4j.Slf4j;
 
-import static org.junit.jupiter.params.provider.Arguments.arguments;
-
 @Slf4j
+@Disabled
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @WithComponents("org.talend.components.netsuite")
 public class NetSuiteSourceTest extends NetSuiteBaseTest {

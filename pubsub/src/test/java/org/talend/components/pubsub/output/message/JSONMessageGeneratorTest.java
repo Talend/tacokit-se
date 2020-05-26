@@ -39,7 +39,7 @@ public class JSONMessageGeneratorTest {
         beanUnderTest = new JSONMessageGenerator();
         beanUnderTest.setI18nMessage(new InternationalizationServiceFactory(() -> Locale.US).create(I18nMessage.class,
                 Thread.currentThread().getContextClassLoader()));
-        beanUnderTest.setRecordService(new RecordServiceImpl(null, null));
+        beanUnderTest.setRecordService(new RecordServiceImpl(null, null, null, null, null));
 
         dataSet = new PubSubDataSet();
     }
