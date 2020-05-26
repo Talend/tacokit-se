@@ -22,8 +22,6 @@
         <testcontainers.version>1.14.1</testcontainers.version>
         <!-- To run ITs test give the following option to mvn : -Dtest.excluded="" -->
         <test.excluded>IT</test.excluded>
-        <!-- To avoid build failures with locales validation -->
-        <talend.validation.internationalization>false</talend.validation.internationalization>
     </properties>
 
     <dependencies>
