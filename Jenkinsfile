@@ -12,6 +12,11 @@ def dockerCredentials = usernamePassword(
 	credentialsId: 'docker-registry-credentials',
     passwordVariable: 'DOCKER_PASSWORD',
     usernameVariable: 'DOCKER_LOGIN')
+def veracodeCredentials = usernamePassword(
+        credentialsId: 'veracode-api-credentials',
+        passwordVariable: 'VERACODE_KEY',
+        usernameVariable: 'VERACODE_ID')
+
 
 def netsuiteCredentials = usernamePassword(
                                 credentialsId: 'netsuite-integration',
@@ -154,6 +159,17 @@ spec:
                                     allowMissing: true, alwaysLinkToLastBuild: false, keepAll: true,
                                     reportDir   : 'ci_documentation/target/talend-component-kit_documentation/', reportFiles: 'index.html', reportName: "Component Documentation"
                             ])
+                        }
+                    }
+                }
+                stage('Vera code') {
+                    container('main') {
+                        withCredentials([veracodeCredentials]) {
+                            sh """
+                            | cache_dir='${CACHE_DIR:-$HOME/build/Talend/connectors-se}'
+                            | mkdir -p ${cache_dir}
+                            | curl -sSL https://download.sourceclear.com/ci.sh | CACHE_DIR="${cache_dir}/.sourceclear" bash
+                            """
                         }
                     }
                 }
