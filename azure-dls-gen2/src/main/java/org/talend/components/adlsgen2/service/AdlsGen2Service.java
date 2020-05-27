@@ -124,6 +124,10 @@ public class AdlsGen2Service {
 
     @SuppressWarnings("unchecked")
     private AdlsGen2RuntimeException handleError(final int status, final Map<String, List<String>> headers) {
+        return handleError(status, headers, null);
+    }
+
+    private AdlsGen2RuntimeException handleError(int status, Map<String, List<String>> headers, String errorMessage) {
         StringBuilder sb = new StringBuilder();
         List<String> errors = headers.get(HeaderConstants.HEADER_X_MS_ERROR_CODE);
         if (errors != null && !errors.isEmpty()) {
@@ -137,6 +141,8 @@ public class AdlsGen2Service {
                 }
                 sb.append(".\n");
             }
+        } else if (errorMessage != null) {
+            sb.append(" HTTP status: " + status + ". Error message: ").append(errorMessage);
         } else {
             sb.append("No error code provided. HTTP status:" + status + ".");
         }
@@ -148,7 +154,12 @@ public class AdlsGen2Service {
         if (successfulOperations.contains(response.status())) {
             return response;
         } else {
-            throw handleError(response.status(), response.headers());
+            String errorMessage = (String) response.error(String.class);
+            if (errorMessage != null) {
+                throw handleError(response.status(), response.headers(), errorMessage);
+            } else {
+                throw handleError(response.status(), response.headers());
+            }
         }
     }
 
