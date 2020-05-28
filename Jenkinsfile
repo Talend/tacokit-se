@@ -117,7 +117,7 @@ spec:
                             , netsuiteTokenCredentials
                     ]) {
                         script {
-                            sh "mvn -U -B -s .jenkins/settings.xml clean install -Dmaven.test.skip=true -PITs -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/ -e ${talendOssRepositoryArg}"
+                            sh "mvn -U -B -s .jenkins/settings.xml clean install -pl rest -Dmaven.test.skip=true -PITs -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/ -e ${talendOssRepositoryArg}"
                         }
                     }
                 }
@@ -165,8 +165,7 @@ spec:
                 stage('Vera code') {
                     steps {
                         container('main') {
-                            withCredentials([string(credentialsId: 'npm-credentials', variable: 'npmAuthToken'),
-                                             string(credentialsId: 'veracode-token', variable: 'SRCCLR_API_TOKEN')]) {
+                            withCredentials([string(credentialsId: 'veracode-token', variable: 'SRCCLR_API_TOKEN')]) {
                                 sh '''
                                     curl -sSL https://download.sourceclear.com/ci.sh | DEBUG=1 sh -s -- scan
                                 '''
