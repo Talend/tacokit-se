@@ -165,9 +165,9 @@ spec:
                 stage('Vera code') {
                     steps {
                         container('main') {
-                            withCredentials([veracodeCredentials]) {
-                                sh '''#!/bin/bash
-                                curl -sSL https://download.sourceclear.com/ci.sh | DEBUG=1 sh -s -- scan
+                            withCredentials([string(credentialsId: 'veracode-token', variable: 'SRCCLR_API_TOKEN')]) {
+                                sh '''
+                                    curl -sSL https://download.sourceclear.com/ci.sh | DEBUG=1 sh -s -- scan
                                 '''
                             }
                         }
