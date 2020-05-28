@@ -135,6 +135,7 @@
         <!-- should enforcing rules fail? Not yet, but soon! -->
         <enforcer.fail>false</enforcer.fail>
         <!-- component-runtime validations -->
+	<talend.validation.locale>root</talend.validation.locale>
         <validation.model>true</validation.model>
         <validation.placeholder>false</validation.placeholder>
         <validation.documentation>true</validation.documentation>
