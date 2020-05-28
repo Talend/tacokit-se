@@ -50,9 +50,8 @@ public final class PlatformFactory {
         case SQLDWH:
             return new SQLDWHPlatform(i18n);
         case DERBY:
-            return new DerbyPlatform(i18n);
         default:
-            throw new IllegalArgumentException(i18n.errorUnsupportedDatabase(dbType));
+            return new DerbyPlatform(i18n);
         }
     }
 
