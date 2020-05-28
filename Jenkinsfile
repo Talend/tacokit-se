@@ -117,24 +117,24 @@ spec:
                             , netsuiteTokenCredentials
                     ]) {
                         script {
-                            sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/ -e ${talendOssRepositoryArg}"
+                            sh "mvn -U -B -s .jenkins/settings.xml clean install -Dmaven.test.skip=true -PITs -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/ -e ${talendOssRepositoryArg}"
                         }
                     }
                 }
             }
-            post {
-                always {
-                    junit testResults: '*/target/surefire-reports/*.xml', allowEmptyResults: true
-                    publishHTML(target: [
-                            allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true,
-                            reportDir   : 'target/talend-component-kit', reportFiles: 'icon-report.html', reportName: "Icon Report"
-                    ])
-                    publishHTML(target: [
-                            allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true,
-                            reportDir   : 'target/talend-component-kit', reportFiles: 'repository-dependency-report.html', reportName: "Dependencies Report"
-                    ])
-                }
-            }
+            //post {
+            //    always {
+            //        junit testResults: '*/target/surefire-reports/*.xml', allowEmptyResults: true
+            //       publishHTML(target: [
+            //                allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true,
+            //                reportDir   : 'target/talend-component-kit', reportFiles: 'icon-report.html', reportName: "Icon Report"
+             //       ])
+             //       publishHTML(target: [
+            //                allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true,
+             //               reportDir   : 'target/talend-component-kit', reportFiles: 'repository-dependency-report.html', reportName: "Dependencies Report"
+             //       ])
+             //   }
+            //}
         }
         stage('Post Build Steps') {
             when {
