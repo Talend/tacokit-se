@@ -165,14 +165,11 @@ spec:
                 stage('Vera code') {
                     steps {
                         container('main') {
-                            withCredentials([string(credentialsId: 'npm-credentials', variable: 'npmAuthToken')]) {
+                            withCredentials([string(credentialsId: 'npm-credentials', variable: 'npmAuthToken'),
+                                             string(credentialsId: 'veracode-token', variable: 'SRCCLR_API_TOKEN')]) {
                                 sh '''#! /bin/bash
-                                   set +x
-                                   echo "//registry.npmjs.org/:_authToken=${npmAuthToken}" >> ~/.npmrc
-                                '''
-                            }
-                            withCredentials([string(credentialsId: 'veracode-token', variable: 'SRCCLR_API_TOKEN')]) {
-                                sh '''
+                                    set +x
+                                    echo "//registry.npmjs.org/:_authToken=${npmAuthToken}" >> ~/.npmrc
                                     curl -sSL https://download.sourceclear.com/ci.sh | DEBUG=1 sh -s -- scan
                                 '''
                             }
