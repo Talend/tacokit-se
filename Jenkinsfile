@@ -141,27 +141,27 @@ spec:
                 expression { params.Action == 'STANDARD' }
             }
             parallel {
-                stage('Documentation') {
-                    steps {
-                        container('main') {
-                            withCredentials([dockerCredentials]) {
-                                sh """
-			                     |cd ci_documentation
-			                     |mvn -U -B -s .jenkins/settings.xml clean install -DskipTests
-			                     |chmod +x .jenkins/generate-doc.sh && .jenkins/generate-doc.sh
-			                     |""".stripMargin()
-                            }
-                        }
-                    }
-                    post {
-                        always {
-                            publishHTML(target: [
-                                    allowMissing: true, alwaysLinkToLastBuild: false, keepAll: true,
-                                    reportDir   : 'ci_documentation/target/talend-component-kit_documentation/', reportFiles: 'index.html', reportName: "Component Documentation"
-                            ])
-                        }
-                    }
-                }
+//                 stage('Documentation') {
+//                     steps {
+//                         container('main') {
+//                             withCredentials([dockerCredentials]) {
+//                                 sh """
+// 			                     |cd ci_documentation
+// 			                     |mvn -U -B -s .jenkins/settings.xml clean install -DskipTests
+// 			                     |chmod +x .jenkins/generate-doc.sh && .jenkins/generate-doc.sh
+// 			                     |""".stripMargin()
+//                             }
+//                         }
+//                     }
+//                     post {
+//                         always {
+//                             publishHTML(target: [
+//                                     allowMissing: true, alwaysLinkToLastBuild: false, keepAll: true,
+//                                     reportDir   : 'ci_documentation/target/talend-component-kit_documentation/', reportFiles: 'index.html', reportName: "Component Documentation"
+//                             ])
+//                         }
+//                     }
+//                 }
                 stage('Vera code') {
                     steps {
                         container('main') {
@@ -173,30 +173,30 @@ spec:
                         }
                     }
                 }
-                stage('Site') {
-                    steps {
-                        container('main') {
-                            sh 'cd ci_site && mvn -U -B -s .jenkins/settings.xml clean site site:stage -Dmaven.test.failure.ignore=true'
-                        }
-                    }
-                    post {
-                        always {
-                            publishHTML(target: [
-                                    allowMissing: true, alwaysLinkToLastBuild: false, keepAll: true,
-                                    reportDir   : 'ci_site/target/staging', reportFiles: 'index.html', reportName: "Maven Site"
-                            ])
-                        }
-                    }
-                }
-                stage('Nexus') {
-                    steps {
-                        container('main') {
-                            withCredentials([nexusCredentials]) {
-                                sh "cd ci_nexus && mvn -U -B -s .jenkins/settings.xml clean deploy -e -Pdocker -DskipTests ${talendOssRepositoryArg}"
-                            }
-                        }
-                    }
-                }
+//                 stage('Site') {
+//                     steps {
+//                         container('main') {
+//                             sh 'cd ci_site && mvn -U -B -s .jenkins/settings.xml clean site site:stage -Dmaven.test.failure.ignore=true'
+//                         }
+//                     }
+//                     post {
+//                         always {
+//                             publishHTML(target: [
+//                                     allowMissing: true, alwaysLinkToLastBuild: false, keepAll: true,
+//                                     reportDir   : 'ci_site/target/staging', reportFiles: 'index.html', reportName: "Maven Site"
+//                             ])
+//                         }
+//                     }
+//                 }
+//                 stage('Nexus') {
+//                     steps {
+//                         container('main') {
+//                             withCredentials([nexusCredentials]) {
+//                                 sh "cd ci_nexus && mvn -U -B -s .jenkins/settings.xml clean deploy -e -Pdocker -DskipTests ${talendOssRepositoryArg}"
+//                             }
+//                         }
+//                     }
+//                 }
             }
         }
         stage('Push to Xtm') {
