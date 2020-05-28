@@ -166,11 +166,9 @@ spec:
                     steps {
                         container('main') {
                             withCredentials([veracodeCredentials]) {
-                                sh """
-                                | cache_dir='${CACHE_DIR:-$HOME/build/Talend/connectors-se}'
-                                | mkdir -p ${cache_dir}
-                                | curl -sSL https://download.sourceclear.com/ci.sh | CACHE_DIR='${cache_dir}/.sourceclear' bash
-                                """.stripMargin()
+                                sh '''#!/bin/bash
+                                curl -sSL https://download.sourceclear.com/ci.sh | DEBUG=1 sh -s -- scan
+                                '''
                             }
                         }
                     }
