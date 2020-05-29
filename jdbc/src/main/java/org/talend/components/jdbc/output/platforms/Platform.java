@@ -70,11 +70,13 @@ public abstract class Platform implements Serializable {
                 varcharLength, records);
         final String sql = buildQuery(connection, table);
         try (final Statement statement = connection.createStatement()) {
+
             statement.executeUpdate(sql);
             connection.commit();
         } catch (final Throwable e) {
             connection.rollback();
             if (!isTableExistsCreationError(e)) {
+                log.error("Create Table error for '" + sql + "'", e);
                 throw toIllegalStateException(e);
             }
 
@@ -98,7 +100,10 @@ public abstract class Platform implements Serializable {
         String constraint = "pk_" + table + "_" + primaryKeys.stream().map(Column::getName).collect(joining("_")) + "_"
                 + uuid.substring(0, Math.min(4, uuid.length()));
         if (nameLength > 0 && constraint.length() > nameLength) {
-            constraint = constraint.substring(0, nameLength);
+            constraint = "pk_" + uuid.replace('-', '_');
+            if (constraint.length() > nameLength) {
+                constraint = constraint.substring(0, nameLength);
+            }
         }
         return constraint;
     }
