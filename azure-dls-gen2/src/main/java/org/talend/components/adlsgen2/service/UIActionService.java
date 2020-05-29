@@ -13,10 +13,13 @@
 package org.talend.components.adlsgen2.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
+import org.talend.components.adlsgen2.datastore.Constants;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
@@ -26,7 +29,6 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 
 import lombok.extern.slf4j.Slf4j;
-
 import static org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status.KO;
 import static org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status.OK;
 
@@ -42,18 +44,28 @@ public class UIActionService {
     private AdlsGen2Service service;
 
     @Service
+    private AdlsActiveDirectoryService activeDirectoryService;
+
+    @Service
     private I18n i18n;
 
     @HealthCheck(ACTION_HEALTHCHECK)
     public HealthCheckStatus validateConnection(@Option final AdlsGen2Connection connection) {
         try {
-            service.filesystemList(connection);
+            Map<String, Object> runtimeInfoMap = new HashMap<>();
+            if (connection.getAuthMethod().equals(AuthMethod.ActiveDirectory)) {
+                runtimeInfoMap.put(Constants.RuntimeInfoKeys.ACTIVE_DIRECTORY_TOKEN,
+                        activeDirectoryService.getActiveDirAuthToken(connection));
+            }
+            service.filesystemList(connection, runtimeInfoMap);
         } catch (Exception e) {
             String msg;
             if (connection.getAuthMethod() == AuthMethod.SAS) {
                 msg = i18n.healthCheckSAS();
-            } else {
+            } else if (connection.getAuthMethod() == AuthMethod.SharedKey) {
                 msg = i18n.healthCheckSharedKey();
+            } else {
+                msg = i18n.healthCheckActiveDirectory();
             }
             return new HealthCheckStatus(KO, i18n.healthCheckFailed(msg, e.getMessage()));
         }
@@ -62,8 +74,13 @@ public class UIActionService {
 
     @Suggestions(ACTION_FILESYSTEMS)
     public SuggestionValues filesystemList(@Option final AdlsGen2Connection connection) {
+        Map<String, Object> runtimeInfoMap = new HashMap<>();
+        if (connection.getAuthMethod().equals(AuthMethod.ActiveDirectory)) {
+            runtimeInfoMap.put(Constants.RuntimeInfoKeys.ACTIVE_DIRECTORY_TOKEN,
+                    activeDirectoryService.getActiveDirAuthToken(connection));
+        }
         List<Item> items = new ArrayList<>();
-        for (String s : service.filesystemList(connection)) {
+        for (String s : service.filesystemList(connection, runtimeInfoMap)) {
             items.add(new SuggestionValues.Item(s, s));
         }
         return new SuggestionValues(false, items);
