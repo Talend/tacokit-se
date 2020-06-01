@@ -14,13 +14,16 @@ package org.talend.components.rest.source;
 
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.talend.components.rest.configuration.HttpMethod;
 import org.talend.components.rest.configuration.Param;
+import org.talend.components.rest.configuration.RequestBody;
+import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.service.RequestConfigBuilderTest;
-import org.talend.components.rest.virtual.ComplexRestConfiguration;
+import org.talend.components.rest.service.client.ContentType;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit.environment.Environment;
@@ -36,8 +39,10 @@ import org.talend.sdk.component.runtime.manager.chain.Job;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
@@ -46,16 +51,6 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 @Environment(ContextualEnvironment.class)
 @EnvironmentConfiguration(environment = "Contextual", systemProperties = {}) // EnvironmentConfiguration is necessary for each
                                                                              // @Environment
-
-/*
- * @Environment(DirectRunnerEnvironment.class) // Direct runner not necessary since already SparkRunner
- * 
- * @EnvironmentConfiguration(environment = "Direct", systemProperties = {
- * 
- * @EnvironmentConfiguration.Property(key = "talend.beam.job.runner", value = "org.apache.beam.runners.direct.DirectRunner")
- * })
- */
-
 @Environment(SparkRunnerEnvironment.class)
 @EnvironmentConfiguration(environment = "Spark", systemProperties = {
         @Property(key = "talend.beam.job.runner", value = "org.apache.beam.runners.spark.SparkRunner"),
@@ -67,7 +62,7 @@ class RestEmitterTest {
     @Injected
     private BaseComponentsHandler handler;
 
-    private ComplexRestConfiguration config;
+    private RequestConfig config;
 
     private HttpServer server;
 
@@ -80,14 +75,14 @@ class RestEmitterTest {
 
         config = RequestConfigBuilderTest.getEmptyRequestConfig();
 
-        config.getDataset().getRestConfiguration().getDataset().getDatastore().setConnectionTimeout(5000);
-        config.getDataset().getRestConfiguration().getDataset().getDatastore().setReadTimeout(5000);
+        config.getDataset().getDatastore().setConnectionTimeout(5000);
+        config.getDataset().getDatastore().setReadTimeout(5000);
 
         // start server
         server = HttpServer.create(new InetSocketAddress(0), 0);
         port = server.getAddress().getPort();
 
-        config.getDataset().getRestConfiguration().getDataset().getDatastore().setBase("http://localhost:" + port);
+        config.getDataset().getDatastore().setBase("http://localhost:" + port);
     }
 
     @AfterEach
@@ -104,11 +99,11 @@ class RestEmitterTest {
     @EnvironmentalTest
     void testInput() {
 
-        config.getDataset().getRestConfiguration().getDataset().setResource("get");
-        config.getDataset().getRestConfiguration().getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().setResource("get");
+        config.getDataset().setMethodType(HttpMethod.GET);
 
-        config.getDataset().getRestConfiguration().getDataset().setHasQueryParams(true);
-        config.getDataset().getRestConfiguration().getDataset()
+        config.getDataset().setHasQueryParams(true);
+        config.getDataset()
                 .setQueryParams(Arrays.asList(new Param("param1", "param1_value"), new Param("param2", "param1_value2")));
 
         final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
@@ -150,16 +145,16 @@ class RestEmitterTest {
         testOptionsPathFlags(false);
     }
 
-    private void testOptionsPathFlags(final boolean hasOptions) throws IOException {
-        config.getDataset().getRestConfiguration().getDataset().setMethodType(HttpMethod.POST);
-        config.getDataset().getRestConfiguration().getDataset().setResource("post/{module}/{id}");
+    private void testOptionsPathFlags(final boolean hasOptions) {
+        config.getDataset().setMethodType(HttpMethod.POST);
+        config.getDataset().setResource("post/{module}/{id}");
 
         // Can't be tested the same way has other option since
         // when path param are not substituted the url contains "{...}"
         // and a 400 error is returned
-        config.getDataset().getRestConfiguration().getDataset().setHasPathParams(hasOptions);
+        config.getDataset().setHasPathParams(hasOptions);
         List<Param> pathParams = Arrays.asList(new Param[] { new Param("module", "myModule"), new Param("id", "myId") });
-        config.getDataset().getRestConfiguration().getDataset().setPathParams(pathParams);
+        config.getDataset().setPathParams(pathParams);
 
         this.setServerContextAndStart(httpExchange -> {
 
@@ -187,7 +182,62 @@ class RestEmitterTest {
         } else {
             assertEquals(400, records.get(0).getInt("status"));
         }
+    }
 
+    @EnvironmentalTest
+    void testQueryContentType() {
+        List<ContentTypeParams> params = new ArrayList<>();
+        params.add(new ContentTypeParams(RequestBody.Type.JSON, "{\"key\" : \"value\"}", RequestBody.Type.JSON.getContentType()));
+
+        for (ContentTypeParams p : params) {
+            _testQueryContentType(p.getType(), p.getContent(), p.getContentType());
+        }
+    }
+
+    private void _testQueryContentType(final RequestBody.Type type, final String body, final String contentType) {
+        config.getDataset().setMethodType(HttpMethod.GET);
+        config.getDataset().setResource("get");
+        config.getDataset().setHasBody(true);
+
+        final RequestBody requestBody = new RequestBody();
+        requestBody.setType(RequestBody.Type.JSON);
+        requestBody.setJsonValue("{\"key\" : \"value\"}");
+        config.getDataset().setBody(requestBody);
+
+        final StringBuilder receivedContentType = new StringBuilder();
+
+        this.setServerContextAndStart(httpExchange -> {
+            receivedContentType.append(httpExchange.getRequestHeaders().getFirst(ContentType.HEADER_KEY));
+
+            httpExchange.sendResponseHeaders(200, 0);
+            OutputStream os = httpExchange.getResponseBody();
+            os.write(new byte[0]);
+            os.close();
+        });
+
+        final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
+        Job.components() //
+                .component("emitter", "REST://Input?" + configStr) //
+                .component("out", "test://collector") //
+                .connections() //
+                .from("emitter") //
+                .to("out") //
+                .build() //
+                .run();
+
+        final List<Record> records = handler.getCollectedData(Record.class);
+        assertEquals(1, records.size());
+        assertEquals(type.getContentType(), receivedContentType.toString());
+    }
+
+    @Data
+    private static class ContentTypeParams {
+
+        final RequestBody.Type type;
+
+        final String content;
+
+        final String contentType;
     }
 
 }

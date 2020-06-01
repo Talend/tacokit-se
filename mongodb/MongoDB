@@ -1,0 +1,9 @@
+MongoDB
+two modes for input(single json output/basic/mapping) and output(single json input/basic/mapping), output aggreate group for array?
+1. document output/document input(no schema setting), not as default
+2. record with config mapping(no schema setting as it will included in the mapping table, the single and complex mapping with json path), as default
+
+add a button("view document") for 1, to fill a readonly code(json) to show document for customer only
+add a button for 2 like fileio auto detect, to fill the mapping table setting self with basic path. Make it easy to use
+    
+

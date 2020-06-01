@@ -1,0 +1,9 @@
+{
+  "First_name": "John",
+  "Last_name" : "Doe",
+  "Age" : 45,
+  "rec": {
+    "foo": "bar"
+  },
+  "empty_rec" : {}
+}

@@ -17,21 +17,35 @@ import java.util.function.Function;
 
 /**
  * Iterator with map function.
- * 
+ *
  * @param <T> : type of primary iterator.
  * @param <U> : target type of this iterator.
  */
 public class IteratorMap<T, U> implements Iterator<U> {
 
-    /** primary iterator */
+    /**
+     * primary iterator
+     */
     private final Iterator<T> primaryIterator;
 
-    /** transformed function */
+    /**
+     * transformed function
+     */
     private final Function<T, U> mapFunction;
 
+    /**
+     * If true, null value are computed, else they are returned as is
+     */
+    private final boolean computeNull;
+
     public IteratorMap(Iterator<T> primaryIterator, Function<T, U> mapFunction) {
+        this(primaryIterator, mapFunction, false);
+    }
+
+    public IteratorMap(Iterator<T> primaryIterator, Function<T, U> mapFunction, boolean computeNull) {
         this.primaryIterator = primaryIterator;
         this.mapFunction = mapFunction;
+        this.computeNull = computeNull;
     }
 
     @Override
@@ -42,9 +56,11 @@ public class IteratorMap<T, U> implements Iterator<U> {
     @Override
     public U next() {
         final T primaryObject = this.primaryIterator.next();
-        if (primaryObject != null) {
-            return this.mapFunction.apply(primaryObject);
+
+        if (primaryObject == null && !computeNull) {
+            return null;
         }
-        return null;
+
+        return this.mapFunction.apply(primaryObject);
     }
 }

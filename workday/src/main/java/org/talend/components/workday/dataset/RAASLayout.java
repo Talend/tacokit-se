@@ -12,14 +12,15 @@
  */
 package org.talend.components.workday.dataset;
 
-import lombok.Data;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.Map;
+
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.Map;
+import lombok.Data;
 
 @Data
 @GridLayout(@GridLayout.Row({ "user", "report" }))
@@ -37,7 +38,8 @@ public class RAASLayout implements Serializable, QueryHelper {
 
     @Override
     public String getServiceToCall() {
-        return String.format("raas/%s/%s", this.user, this.report);
+        final String workdayReportName = this.report.replace(' ', '_'); // workday translate space to underscore.
+        return String.format("raas/%s/%s", this.encodeString(this.user), this.encodeString(workdayReportName));
     }
 
     @Override

@@ -12,12 +12,25 @@
  */
 package org.talend.components.netsuite.service;
 
+import static java.util.stream.Collectors.toList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
+
+import com.netsuite.webservices.v2019_2.platform.common.AccountSearchBasic;
+import com.netsuite.webservices.v2019_2.platform.common.CustomRecordSearchBasic;
+import com.netsuite.webservices.v2019_2.platform.common.TransactionSearchBasic;
+import com.netsuite.webservices.v2019_2.platform.core.types.SearchDate;
+import com.netsuite.webservices.v2019_2.platform.core.types.SearchDateFieldOperator;
+import com.netsuite.webservices.v2019_2.platform.core.types.SearchMultiSelectFieldOperator;
+import com.netsuite.webservices.v2019_2.transactions.purchases.PurchaseOrder;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -38,20 +51,7 @@ import org.talend.sdk.component.api.service.completion.SuggestionValues.Item;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.junit5.WithComponents;
 
-import com.netsuite.webservices.v2019_2.platform.common.AccountSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.CustomRecordSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.TransactionSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.core.types.SearchDate;
-import com.netsuite.webservices.v2019_2.platform.core.types.SearchDateFieldOperator;
-import com.netsuite.webservices.v2019_2.platform.core.types.SearchMultiSelectFieldOperator;
-import com.netsuite.webservices.v2019_2.transactions.purchases.PurchaseOrder;
-
 import lombok.extern.slf4j.Slf4j;
-
-import static java.util.stream.Collectors.toList;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertIterableEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @Disabled

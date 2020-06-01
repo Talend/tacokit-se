@@ -13,6 +13,7 @@
 package org.talend.components.rest.configuration;
 
 import lombok.Data;
+import org.talend.components.extension.polling.api.PollableDuplicateDataset;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -29,13 +30,15 @@ import java.util.Collections;
 import java.util.List;
 
 @Data
+@DataSet("Dataset")
+@PollableDuplicateDataset
 @GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "resource" }), @GridLayout.Row({ "methodType" }),
-        @GridLayout.Row({ "hasHeaders" }), @GridLayout.Row({ "headers" }), @GridLayout.Row({ "hasQueryParams" }),
-        @GridLayout.Row({ "queryParams" }), @GridLayout.Row({ "hasPathParams" }), @GridLayout.Row({ "pathParams" }),
-        @GridLayout.Row({ "hasBody" }), @GridLayout.Row({ "body" }) })
+        @GridLayout.Row({ "format" }), @GridLayout.Row({ "hasHeaders" }), @GridLayout.Row({ "headers" }),
+        @GridLayout.Row({ "hasQueryParams" }), @GridLayout.Row({ "queryParams" }), @GridLayout.Row({ "hasPathParams" }),
+        @GridLayout.Row({ "pathParams" }), @GridLayout.Row({ "hasBody" }), @GridLayout.Row({ "body" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "datastore" }),
         @GridLayout.Row({ "completePayload" }), @GridLayout.Row({ "maxRedirect" }), @GridLayout.Row({ "only_same_host" }),
-        @GridLayout.Row({ "force_302_redirect" }) })
+        @GridLayout.Row({ "force_302_redirect" }), @GridLayout.Row({ "jsonForceDouble" }) })
 @Documentation("Dataset configuration.")
 public class Dataset implements Serializable {
 
@@ -53,6 +56,17 @@ public class Dataset implements Serializable {
     @Required
     @Documentation("End of url to complete base url of the datastore.")
     private String resource = "";
+
+    @Option
+    @Required
+    @Documentation("Format of the body's answer.")
+    private Format format = Format.RAW_TEXT;
+
+    @Option
+    @Documentation("If answer body type is JSON, infer numbers type or force all to double.")
+    @ActiveIf(target = "format", value = "JSON")
+    @DefaultValue("true")
+    private boolean jsonForceDouble = true;
 
     @Option
     @Documentation("How many redirection are supported ? (-1 for infinite)")
@@ -92,7 +106,7 @@ public class Dataset implements Serializable {
     private List<Param> headers = new ArrayList<>(Collections.singleton(new Param("", "")));
 
     @Option
-    @Documentation("Does the request have query paramters ?")
+    @Documentation("Does the request have query parameters ?")
     private boolean hasQueryParams = false;
 
     @Option

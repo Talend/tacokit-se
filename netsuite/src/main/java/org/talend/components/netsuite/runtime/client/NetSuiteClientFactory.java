@@ -12,6 +12,8 @@
  */
 package org.talend.components.netsuite.runtime.client;
 
+import org.talend.components.netsuite.service.Messages;
+
 /**
  * Responsible for creation of NetSuite client.
  *
@@ -24,6 +26,7 @@ public interface NetSuiteClientFactory<T> {
      *
      * @return NetSuite client
      */
-    NetSuiteClientService<T> createClient();
+    NetSuiteClientService<T> createClient(String endpointUrl, NetSuiteCredentials credentials, NsTokenPassport tokenPassport,
+            Messages i18n);
 
 }

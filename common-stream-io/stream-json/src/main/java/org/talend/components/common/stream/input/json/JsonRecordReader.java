@@ -27,7 +27,6 @@ import org.talend.components.common.collections.IteratorMap;
 import org.talend.components.common.stream.api.input.RecordReader;
 import org.talend.components.common.stream.format.json.JsonPointerParser;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 /**
  * Read json object from a stream (Reader) and convert it to Record iterator.
@@ -43,9 +42,9 @@ public class JsonRecordReader implements RecordReader {
     /** current json iterator */
     private JsonParser jsonParser = null;
 
-    public JsonRecordReader(JsonPointerParser jsonPointer, RecordBuilderFactory recordFactory) {
+    public JsonRecordReader(JsonPointerParser jsonPointer, JsonToRecord toRecord) {
         this.jsonPointer = jsonPointer;
-        this.toRecord = new JsonToRecord(recordFactory);
+        this.toRecord = toRecord;
     }
 
     @Override

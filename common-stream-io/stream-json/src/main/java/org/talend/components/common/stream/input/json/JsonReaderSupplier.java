@@ -22,13 +22,14 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 public class JsonReaderSupplier implements RecordReaderSupplier {
 
     @Override
-    public RecordReader getReader(RecordBuilderFactory factory, ContentFormat config) {
+    public RecordReader getReader(RecordBuilderFactory factory, ContentFormat config, Object extraParameter) {
         if (!JsonConfiguration.class.isInstance(config)) {
             throw new IllegalArgumentException("try to get json-reader with other than json-config");
         }
 
-        JsonConfiguration jsonConfig = (JsonConfiguration) config;
+        final JsonConfiguration jsonConfig = (JsonConfiguration) config;
         final JsonPointerParser parser = JsonPointerParser.of(jsonConfig.getJsonPointer());
-        return new JsonRecordReader(parser, factory);
+        final JsonToRecord toRecord = new JsonToRecord(factory, jsonConfig.isForceDouble());
+        return new JsonRecordReader(parser, toRecord);
     }
 }

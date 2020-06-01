@@ -23,10 +23,9 @@ import org.talend.components.netsuite.runtime.client.NetSuiteVersion;
 import org.talend.components.netsuite.runtime.client.NsTokenPassport;
 import org.talend.components.netsuite.service.Messages;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 /**
@@ -34,12 +33,8 @@ import lombok.ToString;
  */
 public class NetSuiteEndpoint {
 
-    public static final String CONNECTION = "NetSuite_Connection";
-
-    /** Creates instance of NetSuite client. */
     private NetSuiteClientFactory<?> clientFactory;
 
-    /** Connection configuration for this endpoint. */
     private ConnectionConfig connectionConfig;
 
     private Messages i18n;
@@ -132,31 +127,24 @@ public class NetSuiteEndpoint {
      * @throws NetSuiteException if an error occurs during connecting
      */
     private NetSuiteClientService<?> connect(ConnectionConfig connectionConfig) throws NetSuiteException {
-        NetSuiteClientService<?> clientService = clientFactory.createClient();
-        clientService.setI18n(i18n);
-        clientService.setEndpointUrl(connectionConfig.getEndpointUrl());
-        clientService.setCredentials(connectionConfig.getCredentials());
-        clientService.setTokenPassport(connectionConfig.getTokenPassport());
+        NetSuiteClientService<?> clientService = clientFactory.createClient(connectionConfig.getEndpointUrl(),
+                connectionConfig.getCredentials(), connectionConfig.getTokenPassport(), i18n);
         clientService.login();
         return clientService;
     }
 
-    /**
-     * Holds configuration for connecting to NetSuite.
-     */
-    @Data
+    @Getter
     @EqualsAndHashCode
     @ToString
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class ConnectionConfig {
+    @RequiredArgsConstructor
+    private static class ConnectionConfig {
 
-        private String endpointUrl;
+        private final String endpointUrl;
 
-        private NetSuiteVersion apiVersion;
+        private final NetSuiteVersion apiVersion;
 
-        private NetSuiteCredentials credentials;
+        private final NetSuiteCredentials credentials;
 
-        private NsTokenPassport tokenPassport;
+        private final NsTokenPassport tokenPassport;
     }
 }

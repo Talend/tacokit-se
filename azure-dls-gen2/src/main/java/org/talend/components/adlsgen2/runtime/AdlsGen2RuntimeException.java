@@ -17,4 +17,12 @@ public class AdlsGen2RuntimeException extends RuntimeException {
     public AdlsGen2RuntimeException(String msg) {
         super(msg);
     }
+
+    public AdlsGen2RuntimeException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public AdlsGen2RuntimeException(Throwable cause) {
+        super(cause);
+    }
 }

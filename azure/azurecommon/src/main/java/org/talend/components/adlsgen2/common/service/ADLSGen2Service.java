@@ -95,7 +95,7 @@ public class ADLSGen2Service implements Serializable {
         requestBase.setHeader(DATE, now);
         requestBase.setHeader(VERSION, TARGET_STORAGE_VERSION);
         requestBase.setHeader(CONTENT_TYPE, DFS_CONTENT_TYPE);
-        SharedKeyUtils util = new SharedKeyUtils(connection.getAccountName(), connection.getAccountKey());
+        SharedKeyUtils util = new SharedKeyUtils(connection.getAccountName(), connection.getSharedKey());
         String auth = util.buildAuthenticationSignature(requestBase);
         requestBase.setHeader(AUTHORIZATION, auth);
         return requestBase;
@@ -105,7 +105,7 @@ public class ADLSGen2Service implements Serializable {
     public SuggestionValues filesystemList(@Option("accountName") String accountName,
             @Option("accountKey") final String accountKey) {
         AdlsGen2Connection connection = new AdlsGen2Connection();
-        connection.setAccountKey(accountKey);
+        connection.setSharedKey(accountKey);
         connection.setAccountName(accountName);
 
         client.base(connection.apiUrl());
@@ -168,7 +168,7 @@ public class ADLSGen2Service implements Serializable {
     public SuggestionValues pathList(@Option("accountName") String accountName, @Option("accountKey") final String accountKey,
             String filesystem) {
         AdlsGen2Connection connection = new AdlsGen2Connection();
-        connection.setAccountKey(accountKey);
+        connection.setSharedKey(accountKey);
         connection.setAccountName(accountName);
         List<String> paths = Collections.emptyList();
         try {
@@ -234,7 +234,7 @@ public class ADLSGen2Service implements Serializable {
         HttpEntity entity = new FileEntity(tempFilePath.toFile());
         patch.setEntity(entity);
 
-        SharedKeyUtils util = new SharedKeyUtils(connection.getAccountName(), connection.getAccountKey());
+        SharedKeyUtils util = new SharedKeyUtils(connection.getAccountName(), connection.getSharedKey());
         String auth = util.buildAuthenticationSignature(patch);
         patch.setHeader(AUTHORIZATION, auth);
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
@@ -258,7 +258,7 @@ public class ADLSGen2Service implements Serializable {
         patch.setHeader(CONTENT_TYPE, DFS_CONTENT_TYPE);
         // patch.setHeader("x-ms-blob-type", "BlockBlob");
 
-        SharedKeyUtils util = new SharedKeyUtils(connection.getAccountName(), connection.getAccountKey());
+        SharedKeyUtils util = new SharedKeyUtils(connection.getAccountName(), connection.getSharedKey());
         String auth = util.buildAuthenticationSignature(patch);
         patch.setHeader(AUTHORIZATION, auth);
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {

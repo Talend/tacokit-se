@@ -31,9 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-import static org.talend.components.jdbc.service.UIActionService.ACTION_SUGGESTION_ACTION_ON_DATA;
-import static org.talend.components.jdbc.service.UIActionService.ACTION_SUGGESTION_TABLE_COLUMNS_NAMES;
-import static org.talend.components.jdbc.service.UIActionService.ACTION_VALIDATE_SORT_KEYS;
+import static org.talend.components.jdbc.service.UIActionService.*;
 import static org.talend.sdk.component.api.configuration.condition.ActiveIf.EvaluationStrategy.CONTAINS;
 import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.AND;
 import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.OR;

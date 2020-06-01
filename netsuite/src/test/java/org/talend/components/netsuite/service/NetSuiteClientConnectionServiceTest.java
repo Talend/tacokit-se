@@ -47,16 +47,13 @@ public class NetSuiteClientConnectionServiceTest extends NetSuiteBaseTest {
         Assertions.assertThrows(NetSuiteException.class,
                 () -> netSuiteClientConnectionService.getClientService(dataStoreLocal, i18n));
 
-        final MavenDecrypter decrypter = new MavenDecrypter();
-        Server netsuiteCredentials = decrypter.find("netsuite");
-
         // Missing password
-        dataStoreLocal.setEmail(netsuiteCredentials.getUsername());
+        dataStoreLocal.setEmail(dataStoreLoginPassword.getEmail());
         Assertions.assertThrows(NetSuiteException.class,
                 () -> netSuiteClientConnectionService.getClientService(dataStoreLocal, i18n));
 
         // Missing roleId
-        dataStoreLocal.setPassword(netsuiteCredentials.getPassword());
+        dataStoreLocal.setPassword(dataStoreLoginPassword.getPassword());
         Assertions.assertThrows(NetSuiteException.class,
                 () -> netSuiteClientConnectionService.getClientService(dataStoreLocal, i18n));
     }

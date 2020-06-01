@@ -43,6 +43,9 @@ public class CSVMessageGenerator extends MessageGenerator {
 
         private StringBuilder csv = new StringBuilder();
 
+        private RecordVisitor<String> doNothingVisitor = new RecordVisitor<String>() {
+        };
+
         private char fieldDelimiter;
 
         CSVRecordVisitor(char fieldDelimiter) {
@@ -107,80 +110,13 @@ public class CSVMessageGenerator extends MessageGenerator {
         }
 
         @Override
-        public void onBooleanArray(Schema.Entry entry, Optional<Collection<Boolean>> array) {
-            if (array.isPresent()) {
-                onArray(array.get());
-            } else {
-                csv.append(fieldDelimiter);
-            }
+        public RecordVisitor<String> onRecordArray(Schema.Entry entry, Optional<Collection<Record>> array) {
+            return doNothingVisitor;
         }
 
         @Override
-        public void onBytesArray(Schema.Entry entry, Optional<Collection<byte[]>> array) {
-            if (array.isPresent()) {
-                onArray(array.get().stream().map(b -> String.format("%02x", b)).collect(Collectors.toList()));
-            } else {
-                csv.append(fieldDelimiter);
-            }
-        }
-
-        @Override
-        public void onDatetimeArray(Schema.Entry entry, Optional<Collection<ZonedDateTime>> array) {
-            if (array.isPresent()) {
-                onArray(array.get().stream().map(dt -> new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss").format(dt))
-                        .collect(Collectors.toList()));
-            } else {
-                csv.append(fieldDelimiter);
-            }
-        }
-
-        @Override
-        public void onDoubleArray(Schema.Entry entry, Optional<Collection<Double>> array) {
-            if (array.isPresent()) {
-                onArray(array.get());
-            } else {
-                csv.append(fieldDelimiter);
-            }
-        }
-
-        @Override
-        public void onFloatArray(Schema.Entry entry, Optional<Collection<Float>> array) {
-            if (array.isPresent()) {
-                onArray(array.get());
-            } else {
-                csv.append(fieldDelimiter);
-            }
-        }
-
-        @Override
-        public void onIntArray(Schema.Entry entry, Optional<Collection<Integer>> array) {
-            if (array.isPresent()) {
-                onArray(array.get());
-            } else {
-                csv.append(fieldDelimiter);
-            }
-        }
-
-        @Override
-        public void onLongArray(Schema.Entry entry, Optional<Collection<Long>> array) {
-            if (array.isPresent()) {
-                onArray(array.get());
-            } else {
-                csv.append(fieldDelimiter);
-            }
-        }
-
-        @Override
-        public void onStringArray(Schema.Entry entry, Optional<Collection<String>> array) {
-            if (array.isPresent()) {
-                onArray(array.get());
-            } else {
-                csv.append(fieldDelimiter);
-            }
-        }
-
-        public void onArray(Collection<?> array) {
-            array.stream().map(String::valueOf).forEach(s -> csv.append(s).append(fieldDelimiter));
+        public RecordVisitor<String> onRecord(Schema.Entry entry, Optional<Record> record) {
+            return doNothingVisitor;
         }
     }
 

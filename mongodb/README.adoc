@@ -1,0 +1,30 @@
+= Talend MongoDB Connectors
+
+This project contains datastore, dataset, source and sink connectors for reading and writing data for MongoDB document database.
+
+== How to build the project
+
+The project locally use maven as build tool.
+
+```
+mvn clean install
+```
+
+== How to run integration tests
+
+TODO
+
+Running integration tests:
+```
+mvn clean install -PITs
+```
+
+== Connector configuration Web UI
+You can explore the components configuration in your web browser by starting the web tools
+that start a component server and deploy the component to it using Talend maven component plugin.
+
+```
+mvn clean install -DskipTests talend-component:web
+```
+
+This start a web server accessible from http://localhost:8080

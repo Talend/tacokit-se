@@ -17,6 +17,7 @@ import java.util.List;
 
 import javax.json.JsonBuilderFactory;
 
+import org.talend.components.adlsgen2.service.AdlsActiveDirectoryService;
 import org.talend.components.adlsgen2.service.AdlsGen2Service;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -44,14 +45,19 @@ public class InputMapper implements Serializable {
     @Service
     private final RecordBuilderFactory recordBuilderFactory;
 
+    @Service
+    private final AdlsActiveDirectoryService tokenProviderService;
+
     private final InputConfiguration configuration;
 
     private final JsonBuilderFactory jsonBuilderFactory;
 
     public InputMapper(@Option("configuration") final InputConfiguration configuration, final AdlsGen2Service service,
-            final RecordBuilderFactory recordBuilderFactory, final JsonBuilderFactory jsonBuilderFactory) {
+            final RecordBuilderFactory recordBuilderFactory, final JsonBuilderFactory jsonBuilderFactory,
+            AdlsActiveDirectoryService tokenProviderService) {
         this.configuration = configuration;
         this.service = service;
+        this.tokenProviderService = tokenProviderService;
         this.recordBuilderFactory = recordBuilderFactory;
         this.jsonBuilderFactory = jsonBuilderFactory;
     }
@@ -68,6 +74,6 @@ public class InputMapper implements Serializable {
 
     @Emitter
     public AdlsGen2Input createWorker() {
-        return new AdlsGen2Input(configuration, service, recordBuilderFactory, jsonBuilderFactory);
+        return new AdlsGen2Input(configuration, service, recordBuilderFactory, jsonBuilderFactory, tokenProviderService);
     }
 }

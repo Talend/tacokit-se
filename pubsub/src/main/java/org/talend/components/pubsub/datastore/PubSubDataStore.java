@@ -17,6 +17,7 @@ import org.talend.components.pubsub.service.PubSubService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
+import org.talend.sdk.component.api.configuration.constraint.Pattern;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataStore;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -39,6 +40,7 @@ public class PubSubDataStore implements Serializable {
     @Option
     @Required
     @Documentation("Google Cloud Platform Project")
+    @Pattern("/^[a-z][a-z0-9\\-]*$/")
     private String projectName;
 
     @Option

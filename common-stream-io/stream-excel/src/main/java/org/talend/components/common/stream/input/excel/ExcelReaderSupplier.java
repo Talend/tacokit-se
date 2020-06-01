@@ -21,7 +21,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 public class ExcelReaderSupplier implements RecordReaderSupplier {
 
     @Override
-    public RecordReader getReader(RecordBuilderFactory factory, ContentFormat config) {
+    public RecordReader getReader(RecordBuilderFactory factory, ContentFormat config, Object extraParameter) {
         if (!ExcelConfiguration.class.isInstance(config)) {
             throw new IllegalArgumentException("try to get excel-reader with other than excel config");
         }

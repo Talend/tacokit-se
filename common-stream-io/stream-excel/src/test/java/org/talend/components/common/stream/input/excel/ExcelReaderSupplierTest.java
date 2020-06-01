@@ -21,7 +21,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.input.RecordReader;
-import org.talend.components.common.stream.format.Encoding;
 import org.talend.components.common.stream.format.OptionalLine;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration.ExcelFormat;
@@ -39,7 +38,7 @@ class ExcelReaderSupplierTest {
     void initDataSet() {
         config.setSheetName("Sheet1");
         config.setExcelFormat(ExcelFormat.EXCEL2007);
-        config.setEncoding(new Encoding());
+        // config.setEncoding(new Encoding());
         config.setHeader(new OptionalLine());
         config.getHeader().setActive(false);
 
@@ -55,6 +54,22 @@ class ExcelReaderSupplierTest {
 
         config.setExcelFormat(ExcelFormat.EXCEL97);
         this.testOneValueFile("excel97/excel_97_1_record_no_header.xls");
+    }
+
+    @Test
+    public void testSimple() throws IOException {
+        final String path = "excel2007/excel2007_File.xlsx";
+        try (final InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
+                final RecordReader reader = new ExcelReaderSupplier().getReader(factory, config)) {
+
+            config.getHeader().setActive(true);
+            config.getHeader().setSize(1);
+            config.setSheetName("Another Sheet");
+            final Iterator<Record> records = reader.read(stream);
+            while (records.hasNext()) {
+                Record rec = records.next();
+            }
+        }
     }
 
     private void testOneValueFile(String path) throws IOException {
@@ -181,5 +196,19 @@ class ExcelReaderSupplierTest {
         config.setExcelFormat(ExcelFormat.EXCEL97);
         this.testOneValueFile("excel97/excel_97_1_record_footer.xls");
     }
+
+    /*
+     * @Test
+     * void testHTMLFile() throws IOException {
+     * config.getHeader().setActive(true);
+     * config.getHeader().setSize(1);
+     * config.getFooter().setActive(true);
+     * config.getFooter().setSize(5);
+     * config.setExcelFormat(ExcelFormat.HTML);
+     * 
+     * this.testRecordsSize("html/HTML-utf8.xls", 15);
+     * 
+     * }
+     */
 
 }

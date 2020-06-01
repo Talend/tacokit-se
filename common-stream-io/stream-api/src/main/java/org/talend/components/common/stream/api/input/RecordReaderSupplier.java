@@ -18,9 +18,9 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 @FunctionalInterface
 public interface RecordReaderSupplier {
 
-    RecordReader getReader(RecordBuilderFactory factory, ContentFormat config);
-
-    default RecordReader getReader(RecordBuilderFactory factory, ContentFormat config, Object extraParameter) {
-        return this.getReader(factory, config);
+    default RecordReader getReader(RecordBuilderFactory factory, ContentFormat config) {
+        return this.getReader(factory, config, null);
     }
+
+    RecordReader getReader(RecordBuilderFactory factory, ContentFormat config, Object extraParameter);
 }

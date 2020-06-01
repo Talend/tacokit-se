@@ -41,6 +41,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
@@ -72,14 +73,22 @@ public class PubSubInput implements MessageReceiver, Serializable {
 
     @PostConstruct
     public void init() {
+        // Check if subscription is set
+        String subscription = configuration.getDataSet().getSubscription();
+        if (subscription == null || "".equals(subscription.trim())) {
+            // Subscription not set : must be sampling
+            subscription = "s" + UUID.randomUUID().toString();
+            configuration.getDataSet().setSubscription(subscription);
+        }
+
         messageConverter = messageConverterFactory.getConverter(configuration.getDataSet(), builderFactory, i18n);
         if (configuration.getPullMode() == PubSubInputConfiguration.PullMode.ASYNCHRONOUS) {
             subscriber = service.createSubscriber(configuration.getDataSet().getDataStore(),
-                    configuration.getDataSet().getTopic(), configuration.getDataSet().getSubscription(), this);
+                    configuration.getDataSet().getTopic(), subscription, this);
             subscriber.startAsync();
         } else {
             subscriberStub = service.createSubscriber(configuration.getDataSet().getDataStore(),
-                    configuration.getDataSet().getTopic(), configuration.getDataSet().getSubscription());
+                    configuration.getDataSet().getTopic(), subscription);
 
         }
     }

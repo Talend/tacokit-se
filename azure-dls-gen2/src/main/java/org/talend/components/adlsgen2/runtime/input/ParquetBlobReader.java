@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.Map;
 
 import org.apache.avro.generic.GenericRecord;
 import org.apache.commons.io.IOUtils;
@@ -39,8 +40,8 @@ import lombok.extern.slf4j.Slf4j;
 public class ParquetBlobReader extends BlobReader {
 
     public ParquetBlobReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory,
-            AdlsGen2Service connectionServices) {
-        super(configuration, recordBuilderFactory, connectionServices);
+            AdlsGen2Service connectionServices, Map<String, Object> runtimeInfoMap) {
+        super(configuration, recordBuilderFactory, connectionServices, runtimeInfoMap);
     }
 
     @Override
@@ -85,7 +86,7 @@ public class ParquetBlobReader extends BlobReader {
             try {
                 File tmp = File.createTempFile("talend-adls-gen2-tmp", ".parquet");
                 tmp.deleteOnExit();
-                InputStream input = service.getBlobInputstream(configuration, getCurrentBlob());
+                InputStream input = service.getBlobInputstream(configuration, getCurrentBlob(), getRuntimeInfoMap());
                 Files.copy(input, tmp.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 IOUtils.closeQuietly(input);
                 HadoopInputFile hdpIn = HadoopInputFile.fromPath(new Path(tmp.getPath()),

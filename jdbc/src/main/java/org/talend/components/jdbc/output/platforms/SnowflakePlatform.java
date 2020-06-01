@@ -12,12 +12,16 @@
  */
 package org.talend.components.jdbc.output.platforms;
 
-import com.zaxxer.hikari.HikariDataSource;
-import lombok.extern.slf4j.Slf4j;
-import org.talend.components.jdbc.service.I18nMessage;
-
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.talend.components.jdbc.service.I18nMessage;
+
+import com.zaxxer.hikari.HikariDataSource;
+
+import lombok.extern.slf4j.Slf4j;
 
 import static java.util.stream.Collectors.joining;
 
@@ -44,7 +48,7 @@ public class SnowflakePlatform extends Platform {
     }
 
     @Override
-    protected String buildQuery(final Table table) {
+    protected String buildQuery(final Connection connection, final Table table) throws SQLException {
         // keep the string builder for readability
         final StringBuilder sql = new StringBuilder("CREATE TABLE");
         sql.append(" ");
@@ -56,7 +60,7 @@ public class SnowflakePlatform extends Platform {
         sql.append(identifier(table.getName()));
         sql.append("(");
         sql.append(createColumns(table.getColumns()));
-        sql.append(createPKs(table.getName(),
+        sql.append(createPKs(connection.getMetaData(), table.getName(),
                 table.getColumns().stream().filter(Column::isPrimaryKey).collect(Collectors.toList())));
         sql.append(")");
         // todo create index

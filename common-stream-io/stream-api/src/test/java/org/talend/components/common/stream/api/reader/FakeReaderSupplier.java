@@ -22,7 +22,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 public class FakeReaderSupplier implements RecordReaderSupplier {
 
     @Override
-    public RecordReader getReader(RecordBuilderFactory factory, ContentFormat config) {
+    public RecordReader getReader(RecordBuilderFactory factory, ContentFormat config, Object extraParameter) {
         Assertions.assertTrue(config instanceof FakeConfig);
         return new FakeReader();
     }

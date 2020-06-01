@@ -77,6 +77,8 @@ public interface I18nMessage {
 
     String errorUnsupportedType(String type, String field);
 
+    String errorUnsupportedBooleanType4Oracle(String field);
+
     //
     String actionOnDataInsert();
 

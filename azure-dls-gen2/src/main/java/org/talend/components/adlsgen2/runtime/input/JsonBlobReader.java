@@ -19,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.json.Json;
 import javax.json.JsonBuilderFactory;
@@ -43,8 +44,8 @@ public class JsonBlobReader extends BlobReader {
     private JsonBuilderFactory jsonFactoryBuilder;
 
     JsonBlobReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory,
-            JsonBuilderFactory jsonFactoryBuilder, AdlsGen2Service service) {
-        super(configuration, recordBuilderFactory, service);
+            JsonBuilderFactory jsonFactoryBuilder, AdlsGen2Service service, Map<String, Object> runtimeInfoMap) {
+        super(configuration, recordBuilderFactory, service, runtimeInfoMap);
         this.jsonFactoryBuilder = jsonFactoryBuilder;
     }
 
@@ -82,7 +83,7 @@ public class JsonBlobReader extends BlobReader {
             initMetadataIfNeeded();
             closePreviousInputStream();
             try {
-                currentItemInputStream = service.getBlobInputstream(configuration, getCurrentBlob());
+                currentItemInputStream = service.getBlobInputstream(configuration, getCurrentBlob(), getRuntimeInfoMap());
                 reader = Json.createReader((new InputStreamReader(currentItemInputStream, StandardCharsets.UTF_8)));
                 JsonStructure structure = reader.read();
                 if (structure == null) {

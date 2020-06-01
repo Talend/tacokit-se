@@ -14,7 +14,10 @@ package org.talend.components.netsuite.runtime.v2019_2.client;
 
 import org.talend.components.netsuite.runtime.client.NetSuiteClientFactory;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
+import org.talend.components.netsuite.runtime.client.NetSuiteCredentials;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
+import org.talend.components.netsuite.runtime.client.NsTokenPassport;
+import org.talend.components.netsuite.service.Messages;
 
 import com.netsuite.webservices.v2019_2.platform.NetSuitePortType;
 
@@ -27,7 +30,8 @@ public class NetSuiteClientFactoryImpl implements NetSuiteClientFactory<NetSuite
     }
 
     @Override
-    public NetSuiteClientService<NetSuitePortType> createClient() throws NetSuiteException {
-        return new NetSuiteClientServiceImpl();
+    public NetSuiteClientService<NetSuitePortType> createClient(String endpointUrl, NetSuiteCredentials credentials,
+            NsTokenPassport tokenPassport, Messages i18n) throws NetSuiteException {
+        return new NetSuiteClientServiceImpl(endpointUrl, credentials, tokenPassport, i18n);
     }
 }

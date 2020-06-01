@@ -1,0 +1,6 @@
+{
+  "data" : [
+    {"aaa" :  "hello", "bbb" :  "goodbye", "ddd":  "abc"},
+    {"aaa" :  "hello", "ccc" :  123, "ddd":  123}
+  ]
+}

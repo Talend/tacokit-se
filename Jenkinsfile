@@ -13,6 +13,20 @@ def dockerCredentials = usernamePassword(
     passwordVariable: 'DOCKER_PASSWORD',
     usernameVariable: 'DOCKER_LOGIN')
 
+def netsuiteCredentials = usernamePassword(
+                                credentialsId: 'netsuite-integration',
+                                usernameVariable: 'NETSUITE_INTEGRATION_USER',
+                                passwordVariable: 'NETSUITE_INTEGRATION_PASSWORD')
+
+def netsuiteConsumerCredentials = usernamePassword(
+                                credentialsId: 'netsuite-integration-consumer',
+                                usernameVariable: 'NETSUITE_INTEGRATION_CONSUMER_USER',
+                                passwordVariable: 'NETSUITE_INTEGRATION_CONSUMER_PASSWORD')
+
+def netsuiteTokenCredentials = usernamePassword(
+                                credentialsId: 'netsuite-integration-token',
+                                usernameVariable: 'NETSUITE_INTEGRATION_TOKEN_USER',
+                                passwordVariable: 'NETSUITE_INTEGRATION_TOKEN_PASSWORD')
 
 def PRODUCTION_DEPLOYMENT_REPOSITORY = "TalendOpenSourceSnapshot"
 
@@ -61,7 +75,7 @@ spec:
     }
 
     environment {
-        MAVEN_OPTS = '-Dmaven.artifact.threads=128 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss'
+        MAVEN_OPTS = "-Dmaven.artifact.threads=128 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss -Dtalend.maven.decrypter.m2.location=${WORKSPACE}/.jenkins/"
         TALEND_REGISTRY = 'registry.datapwn.com'
     }
 
@@ -93,18 +107,9 @@ spec:
                     // real task
                     withCredentials([
                             nexusCredentials
-                            , usernamePassword(
-                                credentialsId: 'netsuite-integration',
-                                usernameVariable: 'NETSUITE_INTEGRATION_USER',
-                                passwordVariable: 'NETSUITE_INTEGRATION_PASSWORD')
-                            , usernamePassword(
-                                credentialsId: 'netsuite-integration-consumer',
-                                usernameVariable: 'NETSUITE_INTEGRATION_CONSUMER_USER',
-                                passwordVariable: 'NETSUITE_INTEGRATION_CONSUMER_PASSWORD')
-                            , usernamePassword(
-                                credentialsId: 'netsuite-integration-token',
-                                usernameVariable: 'NETSUITE_INTEGRATION_TOKEN_USER',
-                                passwordVariable: 'NETSUITE_INTEGRATION_TOKEN_PASSWORD')
+                            , netsuiteCredentials
+                            , netsuiteConsumerCredentials
+                            , netsuiteTokenCredentials
                     ]) {
                         script {
                             sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/ -e ${talendOssRepositoryArg}"
@@ -229,7 +234,7 @@ spec:
                 }
             }
             steps {
-            	withCredentials([gitCredentials, nexusCredentials]) {
+            	withCredentials([gitCredentials, nexusCredentials, netsuiteCredentials, netsuiteConsumerCredentials, netsuiteTokenCredentials]) {
 					container('main') {
                         sh "sh .jenkins/release.sh"
               		}

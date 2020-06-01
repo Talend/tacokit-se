@@ -23,8 +23,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.output.RecordWriter;
 import org.talend.components.common.stream.api.output.TargetFinder;
-import org.talend.components.common.stream.format.Encoding;
-import org.talend.components.common.stream.format.Encoding.Type;
 import org.talend.components.common.stream.format.OptionalLine;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration.ExcelFormat;
@@ -47,8 +45,8 @@ class ExcelWriterTest {
         cfg.getHeader().setActive(true);
         cfg.getHeader().setSize(2);
 
-        cfg.setEncoding(new Encoding());
-        cfg.getEncoding().setEncodingType(Type.UFT8);
+        // cfg.setEncoding(new Encoding());
+        // cfg.getEncoding().setEncodingType(Type.UFT8);
 
         cfg.setExcelFormat(ExcelFormat.EXCEL2007);
         cfg.setSheetName("talend_sheet");

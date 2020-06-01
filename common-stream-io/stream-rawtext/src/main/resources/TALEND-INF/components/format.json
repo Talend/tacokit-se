@@ -1,0 +1,5 @@
+{
+  "org.talend.components.common.stream.format.rawtext.RawTextConfiguration": {
+    "reader": "org.talend.components.common.stream.input.rawtext.RawTextReaderSupplier"
+  }
+}

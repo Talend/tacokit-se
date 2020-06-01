@@ -65,7 +65,7 @@ public class PubSubPartitionMapper implements Serializable {
     public List<PubSubPartitionMapper> split(@PartitionSize final int desiredNbSplits) {
         String subscription = configuration.getDataSet().getSubscription();
         if (subscription == null || "".equals(subscription.trim())) {
-            subscription = UUID.randomUUID().toString();
+            subscription = "s" + UUID.randomUUID().toString();
             configuration.getDataSet().setSubscription(subscription);
         }
 
