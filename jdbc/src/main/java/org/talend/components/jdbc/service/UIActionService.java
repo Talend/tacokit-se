@@ -134,24 +134,22 @@ public class UIActionService {
 
     @Suggestions(ACTION_SUGGESTION_TABLE_COLUMNS_NAMES)
     public SuggestionValues getTableColumns(@Option final TableNameDataset dataset) {
-
         try (JdbcService.JdbcDatasource dataSource = jdbcService.createDataSource(dataset.getConnection());
                 Connection conn = dataSource.getConnection();
                 final Statement statement = conn.createStatement()) {
-                statement.setMaxRows(1);
-                try (final ResultSet result = statement.executeQuery(dataset.getQuery())) {
-                    return new SuggestionValues(true,
-                            IntStream.rangeClosed(1, result.getMetaData().getColumnCount()).mapToObj(i -> {
-                                try {
-                                    return result.getMetaData().getColumnName(i);
-                                } catch (SQLException e) {
-                                    e.printStackTrace();
-                                }
+            statement.setMaxRows(1);
+            try (final ResultSet result = statement.executeQuery(dataset.getQuery())) {
+                return new SuggestionValues(true, IntStream.rangeClosed(1, result.getMetaData().getColumnCount()).mapToObj(i -> {
+                    try {
+                        return result.getMetaData().getColumnName(i);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
 
-                                return null;
-                            }).filter(Objects::nonNull).map(columnName -> new SuggestionValues.Item(columnName, columnName))
-                                    .collect(toSet()));
-                }
+                    return null;
+                }).filter(Objects::nonNull).map(columnName -> new SuggestionValues.Item(columnName, columnName))
+                        .collect(toSet()));
+            }
         } catch (final Exception unexpected) {
             // catch all exceptions for this ui label to return empty list
             log.error(i18n.errorCantLoadTableSuggestions(), unexpected);
