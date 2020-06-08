@@ -134,8 +134,10 @@ public class UIActionService {
 
     @Suggestions(ACTION_SUGGESTION_TABLE_COLUMNS_NAMES)
     public SuggestionValues getTableColumns(@Option final TableNameDataset dataset) {
-        try (Connection conn = jdbcService.createDataSource(dataset.getConnection()).getConnection()) {
-            try (final Statement statement = conn.createStatement()) {
+
+        try (JdbcService.JdbcDatasource dataSource = jdbcService.createDataSource(dataset.getConnection());
+                Connection conn = dataSource.getConnection();
+                final Statement statement = conn.createStatement()) {
                 statement.setMaxRows(1);
                 try (final ResultSet result = statement.executeQuery(dataset.getQuery())) {
                     return new SuggestionValues(true,
@@ -150,7 +152,6 @@ public class UIActionService {
                             }).filter(Objects::nonNull).map(columnName -> new SuggestionValues.Item(columnName, columnName))
                                     .collect(toSet()));
                 }
-            }
         } catch (final Exception unexpected) {
             // catch all exceptions for this ui label to return empty list
             log.error(i18n.errorCantLoadTableSuggestions(), unexpected);
@@ -162,7 +163,8 @@ public class UIActionService {
     @Suggestions(ACTION_SUGGESTION_TABLE_NAMES)
     public SuggestionValues getTableFromDatabase(@Option final JdbcConnection datastore) {
         final Collection<SuggestionValues.Item> items = new HashSet<>();
-        try (Connection connection = jdbcService.createDataSource(datastore).getConnection()) {
+        try (JdbcService.JdbcDatasource dataSource = jdbcService.createDataSource(datastore);
+                Connection connection = dataSource.getConnection()) {
             final DatabaseMetaData dbMetaData = connection.getMetaData();
             try (ResultSet tables = dbMetaData.getTables(connection.getCatalog(), connection.getSchema(), null,
                     getAvailableTableTypes(dbMetaData).toArray(new String[0]))) {
