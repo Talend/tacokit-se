@@ -127,6 +127,11 @@
             <version>${avro.version}</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <scope>compile</scope>
+        </dependency>
         <!-- PARQUET format -->
         <dependency>
             <groupId>org.apache.parquet</groupId>
