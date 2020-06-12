@@ -18,6 +18,7 @@ def veracodeCredentials = usernamePassword(
         usernameVariable: 'VERACODE_ID')
 
 
+
 def netsuiteCredentials = usernamePassword(
                                 credentialsId: 'netsuite-integration',
                                 usernameVariable: 'NETSUITE_INTEGRATION_USER',
@@ -82,6 +83,10 @@ spec:
     environment {
         MAVEN_OPTS = "-Dmaven.artifact.threads=128 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss -Dtalend.maven.decrypter.m2.location=${WORKSPACE}/.jenkins/"
         TALEND_REGISTRY = 'registry.datapwn.com'
+
+        VERACODE_APP_NAME = 'Talend Component Kit'
+        VERACODE_SANDBOX = 'pteyssier'
+        APP_ID = '579232'
     }
 
     options {
@@ -165,12 +170,23 @@ spec:
                 stage('Vera code') {
                     steps {
                         container('main') {
-                            withCredentials([string(credentialsId: 'npm-credentials', variable: 'npmAuthToken'),
-                                             string(credentialsId: 'veracode-token', variable: 'SRCCLR_API_TOKEN')]) {
-                                sh '''
-                                    echo "//registry.npmjs.org/:_authToken=${npmAuthToken}" >> ~/.npmrc
-                                    curl -sSL https://download.sourceclear.com/ci.sh | DEBUG=1 sh -s -- scan
-                                '''
+                            withCredentials([veracodeCredentials]) {
+                                veracode applicationName: "$VERACODE_APP_NAME",
+                                    canFailJob: true,
+                                    createProfile: false,
+                                    debug: true,
+                                    copyRemoteFiles: true,
+                                    fileNamePattern: '',
+                                    useProxy: false,
+                                    replacementPattern: '',
+                                    sandboxName: "$VERACODE_SANDBOX",
+                                    scanExcludesPattern: '',
+                                    scanIncludesPattern: '',
+                                    scanName: "${env.BRANCH_NAME}-${currentBuild.number}-${currentBuild.startTimeInMillis}",
+                                    uploadExcludesPattern: '',
+                                    uploadIncludesPattern: '**/*.jar',
+                                    vid: "$VERACODE_ID",
+                                    vkey: "$VERACODE_KEY"
                             }
                         }
                     }
@@ -267,5 +283,26 @@ spec:
         failure {
             slackSend(color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})", channel: "${slackChannel}")
         }
+    }
+}
+
+private void runStaticScanAnalysis(veracodeCredentials) {
+    withCredentials([veracodeCredentials]) {
+        veracode applicationName: "$VERACODE_APP_NAME",
+                canFailJob: true,
+                createProfile: false,
+                debug: true,
+                fileNamePattern: "",
+                replacementPattern: "",
+                sandboxName: "$VERACODE_SANDBOX",
+                scanExcludesPattern: "",
+                scanIncludesPattern: "*/**.jar",
+                scanName: "$BUILD_NUMBER-$BUILD_TIMESTAMP",
+                uploadExcludesPattern: "",
+                uploadIncludesPattern: "*/**.jar",
+                timeout: 180,
+                waitForScan: true,
+                vid: "$VERACODE_ID",
+                vkey: "$VERACODE_KEY"
     }
 }
