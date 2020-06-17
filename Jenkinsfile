@@ -85,7 +85,7 @@ spec:
         TALEND_REGISTRY = 'registry.datapwn.com'
 
         VERACODE_APP_NAME = 'Talend Component Kit'
-        VERACODE_SANDBOX = 'pteyssier'
+        VERACODE_SANDBOX = 'connectors-se'
         APP_ID = '579232'
     }
 
