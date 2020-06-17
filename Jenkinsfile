@@ -180,6 +180,7 @@ spec:
                                     useProxy: false,
                                     replacementPattern: '',
                                     sandboxName: "$VERACODE_SANDBOX",
+                                    createSandbox: true,
                                     scanExcludesPattern: '',
                                     scanIncludesPattern: '',
                                     scanName: "${env.BRANCH_NAME}-${currentBuild.number}-${currentBuild.startTimeInMillis}",
