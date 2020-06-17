@@ -186,6 +186,7 @@ spec:
                                     scanName: "${env.BRANCH_NAME}-${currentBuild.number}-${currentBuild.startTimeInMillis}",
                                     uploadExcludesPattern: '',
                                     uploadIncludesPattern: '**/*.jar',
+                                    waitForScan: true,
                                     vid: "$VERACODE_ID",
                                     vkey: "$VERACODE_KEY"
                             }
