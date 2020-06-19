@@ -85,9 +85,9 @@ public class FTPInput implements Serializable {
     public Object next() {
         if (!init) {
             init = true;
-            pathIsFile = ftpService.pathIsFile(configuration.getDataSet());
+            GenericFTPClient currentClient = getFtpClient();
+            pathIsFile = ftpService.pathIsFile(currentClient, configuration.getDataSet().getPath());
             if (filesToRead == null) {
-                GenericFTPClient currentClient = getFtpClient();
                 try {
                     filesToRead = currentClient.listFiles(configuration.getDataSet().getPath(), f -> !(f.isDirectory()));
                 } catch (Exception e) {
@@ -124,7 +124,7 @@ public class FTPInput implements Serializable {
     private GenericFTPClient getFtpClient() {
         if (ftpClient == null || !ftpClient.isConnected()) {
             log.debug("Creating new client");
-            ftpClient = ftpService.getClient(configuration.getDataSet().getDatastore());
+            ftpClient = ftpService.getClient(configuration);
             if (configuration.isDebug()) {
                 ftpClient.enableDebug(log);
             }
@@ -138,7 +138,7 @@ public class FTPInput implements Serializable {
     @PreDestroy
     public void release() {
         if (ftpClient != null) {
-            ftpClient.disconnect();
+            ftpClient.close();
         }
         ftpClient = null;
     }

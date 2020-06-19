@@ -20,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.mockftpserver.fake.filesystem.DirectoryEntry;
 import org.mockftpserver.fake.filesystem.FileEntry;
+import org.mockftpserver.fake.filesystem.Permissions;
 import org.mockftpserver.fake.filesystem.UnixFakeFileSystem;
 import org.slf4j.impl.StaticLoggerBinder;
 import org.talend.components.common.stream.format.LineConfiguration;
@@ -27,6 +28,7 @@ import org.talend.components.ftp.dataset.FTPDataSet;
 import org.talend.components.ftp.datastore.FTPDataStore;
 import org.talend.components.ftp.jupiter.FtpFile;
 import org.talend.components.ftp.jupiter.FtpServer;
+import org.talend.components.ftp.service.FTPConnectorException;
 import org.talend.components.ftp.source.FTPInputConfiguration;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -42,6 +44,7 @@ import org.talend.sdk.component.junit.environment.builtin.beam.SparkRunnerEnviro
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.junit5.environment.EnvironmentalTest;
+import org.talend.sdk.component.runtime.base.lang.exception.InvocationExceptionWrapper;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
 import java.io.ByteArrayOutputStream;
@@ -91,6 +94,39 @@ public class FTPOutputTest {
         configuration = new FTPOutputConfiguration();
         configuration.setDataSet(dataset);
         configuration.setDebug(true);
+    }
+
+    // @EnvironmentalTest
+    public void testNonWritable(UnixFakeFileSystem fs) {
+        try {
+            DirectoryEntry nonwritable = new DirectoryEntry("/nonwritable");
+            nonwritable.setPermissions(new Permissions("r--r--r--"));
+            nonwritable.setOwner("root");
+            fs.add(nonwritable);
+
+            configuration.getDataSet().setPath("/nonwritable");
+            configuration.getDataSet().setFormat(FTPDataSet.Format.CSV);
+            configuration.getDataSet().getCsvConfiguration().setLineConfiguration(new LineConfiguration());
+
+            String configURI = SimpleFactory.configurationByExample().forInstance(configuration).configured().toQueryString();
+
+            Schema schema = rbf.newSchemaBuilder(Schema.Type.RECORD)
+                    .withEntry(rbf.newEntryBuilder().withName("k").withType(Schema.Type.STRING).build())
+                    .withEntry(rbf.newEntryBuilder().withName("v").withType(Schema.Type.STRING).build()).build();
+
+            List<Record> inputData = IntStream.range(0, 10)
+                    .mapToObj(i -> rbf.newRecordBuilder(schema).withString("k", "entry" + i).withString("v", "value" + i).build())
+                    .collect(Collectors.toList());
+
+            COMPONENTS.setInputData(inputData);
+
+            Job.components().component("source", "test://emitter").component("output", "FTP://FTPOutput?" + configURI)
+                    .connections().from("source").to("output").build().run();
+
+            Assertions.fail("Job should have thrown an exception");
+        } catch (InvocationExceptionWrapper.ComponentException ce) {
+            Assertions.assertEquals(FTPConnectorException.class.getName(), ce.getOriginalType());
+        }
     }
 
     @EnvironmentalTest

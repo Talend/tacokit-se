@@ -14,6 +14,7 @@ package org.talend.components.ftp.output;
 
 import lombok.Data;
 import org.talend.components.ftp.dataset.FTPDataSet;
+import org.talend.components.ftp.service.FTPConnectorConfiguration;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.condition.ActiveIfs;
@@ -28,7 +29,7 @@ import java.io.Serializable;
 @GridLayout({ @GridLayout.Row("dataSet"), @GridLayout.Row("limitBy"), @GridLayout.Row("recordsLimit"),
         @GridLayout.Row({ "sizeLimit", "sizeUnit" }), @GridLayout.Row("debug") })
 @Documentation("Configuration for FTP sink")
-public class FTPOutputConfiguration implements Serializable {
+public class FTPOutputConfiguration implements FTPConnectorConfiguration {
 
     @Option
     @Documentation("DataSet")
@@ -64,6 +65,11 @@ public class FTPOutputConfiguration implements Serializable {
             @ActiveIf(target = "limitBy", value = "SIZE_AND_RECORDS") })
     @Documentation("File size unit")
     private SizeUnit sizeUnit;
+
+    @Override
+    public String getConfigKey() {
+        return dataSet.getConfigKey() + "&debug=" + debug;
+    }
 
     public enum LimitBy {
         SIZE(0x01),

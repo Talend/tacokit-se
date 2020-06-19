@@ -64,6 +64,10 @@ public class FTPDataSet implements Serializable {
     @Documentation("Configuration for CSV format")
     private CSVConfiguration csvConfiguration = new CSVConfiguration();
 
+    public String getConfigKey() {
+        return datastore.getConfigKey() + "&path=" + path + "&format=" + format;
+    }
+
     public enum Format {
         CSV(FTPDataSet::getCsvConfiguration, "csv");
 

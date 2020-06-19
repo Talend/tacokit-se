@@ -201,7 +201,7 @@ spec:
                 container('main') {
                     withCredentials([nexusCredentials, string(credentialsId: 'xtm-token', variable: 'XTM_TOKEN')]) {
                         script {
-                            sh "mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-export"
+                            sh "mvn -e -B clean && mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-export"
                         }
                     }
                 }

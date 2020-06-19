@@ -46,4 +46,6 @@ public class GenericFTPFile implements Serializable {
     private long size;
 
     private boolean directory;
+
+    private boolean writable;
 }

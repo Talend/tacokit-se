@@ -59,7 +59,7 @@ public class FTPPartitionMapper implements Serializable {
 
     @Assessor
     public long estimateSize() {
-        try (GenericFTPClient ftpClient = ftpService.getClient(configuration.getDataSet().getDatastore())) {
+        try (GenericFTPClient ftpClient = ftpService.getClient(configuration)) {
             return ftpClient.listFiles(configuration.getDataSet().getPath()).stream().mapToLong(GenericFTPFile::getSize).sum();
 
         }
@@ -93,7 +93,7 @@ public class FTPPartitionMapper implements Serializable {
 
         List<FTPPartitionMapper> mappers = new ArrayList<>();
         List<GenericFTPFile> filesToRead = null;
-        try (GenericFTPClient ftpClient = ftpService.getClient(configuration.getDataSet().getDatastore())) {
+        try (GenericFTPClient ftpClient = ftpService.getClient(configuration)) {
             filesToRead = ftpClient.listFiles(configuration.getDataSet().getPath());
         }
 

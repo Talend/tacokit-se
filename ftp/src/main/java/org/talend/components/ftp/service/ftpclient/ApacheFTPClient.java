@@ -23,12 +23,14 @@ import org.apache.commons.net.util.TrustManagerUtils;
 import org.slf4j.Logger;
 import org.talend.components.ftp.datastore.FTPDataStore;
 import org.talend.components.ftp.output.FTPOutputConfiguration;
+import org.talend.components.ftp.service.FTPConnectorException;
 import org.talend.components.ftp.source.FTPInputConfiguration;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.nio.file.FileSystemException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
@@ -157,6 +159,11 @@ public class ApacheFTPClient extends GenericFTPClient {
         genericFTPFile.setName(getFilename(ftpFile.getName()));
         genericFTPFile.setDirectory(ftpFile.isDirectory());
         genericFTPFile.setSize(ftpFile.getSize());
+        genericFTPFile.setWritable(true);
+
+        // genericFTPFile.setWritable(ftpFile.hasPermission(FTPFile.USER_ACCESS, FTPFile.WRITE_PERMISSION)
+        // || ftpFile.hasPermission(FTPFile.GROUP_ACCESS, FTPFile.WRITE_PERMISSION)
+        // || ftpFile.hasPermission(FTPFile.WORLD_ACCESS, FTPFile.WRITE_PERMISSION));
 
         return genericFTPFile;
     }

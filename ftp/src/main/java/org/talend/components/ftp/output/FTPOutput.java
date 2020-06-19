@@ -45,6 +45,7 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.file.FileSystemException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -85,6 +86,9 @@ public class FTPOutput implements Serializable {
     public void onRecord(final Record record) {
         if (!init) {
             init = true;
+            if (!ftpService.hasWritePermission(configuration)) {
+                throw new FTPConnectorException(i18n.errorCannotWrite());
+            }
             String remoteDir = configuration.getDataSet().getPath();
             if (!remoteDir.endsWith("/")) {
                 remoteDir += "/";
@@ -169,7 +173,7 @@ public class FTPOutput implements Serializable {
 
     private GenericFTPClient getFtpClient() {
         if (ftpClient == null || !ftpClient.isConnected()) {
-            ftpClient = ftpService.getClient(configuration.getDataSet().getDatastore());
+            ftpClient = ftpService.getClient(configuration);
             if (configuration.isDebug()) {
                 ftpClient.enableDebug(log);
             }
@@ -184,7 +188,7 @@ public class FTPOutput implements Serializable {
     public void release() {
         closeStream();
         if (ftpClient != null && ftpClient.isConnected()) {
-            getFtpClient().disconnect();
+            ftpClient.close();
             ftpClient = null;
         }
     }

@@ -91,6 +91,11 @@ public class FTPDataStore implements Serializable {
     @DefaultValue("1000")
     private int keepAliveReplyTimeout = 1000;
 
+    public String getConfigKey() {
+        return "protocol=" + fileProtocol + "&trustType=" + trustType + "&host=" + host + "&port=" + port + "&username="
+                + username;
+    }
+
     public enum TrustType {
         ALL,
         VALID,
