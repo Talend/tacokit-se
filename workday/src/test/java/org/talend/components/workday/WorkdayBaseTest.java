@@ -12,17 +12,16 @@
  */
 package org.talend.components.workday;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
-import java.util.Properties;
-
+import lombok.extern.slf4j.Slf4j;
 import org.talend.components.workday.datastore.WorkdayDataStore;
 import org.talend.sdk.component.api.DecryptedServer;
 import org.talend.sdk.component.junit5.WithMavenServers;
 import org.talend.sdk.component.maven.Server;
 
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.util.Properties;
 
 @Slf4j
 @WithMavenServers

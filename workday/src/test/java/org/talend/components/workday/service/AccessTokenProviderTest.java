@@ -12,10 +12,6 @@
  */
 package org.talend.components.workday.service;
 
-import java.util.HashMap;
-
-import javax.json.bind.JsonbBuilder;
-
 import org.apache.xbean.propertyeditor.PropertyEditorRegistry;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -28,6 +24,9 @@ import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.runtime.manager.reflect.ParameterModelService;
 import org.talend.sdk.component.runtime.manager.reflect.ReflectionService;
 import org.talend.sdk.component.runtime.manager.service.http.HttpClientFactoryImpl;
+
+import javax.json.bind.JsonbBuilder;
+import java.util.HashMap;
 
 @HttpApi(useSsl = true)
 class AccessTokenProviderTest extends WorkdayBaseTest {

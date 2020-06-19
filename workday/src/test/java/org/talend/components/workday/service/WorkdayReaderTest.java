@@ -12,13 +12,6 @@
  */
 package org.talend.components.workday.service;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.bind.JsonbBuilder;
-
 import org.apache.xbean.propertyeditor.PropertyEditorRegistry;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -31,6 +24,12 @@ import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.runtime.manager.reflect.ParameterModelService;
 import org.talend.sdk.component.runtime.manager.reflect.ReflectionService;
 import org.talend.sdk.component.runtime.manager.service.http.HttpClientFactoryImpl;
+
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.json.bind.JsonbBuilder;
+import java.util.HashMap;
+import java.util.Map;
 
 @HttpApi(useSsl = true)
 class WorkdayReaderTest extends WorkdayBaseTest {

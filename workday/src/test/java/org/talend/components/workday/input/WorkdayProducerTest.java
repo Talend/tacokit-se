@@ -12,8 +12,6 @@
  */
 package org.talend.components.workday.input;
 
-import javax.json.JsonObject;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +24,8 @@ import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.junit5.WithMavenServers;
+
+import javax.json.JsonObject;
 
 @WithMavenServers
 @HttpApi(useSsl = true)

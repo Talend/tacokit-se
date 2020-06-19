@@ -12,32 +12,26 @@
  */
 package org.talend.components.workday.datastore;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
-@Getter
-@RequiredArgsConstructor
-public class Token {
+class TokenTest {
 
-    private final String accessToken;
+    @Test
+    void isTooOld() {
+        Token token = new Token("accesToken", "bearer", Instant.now());
+        Assertions.assertTrue(token.isTooOld());
 
-    private final String tokenType;
+        token = new Token("accesToken", "bearer", Instant.now().plus(20, ChronoUnit.SECONDS));
+        Assertions.assertTrue(token.isTooOld());
 
-    private final Instant expireDate;
+        Token token1 = new Token("accesToken", "bearer", Instant.now().minus(120, ChronoUnit.MINUTES));
+        Assertions.assertTrue(token1.isTooOld());
 
-    public String getAuthorizationHeaderValue() {
-        return tokenType + ' ' + accessToken;
-    }
-
-    /**
-     * No enough time to do operations.
-     * 
-     * @return true if too old (not enough time left)
-     */
-    public boolean isTooOld() {
-        return this.getExpireDate().isBefore(Instant.now().plus(30, ChronoUnit.SECONDS));
+        Token token2 = new Token("accesToken", "bearer", Instant.now().plus(120, ChronoUnit.MINUTES));
+        Assertions.assertFalse(token2.isTooOld());
     }
 }

@@ -63,8 +63,6 @@ public class WorkdayDataStore implements Serializable {
     @Documentation("Workday tenant alias")
     private String tenantAlias;
 
-    private transient Token token = null;
-
     public String getAuthorizationHeader() {
         final String idSecret = this.clientId + ':' + this.clientSecret;
         final String idForHeader = Base64.getEncoder().encodeToString(idSecret.getBytes(Charset.defaultCharset()));
