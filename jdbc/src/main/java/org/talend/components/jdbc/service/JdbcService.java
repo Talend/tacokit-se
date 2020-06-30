@@ -148,6 +148,9 @@ public class JdbcService {
             try {
                 thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
                 dataSource = new HikariDataSource();
+                if("MSSQL_JTDS".equals(driver.getId())){
+                    dataSource.setConnectionTestQuery("SELECT 1");
+                }
                 dataSource.setUsername(connection.getUserId());
                 dataSource.setPassword(connection.getPassword());
                 dataSource.setDriverClassName(driver.getClassName());
