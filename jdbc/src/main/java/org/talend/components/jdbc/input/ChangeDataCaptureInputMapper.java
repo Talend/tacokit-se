@@ -30,7 +30,6 @@ import static java.util.Collections.singletonList;
 @Icon(value = Icon.IconType.DATASTORE)
 @Documentation("JDBC input using stream table name")
 @PartitionMapper(name = "StreamTableNameInput", infinite = true)
-// @PartitionMapper(name = "StreamTableNameInput")
 public class ChangeDataCaptureInputMapper implements Serializable {
 
     private final InputCaptureDataChangeConfig inputConfig;

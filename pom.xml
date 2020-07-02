@@ -528,7 +528,7 @@
                         <id>talend-component-validate</id>
                         <phase>process-classes</phase>
                         <goals>
-<!-- active with new fix on validation for jdbc-ee                           <goal>validate</goal>-->
+                            <goal>validate</goal>
                         </goals>
                         <configuration>
                             <validateModel>${validation.model}</validateModel>
