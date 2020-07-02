@@ -13,6 +13,7 @@
 package org.talend.components.adlsgen2.runtime.input;
 
 import java.util.Iterator;
+import java.util.Map;
 
 import javax.json.JsonBuilderFactory;
 
@@ -31,21 +32,29 @@ public abstract class BlobReader {
 
     protected RecordBuilderFactory recordBuilderFactory;
 
+    private Map<String, Object> runtimeInfoMap;
+
     private RecordIterator iterator;
 
     protected InputConfiguration configuration;
 
     protected final AdlsGen2Service service;
 
-    public BlobReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory, AdlsGen2Service service) {
+    public BlobReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory, AdlsGen2Service service,
+            Map<String, Object> runtimeInfoMap) {
         this.recordBuilderFactory = recordBuilderFactory;
+        this.runtimeInfoMap = runtimeInfoMap;
         this.configuration = configuration;
         this.service = service;
-        Iterable<BlobInformations> blobItems = service.getBlobs(this.configuration.getDataSet());
+        Iterable<BlobInformations> blobItems = service.getBlobs(this.configuration.getDataSet(), runtimeInfoMap);
         iterator = initRecordIterator(blobItems);
     }
 
     protected abstract RecordIterator initRecordIterator(Iterable<BlobInformations> blobItems);
+
+    protected Map<String, Object> getRuntimeInfoMap() {
+        return runtimeInfoMap;
+    }
 
     public Record readRecord() {
         return iterator.next();
@@ -56,16 +65,16 @@ public abstract class BlobReader {
         private static JsonBuilderFactory jsonFactory;
 
         public static BlobReader getReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory,
-                JsonBuilderFactory jsonFactory, AdlsGen2Service service) {
+                JsonBuilderFactory jsonFactory, AdlsGen2Service service, Map<String, Object> runtimeInfoMap) {
             switch (configuration.getDataSet().getFormat()) {
             case CSV:
-                return new CsvBlobReader(configuration, recordBuilderFactory, service);
+                return new CsvBlobReader(configuration, recordBuilderFactory, service, runtimeInfoMap);
             case AVRO:
-                return new AvroBlobReader(configuration, recordBuilderFactory, service);
+                return new AvroBlobReader(configuration, recordBuilderFactory, service, runtimeInfoMap);
             case PARQUET:
-                return new ParquetBlobReader(configuration, recordBuilderFactory, service);
+                return new ParquetBlobReader(configuration, recordBuilderFactory, service, runtimeInfoMap);
             case JSON:
-                return new JsonBlobReader(configuration, recordBuilderFactory, jsonFactory, service);
+                return new JsonBlobReader(configuration, recordBuilderFactory, jsonFactory, service, runtimeInfoMap);
             default:
                 throw new IllegalArgumentException("Unsupported file format"); // shouldn't be here
             }

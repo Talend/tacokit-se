@@ -25,6 +25,8 @@ public interface I18n {
 
     String healthCheckSharedKey();
 
+    String healthCheckActiveDirectory();
+
     String undefinedType(String typeName);
 
     String cannotOverwriteBlob(String blobName);

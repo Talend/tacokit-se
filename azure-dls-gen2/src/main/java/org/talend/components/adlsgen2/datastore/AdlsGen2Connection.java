@@ -38,6 +38,9 @@ import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.Fo
         @GridLayout.Row("endpointSuffix"), //
         @GridLayout.Row("sharedKey"), //
         @GridLayout.Row("sas"), //
+        @GridLayout.Row("tenantId"), //
+        @GridLayout.Row("clientId"), //
+        @GridLayout.Row("clientSecret"), //
 })
 @GridLayout(names = ADVANCED, value = { @GridLayout.Row("timeout") })
 @Documentation("The datastore to connect Azure Data Lake Storage Gen2")
@@ -70,6 +73,22 @@ public class AdlsGen2Connection implements Serializable {
     private String sas;
 
     @Option
+    @ActiveIf(target = "authMethod", value = "ActiveDirectory")
+    @Documentation("ID of Azure active directory (tenant)")
+    private String tenantId;
+
+    @Option
+    @ActiveIf(target = "authMethod", value = "ActiveDirectory")
+    @Documentation("ID of Azure active directory authentication application")
+    private String clientId;
+
+    @Option
+    @ActiveIf(target = "authMethod", value = "ActiveDirectory")
+    @Credential
+    @Documentation("Secret key for provided auth application")
+    private String clientSecret;
+
+    @Option
     @Min(5)
     @Documentation("Timeout")
     private Integer timeout = 600;
@@ -81,6 +100,7 @@ public class AdlsGen2Connection implements Serializable {
     public enum AuthMethod {
         SharedKey,
         SAS,
+        ActiveDirectory
     }
 
 }

@@ -14,6 +14,7 @@ package org.talend.components.adlsgen2.runtime.input;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
 import org.apache.avro.file.DataFileStream;
 import org.apache.avro.generic.GenericDatumReader;
@@ -32,8 +33,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AvroBlobReader extends BlobReader {
 
-    public AvroBlobReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory, AdlsGen2Service service) {
-        super(configuration, recordBuilderFactory, service);
+    public AvroBlobReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory, AdlsGen2Service service,
+            Map<String, Object> runtimeInfoMap) {
+        super(configuration, recordBuilderFactory, service, runtimeInfoMap);
     }
 
     @Override
@@ -67,7 +69,7 @@ public class AvroBlobReader extends BlobReader {
         protected void readBlob() {
             closePreviousInputStream();
             try {
-                input = service.getBlobInputstream(configuration, getCurrentBlob());
+                input = service.getBlobInputstream(configuration, getCurrentBlob(), getRuntimeInfoMap());
                 DatumReader<GenericRecord> reader = new GenericDatumReader<>();
                 avroItemIterator = new DataFileStream<>(input, reader);
             } catch (Exception e) {

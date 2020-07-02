@@ -12,19 +12,14 @@
  */
 package org.talend.components.jdbc.datastore;
 
-import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_HANDLERS_DB;
-import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_SUPPORTED_DB;
-import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.OR;
-
-import java.io.Serializable;
-
+import lombok.Data;
+import lombok.ToString;
 import org.talend.components.jdbc.service.UIActionService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.action.Proposable;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
-import org.talend.sdk.component.api.configuration.condition.ActiveIfs;
 import org.talend.sdk.component.api.configuration.constraint.Min;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataStore;
@@ -32,14 +27,15 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import lombok.Data;
-import lombok.ToString;
+import java.io.Serializable;
+
+import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_HANDLERS_DB;
+import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_SUPPORTED_DB;
 
 @Data
-@ToString(exclude = { "password", "privateKey", "privateKeyPassword" })
-@GridLayout({ @GridLayout.Row({ "dbType", "handler" }), @GridLayout.Row("jdbcUrl"), @GridLayout.Row("authenticationType"),
-        @GridLayout.Row("userId"), @GridLayout.Row("password"), @GridLayout.Row("privateKey"),
-        @GridLayout.Row("privateKeyPassword") })
+@ToString(exclude = { "password" })
+@GridLayout({ @GridLayout.Row({ "dbType", "handler" }), @GridLayout.Row("jdbcUrl"), @GridLayout.Row("userId"),
+        @GridLayout.Row("password") })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("connectionTimeOut"),
         @GridLayout.Row("connectionValidationTimeOut") })
 @DataStore("JdbcConnection")
@@ -65,36 +61,14 @@ public class JdbcConnection implements Serializable {
     private String jdbcUrl;
 
     @Option
-    @ActiveIf(target = "dbType", value = "Snowflake")
-    @Documentation("Authentication type")
-    private AuthenticationType authenticationType = AuthenticationType.BASIC;
-
-    @Option
     @Required
     @Documentation("database user")
     private String userId;
 
     @Option
-    @ActiveIfs(value = { @ActiveIf(target = "dbType", value = "Snowflake", negate = true),
-            @ActiveIf(target = "authenticationType", value = "KEY_PAIR", negate = true) }, operator = OR)
     @Credential
     @Documentation("database password")
     private String password;
-
-    @Option
-    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"),
-            @ActiveIf(target = "authenticationType", value = "KEY_PAIR") })
-    @Credential
-    // @Required // Cannot be required due to: https://jira.talendforge.org/browse/TCOMP-1682
-    @Documentation("Private key")
-    private String privateKey;
-
-    @Option
-    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"),
-            @ActiveIf(target = "authenticationType", value = "KEY_PAIR") })
-    @Credential
-    @Documentation("Private key password")
-    private String privateKeyPassword;
 
     @Min(0)
     @Option

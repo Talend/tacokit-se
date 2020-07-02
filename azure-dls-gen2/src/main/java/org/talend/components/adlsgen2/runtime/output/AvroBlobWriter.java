@@ -14,6 +14,7 @@ package org.talend.components.adlsgen2.runtime.output;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Map;
 
 import javax.json.JsonBuilderFactory;
 
@@ -37,8 +38,8 @@ public class AvroBlobWriter extends BlobWriter {
     private AvroConverter converter;
 
     public AvroBlobWriter(OutputConfiguration configuration, RecordBuilderFactory recordBuilderFactory,
-            JsonBuilderFactory jsonFactory, AdlsGen2Service service) {
-        super(configuration, recordBuilderFactory, jsonFactory, service);
+            JsonBuilderFactory jsonFactory, AdlsGen2Service service, Map<String, Object> runtimeInfoMap) {
+        super(configuration, recordBuilderFactory, jsonFactory, service, runtimeInfoMap);
         converter = AvroConverter.of(recordBuilderFactory, configuration.getDataSet().getAvroConfiguration());
     }
 

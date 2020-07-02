@@ -18,7 +18,7 @@
 
     <groupId>org.talend.components</groupId>
     <artifactId>connectors-se</artifactId>
-    <version>1.10.0-SNAPSHOT</version>
+    <version>1.11.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Components</name>
@@ -81,14 +81,14 @@
     </distributionManagement>
 
     <properties>
-        <connectors-test-bom.version>1.10.0-SNAPSHOT</connectors-test-bom.version>
-        <common.version>1.10.0-SNAPSHOT</common.version>
+        <connectors-test-bom.version>1.11.0-SNAPSHOT</connectors-test-bom.version>
+        <common.version>1.11.0-SNAPSHOT</common.version>
 
         <timestamp.year>${maven.build.timestamp}</timestamp.year>
         <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <locales.version>[1.10,)</locales.version>
+        <locales.version>[1.11,)</locales.version>
 
         <component-runtime.version>1.1.20</component-runtime.version>
         <slf4j.version>1.7.28</slf4j.version>
@@ -108,6 +108,8 @@
 
         <commons-csv.version>1.4</commons-csv.version>
         <guava.version>20.0</guava.version>
+        <httpclient.version>4.5.10</httpclient.version>
+        <httpcore.version>4.4.12</httpcore.version>
 
         <talend_oss_snapshots>https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceSnapshot/
         </talend_oss_snapshots>
@@ -133,6 +135,7 @@
         <!-- should enforcing rules fail? Not yet, but soon! -->
         <enforcer.fail>false</enforcer.fail>
         <!-- component-runtime validations -->
+        <talend.validation.locale>root</talend.validation.locale>
         <validation.model>true</validation.model>
         <validation.placeholder>false</validation.placeholder>
         <validation.documentation>true</validation.documentation>
@@ -299,6 +302,16 @@
                 <groupId>com.nimbusds</groupId>
                 <artifactId>nimbus-jose-jwt</artifactId>
                 <version>${nimbus-jose-jwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${httpclient.version}</version>
+             </dependency>
+			 <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpcore</artifactId>
+                <version>${httpcore.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
