@@ -15,7 +15,7 @@ Each part has also a migration handler that:
 - Copy legacy value in duplication field
 - Update migration_handler_callback with a string built like "%from version% -> %to version% | yyyy/MM/dd HH:mm:ss"
 
-The current verion of the connector is available in org.talend.components.migration.conf.AbstractConfig.VERSION.
+The current version of the connector is available in org.talend.components.migration.conf.AbstractConfig.VERSION.
 
 There should be always at least three migration handlers : on for the datastore, one for the dataset, on for the connector.
 A proposal to have clean migration is that each migration handler should migrate only its scope.
