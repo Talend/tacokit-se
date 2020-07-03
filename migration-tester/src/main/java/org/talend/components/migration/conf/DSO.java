@@ -13,6 +13,7 @@
 package org.talend.components.migration.conf;
 
 import lombok.Data;
+import org.talend.components.migration.migration.DatastoreMigrationHandler;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.type.DataStore;
@@ -21,9 +22,9 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 
-@Version(AbstractConfig.VERSION)
-@GridLayout({ @GridLayout.Row({ "dso_legacy" }), @GridLayout.Row({ "dso_duplication" }),
-        @GridLayout.Row({ "dso_migration_handler_callback" }) })
+@Version(value = AbstractConfig.VERSION, migrationHandler = DatastoreMigrationHandler.class)
+@GridLayout({@GridLayout.Row({"dso_legacy"}), @GridLayout.Row({"dso_duplication"}),
+        @GridLayout.Row({"dso_migration_handler_callback"})})
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = {})
 @Data
 @DataStore("Datastore")

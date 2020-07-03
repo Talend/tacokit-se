@@ -13,15 +13,16 @@
 package org.talend.components.migration.conf;
 
 import lombok.Data;
+import org.talend.components.migration.migration.DatasetMigrationHandler;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
-@Version(AbstractConfig.VERSION)
-@GridLayout({ @GridLayout.Row({ "dso" }), @GridLayout.Row({ "dse_legacy" }), @GridLayout.Row({ "dse_duplication" }),
-        @GridLayout.Row({ "dse_migration_handler_callback" }) })
+@Version(value = AbstractConfig.VERSION, migrationHandler = DatasetMigrationHandler.class)
+@GridLayout({@GridLayout.Row({"dso"}), @GridLayout.Row({"dse_legacy"}), @GridLayout.Row({"dse_duplication"}),
+        @GridLayout.Row({"dse_migration_handler_callback"})})
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = {})
 @Data
 @DataSet("Dataset")
