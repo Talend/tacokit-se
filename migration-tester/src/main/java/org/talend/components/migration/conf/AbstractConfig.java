@@ -10,34 +10,30 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.migration.source;
+package org.talend.components.migration.conf;
 
-import lombok.extern.slf4j.Slf4j;
-import org.talend.components.migration.conf.Config;
-import org.talend.sdk.component.api.component.Icon;
+import lombok.Data;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.input.Producer;
+import org.talend.sdk.component.api.configuration.action.Suggestable;
+import org.talend.sdk.component.api.configuration.action.Updatable;
+import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.type.DataStore;
+import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
+import org.talend.sdk.component.api.meta.Documentation;
+import org.talend.sdk.component.api.configuration.type.DataSet;
+
+import org.talend.sdk.component.api.configuration.Option;
 
 import java.io.Serializable;
 
-@Slf4j
-@Version(1)
-@Icon(Icon.IconType.STAR)
-@org.talend.sdk.component.api.input.Emitter(name = "doNothingInput")
-@Documentation("Dummy connector to support migration handler.")
-public class DoNothing implements Serializable {
+public class AbstractConfig implements Serializable {
 
-    private final Config config;
+    public final static int VERSION = 2;
 
-    public DoNothing(@Option("configuration") final Config config) {
-        this.config = config;
-    }
-
-    @Producer
-    public Object next() {
-        return null;
-    }
+    @Option
+    @Documentation("The dataset")
+    DSE dse;
 
 }
