@@ -23,8 +23,8 @@ import org.talend.sdk.component.api.meta.Documentation;
 import java.io.Serializable;
 
 @Version(value = AbstractConfig.VERSION, migrationHandler = DatastoreMigrationHandler.class)
-@GridLayout({@GridLayout.Row({"dso_legacy"}), @GridLayout.Row({"dso_duplication"}),
-        @GridLayout.Row({"dso_migration_handler_callback"})})
+@GridLayout({ @GridLayout.Row({ "dso_legacy" }), @GridLayout.Row({ "dso_duplication" }),
+        @GridLayout.Row({ "dso_migration_handler_callback" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = {})
 @Data
 @DataStore("Datastore")
