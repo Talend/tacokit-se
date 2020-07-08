@@ -33,7 +33,7 @@ import java.io.Serializable;
 @Documentation("")
 public class DummySink implements Serializable {
 
-    private final AbstractConfig config;
+    private final SinkConfig config;
 
     private transient boolean done = false;
 
@@ -43,6 +43,7 @@ public class DummySink implements Serializable {
 
     @ElementListener
     public void doNothing(final Record in) {
+        log.info("Migration tester sink configuration :\n" + config);
     }
 
 }

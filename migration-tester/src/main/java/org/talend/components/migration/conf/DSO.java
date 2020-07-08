@@ -18,13 +18,15 @@ import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.type.DataStore;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.widget.Code;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 
 @Version(value = AbstractConfig.VERSION, migrationHandler = DatastoreMigrationHandler.class)
 @GridLayout({ @GridLayout.Row({ "dso_legacy" }), @GridLayout.Row({ "dso_duplication" }),
-        @GridLayout.Row({ "dso_migration_handler_callback" }) })
+        @GridLayout.Row({ "dso_migration_handler_callback" }), @GridLayout.Row({ "dso_incoming" }),
+        @GridLayout.Row({ "dso_outgoing" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = {})
 @Data
 @DataStore("Datastore")
@@ -42,4 +44,13 @@ public class DSO implements Serializable {
     @Documentation("Datastore migration handler callback")
     String dso_migration_handler_callback;
 
+    @Option
+    @Documentation("Incoming configuration")
+    @Code("json")
+    String dso_incoming;
+
+    @Option
+    @Documentation("Outgoing configuration")
+    @Code("json")
+    String dso_outgoing;
 }

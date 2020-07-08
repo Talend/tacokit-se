@@ -13,13 +13,17 @@
 package org.talend.components.migration.conf;
 
 import lombok.Data;
+import lombok.ToString;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.widget.Code;
 import org.talend.sdk.component.api.meta.Documentation;
 
 @Data
+@ToString
 @GridLayout({ @GridLayout.Row({ "dse" }), @GridLayout.Row({ "legacy" }), @GridLayout.Row({ "duplication" }),
-        @GridLayout.Row({ "sink_migration_handler_callback" }) })
+        @GridLayout.Row({ "sink_migration_handler_callback" }), @GridLayout.Row({ "sink_incoming" }),
+        @GridLayout.Row({ "sink_outgoing" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = {})
 public class SinkConfig extends AbstractConfig {
 
@@ -34,5 +38,15 @@ public class SinkConfig extends AbstractConfig {
     @Option
     @Documentation("Sink migration handler callback")
     String sink_migration_handler_callback;
+
+    @Option
+    @Documentation("Incoming configuration")
+    @Code("json")
+    String sink_incoming;
+
+    @Option
+    @Documentation("Outgoing configuration")
+    @Code("json")
+    String sink_outgoing;
 
 }

@@ -30,6 +30,8 @@ class SourceMigrationHandlerTest {
     @BeforeEach
     void buildIncomingData() {
         incomingData = new HashMap<>();
+        incomingData.put("configuration.source_incoming", "");
+        incomingData.put("configuration.source_outgoing", "");
         incomingData.put("configuration.dse.dso.dso_legacy", "legacy data");
         incomingData.put("configuration.dse.dso.dso_migration_handler_callback", "");
         incomingData.put("configuration.dse.dse_legacy", "legacy data");
@@ -54,6 +56,16 @@ class SourceMigrationHandlerTest {
         assertEquals(migrated.get("configuration.legacy"), "legacy data");
         assertEquals(migrated.get("configuration.duplication"), "legacy data");
         assertFalse(migrated.get("configuration.source_migration_handler_callback").isEmpty());
+
+        assertEquals(migrated.get("configuration.source_incoming"),
+                "{\n" + "\t\"configuration.dse.dse_migration_handler_callback\" : \"\",\n"
+                        + "\t\"configuration.dse.dso.dso_legacy\" : \"legacy data\",\n"
+                        + "\t\"configuration.dse.dse_legacy\" : \"legacy data\",\n"
+                        + "\t\"configuration.source_outgoing\" : \"\",\n" + "\t\"configuration.legacy\" : \"legacy data\",\n"
+                        + "\t\"configuration.dse.dso.dso_migration_handler_callback\" : \"\",\n"
+                        + "\t\"configuration.source_migration_handler_callback\" : \"\",\n"
+                        + "\t\"configuration.source_incoming\" : \"\"\n" + "}");
+        assertFalse(migrated.get("configuration.source_outgoing").isEmpty());
     }
 
 }

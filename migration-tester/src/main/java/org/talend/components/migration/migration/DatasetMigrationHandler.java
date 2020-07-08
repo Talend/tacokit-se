@@ -34,4 +34,14 @@ public class DatasetMigrationHandler extends AbstractTestMigrationHandler {
         return "dse_legacy";
     }
 
+    @Override
+    protected String getIncoming() {
+        return "dse_incoming";
+    }
+
+    @Override
+    protected String getOutgoing() {
+        return "dse_outgoing";
+    }
+
 }

@@ -15,11 +15,13 @@ package org.talend.components.migration.conf;
 import lombok.Data;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.widget.Code;
 import org.talend.sdk.component.api.meta.Documentation;
 
 @Data
 @GridLayout({ @GridLayout.Row({ "dse" }), @GridLayout.Row({ "legacy" }), @GridLayout.Row({ "duplication" }),
-        @GridLayout.Row({ "source_migration_handler_callback" }) })
+        @GridLayout.Row({ "source_migration_handler_callback" }), @GridLayout.Row({ "source_incoming" }),
+        @GridLayout.Row({ "source_outgoing" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = {})
 public class SourceConfig extends AbstractConfig {
 
@@ -35,4 +37,13 @@ public class SourceConfig extends AbstractConfig {
     @Documentation("Source migration handler callback")
     String source_migration_handler_callback;
 
+    @Option
+    @Documentation("Incoming configuration")
+    @Code("json")
+    String source_incoming;
+
+    @Option
+    @Documentation("Outgoing configuration")
+    @Code("json")
+    String source_outgoing;
 }

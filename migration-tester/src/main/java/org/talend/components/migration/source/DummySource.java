@@ -31,15 +31,21 @@ import java.io.Serializable;
 @Documentation("Dummy connector to support migration handler.")
 public class DummySource implements Serializable {
 
-    private final AbstractConfig config;
+    private final SourceConfig config;
+
+    private boolean done = false;
 
     public DummySource(@Option("configuration") final SourceConfig config) {
         this.config = config;
     }
 
     @Producer
-    public Object next() {
-        return null;
+    public SourceConfig next() {
+        if (done) {
+            return null;
+        }
+        done = true;
+        return config;
     }
 
 }

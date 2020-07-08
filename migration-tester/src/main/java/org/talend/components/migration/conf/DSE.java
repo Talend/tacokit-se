@@ -18,11 +18,13 @@ import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.widget.Code;
 import org.talend.sdk.component.api.meta.Documentation;
 
 @Version(value = AbstractConfig.VERSION, migrationHandler = DatasetMigrationHandler.class)
 @GridLayout({ @GridLayout.Row({ "dso" }), @GridLayout.Row({ "dse_legacy" }), @GridLayout.Row({ "dse_duplication" }),
-        @GridLayout.Row({ "dse_migration_handler_callback" }) })
+        @GridLayout.Row({ "dse_migration_handler_callback" }), @GridLayout.Row({ "dse_incoming" }),
+        @GridLayout.Row({ "dse_outgoing" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = {})
 @Data
 @DataSet("Dataset")
@@ -43,5 +45,15 @@ public class DSE {
     @Option
     @Documentation("Dataset migration handler callback")
     String dse_migration_handler_callback;
+
+    @Option
+    @Documentation("Incoming configuration")
+    @Code("json")
+    String dse_incoming;
+
+    @Option
+    @Documentation("Outgoing configuration")
+    @Code("json")
+    String dse_outgoing;
 
 }

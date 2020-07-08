@@ -34,11 +34,30 @@ public abstract class AbstractTestMigrationHandler implements MigrationHandler {
 
     @Override
     public Map<String, String> migrate(int incomingVersion, Map<String, String> incomingData) {
+        copyConfig(this.getIncoming(), incomingData);
+
         incomingData.put(getPrefix() + getCallbackPropertyName(), getMigrationVersions(incomingVersion) + " | " + this.current);
 
         copyFromLegacyToDuplication(incomingData);
 
+        copyConfig(this.getOutgoing(), incomingData);
+
         return incomingData;
+    }
+
+    private void copyConfig(final String property, final Map<String, String> incomingData) {
+
+        final StringBuilder sb = new StringBuilder();
+        sb.append("{").append("\n");
+        incomingData.entrySet().stream().forEach(e -> {
+            if (sb.length() > 2) {
+                sb.append(",\n");
+            }
+            sb.append("\t").append("\"").append(e.getKey()).append("\" : ").append("\"").append(e.getValue()).append("\"");
+        });
+        sb.append("\n}");
+
+        incomingData.put(getPrefix() + property, sb.toString());
     }
 
     /**
@@ -47,15 +66,18 @@ public abstract class AbstractTestMigrationHandler implements MigrationHandler {
      * @param incomingData
      * @return incomingData
      */
-    private Map<String, String> copyFromLegacyToDuplication(Map<String, String> incomingData) {
+    private void copyFromLegacyToDuplication(Map<String, String> incomingData) {
         final String legacy = incomingData.get(getPrefix() + getLegacy());
         incomingData.put(getPrefix() + getDuplication(), legacy);
-        return incomingData;
     }
 
     protected abstract String getDuplication();
 
     protected abstract String getLegacy();
+
+    protected abstract String getIncoming();
+
+    protected abstract String getOutgoing();
 
     private String getMigrationVersions(int incomingVersion) {
         return incomingVersion + " -> " + AbstractConfig.VERSION;

@@ -34,4 +34,14 @@ public class SourceMigrationHandler extends AbstractTestMigrationHandler {
         return "legacy";
     }
 
+    @Override
+    protected String getIncoming() {
+        return "source_incoming";
+    }
+
+    @Override
+    protected String getOutgoing() {
+        return "source_outgoing";
+    }
+
 }

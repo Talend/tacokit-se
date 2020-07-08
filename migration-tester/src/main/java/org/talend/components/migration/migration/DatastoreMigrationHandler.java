@@ -34,4 +34,14 @@ public class DatastoreMigrationHandler extends AbstractTestMigrationHandler {
         return "dso_legacy";
     }
 
+    @Override
+    protected String getIncoming() {
+        return "dso_incoming";
+    }
+
+    @Override
+    protected String getOutgoing() {
+        return "dso_outgoing";
+    }
+
 }

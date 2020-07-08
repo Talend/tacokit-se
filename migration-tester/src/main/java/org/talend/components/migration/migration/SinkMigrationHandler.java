@@ -34,4 +34,14 @@ public class SinkMigrationHandler extends AbstractTestMigrationHandler {
         return "legacy";
     }
 
+    @Override
+    protected String getIncoming() {
+        return "sink_incoming";
+    }
+
+    @Override
+    protected String getOutgoing() {
+        return "sink_outgoing";
+    }
+
 }

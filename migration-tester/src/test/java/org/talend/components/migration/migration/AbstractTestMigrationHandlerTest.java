@@ -33,6 +33,8 @@ class AbstractTestMigrationHandlerTest {
         incomingData.put("configuration.test_callback", "");
         incomingData.put("configuration.level1.level2.legacy", "legacy data");
         incomingData.put("configuration.level1.level2.duplication", "");
+        incomingData.put("configuration.incoming_conf", "");
+        incomingData.put("configuration.outgoing_conf", "");
     }
 
     @Test
@@ -54,6 +56,19 @@ class AbstractTestMigrationHandlerTest {
         Matcher m = p.matcher(sDate);
         assertTrue(m.matches());
 
+        final String incoming = "{\n" + "\t\"configuration.level1.level2.legacy\" : \"legacy data\",\n"
+                + "\t\"configuration.outgoing_conf\" : \"\",\n" + "\t\"configuration.incoming_conf\" : \"\",\n"
+                + "\t\"configuration.level1.level2.duplication\" : \"\",\n" + "\t\"configuration.test_callback\" : \"\"\n" + "}";
+        assertEquals(migrated.get("configuration.incoming_conf"), incoming);
+
+        final String outgoing = "{\n" + "\t\"configuration.level1.level2.legacy\" : \"legacy data\",\n"
+                + "\t\"configuration.outgoing_conf\" : \"\",\n" + "\t\"configuration.incoming_conf\" : \"{\n"
+                + "\t\"configuration.level1.level2.legacy\" : \"legacy data\",\n" + "\t\"configuration.outgoing_conf\" : \"\",\n"
+                + "\t\"configuration.incoming_conf\" : \"\",\n" + "\t\"configuration.level1.level2.duplication\" : \"\",\n"
+                + "\t\"configuration.test_callback\" : \"\"\n" + "}\",\n"
+                + "\t\"configuration.level1.level2.duplication\" : \"legacy data\",\n"
+                + "\t\"configuration.test_callback\" : \"1 -> " + AbstractConfig.VERSION + " | " + sDate + "\"\n" + "}";
+        assertEquals(migrated.get("configuration.outgoing_conf"), outgoing);
     }
 
     private final static class TestMigrationHandler extends AbstractTestMigrationHandler {
@@ -76,6 +91,16 @@ class AbstractTestMigrationHandlerTest {
         @Override
         protected String getLegacy() {
             return "level1.level2.legacy";
+        }
+
+        @Override
+        protected String getIncoming() {
+            return "incoming_conf";
+        }
+
+        @Override
+        protected String getOutgoing() {
+            return "outgoing_conf";
         }
     }
 }

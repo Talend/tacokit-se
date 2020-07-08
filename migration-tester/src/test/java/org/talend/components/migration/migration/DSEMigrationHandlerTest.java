@@ -34,6 +34,8 @@ class DSEMigrationHandlerTest {
         incomingData.put("dso.dso_migration_handler_callback", "");
         incomingData.put("dse_legacy", "legacy data");
         incomingData.put("dse_migration_handler_callback", "");
+        incomingData.put("dse_incoming", "");
+        incomingData.put("dse_outgoing", "");
     }
 
     @Test
@@ -44,6 +46,12 @@ class DSEMigrationHandlerTest {
         assertEquals(migrated.get("dse_legacy"), "legacy data");
         assertEquals(migrated.get("dse_duplication"), "legacy data");
         assertFalse(migrated.get("dse_migration_handler_callback").isEmpty());
+
+        assertEquals(migrated.get("dse_incoming"),
+                "{\n" + "\t\"dse_incoming\" : \"\",\n" + "\t\"dse_outgoing\" : \"\",\n"
+                        + "\t\"dso.dso_migration_handler_callback\" : \"\",\n" + "\t\"dse_legacy\" : \"legacy data\",\n"
+                        + "\t\"dse_migration_handler_callback\" : \"\",\n" + "\t\"dso.dso_legacy\" : \"legacy data\"\n" + "}");
+        assertFalse(migrated.get("dse_outgoing").isEmpty());
 
         assertEquals(migrated.get("dso.dso_legacy"), "legacy data");
         assertNull(migrated.get("dso.dso_duplication"));
