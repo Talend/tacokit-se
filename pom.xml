@@ -657,7 +657,7 @@
                             https://artifacts-zl.talend.com/nexus/content/groups/public
                         </talend.component.junit.maven.repositories>
                     </systemPropertyVariables>
-                    <argLine>-Dfile.encoding=UTF-8</argLine>
+                    <argLine>@{argLine} -Dfile.encoding=UTF-8</argLine>
                 </configuration>
             </plugin>
             <plugin>
