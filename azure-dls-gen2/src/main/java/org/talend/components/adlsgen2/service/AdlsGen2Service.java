@@ -137,7 +137,8 @@ public class AdlsGen2Service {
         return handleError(status, headers, null);
     }
 
-    private static AdlsGen2RuntimeException handleError(final int status, final Map<String, List<String>> headers, String errorMessage) {
+    private static AdlsGen2RuntimeException handleError(final int status, final Map<String, List<String>> headers,
+            String errorMessage) {
         StringBuilder sb = new StringBuilder();
         List<String> errors = headers.get(HeaderConstants.HEADER_X_MS_ERROR_CODE);
         if (errors != null && !errors.isEmpty()) {
