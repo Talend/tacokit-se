@@ -122,51 +122,51 @@ spec:
                             , netsuiteTokenCredentials
                     ]) {
                         script {
-                            sh "mvn -U -B -s .jenkins/settings.xml clean install -Dmaven.test.skip=true -PITs -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/ -e ${talendOssRepositoryArg}"
+                            sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/ -e ${talendOssRepositoryArg}"
                         }
                     }
                 }
             }
-            //post {
-            //    always {
-            //        junit testResults: '*/target/surefire-reports/*.xml', allowEmptyResults: true
-            //       publishHTML(target: [
-            //                allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true,
-            //                reportDir   : 'target/talend-component-kit', reportFiles: 'icon-report.html', reportName: "Icon Report"
-             //       ])
-             //       publishHTML(target: [
-            //                allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true,
-             //               reportDir   : 'target/talend-component-kit', reportFiles: 'repository-dependency-report.html', reportName: "Dependencies Report"
-             //       ])
-             //   }
-            //}
+            post {
+                always {
+                    junit testResults: '*/target/surefire-reports/*.xml', allowEmptyResults: true
+                    publishHTML(target: [
+                            allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true,
+                            reportDir   : 'target/talend-component-kit', reportFiles: 'icon-report.html', reportName: "Icon Report"
+                    ])
+                    publishHTML(target: [
+                            allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true,
+                            reportDir   : 'target/talend-component-kit', reportFiles: 'repository-dependency-report.html', reportName: "Dependencies Report"
+                    ])
+                }
+            }
         }
         stage('Post Build Steps') {
             when {
                 expression { params.Action == 'STANDARD' }
             }
             parallel {
-//                 stage('Documentation') {
-//                     steps {
-//                         container('main') {
-//                             withCredentials([dockerCredentials]) {
-//                                 sh """
-// 			                     |cd ci_documentation
-// 			                     |mvn -U -B -s .jenkins/settings.xml clean install -DskipTests
-// 			                     |chmod +x .jenkins/generate-doc.sh && .jenkins/generate-doc.sh
-// 			                     |""".stripMargin()
-//                             }
-//                         }
-//                     }
-//                     post {
-//                         always {
-//                             publishHTML(target: [
-//                                     allowMissing: true, alwaysLinkToLastBuild: false, keepAll: true,
-//                                     reportDir   : 'ci_documentation/target/talend-component-kit_documentation/', reportFiles: 'index.html', reportName: "Component Documentation"
-//                             ])
-//                         }
-//                     }
-//                 }
+                stage('Documentation') {
+                    steps {
+                        container('main') {
+                            withCredentials([dockerCredentials]) {
+                                sh """
+			                     |cd ci_documentation
+			                     |mvn -U -B -s .jenkins/settings.xml clean install -DskipTests
+			                     |chmod +x .jenkins/generate-doc.sh && .jenkins/generate-doc.sh
+			                     |""".stripMargin()
+                            }
+                        }
+                    }
+                    post {
+                        always {
+                            publishHTML(target: [
+                                    allowMissing: true, alwaysLinkToLastBuild: false, keepAll: true,
+                                    reportDir   : 'ci_documentation/target/talend-component-kit_documentation/', reportFiles: 'index.html', reportName: "Component Documentation"
+                            ])
+                        }
+                    }
+                }
                 stage('Vera code') {
                     steps {
                         container('main') {
@@ -193,30 +193,30 @@ spec:
                         }
                     }
                 }
-//                 stage('Site') {
-//                     steps {
-//                         container('main') {
-//                             sh 'cd ci_site && mvn -U -B -s .jenkins/settings.xml clean site site:stage -Dmaven.test.failure.ignore=true'
-//                         }
-//                     }
-//                     post {
-//                         always {
-//                             publishHTML(target: [
-//                                     allowMissing: true, alwaysLinkToLastBuild: false, keepAll: true,
-//                                     reportDir   : 'ci_site/target/staging', reportFiles: 'index.html', reportName: "Maven Site"
-//                             ])
-//                         }
-//                     }
-//                 }
-//                 stage('Nexus') {
-//                     steps {
-//                         container('main') {
-//                             withCredentials([nexusCredentials]) {
-//                                 sh "cd ci_nexus && mvn -U -B -s .jenkins/settings.xml clean deploy -e -Pdocker -DskipTests ${talendOssRepositoryArg}"
-//                             }
-//                         }
-//                     }
-//                 }
+                stage('Site') {
+                    steps {
+                        container('main') {
+                            sh 'cd ci_site && mvn -U -B -s .jenkins/settings.xml clean site site:stage -Dmaven.test.failure.ignore=true'
+                        }
+                    }
+                    post {
+                        always {
+                            publishHTML(target: [
+                                    allowMissing: true, alwaysLinkToLastBuild: false, keepAll: true,
+                                    reportDir   : 'ci_site/target/staging', reportFiles: 'index.html', reportName: "Maven Site"
+                            ])
+                        }
+                    }
+                }
+                stage('Nexus') {
+                    steps {
+                        container('main') {
+                            withCredentials([nexusCredentials]) {
+                                sh "cd ci_nexus && mvn -U -B -s .jenkins/settings.xml clean deploy -e -Pdocker -DskipTests ${talendOssRepositoryArg}"
+                            }
+                        }
+                    }
+                }
             }
         }
         stage('Push to Xtm') {
@@ -285,26 +285,5 @@ spec:
         failure {
             slackSend(color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})", channel: "${slackChannel}")
         }
-    }
-}
-
-private void runStaticScanAnalysis(veracodeCredentials) {
-    withCredentials([veracodeCredentials]) {
-        veracode applicationName: "$VERACODE_APP_NAME",
-                canFailJob: true,
-                createProfile: false,
-                debug: true,
-                fileNamePattern: "",
-                replacementPattern: "",
-                sandboxName: "$VERACODE_SANDBOX",
-                scanExcludesPattern: "",
-                scanIncludesPattern: "*/**.jar",
-                scanName: "$BUILD_NUMBER-$BUILD_TIMESTAMP",
-                uploadExcludesPattern: "",
-                uploadIncludesPattern: "*/**.jar",
-                timeout: 180,
-                waitForScan: true,
-                vid: "$VERACODE_ID",
-                vkey: "$VERACODE_KEY"
     }
 }
