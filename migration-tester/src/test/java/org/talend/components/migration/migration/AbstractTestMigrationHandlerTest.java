@@ -102,5 +102,10 @@ class AbstractTestMigrationHandlerTest {
         protected String getOutgoing() {
             return "outgoing_conf";
         }
+
+        @Override
+        protected void from(Map<String, String> incomingData) {
+
+        }
     }
 }

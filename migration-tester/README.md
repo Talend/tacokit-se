@@ -11,6 +11,9 @@ Each part has the same properties structure:
 - duplication
 - migration_handler_callback
 
+Some part has field xxx_from_yyyy. They try to be set by the yyyy handler since this field is xxx scope.
+For example xxx='dso' and yyy=sink : the field dso_from_sink is part of datastore, and the SinkMigrationHandler will try to update it whereas it is not part of its scope. 
+
 Each part has also a migration handler that:
 - Copy legacy value in duplication field
 - Update migration_handler_callback with a string built like "%from version% -> %to version% | yyyy/MM/dd HH:mm:ss"

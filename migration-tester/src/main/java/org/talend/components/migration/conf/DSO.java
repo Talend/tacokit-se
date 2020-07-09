@@ -26,7 +26,8 @@ import java.io.Serializable;
 @Version(value = AbstractConfig.VERSION, migrationHandler = DatastoreMigrationHandler.class)
 @GridLayout({ @GridLayout.Row({ "dso_legacy" }), @GridLayout.Row({ "dso_duplication" }),
         @GridLayout.Row({ "dso_migration_handler_callback" }), @GridLayout.Row({ "dso_incoming" }),
-        @GridLayout.Row({ "dso_outgoing" }) })
+        @GridLayout.Row({ "dso_outgoing" }), @GridLayout.Row({ "dso_from_dataset" }), @GridLayout.Row({ "dso_from_source" }),
+        @GridLayout.Row({ "dso_from_sink" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = {})
 @Data
 @DataStore("Datastore")
@@ -53,4 +54,16 @@ public class DSO implements Serializable {
     @Documentation("Outgoing configuration")
     @Code("json")
     String dso_outgoing;
+
+    @Option
+    @Documentation("Property updated from dataset migration handler")
+    String dso_from_dataset;
+
+    @Option
+    @Documentation("Property updated from source migration handler")
+    String dso_from_source;
+
+    @Option
+    @Documentation("Property updated from sink migration handler")
+    String dso_from_sink;
 }

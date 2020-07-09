@@ -12,6 +12,8 @@
  */
 package org.talend.components.migration.migration;
 
+import java.util.Map;
+
 public class SinkMigrationHandler extends AbstractTestMigrationHandler {
 
     @Override
@@ -42,6 +44,12 @@ public class SinkMigrationHandler extends AbstractTestMigrationHandler {
     @Override
     protected String getOutgoing() {
         return "sink_outgoing";
+    }
+
+    @Override
+    protected void from(final Map<String, String> incomingData) {
+        incomingData.put("configuration.dse.dse_from_sink", "from source");
+        incomingData.put("configuration.dse.dso.dso_from_sink", "from source");
     }
 
 }

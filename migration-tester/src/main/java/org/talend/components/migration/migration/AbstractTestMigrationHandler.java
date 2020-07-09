@@ -42,6 +42,8 @@ public abstract class AbstractTestMigrationHandler implements MigrationHandler {
 
         copyConfig(this.getOutgoing(), incomingData);
 
+        this.from(incomingData);
+
         return incomingData;
     }
 
@@ -78,6 +80,8 @@ public abstract class AbstractTestMigrationHandler implements MigrationHandler {
     protected abstract String getIncoming();
 
     protected abstract String getOutgoing();
+
+    protected abstract void from(final Map<String, String> incomingData);
 
     private String getMigrationVersions(int incomingVersion) {
         return incomingVersion + " -> " + AbstractConfig.VERSION;

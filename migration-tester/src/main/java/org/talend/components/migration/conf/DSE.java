@@ -21,14 +21,16 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Code;
 import org.talend.sdk.component.api.meta.Documentation;
 
+import java.io.Serializable;
+
 @Version(value = AbstractConfig.VERSION, migrationHandler = DatasetMigrationHandler.class)
 @GridLayout({ @GridLayout.Row({ "dso" }), @GridLayout.Row({ "dse_legacy" }), @GridLayout.Row({ "dse_duplication" }),
         @GridLayout.Row({ "dse_migration_handler_callback" }), @GridLayout.Row({ "dse_incoming" }),
-        @GridLayout.Row({ "dse_outgoing" }) })
+        @GridLayout.Row({ "dse_outgoing" }), @GridLayout.Row({ "dse_from_source" }), @GridLayout.Row({ "dse_from_sink" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = {})
 @Data
 @DataSet("Dataset")
-public class DSE {
+public class DSE implements Serializable {
 
     @Option
     @Documentation("The datastore")
@@ -55,5 +57,13 @@ public class DSE {
     @Documentation("Outgoing configuration")
     @Code("json")
     String dse_outgoing;
+
+    @Option
+    @Documentation("Property updated from source migration handler")
+    String dse_from_source;
+
+    @Option
+    @Documentation("Property updated from sink migration handler")
+    String dse_from_sink;
 
 }

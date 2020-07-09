@@ -12,6 +12,8 @@
  */
 package org.talend.components.migration.migration;
 
+import java.util.Map;
+
 public class DatasetMigrationHandler extends AbstractTestMigrationHandler {
 
     @Override
@@ -42,6 +44,11 @@ public class DatasetMigrationHandler extends AbstractTestMigrationHandler {
     @Override
     protected String getOutgoing() {
         return "dse_outgoing";
+    }
+
+    @Override
+    protected void from(final Map<String, String> incomingData) {
+        incomingData.put("dso.dso_from_dataset", "from dataset");
     }
 
 }
