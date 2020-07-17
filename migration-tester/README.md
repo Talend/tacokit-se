@@ -29,4 +29,17 @@ A proposal to have clean migration is that each migration handler should migrate
 Final applications have to well decide which migration handlers to call and when save migrated data.
 For example, when we open a dataset form, if its associated connection need a migration, what is the desired behavior ?
 We automatically call the migration handler of the connection and save it ?
-Or we rely on an automatic migration at runtime, the migration will be saved only if we open /save the form of the migration ? 
+Or we rely on an automatic migration at runtime, the migration will be saved only if we open /save the form of the migration ?
+
+The source connector will return a single row which is the received configuration. So it is possible to understand which migration
+handler has been called. Also, some newfield have been added :
+- xxx_incoming : the configuration recieved by the xxx migration handler
+- xxx_outgoing : the configuration after the migration
+
+Since version 100 of the connector, a new @Required property has been added in the connection (datastore) : dso_shouldNotBeEmpty.
+The connection migration handler set this property which is not set in previous version.
+An excetion is throw by the TCK framework if this prperty is not part of the configuration : 
+`- Property 'configuration.dse.dso.dso_shouldNotBeEmpty' is required.`
+
+So for example, in the row returned by the source connector, the property `configuration.dse.dso.dso_shouldNotBeEmpty`
+is not present in `configuration.dse.dso.dso_incoming` but should be in `configuration.dse.dso.dso_outgoing`. 
