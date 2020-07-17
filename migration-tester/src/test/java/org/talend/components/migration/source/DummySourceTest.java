@@ -17,7 +17,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.talend.components.migration.conf.DSE;
 import org.talend.components.migration.conf.DSO;
 import org.talend.components.migration.conf.SourceConfig;
-import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit.environment.Environment;
 import org.talend.sdk.component.junit.environment.EnvironmentConfiguration;
@@ -36,7 +35,8 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 
 @Slf4j
 @Environment(ContextualEnvironment.class)
-@EnvironmentConfiguration(environment = "Contextual", systemProperties = {}) // EnvironmentConfiguration is necessary for each
+@EnvironmentConfiguration(environment = "Contextual", systemProperties = {})
+// EnvironmentConfiguration is necessary for each
 // @Environment
 @Environment(SparkRunnerEnvironment.class)
 @EnvironmentConfiguration(environment = "Spark", systemProperties = {
@@ -72,6 +72,8 @@ class DummySourceTest {
     @EnvironmentalTest
     void testInput() {
 
+        config.getDse().getDso().setDso_shouldNotBeEmpty("set !");
+
         final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
         Job.components() //
                 .component("emitter", "Tester://dummySource?" + configStr) //
@@ -84,6 +86,29 @@ class DummySourceTest {
 
         final List<SourceConfig> records = handler.getCollectedData(SourceConfig.class);
         assertEquals(1, records.size());
+    }
+
+    @EnvironmentalTest
+    void testInputKo() {
+
+        final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
+
+        try {
+            Job.components() //
+                    .component("emitter", "Tester://dummySource?" + configStr) //
+                    .component("out", "test://collector") //
+                    .connections() //
+                    .from("emitter") //
+                    .to("out") //
+                    .build() //
+                    .run();
+
+            final List<SourceConfig> records = handler.getCollectedData(SourceConfig.class);
+            fail("Pipeline should not run since dso_shouldNotBeEmpty is not set.");
+        } catch (Exception e) {
+            assertEquals("- Property 'configuration.dse.dso.dso_shouldNotBeEmpty' is required.", e.getMessage());
+        }
+
     }
 
 }

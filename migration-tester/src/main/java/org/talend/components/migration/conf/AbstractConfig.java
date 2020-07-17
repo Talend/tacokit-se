@@ -33,7 +33,7 @@ public class AbstractConfig implements Serializable {
 
     public final static String TCK_MIGRATION_COMPONENT_VERSION_NAME = "TCK_MIGRATION_COMPONENT_VERSION";
 
-    public final static int VERSION = 11;
+    public final static int VERSION = 100;
 
     @Option
     @Documentation("The dataset")

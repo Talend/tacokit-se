@@ -45,6 +45,9 @@ class DSOMigrationHandlerTest {
                 "{\n" + "\t\"dso_outgoing\" : \"\",\n" + "\t\"dso_legacy\" : \"legacy data\",\n" + "\t\"dso_incoming\" : \"\",\n"
                         + "\t\"dso_migration_handler_callback\" : \"\"\n" + "}");
         assertFalse(migrated.get("dso_outgoing").isEmpty());
+
+        assertNotNull(migrated.get("dso_shouldNotBeEmpty"));
+        assertFalse(migrated.get("dso_shouldNotBeEmpty").isEmpty());
     }
 
 }

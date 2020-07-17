@@ -41,6 +41,12 @@ public class DummySource implements Serializable {
 
     @Producer
     public SourceConfig next() {
+        try {
+            config.getDse().getDso().getDso_shouldNotBeEmpty().trim();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("The dso_shouldNotBeEmpty property is not set !", e);
+        }
+
         if (done) {
             return null;
         }

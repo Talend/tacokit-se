@@ -43,6 +43,12 @@ public class DummySink implements Serializable {
 
     @ElementListener
     public void doNothing(final Record in) {
+        try {
+            config.getDse().getDso().getDso_shouldNotBeEmpty().trim();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("The dso_shouldNotBeEmpty property is not set !", e);
+        }
+
         log.info("Migration tester sink configuration :\n" + config);
     }
 

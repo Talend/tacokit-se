@@ -16,6 +16,7 @@ import lombok.Data;
 import org.talend.components.migration.migration.DatastoreMigrationHandler;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataStore;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Code;
@@ -28,7 +29,7 @@ import java.io.Serializable;
         @GridLayout.Row({ "dso_migration_handler_callback" }), @GridLayout.Row({ "dso_incoming" }),
         @GridLayout.Row({ "dso_outgoing" }), @GridLayout.Row({ "dso_from_dataset" }), @GridLayout.Row({ "dso_from_source" }),
         @GridLayout.Row({ "dso_from_sink" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = {})
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dso_shouldNotBeEmpty" }) })
 @Data
 @DataStore("Datastore")
 public class DSO implements Serializable {
@@ -66,4 +67,10 @@ public class DSO implements Serializable {
     @Option
     @Documentation("Property updated from sink migration handler")
     String dso_from_sink;
+
+    @Option
+    @Documentation("New property that add a breaking change with v100. If empty the source/sink connectors will generate an exception.")
+    @Required
+    String dso_shouldNotBeEmpty;
+
 }
