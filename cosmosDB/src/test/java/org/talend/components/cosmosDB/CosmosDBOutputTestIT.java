@@ -45,8 +45,6 @@ public class CosmosDBOutputTestIT extends CosmosDbTestBase {
     @Test
     public void createCollectionTest() {
         config.setAutoIDGeneration(true);
-        dataStore.setDatabaseID("ComponentQA");
-        dataSet.setDatastore(dataStore);
         dataSet.setCollectionID("pyzhouTest2");
         config.setDataset(dataSet);
         config.setPartitionKey("/id2");
@@ -62,8 +60,6 @@ public class CosmosDBOutputTestIT extends CosmosDbTestBase {
     @Test
     public void DeleteTest() {
         config.setAutoIDGeneration(true);
-        dataStore.setDatabaseID("ComponentQA");
-        dataSet.setDatastore(dataStore);
         dataSet.setCollectionID("Test1");
         config.setDataAction(DataAction.DELETE);
         config.setDataset(dataSet);

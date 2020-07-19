@@ -109,7 +109,6 @@ public class CosmosDBOutput implements Serializable {
                 // flexibility including string range queries.
                 RangeIndex index = new RangeIndex(DataType.String);
                 index.setPrecision(-1);
-                IndexingPolicy indexingPolicy = new IndexingPolicy();
 
                 collectionInfo.setIndexingPolicy(new IndexingPolicy(new Index[] { index }));
                 if (StringUtils.isNotEmpty(configuration.getPartitionKey())) {

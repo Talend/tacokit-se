@@ -12,7 +12,14 @@
  */
 package org.talend.components.cosmosDB;
 
+import com.microsoft.azure.documentdb.ConnectionPolicy;
+import com.microsoft.azure.documentdb.ConsistencyLevel;
+import com.microsoft.azure.documentdb.DocumentClient;
+import com.microsoft.azure.documentdb.DocumentClientException;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.talend.components.cosmosDB.dataset.QueryDataset;
@@ -28,12 +35,15 @@ import org.talend.sdk.component.junit.environment.Environment;
 import org.talend.sdk.component.junit.environment.builtin.beam.DirectRunnerEnvironment;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 
 @Environment(DirectRunnerEnvironment.class)
+@Slf4j
 public class CosmosDbTestBase {
 
     @ClassRule
@@ -57,9 +67,11 @@ public class CosmosDbTestBase {
 
     public static String serviceEndpoint;
 
-    public static String database;
+    public static String databaseID;
 
     public static String collectionID;
+
+    protected static final String uuid = UUID.randomUUID().toString();
 
     static {
         Properties prop = new Properties();
@@ -74,11 +86,10 @@ public class CosmosDbTestBase {
         } catch (java.io.IOException ex) {
             System.err.println("Did not find azure properties, you can still pass them with -D");
         }
-        accountName = System.getProperty("cosmos.accountName", "pyzhou");
         primaryKey = System.getProperty("cosmos.primaryKey", "");
         serviceEndpoint = System.getProperty("cosmos.serviceEndpoint", "accountKey");
-        database = System.getProperty("cosmos.databaseID", "pyzhou");
-        collectionID = System.getProperty("cosmos.collectionID", "secret");
+        databaseID = "database_" + uuid;
+        collectionID = "collection_" + uuid;
 
         System.setProperty("talend.junit.http.capture", "true");
     }
@@ -86,6 +97,20 @@ public class CosmosDbTestBase {
     protected CosmosDBDataStore dataStore;
 
     protected QueryDataset dataSet;
+
+    @BeforeClass
+    public static void prepareDatabse() throws IOException, DocumentClientException {
+        try (DocumentClient client = new DocumentClient(serviceEndpoint, primaryKey, new ConnectionPolicy(), ConsistencyLevel.Session);) {
+
+            CosmosTestUtils cosmosTestUtils = new CosmosTestUtils(client, databaseID, collectionID);
+            cosmosTestUtils.createDatabaseIfNotExists();
+            cosmosTestUtils.createDocumentCollectionIfNotExists(true);
+            cosmosTestUtils.insertDocument(
+                    "{\"lastName\":\"Wakefield\",\"address\":{\"city\":\"NY\",\"county\":\"Manhattan\",\"state\":\"NY\"},\"children\":[{\"pets\":[{\"givenName\":\"Goofy\"},{\"givenName\":\"Shadow\"}],\"firstName\":\"Jesse\",\"gender\":null,\"familyName\":\"Merriam\",\"grade\":8},{\"pets\":null,\"firstName\":\"Lisa\",\"gender\":\"female\",\"familyName\":\"Miller\",\"grade\":1}],\"district\":\"NY23\",\"registered\":true,\"id\":\"Wakefield.7\",\"parents\":[{\"firstName\":\"Robin\",\"familyName\":\"Wakefield\"},{\"firstName\":\"Ben\",\"familyName\":\"Miller\"}]}");
+            cosmosTestUtils.insertDocument(
+                    "{\"lastName\":\"Andersen\",\"address\":{\"city\":\"Seattle\",\"county\":\"King\",\"state\":\"WA\"},\"children\":null,\"district\":\"WA5\",\"registered\":true,\"id\":\"Andersen.1\",\"parents\":[{\"firstName\":\"Thomas\",\"familyName\":null},{\"firstName\":\"MaryKay\",\"familyName\":null}]}");
+        }
+    }
 
     @Before
     public void prepare() {
@@ -98,11 +123,18 @@ public class CosmosDbTestBase {
         dataStore = new CosmosDBDataStore();
         dataStore.setServiceEndpoint(serviceEndpoint);
         dataStore.setPrimaryKey(primaryKey);
-        dataStore.setDatabaseID(database);
+        dataStore.setDatabaseID(databaseID);
         dataSet = new QueryDataset();
         dataSet.setDatastore(dataStore);
         dataSet.setCollectionID(collectionID);
 
+    }
+
+    @AfterClass
+    public static void dropDatabase() throws DocumentClientException {
+        try(DocumentClient client = new DocumentClient(serviceEndpoint, primaryKey, new ConnectionPolicy(), ConsistencyLevel.Session);){
+            new CosmosTestUtils(client, databaseID, collectionID).dropDatabase();
+        }
     }
 
     protected List<Record> createData(int i) {
