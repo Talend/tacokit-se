@@ -12,12 +12,15 @@
  */
 package org.talend.components.cosmosDB;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.talend.components.cosmosDB.output.CosmosDBOutput;
 import org.talend.components.cosmosDB.output.CosmosDBOutputConfiguration;
 import org.talend.components.cosmosDB.output.DataAction;
 import org.talend.sdk.component.api.record.Record;
+
+import com.microsoft.azure.documentdb.DocumentClientException;
 
 public class CosmosDBOutputTestIT extends CosmosDbTestBase {
 
@@ -43,7 +46,7 @@ public class CosmosDBOutputTestIT extends CosmosDbTestBase {
     }
 
     @Test
-    public void createCollectionTest() {
+    public void createCollectionTest() throws DocumentClientException {
         config.setAutoIDGeneration(true);
         dataSet.setCollectionID("pyzhouTest2");
         config.setDataset(dataSet);
@@ -54,7 +57,10 @@ public class CosmosDBOutputTestIT extends CosmosDbTestBase {
         Record record = createData(1).get(0);
         cosmosDBOutput.onNext(record);
         cosmosDBOutput.release();
-        // no Exception means success
+        boolean exist = cosmosTestUtils.isCollectionExist("pyzhouTest2");
+        Assert.assertTrue(exist);
+        if (exist)
+            cosmosTestUtils.deleteCollection("pyzhouTest2");
     }
 
     @Test

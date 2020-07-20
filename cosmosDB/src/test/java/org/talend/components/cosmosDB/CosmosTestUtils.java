@@ -24,6 +24,7 @@ import com.microsoft.azure.documentdb.PartitionKeyDefinition;
 import com.microsoft.azure.documentdb.RangeIndex;
 import com.microsoft.azure.documentdb.RequestOptions;
 import com.microsoft.azure.documentdb.ResourceResponse;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -63,35 +64,37 @@ public class CosmosTestUtils {
         }
     }
 
-    public void createDocumentCollectionIfNotExists(boolean create) throws IOException, DocumentClientException {
-        String databaseLink = String.format("/dbs/%s", databaseID);
+    public boolean isCollectionExist(String collectionID) throws DocumentClientException {
         String collectionLink = String.format("/dbs/%s/colls/%s", databaseID, collectionID);
-
         try {
-            ResourceResponse<DocumentCollection> documentCollectionResourceResponse = client.readCollection(collectionLink, null);
-        } catch (DocumentClientException de) {
-            if (de.getStatusCode() == 404) {
-                if (create) {
-                    log.info("Collection [" + collectionID + "] will be created.");
-                    DocumentCollection collectionInfo = new DocumentCollection();
-                    collectionInfo.setId(collectionID);
-                    RangeIndex index = new RangeIndex(DataType.String);
-                    index.setPrecision(-1);
-                    collectionInfo.setIndexingPolicy(new IndexingPolicy(new Index[] { index }));
-                    PartitionKeyDefinition pkd = new PartitionKeyDefinition();
-                    pkd.setPaths(Arrays.asList("/lastName"));
-                    collectionInfo.setPartitionKey(pkd);
-                    RequestOptions requestOptions = new RequestOptions();
-                    requestOptions.setOfferThroughput(400);
-                    client.createCollection(databaseLink, collectionInfo, requestOptions);
-                    log.info("Collection [" + collectionID + "] created.");
-                } else {
-                    log.warn("Collection [" + collectionID + "] does not exist.");
-                }
-
-            }else{
-                throw de;
+            client.readCollection(collectionLink, null);
+        } catch (DocumentClientException e) {
+            if (e.getStatusCode() == 404) {
+                log.warn("Collection [" + collectionID + "] does not exist.");
+                return false;
+            } else {
+                throw e;
             }
+        }
+        return true;
+    }
+
+    public void createDocumentCollectionIfNotExists() throws IOException, DocumentClientException {
+        String databaseLink = String.format("/dbs/%s", databaseID);
+        if (!isCollectionExist(collectionID)) {
+            log.info("Collection [" + collectionID + "] will be created.");
+            DocumentCollection collectionInfo = new DocumentCollection();
+            collectionInfo.setId(collectionID);
+            RangeIndex index = new RangeIndex(DataType.String);
+            index.setPrecision(-1);
+            collectionInfo.setIndexingPolicy(new IndexingPolicy(new Index[] { index }));
+            PartitionKeyDefinition pkd = new PartitionKeyDefinition();
+            pkd.setPaths(Arrays.asList("/lastName"));
+            collectionInfo.setPartitionKey(pkd);
+            RequestOptions requestOptions = new RequestOptions();
+            requestOptions.setOfferThroughput(400);
+            client.createCollection(databaseLink, collectionInfo, requestOptions);
+            log.info("Collection [" + collectionID + "] created.");
         }
 
     }
@@ -122,13 +125,15 @@ public class CosmosTestUtils {
 
     public void dropDatabase() throws DocumentClientException {
         try {
-            client.deleteDatabase(databaseID, null);
+            client.deleteDatabase("/dbs/"+databaseID, null);
         } catch (DocumentClientException e) {
             if (!(e.getStatusCode() == 404)) {
                 log.error("Cannot Drop database: [" + databaseID + "] please deleted manually");
-//                this.deleteCollection();
+                 this.deleteCollection();
                 throw e;
             }
+        } finally {
+            client.close();
         }
     }
 }

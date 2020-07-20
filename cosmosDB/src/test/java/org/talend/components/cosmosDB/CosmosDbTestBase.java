@@ -71,7 +71,9 @@ public class CosmosDbTestBase {
 
     public static String collectionID;
 
-    protected static final String uuid = UUID.randomUUID().toString();
+    protected static final String uuid = UUID.randomUUID().toString().replaceAll("-", "");
+
+    protected static CosmosTestUtils cosmosTestUtils;
 
     static {
         Properties prop = new Properties();
@@ -100,16 +102,16 @@ public class CosmosDbTestBase {
 
     @BeforeClass
     public static void prepareDatabse() throws IOException, DocumentClientException {
-        try (DocumentClient client = new DocumentClient(serviceEndpoint, primaryKey, new ConnectionPolicy(), ConsistencyLevel.Session);) {
+        DocumentClient client = new DocumentClient(serviceEndpoint, primaryKey, new ConnectionPolicy(), ConsistencyLevel.Session);
 
-            CosmosTestUtils cosmosTestUtils = new CosmosTestUtils(client, databaseID, collectionID);
-            cosmosTestUtils.createDatabaseIfNotExists();
-            cosmosTestUtils.createDocumentCollectionIfNotExists(true);
-            cosmosTestUtils.insertDocument(
-                    "{\"lastName\":\"Wakefield\",\"address\":{\"city\":\"NY\",\"county\":\"Manhattan\",\"state\":\"NY\"},\"children\":[{\"pets\":[{\"givenName\":\"Goofy\"},{\"givenName\":\"Shadow\"}],\"firstName\":\"Jesse\",\"gender\":null,\"familyName\":\"Merriam\",\"grade\":8},{\"pets\":null,\"firstName\":\"Lisa\",\"gender\":\"female\",\"familyName\":\"Miller\",\"grade\":1}],\"district\":\"NY23\",\"registered\":true,\"id\":\"Wakefield.7\",\"parents\":[{\"firstName\":\"Robin\",\"familyName\":\"Wakefield\"},{\"firstName\":\"Ben\",\"familyName\":\"Miller\"}]}");
-            cosmosTestUtils.insertDocument(
-                    "{\"lastName\":\"Andersen\",\"address\":{\"city\":\"Seattle\",\"county\":\"King\",\"state\":\"WA\"},\"children\":null,\"district\":\"WA5\",\"registered\":true,\"id\":\"Andersen.1\",\"parents\":[{\"firstName\":\"Thomas\",\"familyName\":null},{\"firstName\":\"MaryKay\",\"familyName\":null}]}");
-        }
+        cosmosTestUtils = new CosmosTestUtils(client, databaseID, collectionID);
+        cosmosTestUtils.createDatabaseIfNotExists();
+        cosmosTestUtils.createDocumentCollectionIfNotExists();
+        cosmosTestUtils.insertDocument(
+                "{\"lastName\":\"Wakefield\",\"address\":{\"city\":\"NY\",\"county\":\"Manhattan\",\"state\":\"NY\"},\"children\":[{\"pets\":[{\"givenName\":\"Goofy\"},{\"givenName\":\"Shadow\"}],\"firstName\":\"Jesse\",\"gender\":null,\"familyName\":\"Merriam\",\"grade\":8},{\"pets\":null,\"firstName\":\"Lisa\",\"gender\":\"female\",\"familyName\":\"Miller\",\"grade\":1}],\"district\":\"NY23\",\"registered\":true,\"id\":\"Wakefield.7\",\"parents\":[{\"firstName\":\"Robin\",\"familyName\":\"Wakefield\"},{\"firstName\":\"Ben\",\"familyName\":\"Miller\"}]}");
+        cosmosTestUtils.insertDocument(
+                "{\"lastName\":\"Andersen\",\"address\":{\"city\":\"Seattle\",\"county\":\"King\",\"state\":\"WA\"},\"children\":null,\"district\":\"WA5\",\"registered\":true,\"id\":\"Andersen.1\",\"parents\":[{\"firstName\":\"Thomas\",\"familyName\":null},{\"firstName\":\"MaryKay\",\"familyName\":null}]}");
+
     }
 
     @Before
@@ -132,9 +134,7 @@ public class CosmosDbTestBase {
 
     @AfterClass
     public static void dropDatabase() throws DocumentClientException {
-        try(DocumentClient client = new DocumentClient(serviceEndpoint, primaryKey, new ConnectionPolicy(), ConsistencyLevel.Session);){
-            new CosmosTestUtils(client, databaseID, collectionID).dropDatabase();
-        }
+        cosmosTestUtils.dropDatabase();
     }
 
     protected List<Record> createData(int i) {
