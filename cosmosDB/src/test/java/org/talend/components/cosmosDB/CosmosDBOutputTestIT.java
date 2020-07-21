@@ -12,6 +12,8 @@
  */
 package org.talend.components.cosmosDB;
 
+import com.microsoft.azure.documentdb.Document;
+import com.microsoft.azure.documentdb.DocumentClientException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,8 +21,6 @@ import org.talend.components.cosmosDB.output.CosmosDBOutput;
 import org.talend.components.cosmosDB.output.CosmosDBOutputConfiguration;
 import org.talend.components.cosmosDB.output.DataAction;
 import org.talend.sdk.component.api.record.Record;
-
-import com.microsoft.azure.documentdb.DocumentClientException;
 
 public class CosmosDBOutputTestIT extends CosmosDbTestBase {
 
@@ -35,7 +35,7 @@ public class CosmosDBOutputTestIT extends CosmosDbTestBase {
     }
 
     @Test
-    public void outputTest() {
+    public void outputTest() throws DocumentClientException {
         config.setAutoIDGeneration(true);
         CosmosDBOutput cosmosDBOutput = new CosmosDBOutput(config, service, i18n);
         cosmosDBOutput.init();
@@ -43,6 +43,9 @@ public class CosmosDBOutputTestIT extends CosmosDbTestBase {
         cosmosDBOutput.onNext(record);
         cosmosDBOutput.release();
         // no Exception means success
+        Document document = cosmosTestUtils.readDocuments(collectionID, record.getString("id"),"firstfirst");
+        Assert.assertTrue(this.recordEqual(record, document));
+
     }
 
     @Test
@@ -66,16 +69,21 @@ public class CosmosDBOutputTestIT extends CosmosDbTestBase {
     @Test
     public void DeleteTest() {
         config.setAutoIDGeneration(true);
-        dataSet.setCollectionID("Test1");
         config.setDataAction(DataAction.DELETE);
-        config.setDataset(dataSet);
-        config.setPartitionKeyForDelete("address");
+        config.setPartitionKeyForDelete("lastName");
         config.setCreateCollection(true);
         CosmosDBOutput cosmosDBOutput = new CosmosDBOutput(config, service, i18n);
         cosmosDBOutput.init();
         Record record = createData3().get(0);
         cosmosDBOutput.onNext(record);
         cosmosDBOutput.release();
-        // no Exception means success
+        try {
+            cosmosTestUtils.readDocuments(collectionID,"Andersen.1","Andersen");
+            Assert.fail();
+        } catch (DocumentClientException e) {
+            Assert.assertEquals(404,e.getStatusCode());
+        }
+
+
     }
 }

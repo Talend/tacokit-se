@@ -47,13 +47,12 @@ public class CosmosInputTestIT extends CosmosDbTestBase {
     @Test
     public void withoutQueryTest() {
         dataSet.setUseQuery(false);
-        dataSet.setQuery("SELECT {\"Name\":f.id, \"City\":f.address.city} AS Family   FROM Families f");
+        dataSet.setQuery("SELECT {\"Name\":f.id, \"City\":f.address.city} AS Family   FROM "+collectionID+" f  WHERE f.address.county = \"Manhattan\"");
         config.setDataset(dataSet);
         CosmosDBInput input = new CosmosDBInput(config, service, recordBuilderFactory, i18n);
         input.init();
         Record next = input.next();
         input.release();
         Assert.assertNotNull(next);
-
     }
 }

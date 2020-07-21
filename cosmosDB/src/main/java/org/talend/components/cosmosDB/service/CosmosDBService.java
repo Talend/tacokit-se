@@ -76,7 +76,7 @@ public class CosmosDBService {
     public HealthCheckStatus healthCheck(@Option("configuration.dataset.connection") final CosmosDBDataStore datastore) {
         String databaseID = datastore.getDatabaseID();
         if (StringUtils.isEmpty(databaseID)) {
-            return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18n.vacantDBID());
+            return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.vacantDBID());
         }
         try (DocumentClient client = documentClientFrom(datastore)) {
             String databaseLink = String.format("/dbs/%s", databaseID);

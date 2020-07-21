@@ -20,11 +20,11 @@ import com.microsoft.azure.documentdb.DocumentClientException;
 import com.microsoft.azure.documentdb.DocumentCollection;
 import com.microsoft.azure.documentdb.Index;
 import com.microsoft.azure.documentdb.IndexingPolicy;
+import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.documentdb.PartitionKeyDefinition;
 import com.microsoft.azure.documentdb.RangeIndex;
 import com.microsoft.azure.documentdb.RequestOptions;
 import com.microsoft.azure.documentdb.ResourceResponse;
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -97,6 +97,16 @@ public class CosmosTestUtils {
             log.info("Collection [" + collectionID + "] created.");
         }
 
+    }
+
+
+    public Document readDocuments(String collectionID, String documentID, String partitionKey) throws DocumentClientException {
+        String collectionLink = String.format("/dbs/%s/colls/%s/docs/%s", databaseID, collectionID,documentID);
+        RequestOptions requestOptions = new RequestOptions();
+        requestOptions.setPartitionKey(new PartitionKey(partitionKey));
+        requestOptions.setOfferThroughput(400);
+        ResourceResponse<Document> documentResourceResponse = client.readDocument(collectionLink, requestOptions);
+        return documentResourceResponse.getResource();
     }
 
     public void deleteCollection(String collectionID) throws DocumentClientException {
