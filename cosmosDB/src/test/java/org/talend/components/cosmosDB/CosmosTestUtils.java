@@ -99,9 +99,8 @@ public class CosmosTestUtils {
 
     }
 
-
     public Document readDocuments(String collectionID, String documentID, String partitionKey) throws DocumentClientException {
-        String collectionLink = String.format("/dbs/%s/colls/%s/docs/%s", databaseID, collectionID,documentID);
+        String collectionLink = String.format("/dbs/%s/colls/%s/docs/%s", databaseID, collectionID, documentID);
         RequestOptions requestOptions = new RequestOptions();
         requestOptions.setPartitionKey(new PartitionKey(partitionKey));
         requestOptions.setOfferThroughput(400);
@@ -135,11 +134,11 @@ public class CosmosTestUtils {
 
     public void dropDatabase() throws DocumentClientException {
         try {
-            client.deleteDatabase("/dbs/"+databaseID, null);
+            client.deleteDatabase("/dbs/" + databaseID, null);
         } catch (DocumentClientException e) {
             if (!(e.getStatusCode() == 404)) {
                 log.error("Cannot Drop database: [" + databaseID + "] please deleted manually");
-                 this.deleteCollection();
+                this.deleteCollection();
                 throw e;
             }
         } finally {

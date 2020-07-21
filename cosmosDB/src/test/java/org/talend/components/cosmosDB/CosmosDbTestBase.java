@@ -149,14 +149,12 @@ public class CosmosDbTestBase {
         for (; i > 0; i--) {
             Record record = recordBuilderFactory.newRecordBuilder() //
                     .withInt("id2", i) //
-                    .withString("id", "" + i)
-                    .withString("lastName", "firstfirst") //
+                    .withString("id", "" + i).withString("lastName", "firstfirst") //
                     .withDouble("double", 3.555) //
                     .withLong("long", 7928342L) //
                     .withInt("int", 3242342) //
-                     .withRecord("record", createData2(1).get(0)) //
-                    .withBytes("bytes", "YOasdfe2232".getBytes())
-                    .withDateTime("Date1", new Date(435352454530l)).build();
+                    .withRecord("record", createData2(1).get(0)) //
+                    .withBytes("bytes", "YOasdfe2232".getBytes()).withDateTime("Date1", new Date(435352454530l)).build();
 
             records.add(record);
         }
@@ -200,73 +198,68 @@ public class CosmosDbTestBase {
         return records;
     }
 
-
-    protected boolean recordEqual(Record record,Document document){
+    protected boolean recordEqual(Record record, Document document) {
         Schema schema = record.getSchema();
         List<Schema.Entry> entries = schema.getEntries();
         boolean result = true;
         Base64.Decoder decoder = Base64.getDecoder();
-        for (Schema.Entry entry : entries){
+        for (Schema.Entry entry : entries) {
+            switch (entry.getType()) {
+            case BYTES:
+                byte[] decode = decoder.decode(String.valueOf(document.get(entry.getName())).getBytes());
+                boolean equals1 = new String(record.getBytes(entry.getName())).equals(new String(decode));
+                result = result && equals1;
+                break;
+            case DATETIME:
+                String format = record.getDateTime(entry.getName()).format(DateTimeFormatter.ISO_DATE_TIME);
+                result = result && format.equals(document.get(entry.getName()));
+                break;
+            case LONG:
+                Long aLong = record.getLong(entry.getName());
+                result = result && aLong.equals(Long.valueOf(String.valueOf(document.get(entry.getName()))));
+                break;
+            case RECORD:
+                ;
+                result = result
+                        && recordEqual(record.getRecord(entry.getName()), new Document(document.get(entry.getName()).toString()));
+                break;
 
-            System.out.println(entry.getName()+"  :  " + entry.getType());
-            document.get(entry.getName());
-
-            switch (entry.getType()){
-                case BYTES:
-                    byte[] decode = decoder.decode(String.valueOf(document.get(entry.getName())).getBytes());
-                    boolean equals1 = new String(record.getBytes(entry.getName())).equals(new String(decode));
-                    result = result && equals1;
-                    break;
-                case DATETIME:
-                    String format = record.getDateTime(entry.getName()).format(DateTimeFormatter.ISO_DATE_TIME);
-                    result = result && format.equals(document.get(entry.getName()));
-                    break;
-                case LONG:
-                    Long aLong = record.getLong(entry.getName());
-                    result = result && aLong.equals(Long.valueOf(String.valueOf(document.get(entry.getName()))));
-                    break;
-                case RECORD:;
-                    result = result && recordEqual(record.getRecord(entry.getName()),new Document(document.get(entry.getName()).toString()));
-                    break;
-
-                default:
-                    Object o = record.get(getEntryClass(entry), entry.getName());
-                    if(o !=null){
-                        result = result && o.equals(document.get(entry.getName()));
-                    }else{
-                        result = result && (document.get(entry.getName()) == null);
+            default:
+                Object o = record.get(getEntryClass(entry), entry.getName());
+                if (o != null) {
+                    result = result && o.equals(document.get(entry.getName()));
+                } else {
+                    result = result && (document.get(entry.getName()) == null);
                 }
             }
         }
         return result;
     }
 
+    public Class getEntryClass(Schema.Entry entry) {
 
-
-    public Class getEntryClass(Schema.Entry entry){
-
-        switch (entry.getType()){
-            case STRING:
-                return String.class;
-            case INT:
-                return Integer.class;
-            case RECORD:
-                return Object.class;
-            case LONG:
-                return Long.class;
-            case DATETIME:
-                return ZonedDateTime.class;
-            case ARRAY:
-                return Collection.class;
-            case FLOAT:
-            case DOUBLE:
-                return Double.class;
-            case BOOLEAN:
-                return Boolean.class;
-            case BYTES:
-                return byte[].class;
-                default:
-                    return String.class;
+        switch (entry.getType()) {
+        case STRING:
+            return String.class;
+        case INT:
+            return Integer.class;
+        case RECORD:
+            return Object.class;
+        case LONG:
+            return Long.class;
+        case DATETIME:
+            return ZonedDateTime.class;
+        case ARRAY:
+            return Collection.class;
+        case FLOAT:
+        case DOUBLE:
+            return Double.class;
+        case BOOLEAN:
+            return Boolean.class;
+        case BYTES:
+            return byte[].class;
+        default:
+            return String.class;
 
         }
 

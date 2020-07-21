@@ -42,8 +42,7 @@ public class CosmosDBOutputTestIT extends CosmosDbTestBase {
         Record record = createData(1).get(0);
         cosmosDBOutput.onNext(record);
         cosmosDBOutput.release();
-        // no Exception means success
-        Document document = cosmosTestUtils.readDocuments(collectionID, record.getString("id"),"firstfirst");
+        Document document = cosmosTestUtils.readDocuments(collectionID, record.getString("id"), "firstfirst");
         Assert.assertTrue(this.recordEqual(record, document));
 
     }
@@ -78,12 +77,11 @@ public class CosmosDBOutputTestIT extends CosmosDbTestBase {
         cosmosDBOutput.onNext(record);
         cosmosDBOutput.release();
         try {
-            cosmosTestUtils.readDocuments(collectionID,"Andersen.1","Andersen");
+            cosmosTestUtils.readDocuments(collectionID, "Andersen.1", "Andersen");
             Assert.fail();
         } catch (DocumentClientException e) {
-            Assert.assertEquals(404,e.getStatusCode());
+            Assert.assertEquals(404, e.getStatusCode());
         }
-
 
     }
 }
