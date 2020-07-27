@@ -181,7 +181,7 @@ spec:
                     steps {
                         container('main') {
                             withCredentials([sonarCredentials]) {
-                                sh "mvn ${SONAR_OPTS} -Dsonar.login='$SONAR_LOGIN' -Dsonar.password='$SONAR_PASSWORD' sonar:sonar  -s .jenkins/settings.xml"
+                                sh "mvn -Dsonar.host.url=https://sonar-eks.datapwn.com -Dsonar.login=$SONAR_LOGIN -Dsonar.password=$SONAR_PASSWORD org.sonarsource.scanner.maven:sonar-maven-plugin:3.7.0.1746:sonar  -s .jenkins/settings.xml"
                             }
                         }
                     }
