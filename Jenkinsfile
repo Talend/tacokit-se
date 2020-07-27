@@ -181,7 +181,7 @@ spec:
                     steps {
                         container('main') {
                             withCredentials([sonarCredentials]) {
-                                sh "mvn $SONAR_OPTS -Dsonar.login="$SONAR_LOGIN" -Dsonar.password="$SONAR_PASSWORD" sonar:sonar  -s .jenkins/settings.xml"
+                                sh "mvn ${SONAR_OPTS} -Dsonar.login='$SONAR_LOGIN' -Dsonar.password='$SONAR_PASSWORD' sonar:sonar  -s .jenkins/settings.xml"
                             }
                         }
                     }
