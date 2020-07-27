@@ -12,7 +12,10 @@ def dockerCredentials = usernamePassword(
 	credentialsId: 'docker-registry-credentials',
     passwordVariable: 'DOCKER_PASSWORD',
     usernameVariable: 'DOCKER_LOGIN')
-
+def sonarCredentials = usernamePassword(
+    credentialsId: 'sonar-credentials',
+    passwordVariable: 'SONAR_PASSWORD', 
+    usernameVariable: 'SONAR_LOGIN')
 
 def PRODUCTION_DEPLOYMENT_REPOSITORY = "TalendOpenSourceSnapshot"
 
@@ -67,6 +70,8 @@ spec:
         VERACODE_APP_NAME = 'Talend Component Kit'
         VERACODE_SANDBOX = 'connectors-se'
         APP_ID = '579232'
+
+        SONAR_OPTS = "-Dsonar.host.url=https://sonar-eks.datapwn.com -Dsonar.projectKey=org.talend.components:connectors-se -Dsonar.projectName=connectors-se"
     }
 
     options {
@@ -162,6 +167,21 @@ spec:
                         container('main') {
                             withCredentials([nexusCredentials]) {
                                 sh "cd ci_nexus && mvn -U -B -s .jenkins/settings.xml clean deploy -e -Pdocker -DskipTests ${talendOssRepositoryArg}"
+                            }
+                        }
+                    }
+                }
+                stage('Sonar') {
+                    /*when {
+                        anyOf {
+                            branch 'master'
+                            expression { env.BRANCH_NAME.startsWith('maintenance/') }
+                        }
+                    }*/
+                    steps {
+                        container('main') {
+                            withCredentials([sonarCredentials]) {
+                                sh "mvn $SONAR_OPTS -Dsonar.login="$SONAR_LOGIN" -Dsonar.password="$SONAR_PASSWORD" sonar:sonar  -s .jenkins/settings.xml"
                             }
                         }
                     }
