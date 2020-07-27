@@ -167,32 +167,32 @@ spec:
                         }
                     }
                 }
-                stage('Vera code') {
-                    steps {
-                        container('main') {
-                            withCredentials([veracodeCredentials]) {
-                                veracode applicationName: "$VERACODE_APP_NAME",
-                                    canFailJob: true,
-                                    createProfile: false,
-                                    debug: true,
-                                    copyRemoteFiles: true,
-                                    fileNamePattern: '',
-                                    useProxy: false,
-                                    replacementPattern: '',
-                                    sandboxName: "$VERACODE_SANDBOX",
-                                    createSandbox: true,
-                                    scanExcludesPattern: '',
-                                    scanIncludesPattern: '',
-                                    scanName: "${env.BRANCH_NAME}-${currentBuild.number}-${currentBuild.startTimeInMillis}",
-                                    uploadExcludesPattern: '',
-                                    uploadIncludesPattern: '**/*.jar',
-                                    waitForScan: true,
-                                    vid: "$VERACODE_ID",
-                                    vkey: "$VERACODE_KEY"
-                            }
-                        }
-                    }
-                }
+    //            stage('Vera code') {
+    //                steps {
+    //                    container('main') {
+    //                        withCredentials([veracodeCredentials]) {
+    //                            veracode applicationName: "$VERACODE_APP_NAME",
+    //                                canFailJob: true,
+     //                               createProfile: false,
+    //                                debug: true,
+    //                                copyRemoteFiles: true,
+    //                                fileNamePattern: '',
+     //                               useProxy: false,
+     //                               replacementPattern: '',
+     //                               sandboxName: "$VERACODE_SANDBOX",
+     //                               createSandbox: true,
+    //                                scanExcludesPattern: '',
+     //                               scanIncludesPattern: '',
+     //                               scanName: "${env.BRANCH_NAME}-${currentBuild.number}-${currentBuild.startTimeInMillis}",
+     //                               uploadExcludesPattern: '',
+     //                               uploadIncludesPattern: '**/*.jar',
+     //                               waitForScan: true,
+     //                               vid: "$VERACODE_ID",
+     //                               vkey: "$VERACODE_KEY"
+      //                      }
+     //                   }
+     //               }
+     //           }
                 stage('Site') {
                     steps {
                         container('main') {
