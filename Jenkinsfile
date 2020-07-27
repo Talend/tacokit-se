@@ -102,7 +102,7 @@ spec:
                     // real task
                     withCredentials([nexusCredentials]) {
                         script {
-                            sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/ -e ${talendOssRepositoryArg}"
+                            sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -DskipTests -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/ -e ${talendOssRepositoryArg}"
                         }
                     }
                 }
@@ -126,7 +126,7 @@ spec:
                 expression { params.Action == 'STANDARD' }
             }
             parallel {
-                stage('Documentation') {
+                /*stage('Documentation') {
                     steps {
                         container('main') {
                             withCredentials([dockerCredentials]) {
@@ -146,7 +146,7 @@ spec:
                             ])
                         }
                     }
-                }
+                }*/
                 stage('Site') {
                     steps {
                         container('main') {
@@ -162,7 +162,7 @@ spec:
                         }
                     }
                 }
-                stage('Nexus') {
+                /*stage('Nexus') {
                     steps {
                         container('main') {
                             withCredentials([nexusCredentials]) {
@@ -170,7 +170,7 @@ spec:
                             }
                         }
                     }
-                }
+                }*/
                 stage('Sonar') {
                     /*when {
                         anyOf {
