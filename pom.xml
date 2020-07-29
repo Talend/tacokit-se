@@ -21,7 +21,7 @@
     <version>1.15.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>Components</name>
+    <name>Connectors-se</name>
     <description>SE connectors using Talend Component Kit.</description>
     <url>https://talend.github.com/connectors-se</url>
     <licenses>

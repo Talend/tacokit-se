@@ -70,8 +70,6 @@ spec:
         VERACODE_APP_NAME = 'Talend Component Kit'
         VERACODE_SANDBOX = 'connectors-se'
         APP_ID = '579232'
-
-        SONAR_OPTS = "-Dsonar.host.url=https://sonar-eks.datapwn.com -Dsonar.projectKey=org.talend.components:connectors-se -Dsonar.projectName=connectors-se"
     }
 
     options {
@@ -181,7 +179,7 @@ spec:
                     steps {
                         container('main') {
                             withCredentials([sonarCredentials]) {
-                                sh "mvn -Dsonar.host.url=https://sonar-eks.datapwn.com -Dsonar.login=$SONAR_LOGIN -Dsonar.password=$SONAR_PASSWORD org.sonarsource.scanner.maven:sonar-maven-plugin:3.7.0.1746:sonar  -s .jenkins/settings.xml"
+                                sh "mvn -Dsonar.host.url=https://sonar-eks.datapwn.com -Dsonar.login='$SONAR_LOGIN' -Dsonar.password='$SONAR_PASSWORD' sonar:sonar"
                             }
                         }
                     }
