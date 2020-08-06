@@ -39,7 +39,7 @@ public class RecordSerializerLineHelper {
                 log.warn("Can't translate array in line format ({}).", entry.getName());
             } else {
                 Object obj = record.get(SchemaHelper.getFrom(entry.getType()), entry.getName());
-                result.add(obj.toString());
+                result.add(obj == null ? null : obj.toString());
             }
         }
         return result;
