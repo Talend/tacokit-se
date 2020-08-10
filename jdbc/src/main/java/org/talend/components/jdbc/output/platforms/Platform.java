@@ -23,6 +23,7 @@ import java.util.UUID;
 import org.talend.components.jdbc.configuration.DistributionStrategy;
 import org.talend.components.jdbc.configuration.RedshiftSortStrategy;
 import org.talend.components.jdbc.service.I18nMessage;
+import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
@@ -118,7 +119,7 @@ public abstract class Platform implements Serializable {
         final Table.TableBuilder builder = Table.builder().name(name).distributionStrategy(distributionStrategy)
                 .sortStrategy(sortStrategy);
         try {
-            builder.catalog(connection.getCatalog()).schema(connection.getSchema());
+            builder.catalog(connection.getCatalog()).schema(JdbcService.getSchema(connection));
         } catch (final SQLException e) {
             log.warn("can't get database catalog or schema", e);
         }

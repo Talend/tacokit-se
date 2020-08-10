@@ -25,7 +25,6 @@ import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
-
 import static org.talend.components.adlsgen2.service.UIActionService.ACTION_HEALTHCHECK;
 import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
 

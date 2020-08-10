@@ -18,7 +18,7 @@
 
     <groupId>org.talend.components</groupId>
     <artifactId>connectors-se</artifactId>
-    <version>1.11.0-SNAPSHOT</version>
+    <version>1.12.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Components</name>
@@ -40,10 +40,6 @@
         <module>azure</module>
         <module>rest</module>
         <module>dynamics-crm</module>
-        <!-- disable eventhubs build before all ready
-	<module>azure-eventhubs</module>
-	-->
-
         <module>azure-dls-gen2</module>
         <module>marketo</module>
         <module>common</module>
@@ -81,19 +77,19 @@
     </distributionManagement>
 
     <properties>
-        <connectors-test-bom.version>1.11.0-SNAPSHOT</connectors-test-bom.version>
-        <common.version>1.11.0-SNAPSHOT</common.version>
+        <connectors-test-bom.version>1.12.0-SNAPSHOT</connectors-test-bom.version>
+        <common.version>1.12.0-SNAPSHOT</common.version>
 
         <timestamp.year>${maven.build.timestamp}</timestamp.year>
         <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <locales.version>[1.11,)</locales.version>
+        <locales.version>[1.12,)</locales.version>
 
-        <component-runtime.version>1.1.20</component-runtime.version>
+        <component-runtime.version>1.1.23</component-runtime.version>
         <slf4j.version>1.7.28</slf4j.version>
 
-        <beam.version>2.20.0</beam.version>
+        <beam.version>2.22.0</beam.version>
         <beanutils.version>1.9.4</beanutils.version>
         <jackson.version>2.10.1</jackson.version>
         <jackson-codehaus.version>1.9.14-TALEND</jackson-codehaus.version>
@@ -657,7 +653,7 @@
                             https://artifacts-zl.talend.com/nexus/content/groups/public
                         </talend.component.junit.maven.repositories>
                     </systemPropertyVariables>
-                    <argLine>-Dfile.encoding=UTF-8</argLine>
+                    <argLine>@{argLine} -Dfile.encoding=UTF-8</argLine>
                 </configuration>
             </plugin>
             <plugin>

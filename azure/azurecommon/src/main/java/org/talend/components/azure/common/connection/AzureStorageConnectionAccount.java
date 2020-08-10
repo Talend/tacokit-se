@@ -14,15 +14,19 @@ package org.talend.components.azure.common.connection;
 
 import java.io.Serializable;
 
+import org.talend.components.AzureAuthType;
+import org.talend.components.AzureConnectionActiveDir;
 import org.talend.components.azure.common.Protocol;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
 
-@GridLayout({ @GridLayout.Row("accountName"), @GridLayout.Row("accountKey"), @GridLayout.Row("protocol") })
+@GridLayout({ @GridLayout.Row("accountName"), @GridLayout.Row("authType"), @GridLayout.Row("accountKey"),
+        @GridLayout.Row("protocol"), @GridLayout.Row("activeDirProperties") })
 @Data
 public class AzureStorageConnectionAccount implements Serializable {
 
@@ -33,12 +37,23 @@ public class AzureStorageConnectionAccount implements Serializable {
     private String accountName;
 
     @Option
+    @Documentation("")
+    private AzureAuthType authType = AzureAuthType.BASIC;
+
+    @Option
+    @ActiveIf(target = "authType", value = "BASIC")
     @Documentation("The key associated with the storage account you need to access. "
             + "Two keys are available for each account and by default, either of them can be used for this access.")
     @Credential
     private String accountKey;
 
     @Option
+    @ActiveIf(target = "authType", value = "BASIC")
     @Documentation("The protocol for connection to be created.")
     private Protocol protocol = Protocol.HTTPS;
+
+    @Option
+    @ActiveIf(target = "authType", value = "ACTIVE_DIRECTORY_CLIENT_CREDENTIAL")
+    @Documentation("")
+    private AzureConnectionActiveDir activeDirProperties;
 }

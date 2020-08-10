@@ -12,12 +12,18 @@
  */
 package org.talend.components.ftp.output;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import org.junit.Rule;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.mockftpserver.fake.filesystem.DirectoryEntry;
 import org.mockftpserver.fake.filesystem.FileEntry;
 import org.mockftpserver.fake.filesystem.Permissions;
@@ -29,7 +35,7 @@ import org.talend.components.ftp.datastore.FTPDataStore;
 import org.talend.components.ftp.jupiter.FtpFile;
 import org.talend.components.ftp.jupiter.FtpServer;
 import org.talend.components.ftp.service.FTPConnectorException;
-import org.talend.components.ftp.source.FTPInputConfiguration;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
@@ -40,21 +46,12 @@ import org.talend.sdk.component.junit.SimpleFactory;
 import org.talend.sdk.component.junit.environment.Environment;
 import org.talend.sdk.component.junit.environment.EnvironmentConfiguration;
 import org.talend.sdk.component.junit.environment.builtin.ContextualEnvironment;
-import org.talend.sdk.component.junit.environment.builtin.beam.SparkRunnerEnvironment;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.junit5.environment.EnvironmentalTest;
-import org.talend.sdk.component.runtime.base.lang.exception.InvocationExceptionWrapper;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Environment(ContextualEnvironment.class)
@@ -124,7 +121,7 @@ public class FTPOutputTest {
                     .connections().from("source").to("output").build().run();
 
             Assertions.fail("Job should have thrown an exception");
-        } catch (InvocationExceptionWrapper.ComponentException ce) {
+        } catch (ComponentException ce) {
             Assertions.assertEquals(FTPConnectorException.class.getName(), ce.getOriginalType());
         }
     }

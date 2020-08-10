@@ -13,6 +13,8 @@ def dockerCredentials = usernamePassword(
     passwordVariable: 'DOCKER_PASSWORD',
     usernameVariable: 'DOCKER_LOGIN')
 
+
+
 def netsuiteCredentials = usernamePassword(
                                 credentialsId: 'netsuite-integration',
                                 usernameVariable: 'NETSUITE_INTEGRATION_USER',
@@ -77,6 +79,10 @@ spec:
     environment {
         MAVEN_OPTS = "-Dmaven.artifact.threads=128 -Dorg.slf4j.simpleLogger.showThreadName=true -Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss -Dtalend.maven.decrypter.m2.location=${WORKSPACE}/.jenkins/"
         TALEND_REGISTRY = 'registry.datapwn.com'
+
+        VERACODE_APP_NAME = 'Talend Component Kit'
+        VERACODE_SANDBOX = 'connectors-se'
+        APP_ID = '579232'
     }
 
     options {

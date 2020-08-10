@@ -12,7 +12,15 @@
  */
 package org.talend.components.cosmosDB;
 
+import com.microsoft.azure.documentdb.ConnectionPolicy;
+import com.microsoft.azure.documentdb.ConsistencyLevel;
+import com.microsoft.azure.documentdb.Document;
+import com.microsoft.azure.documentdb.DocumentClient;
+import com.microsoft.azure.documentdb.DocumentClientException;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.talend.components.cosmosDB.dataset.QueryDataset;
@@ -20,6 +28,7 @@ import org.talend.components.cosmosDB.datastore.CosmosDBDataStore;
 import org.talend.components.cosmosDB.service.CosmosDBService;
 import org.talend.components.cosmosDB.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit.ServiceInjectionRule;
@@ -28,12 +37,19 @@ import org.talend.sdk.component.junit.environment.Environment;
 import org.talend.sdk.component.junit.environment.builtin.beam.DirectRunnerEnvironment;
 
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 
 @Environment(DirectRunnerEnvironment.class)
+@Slf4j
 public class CosmosDbTestBase {
 
     @ClassRule
@@ -57,9 +73,13 @@ public class CosmosDbTestBase {
 
     public static String serviceEndpoint;
 
-    public static String database;
+    public static String databaseID;
 
     public static String collectionID;
+
+    protected static final String uuid = UUID.randomUUID().toString().replaceAll("-", "");
+
+    protected static CosmosTestUtils cosmosTestUtils;
 
     static {
         Properties prop = new Properties();
@@ -74,11 +94,10 @@ public class CosmosDbTestBase {
         } catch (java.io.IOException ex) {
             System.err.println("Did not find azure properties, you can still pass them with -D");
         }
-        accountName = System.getProperty("cosmos.accountName", "pyzhou");
         primaryKey = System.getProperty("cosmos.primaryKey", "");
         serviceEndpoint = System.getProperty("cosmos.serviceEndpoint", "accountKey");
-        database = System.getProperty("cosmos.databaseID", "pyzhou");
-        collectionID = System.getProperty("cosmos.collectionID", "secret");
+        databaseID = "database_" + uuid;
+        collectionID = "collection_" + uuid;
 
         System.setProperty("talend.junit.http.capture", "true");
     }
@@ -86,6 +105,21 @@ public class CosmosDbTestBase {
     protected CosmosDBDataStore dataStore;
 
     protected QueryDataset dataSet;
+
+    @BeforeClass
+    public static void prepareDatabse() throws IOException, DocumentClientException {
+
+        DocumentClient client = new DocumentClient(serviceEndpoint, primaryKey, new ConnectionPolicy(), ConsistencyLevel.Session);
+
+        cosmosTestUtils = new CosmosTestUtils(client, databaseID, collectionID);
+        cosmosTestUtils.createDatabaseIfNotExists();
+        cosmosTestUtils.createDocumentCollectionIfNotExists();
+        cosmosTestUtils.insertDocument(
+                "{\"lastName\":\"Wakefield\",\"address\":{\"city\":\"NY\",\"county\":\"Manhattan\",\"state\":\"NY\"},\"children\":[{\"pets\":[{\"givenName\":\"Goofy\"},{\"givenName\":\"Shadow\"}],\"firstName\":\"Jesse\",\"gender\":null,\"familyName\":\"Merriam\",\"grade\":8},{\"pets\":null,\"firstName\":\"Lisa\",\"gender\":\"female\",\"familyName\":\"Miller\",\"grade\":1}],\"district\":\"NY23\",\"registered\":true,\"id\":\"Wakefield.7\",\"parents\":[{\"firstName\":\"Robin\",\"familyName\":\"Wakefield\"},{\"firstName\":\"Ben\",\"familyName\":\"Miller\"}]}");
+        cosmosTestUtils.insertDocument(
+                "{\"lastName\":\"Andersen\",\"address\":{\"city\":\"Seattle\",\"county\":\"King\",\"state\":\"WA\"},\"children\":null,\"district\":\"WA5\",\"registered\":true,\"id\":\"Andersen.1\",\"parents\":[{\"firstName\":\"Thomas\",\"familyName\":null},{\"firstName\":\"MaryKay\",\"familyName\":null}]}");
+
+    }
 
     @Before
     public void prepare() {
@@ -98,11 +132,16 @@ public class CosmosDbTestBase {
         dataStore = new CosmosDBDataStore();
         dataStore.setServiceEndpoint(serviceEndpoint);
         dataStore.setPrimaryKey(primaryKey);
-        dataStore.setDatabaseID(database);
+        dataStore.setDatabaseID(databaseID);
         dataSet = new QueryDataset();
         dataSet.setDatastore(dataStore);
         dataSet.setCollectionID(collectionID);
 
+    }
+
+    @AfterClass
+    public static void dropDatabase() throws DocumentClientException {
+        cosmosTestUtils.dropDatabase();
     }
 
     protected List<Record> createData(int i) {
@@ -110,12 +149,13 @@ public class CosmosDbTestBase {
         for (; i > 0; i--) {
             Record record = recordBuilderFactory.newRecordBuilder() //
                     .withInt("id2", i) //
-                    .withString("id", "" + i).withString("firstname", "firstfirst") //
+                    .withString("id", "" + i).withString("lastName", "firstfirst") //
                     .withDouble("double", 3.555) //
                     .withLong("long", 7928342L) //
                     .withInt("int", 3242342) //
-                    // .withRecord("record", createData2(1).get(0)) //
-                    .withBytes("bytes", "YO".getBytes()).withDateTime("Date1", new Date()).build();
+                    .withRecord("record", createData2(1).get(0)) //
+                    .withBytes("bytes", "YOasdfe2232".getBytes()).withDateTime("Date1", new Date(435352454530l)).build();
+
             records.add(record);
         }
         return records;
@@ -137,11 +177,11 @@ public class CosmosDbTestBase {
         List records = new ArrayList();
         Record record = recordBuilderFactory.newRecordBuilder() //
                 .withInt("sdfds", 1) //
-                .withString("id", "795d0b45-fbde-4011-9d0b-45fbded0118b") //
+                .withString("id", "Andersen.1") //
                 .withString("address", "444") //
                 .withString("enrolled", "Datedsldsk") //
                 .withString("zip", "89100") //
-                .withString("state", "YO") //
+                .withString("lastName", "Andersen") //
                 .build();
         records.add(record);
         Record record2 = recordBuilderFactory.newRecordBuilder() //
@@ -156,6 +196,73 @@ public class CosmosDbTestBase {
         records.add(record2);
 
         return records;
+    }
+
+    protected boolean recordEqual(Record record, Document document) {
+        Schema schema = record.getSchema();
+        List<Schema.Entry> entries = schema.getEntries();
+        boolean result = true;
+        Base64.Decoder decoder = Base64.getDecoder();
+        for (Schema.Entry entry : entries) {
+            switch (entry.getType()) {
+            case BYTES:
+                byte[] decode = decoder.decode(String.valueOf(document.get(entry.getName())).getBytes());
+                boolean equals1 = new String(record.getBytes(entry.getName())).equals(new String(decode));
+                result = result && equals1;
+                break;
+            case DATETIME:
+                String format = record.getDateTime(entry.getName()).format(DateTimeFormatter.ISO_DATE_TIME);
+                result = result && format.equals(document.get(entry.getName()));
+                break;
+            case LONG:
+                Long aLong = record.getLong(entry.getName());
+                result = result && aLong.equals(Long.valueOf(String.valueOf(document.get(entry.getName()))));
+                break;
+            case RECORD:
+                ;
+                result = result
+                        && recordEqual(record.getRecord(entry.getName()), new Document(document.get(entry.getName()).toString()));
+                break;
+
+            default:
+                Object o = record.get(getEntryClass(entry), entry.getName());
+                if (o != null) {
+                    result = result && o.equals(document.get(entry.getName()));
+                } else {
+                    result = result && (document.get(entry.getName()) == null);
+                }
+            }
+        }
+        return result;
+    }
+
+    public Class getEntryClass(Schema.Entry entry) {
+
+        switch (entry.getType()) {
+        case STRING:
+            return String.class;
+        case INT:
+            return Integer.class;
+        case RECORD:
+            return Object.class;
+        case LONG:
+            return Long.class;
+        case DATETIME:
+            return ZonedDateTime.class;
+        case ARRAY:
+            return Collection.class;
+        case FLOAT:
+        case DOUBLE:
+            return Double.class;
+        case BOOLEAN:
+            return Boolean.class;
+        case BYTES:
+            return byte[].class;
+        default:
+            return String.class;
+
+        }
+
     }
 
 }

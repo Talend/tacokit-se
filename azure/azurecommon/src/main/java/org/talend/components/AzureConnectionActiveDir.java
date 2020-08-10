@@ -10,42 +10,33 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.adlsgen2.common.connection;
+package org.talend.components;
 
 import java.io.Serializable;
 
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
 
+@GridLayout({ @GridLayout.Row("tenantId"), @GridLayout.Row("clientId"), @GridLayout.Row("clientSecret") })
 @Data
-@GridLayout({ @GridLayout.Row("accountName"), @GridLayout.Row("sharedKey"), @GridLayout.Row("endpointSuffix"),
-        @GridLayout.Row("authMethod") })
-@Documentation("The datastore to connect Azure Data Lake Storage Gen2")
-public class AdlsGen2Connection implements Serializable {
+public class AzureConnectionActiveDir implements Serializable {
 
     @Option
-    @Documentation("Storage Account Name")
-    private String accountName;
+    @Documentation("Directory (tenant) ID of active directory application")
+    private String tenantId;
+
+    @Option
+    @Documentation("Application (client) ID of active directory application")
+    private String clientId;
 
     @Option
     @Credential
-    @Documentation("Storage Shared Key")
-    private String sharedKey;
-
-    @Option
-    @Documentation("Endpoint suffix")
-    private String endpointSuffix = Constants.DFS_DEFAULT_ENDPOINT_SUFFIX;
-
-    @Option
-    @Documentation("Authentication method")
-    private AuthMethod authMethod;
-
-    public String apiUrl() {
-        return String.format("https://%s.%s", getAccountName(), getEndpointSuffix());
-    }
+    @Documentation("A secret string that the application uses to prove its identity when requesting a token.")
+    private String clientSecret;
 
 }
