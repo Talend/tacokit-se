@@ -69,17 +69,6 @@ class RecordSerializerLineHelperTest {
     }
 
     private Record buildRecords_withNull() {
-        GregorianCalendar gc = new GregorianCalendar();
-        gc.set(GregorianCalendar.YEAR, 2020);
-        gc.set(GregorianCalendar.MONTH, 7);
-        gc.set(GregorianCalendar.DAY_OF_MONTH, 17);
-        gc.set(GregorianCalendar.HOUR_OF_DAY, 10);
-        gc.set(GregorianCalendar.MINUTE, 10);
-        gc.set(GregorianCalendar.SECOND, 10);
-        gc.set(GregorianCalendar.MILLISECOND, 10);
-        gc.setTimeZone(TimeZone.getTimeZone(ZoneId.of("UTC")));
-        final Date date = gc.getTime();
-
         final Record rec1 = recordBuilderFactory.newRecordBuilder()
                 .withString(createEntry("name", Schema.Type.STRING, false), "Smith")
                 .withInt(createEntry("age", Schema.Type.INT, false), 35)
