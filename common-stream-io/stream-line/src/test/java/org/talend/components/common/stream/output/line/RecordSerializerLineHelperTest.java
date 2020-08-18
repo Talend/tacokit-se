@@ -1,3 +1,15 @@
+/*
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.talend.components.common.stream.output.line;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -52,8 +64,7 @@ class RecordSerializerLineHelperTest {
                 .withString(createEntry("name", Schema.Type.STRING, false), "Smith")
                 .withInt(createEntry("age", Schema.Type.INT, false), 35)
                 .withBoolean(createEntry("registered", Schema.Type.BOOLEAN, false), true)
-                .withDateTime(createEntry("last_save", Schema.Type.DATETIME, false), date)
-                .build();
+                .withDateTime(createEntry("last_save", Schema.Type.DATETIME, false), date).build();
         return rec1;
     }
 
@@ -73,13 +84,13 @@ class RecordSerializerLineHelperTest {
                 .withString(createEntry("name", Schema.Type.STRING, false), "Smith")
                 .withInt(createEntry("age", Schema.Type.INT, false), 35)
                 .withBoolean(createEntry("registered", Schema.Type.BOOLEAN, false), true)
-                .withDateTime(createEntry("last_save", Schema.Type.DATETIME, true), (Date) null)
-                .build();
+                .withDateTime(createEntry("last_save", Schema.Type.DATETIME, true), (Date) null).build();
         return rec1;
     }
 
     private Schema.Entry createEntry(final String name, final Schema.Type type, final boolean nullable) {
-        return recordBuilderFactory.newEntryBuilder().withName(name).withRawName(name).withType(type).withNullable(nullable).build();
+        return recordBuilderFactory.newEntryBuilder().withName(name).withRawName(name).withType(type).withNullable(nullable)
+                .build();
     }
 
 }
