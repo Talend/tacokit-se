@@ -129,8 +129,8 @@ public class RestService {
     }
 
     private Response<InputStream> call(final RequestConfig config, final Map<String, String> headers,
-            final Map<String, String> queryParams, final Body body, final String surl,
-            final RedirectContext previousRedirectContext) {
+                                       final Map<String, String> queryParams, final Body body, final String surl,
+                                       final RedirectContext previousRedirectContext) {
 
         Response<InputStream> resp = null;
 
@@ -144,7 +144,7 @@ public class RestService {
                     DigestAuthService das = new DigestAuthService();
                     DigestAuthContext context = new DigestAuthContext(url.getPath(), config.getDataset().getMethodType().name(),
                             url.getHost(), url.getPort(), body == null ? null : body.getContent(), new UserNamePassword(
-                                    authentication.getBasic().getUsername(), authentication.getBasic().getPassword()));
+                            authentication.getBasic().getUsername(), authentication.getBasic().getPassword()));
                     resp = das.call(context, () -> client.executeWithDigestAuth(i18n, context, config, client,
                             previousRedirectContext.getMethod(), surl, headers, queryParams, body));
                 } catch (MalformedURLException e) {
@@ -223,8 +223,10 @@ public class RestService {
 
     @HealthCheck(HEALTHCHECK)
     public HealthCheckStatus healthCheck(@Option final Datastore datastore) {
+        String host = datastore.getBase();
         try {
-            HttpURLConnection conn = (HttpURLConnection) new URL(datastore.getBase()).openConnection();
+            host = getHost(host);
+            HttpURLConnection conn = (HttpURLConnection) new URL(host).openConnection();
             conn.setRequestMethod("GET");
             conn.setConnectTimeout(datastore.getConnectionTimeout());
             conn.setReadTimeout(datastore.getReadTimeout());
@@ -242,7 +244,12 @@ public class RestService {
             log.debug(i18n.healthCheckException(sw.toString()));
         }
 
-        return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.healthCheckFailed(datastore.getBase()));
+        return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.healthCheckFailed(host));
+    }
+
+    public String getHost(final String baseUrl) throws MalformedURLException {
+        final URL url = new URL(baseUrl);
+        return url.getProtocol()+"://"+url.getHost()+(url.getPort() > -1 ? ":"+url.getPort() : "");
     }
 
     /**

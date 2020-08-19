@@ -30,6 +30,7 @@ import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.service.RecordPointerFactoryImpl;
 
+import java.net.MalformedURLException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -75,8 +76,8 @@ public class RestServiceTest {
         config.getDataset().setHasHeaders(false);
 
         List<String[]> paramList = new ArrayList<>();
-        paramList.add(new String[] { "leads", "124", "name" });
-        paramList.add(new String[] { "{leads}", "{124}", "{name}" });
+        paramList.add(new String[]{"leads", "124", "name"});
+        paramList.add(new String[]{"{leads}", "{124}", "{name}"});
 
         for (String[] params : paramList) {
             List<Param> pathParams = new ArrayList<>();
@@ -133,10 +134,10 @@ public class RestServiceTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = { "http://www.domain.com,,http://www.domain.com", "http://www.domain.com/,,http://www.domain.com/",
+    @CsvSource(value = {"http://www.domain.com,,http://www.domain.com", "http://www.domain.com/,,http://www.domain.com/",
             "http://www.domain.com,get,http://www.domain.com/get", "http://www.domain.com/,get,http://www.domain.com/get",
             "http://www.domain.com,/get,http://www.domain.com/get",
-            "   http://www.domain.com/ ,  /get ,http://www.domain.com//get", })
+            "   http://www.domain.com/ ,  /get ,http://www.domain.com//get",})
     void buildUrl(final String base, final String resource, final String expected) {
         config.getDataset().getDatastore().setBase(base);
         config.getDataset().setResource(resource == null ? "   " : resource);
@@ -228,6 +229,16 @@ public class RestServiceTest {
         assertTrue(service.hasNoDuplicates(null));
         assertTrue(service.hasNoDuplicates(withoutDuplciates));
         assertFalse(service.hasNoDuplicates(withDuplciates));
+    }
+
+
+    @ParameterizedTest
+    @CsvSource(value = {"https://this.is.my.host.com/api/v1,https://this.is.my.host.com",
+            "http://www.mysite.org/a/page,http://www.mysite.org",
+            "https://www.mysite.com?v=param,https://www.mysite.com",
+            "https://www.mysite.com/this/is/page.html,https://www.mysite.com"})
+    void getHost(final String baseUrl, final String host) throws MalformedURLException {
+        assertEquals(host, service.getHost(baseUrl));
     }
 
 }
