@@ -31,7 +31,6 @@ import java.io.Serializable;
 @Version(1)
 @Data
 @DataStore("Datastore")
-@Checkable(RestService.HEALTHCHECK)
 @Documentation("Define where is the REST API and its description.")
 @GridLayout({ @GridLayout.Row({ "base" }), @GridLayout.Row({ "authentication" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "connectionTimeout" }),
