@@ -50,7 +50,6 @@
         <module>extensions</module>
         <module>pubsub</module>
         <module>netsuite</module>
-        <module>ftp</module>
         <module>cosmosDB</module>
         <module>google-storage</module>
     </modules>
