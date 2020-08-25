@@ -16,7 +16,6 @@
     <properties>
         <xbean-finder-shaded.version>4.8</xbean-finder-shaded.version>
         <HikariCP.version>3.1.0</HikariCP.version>
-        <commons-codec.version>1.11</commons-codec.version>
         <!-- test version -->
         <derby.version>10.12.1.1</derby.version>
         <testcontainers.version>1.14.1</testcontainers.version>
@@ -40,7 +39,6 @@
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <version>${commons-codec.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.xbean</groupId>
