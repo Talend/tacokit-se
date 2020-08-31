@@ -211,7 +211,7 @@
                 <dependency>
                     <groupId>net.snowflake</groupId>
                     <artifactId>snowflake-jdbc</artifactId>
-                    <version>${snowflake.version</version>
+                    <version>${snowflake.version}</version>
                     <scope>provided</scope>
                 </dependency>
                 <dependency>
