@@ -102,6 +102,7 @@
         <jacoco.version>0.8.2</jacoco.version>
 
         <commons-csv.version>1.4</commons-csv.version>
+        <commons-lang3.version>3.9</commons-lang3.version>
         <guava.version>20.0</guava.version>
         <httpclient.version>4.5.10</httpclient.version>
         <httpcore.version>4.4.12</httpcore.version>
@@ -314,6 +315,11 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-compress</artifactId>
                 <version>${compress.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-codec</groupId>
