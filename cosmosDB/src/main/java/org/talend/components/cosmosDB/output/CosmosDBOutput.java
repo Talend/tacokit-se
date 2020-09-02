@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.talend.components.cosmosDB.service.CosmosDBService;
 import org.talend.components.cosmosDB.service.I18nMessage;
 import org.talend.sdk.component.api.component.Icon;
+import org.talend.sdk.component.api.component.MigrationHandler;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -38,8 +39,10 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
-@Version(1)
+@Version(value = 2, migrationHandler = CosmosDBOutput.Migration.class)
 @Slf4j
 @Icon(value = Icon.IconType.CUSTOM, custom = "CosmosDBOutput")
 @Processor(name = "SQLAPIOutput")
@@ -135,6 +138,33 @@ public class CosmosDBOutput implements Serializable {
             } else {
                 throw new IllegalArgumentException(de);
             }
+        }
+    }
+
+    @Slf4j
+    public static class Migration implements MigrationHandler {
+
+        @Override
+        public Map<String, String> migrate(int incomingVersion, Map<String, String> incomingData) {
+            log.debug("Starting JDBC sink component migration");
+
+            if (incomingVersion == 1) {
+                final String old_property_path_prefix = "configuration.keys[";
+                final String new_property_path_prefix = "configuration.keys.keys[";
+
+                Map<String, String> correct_config = new HashMap<>();
+                incomingData.forEach((k, v) -> {
+                    if (k.startsWith(old_property_path_prefix)) {
+                        correct_config.put(k.replace(old_property_path_prefix, new_property_path_prefix), v);
+                    } else {
+                        System.out.println("Output: " + k + "   :   " + v);
+                    }
+                });
+
+                return correct_config;
+            }
+
+            return incomingData;
         }
     }
 }

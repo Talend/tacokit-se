@@ -12,22 +12,21 @@
  */
 package org.talend.components.cosmosDB.dataset;
 
-import lombok.Data;
+import java.io.Serializable;
+
 import org.talend.components.cosmosDB.datastore.CosmosDBDataStore;
-import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.constraint.Required;
-import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
-@Version(1)
+import lombok.Data;
+
 @Data
-@DataSet("CosmosDBDataset")
 @GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "collectionID" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "datastore" }) })
 @Documentation("cosmosDB DataSet")
-public class CosmosDBDataset implements BaseDataSet {
+public class CosmosDBDataset implements Serializable {
 
     @Option
     @Documentation("Connection")

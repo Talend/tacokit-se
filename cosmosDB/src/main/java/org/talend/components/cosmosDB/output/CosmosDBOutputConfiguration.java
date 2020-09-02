@@ -13,7 +13,7 @@
 package org.talend.components.cosmosDB.output;
 
 import lombok.Data;
-import org.talend.components.cosmosDB.dataset.CosmosDBDataset;
+import org.talend.components.cosmosDB.dataset.QueryDataset;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -41,7 +41,7 @@ public class CosmosDBOutputConfiguration implements Serializable {
 
     @Option
     @Documentation("Dataset")
-    private CosmosDBDataset dataset;
+    private QueryDataset dataset;
 
     @Option
     @Documentation("Data Action")
