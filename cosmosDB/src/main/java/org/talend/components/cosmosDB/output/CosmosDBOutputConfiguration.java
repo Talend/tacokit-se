@@ -12,7 +12,10 @@
  */
 package org.talend.components.cosmosDB.output;
 
-import lombok.Data;
+import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.AND;
+
+import java.io.Serializable;
+
 import org.talend.components.cosmosDB.dataset.QueryDataset;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -22,11 +25,9 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import java.io.Serializable;
+import lombok.Data;
 
-import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.AND;
-
-@Version(1)
+@Version(2)
 @Data
 @GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataset" }), //
         @GridLayout.Row({ "createCollection" }), //

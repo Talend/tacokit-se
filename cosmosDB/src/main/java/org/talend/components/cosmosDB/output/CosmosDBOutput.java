@@ -12,6 +12,24 @@
  */
 package org.talend.components.cosmosDB.output;
 
+import java.io.Serializable;
+import java.util.Arrays;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
+import org.apache.commons.lang3.StringUtils;
+import org.talend.components.cosmosDB.service.CosmosDBService;
+import org.talend.components.cosmosDB.service.I18nMessage;
+import org.talend.sdk.component.api.component.Icon;
+import org.talend.sdk.component.api.component.Version;
+import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.meta.Documentation;
+import org.talend.sdk.component.api.processor.ElementListener;
+import org.talend.sdk.component.api.processor.Input;
+import org.talend.sdk.component.api.processor.Processor;
+import org.talend.sdk.component.api.record.Record;
+
 import com.microsoft.azure.documentdb.DataType;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.documentdb.DocumentClientException;
@@ -21,28 +39,10 @@ import com.microsoft.azure.documentdb.IndexingPolicy;
 import com.microsoft.azure.documentdb.PartitionKeyDefinition;
 import com.microsoft.azure.documentdb.RangeIndex;
 import com.microsoft.azure.documentdb.RequestOptions;
+
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.talend.components.cosmosDB.service.CosmosDBService;
-import org.talend.components.cosmosDB.service.I18nMessage;
-import org.talend.sdk.component.api.component.Icon;
-import org.talend.sdk.component.api.component.MigrationHandler;
-import org.talend.sdk.component.api.component.Version;
-import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.meta.Documentation;
-import org.talend.sdk.component.api.processor.ElementListener;
-import org.talend.sdk.component.api.processor.Input;
-import org.talend.sdk.component.api.processor.Processor;
-import org.talend.sdk.component.api.record.Record;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
-@Version(value = 2, migrationHandler = CosmosDBOutput.Migration.class)
+@Version(2)
 @Slf4j
 @Icon(value = Icon.IconType.CUSTOM, custom = "CosmosDBOutput")
 @Processor(name = "SQLAPIOutput")
@@ -141,30 +141,4 @@ public class CosmosDBOutput implements Serializable {
         }
     }
 
-    @Slf4j
-    public static class Migration implements MigrationHandler {
-
-        @Override
-        public Map<String, String> migrate(int incomingVersion, Map<String, String> incomingData) {
-            log.debug("Starting JDBC sink component migration");
-
-            if (incomingVersion == 1) {
-                final String old_property_path_prefix = "configuration.keys[";
-                final String new_property_path_prefix = "configuration.keys.keys[";
-
-                Map<String, String> correct_config = new HashMap<>();
-                incomingData.forEach((k, v) -> {
-                    if (k.startsWith(old_property_path_prefix)) {
-                        correct_config.put(k.replace(old_property_path_prefix, new_property_path_prefix), v);
-                    } else {
-                        System.out.println("Output: " + k + "   :   " + v);
-                    }
-                });
-
-                return correct_config;
-            }
-
-            return incomingData;
-        }
-    }
 }
