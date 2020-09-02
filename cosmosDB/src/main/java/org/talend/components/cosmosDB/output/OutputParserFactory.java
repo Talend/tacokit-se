@@ -12,14 +12,16 @@
  */
 package org.talend.components.cosmosDB.output;
 
+import org.apache.commons.lang3.StringUtils;
+import org.talend.sdk.component.api.record.Record;
+
 import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.documentdb.DocumentClientException;
 import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.documentdb.RequestOptions;
+
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.talend.sdk.component.api.record.Record;
 
 @Slf4j
 public class OutputParserFactory {
@@ -58,7 +60,8 @@ public class OutputParserFactory {
         String delegate = record.toString();
         log.debug("delegate: " + delegate);
         if (delegate.startsWith("AvroRecord")) {
-            return delegate.substring(11, delegate.length() - 1);
+            //To avoid import dependence of AvroRecord
+            return delegate.substring(20, delegate.length() - 1);
         }
         return delegate;
     }

@@ -53,7 +53,7 @@ public class CosmosDBOutput implements Serializable {
 
     private final CosmosDBOutputConfiguration configuration;
 
-    private transient final CosmosDBService service;
+    private final CosmosDBService service;
 
     private transient DocumentClient client;
 
@@ -70,6 +70,7 @@ public class CosmosDBOutput implements Serializable {
     public void init() {
 
         client = service.documentClientFrom(configuration.getDataset().getDatastore());
+
         if (configuration.isCreateCollection()) {
             createDocumentCollectionIfNotExists();
         }

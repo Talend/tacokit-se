@@ -12,11 +12,16 @@
  */
 package org.talend.components.cosmosDB.input;
 
-import com.microsoft.azure.documentdb.Document;
-import com.microsoft.azure.documentdb.DocumentClient;
-import com.microsoft.azure.documentdb.FeedOptions;
-import com.microsoft.azure.documentdb.FeedResponse;
-import lombok.extern.slf4j.Slf4j;
+import java.io.Serializable;
+import java.io.StringReader;
+import java.util.Iterator;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+
 import org.talend.components.common.stream.input.json.JsonToRecord;
 import org.talend.components.cosmosDB.service.CosmosDBService;
 import org.talend.components.cosmosDB.service.I18nMessage;
@@ -26,14 +31,12 @@ import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import java.io.Serializable;
-import java.io.StringReader;
-import java.util.Iterator;
+import com.microsoft.azure.documentdb.Document;
+import com.microsoft.azure.documentdb.DocumentClient;
+import com.microsoft.azure.documentdb.FeedOptions;
+import com.microsoft.azure.documentdb.FeedResponse;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Documentation("This component reads data from cosmosDB.")
@@ -45,7 +48,7 @@ public class CosmosDBInput implements Serializable {
 
     private final RecordBuilderFactory builderFactory;
 
-    private transient CosmosDBService service;
+    private CosmosDBService service;
 
     private transient DocumentClient client;
 
