@@ -37,11 +37,11 @@ import org.talend.components.dynamicscrm.DynamicsCrmTestBase;
 import org.talend.components.dynamicscrm.dataset.DynamicsCrmDataset;
 import org.talend.components.dynamicscrm.output.DynamicsCrmOutputConfiguration.Action;
 import org.talend.components.dynamicscrm.service.DynamicsCrmException;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.junit5.WithComponents;
-import org.talend.sdk.component.runtime.base.lang.exception.InvocationExceptionWrapper.ComponentException;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
 @WithComponents("org.talend.components.dynamicscrm")

@@ -32,9 +32,8 @@ public class CosmosInputTestIT extends CosmosDbTestBase {
     @Test
     public void QueryTest() {
         dataSet.setUseQuery(true);
-        // dataSet.setQuery("SELECT {\"Name\":f.id, \"City\":f.address.city} AS Family\n" + " FROM Families f\n"
-        // + " WHERE f.address.city = f.address.state");
-        dataSet.setQuery("SELECT * FROM c where c.firstname = \"firstfirst\"");
+        dataSet.setQuery("SELECT {\"Name\":f.id, \"City\":f.address.city} AS Family\n" + " FROM " + collectionID + " f\n"
+                + " WHERE f.address.city = f.address.state");
         config.setDataset(dataSet);
         CosmosDBInput input = new CosmosDBInput(config, service, recordBuilderFactory, i18n);
         input.init();
@@ -48,13 +47,13 @@ public class CosmosInputTestIT extends CosmosDbTestBase {
     @Test
     public void withoutQueryTest() {
         dataSet.setUseQuery(false);
-        dataSet.setQuery("SELECT {\"Name\":f.id, \"City\":f.address.city} AS Family   FROM Families f");
+        dataSet.setQuery("SELECT {\"Name\":f.id, \"City\":f.address.city} AS Family   FROM " + collectionID
+                + " f  WHERE f.address.county = \"Manhattan\"");
         config.setDataset(dataSet);
         CosmosDBInput input = new CosmosDBInput(config, service, recordBuilderFactory, i18n);
         input.init();
         Record next = input.next();
         input.release();
         Assert.assertNotNull(next);
-
     }
 }

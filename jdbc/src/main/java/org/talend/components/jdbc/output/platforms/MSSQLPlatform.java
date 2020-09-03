@@ -31,6 +31,8 @@ public class MSSQLPlatform extends Platform {
 
     public static final String MSSQL = "mssql";
 
+    public static final String MSSQL_JTDS = "mssql_jtds";
+
     public MSSQLPlatform(final I18nMessage i18n) {
         super(i18n);
     }

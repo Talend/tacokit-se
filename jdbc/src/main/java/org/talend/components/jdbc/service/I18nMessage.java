@@ -73,8 +73,6 @@ public interface I18nMessage {
 
     String errorRedshiftUnsupportedBytes(String field);
 
-    String errorUnsupportedDatabase(String dbType);
-
     String errorUnsupportedType(String type, String field);
 
     String errorUnsupportedBooleanType4Oracle(String field);

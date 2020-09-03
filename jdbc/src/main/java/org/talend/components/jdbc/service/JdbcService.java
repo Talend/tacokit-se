@@ -15,7 +15,6 @@ package org.talend.components.jdbc.service;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.jdbc.ErrorFactory;
 import org.talend.components.jdbc.configuration.JdbcConfiguration;
 import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.output.platforms.PlatformFactory;
@@ -24,20 +23,14 @@ import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.dependency.Resolver;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -46,7 +39,6 @@ import java.util.regex.Pattern;
 
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
-import static org.talend.components.jdbc.ErrorFactory.toIllegalStateException;
 
 @Slf4j
 @Service
@@ -95,7 +87,7 @@ public class JdbcService {
     public static boolean checkTableExistence(final String tableName, final JdbcService.JdbcDatasource dataSource)
             throws SQLException {
         try (final Connection connection = dataSource.getConnection()) {
-            try (final ResultSet resultSet = connection.getMetaData().getTables(connection.getCatalog(), connection.getSchema(),
+            try (final ResultSet resultSet = connection.getMetaData().getTables(connection.getCatalog(), getSchema(connection),
                     tableName, new String[] { "TABLE", "SYNONYM" })) {
                 while (resultSet.next()) {
                     if (ofNullable(ofNullable(resultSet.getString("TABLE_NAME")).orElseGet(() -> {
@@ -148,6 +140,9 @@ public class JdbcService {
             try {
                 thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
                 dataSource = new HikariDataSource();
+                if ("MSSQL_JTDS".equals(driver.getId())) {
+                    dataSource.setConnectionTestQuery("SELECT 1");
+                }
                 dataSource.setUsername(connection.getUserId());
                 dataSource.setPassword(connection.getPassword());
                 dataSource.setDriverClassName(driver.getClassName());
@@ -230,6 +225,18 @@ public class JdbcService {
                 }
             }
         }
+    }
+
+    public static String getSchema(Connection connection) throws SQLException {
+        // Special code for MSSQL JDTS driver
+        String schema = null;
+        try {
+
+            schema = connection.getSchema();
+        } catch (AbstractMethodError e) {
+            // ignore
+        }
+        return schema;
     }
 
 }

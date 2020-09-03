@@ -12,13 +12,14 @@
  */
 package org.talend.components.adlsgen2.common.connection;
 
-import lombok.Data;
+import java.io.Serializable;
+
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import java.io.Serializable;
+import lombok.Data;
 
 @Data
 @GridLayout({ @GridLayout.Row("accountName"), @GridLayout.Row("sharedKey"), @GridLayout.Row("endpointSuffix"),

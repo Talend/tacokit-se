@@ -161,12 +161,10 @@ public abstract class QueryManagerImpl implements QueryManager {
     }
 
     public String namespace(final Connection connection) throws SQLException {
+        String schenma = JdbcService.getSchema(connection);
         return (connection.getCatalog() != null && !connection.getCatalog().isEmpty()
                 ? getPlatform().identifier(connection.getCatalog()) + "."
-                : "")
-                + (connection.getSchema() != null && !connection.getSchema().isEmpty()
-                        ? getPlatform().identifier(connection.getSchema())
-                        : "");
+                : "") + (schenma != null && !schenma.isEmpty() ? getPlatform().identifier(connection.getSchema()) : "");
     }
 
     public static Optional<Object> valueOf(final Record record, final Schema.Entry entry) {

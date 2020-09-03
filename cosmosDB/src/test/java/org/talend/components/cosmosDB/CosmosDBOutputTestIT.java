@@ -12,6 +12,9 @@
  */
 package org.talend.components.cosmosDB;
 
+import com.microsoft.azure.documentdb.Document;
+import com.microsoft.azure.documentdb.DocumentClientException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.talend.components.cosmosDB.output.CosmosDBOutput;
@@ -32,21 +35,21 @@ public class CosmosDBOutputTestIT extends CosmosDbTestBase {
     }
 
     @Test
-    public void outputTest() {
+    public void outputTest() throws DocumentClientException {
         config.setAutoIDGeneration(true);
         CosmosDBOutput cosmosDBOutput = new CosmosDBOutput(config, service, i18n);
         cosmosDBOutput.init();
         Record record = createData(1).get(0);
         cosmosDBOutput.onNext(record);
         cosmosDBOutput.release();
-        // no Exception means success
+        Document document = cosmosTestUtils.readDocuments(collectionID, record.getString("id"), "firstfirst");
+        Assert.assertTrue(this.recordEqual(record, document));
+
     }
 
     @Test
-    public void createCollectionTest() {
+    public void createCollectionTest() throws DocumentClientException {
         config.setAutoIDGeneration(true);
-        dataStore.setDatabaseID("ComponentQA");
-        dataSet.setDatastore(dataStore);
         dataSet.setCollectionID("pyzhouTest2");
         config.setDataset(dataSet);
         config.setPartitionKey("/id2");
@@ -56,24 +59,29 @@ public class CosmosDBOutputTestIT extends CosmosDbTestBase {
         Record record = createData(1).get(0);
         cosmosDBOutput.onNext(record);
         cosmosDBOutput.release();
-        // no Exception means success
+        boolean exist = cosmosTestUtils.isCollectionExist("pyzhouTest2");
+        Assert.assertTrue(exist);
+        if (exist)
+            cosmosTestUtils.deleteCollection("pyzhouTest2");
     }
 
     @Test
     public void DeleteTest() {
         config.setAutoIDGeneration(true);
-        dataStore.setDatabaseID("ComponentQA");
-        dataSet.setDatastore(dataStore);
-        dataSet.setCollectionID("Test1");
         config.setDataAction(DataAction.DELETE);
-        config.setDataset(dataSet);
-        config.setPartitionKeyForDelete("address");
+        config.setPartitionKeyForDelete("lastName");
         config.setCreateCollection(true);
         CosmosDBOutput cosmosDBOutput = new CosmosDBOutput(config, service, i18n);
         cosmosDBOutput.init();
         Record record = createData3().get(0);
         cosmosDBOutput.onNext(record);
         cosmosDBOutput.release();
-        // no Exception means success
+        try {
+            cosmosTestUtils.readDocuments(collectionID, "Andersen.1", "Andersen");
+            Assert.fail();
+        } catch (DocumentClientException e) {
+            Assert.assertEquals(404, e.getStatusCode());
+        }
+
     }
 }
