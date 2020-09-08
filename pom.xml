@@ -608,6 +608,17 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>com.github.yp44</groupId>
+                <artifactId>modifiedfiles-maven-plugin</artifactId>
+                <version>0.1-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <id>apply</id>
+                        <phase>process-sources</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
                 <version>${spotless.version}</version>
@@ -623,6 +634,9 @@
                 <configuration>
                     <java>
                         <encoding>UTF-8</encoding>
+                        <includes>
+                            <include>${modifiedFiles}</include>
+                        </includes>
                         <licenseHeader>
                             <content><![CDATA[/*
  * Copyright (C) 2006-${timestamp.year} Talend Inc. - www.talend.com
@@ -640,6 +654,7 @@
                         <eclipse>
                             <file>talend_java_eclipse_formatter.xml</file>
                         </eclipse>
+
                     </java>
                 </configuration>
                 <dependencies>
