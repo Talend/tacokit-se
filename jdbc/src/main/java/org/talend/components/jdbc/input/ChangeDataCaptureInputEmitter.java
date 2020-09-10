@@ -41,19 +41,33 @@ import static org.talend.sdk.component.api.record.Schema.Type.STRING;
 public class ChangeDataCaptureInputEmitter implements Serializable {
 
     private final InputCaptureDataChangeConfig inputConfig;
+
     private RecordBuilderFactory recordBuilderFactory;
+
     private final JdbcService jdbcDriversService;
+
     private final I18nMessage i18n;
+
     protected Connection connection;
+
     private static Statement statement;
+
     private Statement statementUpdate;
+
     private static ResultSet resultSet;
+
     private static int resultSetSize;
+
     private static JdbcService.JdbcDatasource dataSource;
+
     private ChangeDataCaptureDataset cdcDataset;
+
     private transient Schema schema;
+
     private static int nbRecords = 0;
+
     private static int nbIterations = 0;
+
     private static long lastFetchTime = 0;
 
     ChangeDataCaptureInputEmitter(@Option("configuration") final InputCaptureDataChangeConfig config,
@@ -121,7 +135,8 @@ public class ChangeDataCaptureInputEmitter implements Serializable {
             final Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder(schema);
             IntStream.rangeClosed(1, metaData.getColumnCount()).forEach(index -> addColumn(recordBuilder, metaData, index));
 
-            if (nbRecords == resultSetSize) log.info("Last record of series emitted: " + getRowAsString());
+            if (nbRecords == resultSetSize)
+                log.info("Last record of series emitted: " + getRowAsString());
 
             nbRecords++;
             return recordBuilder.build();
