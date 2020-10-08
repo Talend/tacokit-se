@@ -52,6 +52,7 @@
         <module>netsuite</module>
         <module>cosmosDB</module>
         <module>google-storage</module>
+        <module>aws-common</module>
     </modules>
 
     <scm>
