@@ -63,7 +63,7 @@ public class AwsAssumeRoleConfiguration implements Serializable {
     @Documentation("Signing region.")
     @Required
     @Proposable(UiAwsAuthenticationService.GET_AWS_REGIONS)
-    private String signingRegion = Regions.US_EAST_1.getName();
+    private String signingRegion;
 
     @Option
     @Documentation("External Id.")

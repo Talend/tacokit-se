@@ -24,6 +24,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.auth.EC2ContainerCredentialsProviderWrapper;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
@@ -77,7 +78,9 @@ public class AwsAuthenticationService implements Serializable {
             stsClientBuilder.withEndpointConfiguration(new EndpointConfiguration(assumeRoleConfiguration.getStsEndpoint(),
                     assumeRoleConfiguration.getSigningRegion()));
         } else {
-            stsClientBuilder.withRegion(assumeRoleConfiguration.getSigningRegion());
+            String signingRegion = StringUtils.isNullOrEmpty(assumeRoleConfiguration.getSigningRegion()) ?
+                    Regions.US_EAST_1.getName() : assumeRoleConfiguration.getSigningRegion();
+            stsClientBuilder.withRegion(signingRegion);
         }
         return stsClientBuilder.build();
     }
