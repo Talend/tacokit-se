@@ -78,8 +78,9 @@ public class AwsAuthenticationService implements Serializable {
             stsClientBuilder.withEndpointConfiguration(new EndpointConfiguration(assumeRoleConfiguration.getStsEndpoint(),
                     assumeRoleConfiguration.getSigningRegion()));
         } else {
-            String signingRegion = StringUtils.isNullOrEmpty(assumeRoleConfiguration.getSigningRegion()) ?
-                    Regions.US_EAST_1.getName() : assumeRoleConfiguration.getSigningRegion();
+            String signingRegion = StringUtils.isNullOrEmpty(assumeRoleConfiguration.getSigningRegion())
+                    ? Regions.US_EAST_1.getName()
+                    : assumeRoleConfiguration.getSigningRegion();
             stsClientBuilder.withRegion(signingRegion);
         }
         return stsClientBuilder.build();
