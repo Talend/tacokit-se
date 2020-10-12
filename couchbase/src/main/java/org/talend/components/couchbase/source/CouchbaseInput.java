@@ -25,7 +25,6 @@ import com.couchbase.client.java.query.Statement;
 import com.couchbase.client.java.query.consistency.ScanConsistency;
 import com.couchbase.client.java.query.dsl.Expression;
 import com.couchbase.client.java.query.dsl.path.AsPath;
-import com.couchbase.client.java.query.dsl.path.Path;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

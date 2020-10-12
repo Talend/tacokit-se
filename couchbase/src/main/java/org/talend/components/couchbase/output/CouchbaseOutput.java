@@ -138,7 +138,7 @@ public class CouchbaseOutput implements Serializable {
         String entryName = entry.getName();
         Object value = record.get(Object.class, entryName);
         if (null == value) {
-            return JsonObject.NULL;
+            return null;
         }
         switch (entry.getType()) {
         case INT:
