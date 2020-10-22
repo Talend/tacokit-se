@@ -162,6 +162,8 @@ public class JdbcService {
                 dataSource.addDataSourceProperty("allowLoadLocalInfile", "false"); // MySQL
                 dataSource.addDataSourceProperty("allowLocalInfile", "false"); // MariaDB
 
+                driver.getFixedParameters().stream().forEach(kv -> dataSource.addDataSourceProperty(kv.getKey(), kv.getValue()));
+
             } finally {
                 thread.setContextClassLoader(prev);
             }

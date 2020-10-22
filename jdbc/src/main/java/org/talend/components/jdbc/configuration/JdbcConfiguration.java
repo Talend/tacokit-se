@@ -71,9 +71,27 @@ public class JdbcConfiguration implements Serializable {
         @Documentation("Jdbc driver and driver dependencies jar locations in mvn format")
         private List<String> paths = new ArrayList<>();
 
+        @Option
+        @Documentation("Fixed jdbc url parameters")
+        private List<KeyVal> fixedParameters = new ArrayList<>();
+
         public String getDisplayName() {
             return ofNullable(displayName).filter(d -> !d.isEmpty()).orElse(id);
         }
+    }
+
+    @Data
+    @NoArgsConstructor
+    @Documentation("Key/Value class")
+    public static class KeyVal {
+
+        @Option
+        @Documentation("The key")
+        private String key;
+
+        @Option
+        @Documentation("The value")
+        private String value;
     }
 
 }
