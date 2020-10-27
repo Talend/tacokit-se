@@ -33,9 +33,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AvroBlobReader extends BlobReader {
 
-    public AvroBlobReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory, AdlsGen2Service service,
-            Map<String, Object> runtimeInfoMap) {
-        super(configuration, recordBuilderFactory, service, runtimeInfoMap);
+    public AvroBlobReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory, AdlsGen2Service service) {
+        super(configuration, recordBuilderFactory, service);
     }
 
     @Override
@@ -69,7 +68,7 @@ public class AvroBlobReader extends BlobReader {
         protected void readBlob() {
             closePreviousInputStream();
             try {
-                input = service.getBlobInputstream(configuration, getCurrentBlob(), getRuntimeInfoMap());
+                input = service.getBlobInputstream(configuration, getCurrentBlob());
                 DatumReader<GenericRecord> reader = new GenericDatumReader<>();
                 avroItemIterator = new DataFileStream<>(input, reader);
             } catch (Exception e) {

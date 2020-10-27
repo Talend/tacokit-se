@@ -57,7 +57,7 @@ public class UIActionService {
                 runtimeInfoMap.put(Constants.RuntimeInfoKeys.ACTIVE_DIRECTORY_TOKEN,
                         activeDirectoryService.getActiveDirAuthToken(connection));
             }
-            service.filesystemList(connection, runtimeInfoMap);
+            service.filesystemList(connection);
         } catch (Exception e) {
             String msg;
             if (connection.getAuthMethod() == AuthMethod.SAS) {
@@ -80,7 +80,7 @@ public class UIActionService {
                     activeDirectoryService.getActiveDirAuthToken(connection));
         }
         List<Item> items = new ArrayList<>();
-        for (String s : service.filesystemList(connection, runtimeInfoMap)) {
+        for (String s : service.filesystemList(connection)) {
             items.add(new SuggestionValues.Item(s, s));
         }
         return new SuggestionValues(false, items);

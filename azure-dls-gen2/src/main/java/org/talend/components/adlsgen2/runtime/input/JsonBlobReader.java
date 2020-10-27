@@ -44,8 +44,8 @@ public class JsonBlobReader extends BlobReader {
     private JsonBuilderFactory jsonFactoryBuilder;
 
     JsonBlobReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory,
-            JsonBuilderFactory jsonFactoryBuilder, AdlsGen2Service service, Map<String, Object> runtimeInfoMap) {
-        super(configuration, recordBuilderFactory, service, runtimeInfoMap);
+            JsonBuilderFactory jsonFactoryBuilder, AdlsGen2Service service) {
+        super(configuration, recordBuilderFactory, service);
         this.jsonFactoryBuilder = jsonFactoryBuilder;
     }
 
@@ -83,7 +83,7 @@ public class JsonBlobReader extends BlobReader {
             initMetadataIfNeeded();
             closePreviousInputStream();
             try {
-                currentItemInputStream = service.getBlobInputstream(configuration, getCurrentBlob(), getRuntimeInfoMap());
+                currentItemInputStream = service.getBlobInputstream(configuration, getCurrentBlob());
                 reader = Json.createReader((new InputStreamReader(currentItemInputStream, StandardCharsets.UTF_8)));
                 JsonStructure structure = reader.read();
                 if (structure == null) {

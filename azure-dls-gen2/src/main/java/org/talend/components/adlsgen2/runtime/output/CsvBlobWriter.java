@@ -12,8 +12,6 @@
  */
 package org.talend.components.adlsgen2.runtime.output;
 
-import java.util.Map;
-
 import javax.json.JsonBuilderFactory;
 
 import org.talend.components.adlsgen2.output.OutputConfiguration;
@@ -31,8 +29,8 @@ public class CsvBlobWriter extends BlobWriter {
     private final CsvContentFormatter formatter;
 
     public CsvBlobWriter(OutputConfiguration configuration, RecordBuilderFactory recordBuilderFactory,
-            JsonBuilderFactory jsonFactory, AdlsGen2Service service, Map<String, Object> runtimeInfoMap) throws Exception {
-        super(configuration, recordBuilderFactory, jsonFactory, service, runtimeInfoMap);
+            JsonBuilderFactory jsonFactory, AdlsGen2Service service) throws Exception {
+        super(configuration, recordBuilderFactory, jsonFactory, service);
         formatter = new CsvContentFormatter(configuration, recordBuilderFactory);
     }
 

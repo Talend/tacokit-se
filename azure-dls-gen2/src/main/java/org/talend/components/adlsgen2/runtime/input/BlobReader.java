@@ -32,29 +32,21 @@ public abstract class BlobReader {
 
     protected RecordBuilderFactory recordBuilderFactory;
 
-    private Map<String, Object> runtimeInfoMap;
-
     private RecordIterator iterator;
 
     protected InputConfiguration configuration;
 
     protected final AdlsGen2Service service;
 
-    public BlobReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory, AdlsGen2Service service,
-            Map<String, Object> runtimeInfoMap) {
+    public BlobReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory, AdlsGen2Service service) {
         this.recordBuilderFactory = recordBuilderFactory;
-        this.runtimeInfoMap = runtimeInfoMap;
         this.configuration = configuration;
         this.service = service;
-        Iterable<BlobInformations> blobItems = service.getBlobs(this.configuration.getDataSet(), runtimeInfoMap);
+        Iterable<BlobInformations> blobItems = service.getBlobs(this.configuration.getDataSet());
         iterator = initRecordIterator(blobItems);
     }
 
     protected abstract RecordIterator initRecordIterator(Iterable<BlobInformations> blobItems);
-
-    protected Map<String, Object> getRuntimeInfoMap() {
-        return runtimeInfoMap;
-    }
 
     public Record readRecord() {
         return iterator.next();
@@ -65,16 +57,16 @@ public abstract class BlobReader {
         private static JsonBuilderFactory jsonFactory;
 
         public static BlobReader getReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory,
-                JsonBuilderFactory jsonFactory, AdlsGen2Service service, Map<String, Object> runtimeInfoMap) {
+                JsonBuilderFactory jsonFactory, AdlsGen2Service service) {
             switch (configuration.getDataSet().getFormat()) {
             case CSV:
-                return new CsvBlobReader(configuration, recordBuilderFactory, service, runtimeInfoMap);
+                return new CsvBlobReader(configuration, recordBuilderFactory, service);
             case AVRO:
-                return new AvroBlobReader(configuration, recordBuilderFactory, service, runtimeInfoMap);
+                return new AvroBlobReader(configuration, recordBuilderFactory, service);
             case PARQUET:
-                return new ParquetBlobReader(configuration, recordBuilderFactory, service, runtimeInfoMap);
+                return new ParquetBlobReader(configuration, recordBuilderFactory, service);
             case JSON:
-                return new JsonBlobReader(configuration, recordBuilderFactory, jsonFactory, service, runtimeInfoMap);
+                return new JsonBlobReader(configuration, recordBuilderFactory, jsonFactory, service);
             default:
                 throw new IllegalArgumentException("Unsupported file format"); // shouldn't be here
             }

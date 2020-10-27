@@ -34,9 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CsvBlobReader extends BlobReader {
 
-    CsvBlobReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory, AdlsGen2Service service,
-            Map<String, Object> runtimeInfoMap) {
-        super(configuration, recordBuilderFactory, service, runtimeInfoMap);
+    CsvBlobReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory, AdlsGen2Service service) {
+        super(configuration, recordBuilderFactory, service);
     }
 
     @Override
@@ -83,7 +82,7 @@ public class CsvBlobReader extends BlobReader {
             initMetadataIfNeeded();
             closePreviousInputStream();
             try {
-                currentItemInputStream = service.getBlobInputstream(configuration, getCurrentBlob(), getRuntimeInfoMap());
+                currentItemInputStream = service.getBlobInputstream(configuration, getCurrentBlob());
                 InputStreamReader inr = new InputStreamReader(currentItemInputStream, encodingValue);
                 parser = new CSVParser(inr, format);
                 converter.setRuntimeHeaders(parser.getHeaderMap());
