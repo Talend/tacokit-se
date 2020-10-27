@@ -35,7 +35,7 @@ import org.talend.components.azure.service.AzureBlobComponentServices;
 // this class role is to enable the work to be distributed in environments supporting it.
 //
 @Version(1) // default version is 1, if some configuration changes happen between 2 versions you can add a migrationHandler
-@Icon(value = Icon.IconType.CUSTOM, custom = "talend-azure")
+@Icon(value = Icon.IconType.CUSTOM, custom = "azure-blob-in")
 @PartitionMapper(name = "Input")
 @Documentation("Mapper for AzureBlobStorage Readers")
 public class InputMapper implements Serializable {
