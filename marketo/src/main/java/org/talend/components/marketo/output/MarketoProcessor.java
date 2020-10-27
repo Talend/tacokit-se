@@ -43,7 +43,7 @@ import static org.talend.components.marketo.MarketoApiConstants.REST_API_LIMIT;
 @Slf4j
 @Version
 @Processor(family = "Marketo", name = "Output")
-@Icon(value = IconType.MARKETO)
+@Icon(value = IconType.CUSTOM, custom = "marketo-out")
 @Documentation("Marketo output component")
 public class MarketoProcessor extends MarketoSourceOrProcessor {
 
