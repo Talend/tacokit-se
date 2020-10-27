@@ -28,7 +28,7 @@ import java.util.List;
 import static java.util.Collections.singletonList;
 
 @Version(value = 2, migrationHandler = CouchbaseInputMigrationHandler.class)
-@Icon(value = Icon.IconType.CUSTOM, custom = "CouchbaseInput")
+@Icon(value = Icon.IconType.CUSTOM, custom = "couchbase-in")
 @PartitionMapper(name = "Input")
 @Documentation("Couchbase input Mapper")
 public class CouchbaseInputMapper implements Serializable {
