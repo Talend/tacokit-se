@@ -118,6 +118,9 @@ public class AdlsGen2Service {
 
             headers.put(HeaderConstants.AUTHORIZATION, "Bearer " + activeDirToken);
             break;
+        case SAS:
+            // No headers needed
+            break;
         default:
             throw new IllegalArgumentException("Incorrect auth method was selected");
         }

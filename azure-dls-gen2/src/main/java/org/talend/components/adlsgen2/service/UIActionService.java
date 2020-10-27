@@ -52,11 +52,6 @@ public class UIActionService {
     @HealthCheck(ACTION_HEALTHCHECK)
     public HealthCheckStatus validateConnection(@Option final AdlsGen2Connection connection) {
         try {
-            Map<String, Object> runtimeInfoMap = new HashMap<>();
-            if (connection.getAuthMethod().equals(AuthMethod.ActiveDirectory)) {
-                runtimeInfoMap.put(Constants.RuntimeInfoKeys.ACTIVE_DIRECTORY_TOKEN,
-                        activeDirectoryService.getActiveDirAuthToken(connection));
-            }
             service.filesystemList(connection);
         } catch (Exception e) {
             String msg;
@@ -74,11 +69,6 @@ public class UIActionService {
 
     @Suggestions(ACTION_FILESYSTEMS)
     public SuggestionValues filesystemList(@Option final AdlsGen2Connection connection) {
-        Map<String, Object> runtimeInfoMap = new HashMap<>();
-        if (connection.getAuthMethod().equals(AuthMethod.ActiveDirectory)) {
-            runtimeInfoMap.put(Constants.RuntimeInfoKeys.ACTIVE_DIRECTORY_TOKEN,
-                    activeDirectoryService.getActiveDirAuthToken(connection));
-        }
         List<Item> items = new ArrayList<>();
         for (String s : service.filesystemList(connection)) {
             items.add(new SuggestionValues.Item(s, s));
