@@ -30,7 +30,7 @@ import java.util.List;
 
 @Version(1)
 @Data
-@Icon(value = Icon.IconType.CUSTOM, custom = "mongodb")
+@Icon(value = Icon.IconType.CUSTOM, custom = "mongo_db")
 @DataSet("MongoDBReadDataSet")
 @GridLayout({ @GridLayout.Row({ "datastore" }), @GridLayout.Row({ "collection" }), @GridLayout.Row({ "mode" }),
         @GridLayout.Row({ "query" }) })

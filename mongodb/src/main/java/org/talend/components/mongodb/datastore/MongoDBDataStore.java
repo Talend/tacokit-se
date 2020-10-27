@@ -33,7 +33,7 @@ import java.util.List;
 
 @Version(1)
 @Data
-@Icon(value = Icon.IconType.CUSTOM, custom = "mongodb")
+@Icon(value = Icon.IconType.CUSTOM, custom = "mongo_db")
 @DataStore("MongoDBDataStore")
 @Checkable("healthCheck")
 @GridLayout(names = GridLayout.FormType.MAIN, value = { @GridLayout.Row({ "addressType" }), @GridLayout.Row({ "address" }),

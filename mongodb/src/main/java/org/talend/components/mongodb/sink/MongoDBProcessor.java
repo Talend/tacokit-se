@@ -48,7 +48,7 @@ import java.util.Map;
 
 @Version(1)
 @Slf4j
-@Icon(value = Icon.IconType.CUSTOM, custom = "mongodb")
+@Icon(value = Icon.IconType.CUSTOM, custom = "mongo_db")
 @Processor(name = "Sink")
 @Documentation("This component writes data to MongoDB")
 public class MongoDBProcessor implements Serializable {
