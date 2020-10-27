@@ -31,7 +31,7 @@ import java.io.Serializable;
 @Getter
 @Version
 @Processor(name = "Output")
-@Icon(value = Icon.IconType.CUSTOM, custom = "talend-rest")
+@Icon(value = Icon.IconType.CUSTOM, custom = "rest")
 @Documentation("Http REST Output component")
 public class RestOutput implements Serializable {
 
