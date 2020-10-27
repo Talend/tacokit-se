@@ -1,5 +1,5 @@
 @Components(family = "Salesforce", categories = "Business")
-@Icon(Icon.IconType.FILE_SALESFORCE)
+@Icon(value = Icon.IconType.CUSTOM, custom = "file-salesforce")
 package org.talend.components.salesforce;
 
 import org.talend.sdk.component.api.component.Components;

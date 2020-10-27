@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Version
-@Icon(value = Icon.IconType.FILE_SALESFORCE)
+@Icon(value = Icon.IconType.CUSTOM, custom = "file-salesforce-in")
 @Emitter(name = "SOQLQueryInput")
 @Documentation("Salesforce soql query input ")
 public class SOQLQueryEmitter extends AbstractQueryEmitter implements Serializable {
