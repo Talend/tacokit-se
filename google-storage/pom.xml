@@ -14,14 +14,14 @@
     <description>Google Cloud Storage Connector</description>
 
     <properties>
-        <google-cloud-storage-version>1.102.0</google-cloud-storage-version>
+        <google-cloud-storage-version>1.113.1</google-cloud-storage-version>
         <hamcrest.version>1.3</hamcrest.version>
         <talend.junit.http.passthrough>false</talend.junit.http.passthrough>
         <jmockit.version>1.49</jmockit.version>
 
 
         <talend.scan.scannedDependencies>org.talend.components:stream-api</talend.scan.scannedDependencies>
-        <google-repo-version-test>0.120.0-alpha</google-repo-version-test>
+        <google-repo-version-test>0.121.2</google-repo-version-test>
     </properties>
 
     <dependencies>

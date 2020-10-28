@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.RecordIORepository;
+import org.talend.components.google.storage.FakeStorage;
 import org.talend.components.google.storage.dataset.FormatConfiguration;
 import org.talend.components.google.storage.dataset.GSDataSet;
 import org.talend.components.google.storage.dataset.JsonAllConfiguration;
@@ -44,12 +45,11 @@ import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper;
 
 @WithComponents(value = "org.talend.components.google.storage")
 class GoogleStorageOutputTest {
 
-    private final Storage storage = LocalStorageHelper.getOptions().getService();
+    private final Storage storage = FakeStorage.buildForTU();
 
     @Service
     private RecordIORepository repository;

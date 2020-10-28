@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.Messages;
 import org.talend.components.common.stream.api.RecordIORepository;
 import org.talend.components.common.stream.format.avro.AvroConfiguration;
+import org.talend.components.google.storage.FakeStorage;
 import org.talend.components.google.storage.dataset.FormatConfiguration;
 import org.talend.components.google.storage.dataset.GSDataSet;
 import org.talend.components.google.storage.datastore.GSDataStore;
@@ -48,12 +49,11 @@ import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper;
 
 @WithComponents(value = "org.talend.components.google.storage")
 public class GoogleStorageOutputAvroTest {
 
-    private final Storage storage = LocalStorageHelper.getOptions().getService();
+    private static final Storage storage = FakeStorage.buildForTU();
 
     @Service
     private RecordIORepository repository;
@@ -74,7 +74,6 @@ public class GoogleStorageOutputAvroTest {
     void buildConfig() throws IOException {
         // Inject needed services
         handler.injectServices(this);
-
     }
 
     @Test
