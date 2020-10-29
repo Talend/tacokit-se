@@ -16,6 +16,7 @@ import java.io.Serializable;
 
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
+import org.talend.sdk.component.api.configuration.constraint.Pattern;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataStore;
 import org.talend.sdk.component.api.configuration.ui.DefaultValue;
@@ -34,6 +35,7 @@ public class BasicDataStore implements Serializable {
 
     @Option
     @Required
+    @Pattern("^https?://.+\\S$")
     @DefaultValue("local_configuration:salesforce.endpoint")
     @Documentation("salesforce service endpoint")
     private String endpoint;
