@@ -19,6 +19,8 @@ import java.util.UUID;
 import javax.json.JsonBuilderFactory;
 
 import org.talend.components.adlsgen2.output.OutputConfiguration;
+import org.talend.components.adlsgen2.runtime.AdlsDatasetRuntimeInfo;
+import org.talend.components.adlsgen2.service.AdlsActiveDirectoryService;
 import org.talend.components.adlsgen2.service.AdlsGen2Service;
 import org.talend.components.adlsgen2.service.BlobInformations;
 import org.talend.sdk.component.api.record.Record;
@@ -44,12 +46,15 @@ public abstract class BlobWriter {
 
     protected BlobInformations currentItem = null;
 
+    protected AdlsDatasetRuntimeInfo runtimeInfo;
+
     public BlobWriter(OutputConfiguration configuration, RecordBuilderFactory recordBuilderFactory,
-            JsonBuilderFactory jsonFactory, AdlsGen2Service service) {
+            JsonBuilderFactory jsonFactory, AdlsGen2Service service, AdlsActiveDirectoryService tokenProviderService) {
         this.configuration = configuration;
         this.recordBuilderFactory = recordBuilderFactory;
         this.jsonFactory = jsonFactory;
         this.service = service;
+        this.runtimeInfo = new AdlsDatasetRuntimeInfo(configuration.getDataSet(), tokenProviderService);
         currentItem = new BlobInformations();
     }
 
@@ -63,7 +68,7 @@ public abstract class BlobWriter {
             directoryName += "/";
         }
         String blobName = directoryName + configuration.getBlobNameTemplate() + UUID.randomUUID() + extension;
-        while (service.blobExists(configuration.getDataSet(), blobName)) {
+        while (service.blobExists(runtimeInfo, blobName)) {
             blobName = directoryName + configuration.getBlobNameTemplate() + UUID.randomUUID() + extension;
         }
         currentItem.setBlobPath(blobName);
@@ -88,13 +93,13 @@ public abstract class BlobWriter {
         String oldBlobPath = configuration.getDataSet().getBlobPath();
         configuration.getDataSet().setBlobPath(currentItem.getBlobPath());
         // path create
-        service.pathCreate(configuration);
+        service.pathCreate(runtimeInfo);
         long position = 0;
         // update blob
-        service.pathUpdate(configuration, content, position);
+        service.pathUpdate(runtimeInfo, content, position);
         position += content.length; // cumulate length of written records for current offset
         // flush blob
-        service.flushBlob(configuration, position);
+        service.flushBlob(runtimeInfo, position);
         // reset name
         currentItem.setBlobPath("");
         configuration.getDataSet().setBlobPath(oldBlobPath);

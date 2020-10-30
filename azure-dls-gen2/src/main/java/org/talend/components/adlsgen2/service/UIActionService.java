@@ -20,6 +20,7 @@ import java.util.Map;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
 import org.talend.components.adlsgen2.datastore.Constants;
+import org.talend.components.adlsgen2.runtime.AdlsDatastoreRuntimeInfo;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
@@ -51,8 +52,9 @@ public class UIActionService {
 
     @HealthCheck(ACTION_HEALTHCHECK)
     public HealthCheckStatus validateConnection(@Option final AdlsGen2Connection connection) {
+        AdlsDatastoreRuntimeInfo connectionRuntimeInfo = new AdlsDatastoreRuntimeInfo(connection, activeDirectoryService);
         try {
-            service.filesystemList(connection);
+            service.filesystemList(connectionRuntimeInfo);
         } catch (Exception e) {
             String msg;
             if (connection.getAuthMethod() == AuthMethod.SAS) {
@@ -69,8 +71,9 @@ public class UIActionService {
 
     @Suggestions(ACTION_FILESYSTEMS)
     public SuggestionValues filesystemList(@Option final AdlsGen2Connection connection) {
+        AdlsDatastoreRuntimeInfo connectionRuntimeInfo = new AdlsDatastoreRuntimeInfo(connection, activeDirectoryService);
         List<Item> items = new ArrayList<>();
-        for (String s : service.filesystemList(connection)) {
+        for (String s : service.filesystemList(connectionRuntimeInfo)) {
             items.add(new SuggestionValues.Item(s, s));
         }
         return new SuggestionValues(false, items);

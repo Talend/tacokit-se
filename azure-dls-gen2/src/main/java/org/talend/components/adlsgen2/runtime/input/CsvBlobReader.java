@@ -24,6 +24,7 @@ import org.apache.commons.csv.CSVRecord;
 import org.talend.components.adlsgen2.common.format.csv.CsvConverter;
 import org.talend.components.adlsgen2.input.InputConfiguration;
 import org.talend.components.adlsgen2.runtime.AdlsGen2RuntimeException;
+import org.talend.components.adlsgen2.service.AdlsActiveDirectoryService;
 import org.talend.components.adlsgen2.service.AdlsGen2Service;
 import org.talend.components.adlsgen2.service.BlobInformations;
 import org.talend.sdk.component.api.record.Record;
@@ -34,8 +35,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CsvBlobReader extends BlobReader {
 
-    CsvBlobReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory, AdlsGen2Service service) {
-        super(configuration, recordBuilderFactory, service);
+    CsvBlobReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory, AdlsGen2Service service,
+            AdlsActiveDirectoryService tokenProviderService) {
+        super(configuration, recordBuilderFactory, service, tokenProviderService);
     }
 
     @Override
@@ -82,7 +84,7 @@ public class CsvBlobReader extends BlobReader {
             initMetadataIfNeeded();
             closePreviousInputStream();
             try {
-                currentItemInputStream = service.getBlobInputstream(configuration, getCurrentBlob());
+                currentItemInputStream = service.getBlobInputstream(datasetRuntimeInfo, getCurrentBlob());
                 InputStreamReader inr = new InputStreamReader(currentItemInputStream, encodingValue);
                 parser = new CSVParser(inr, format);
                 converter.setRuntimeHeaders(parser.getHeaderMap());

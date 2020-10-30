@@ -75,7 +75,8 @@ public class AdlsGen2Output implements Serializable {
     public void init() {
         log.debug("[init]");
         try {
-            blobWriter = BlobWriterFactory.getWriter(configuration, recordBuilderFactory, jsonBuilderFactory, service);
+            blobWriter = BlobWriterFactory.getWriter(configuration, recordBuilderFactory, jsonBuilderFactory, service,
+                    tokenProviderService);
         } catch (Exception e) {
             log.error("[init] {}", e.getMessage());
             throw new AdlsGen2RuntimeException(e.getMessage(), e);

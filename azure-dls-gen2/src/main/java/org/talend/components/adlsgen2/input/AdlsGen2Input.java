@@ -53,6 +53,8 @@ public class AdlsGen2Input implements Serializable {
 
     private BlobReader reader;
 
+    private AdlsActiveDirectoryService tokenProviderService;
+
     public AdlsGen2Input(@Option("configuration") final InputConfiguration configuration, final AdlsGen2Service service,
             final RecordBuilderFactory recordBuilderFactory, JsonBuilderFactory jsonFactory,
             final AdlsActiveDirectoryService tokenProviderService) {
@@ -60,13 +62,15 @@ public class AdlsGen2Input implements Serializable {
         this.service = service;
         this.jsonFactory = jsonFactory;
         this.recordBuilderFactory = recordBuilderFactory;
+        this.tokenProviderService = tokenProviderService;
     }
 
     @PostConstruct
     public void init() {
         log.debug("[init]");
         try {
-            reader = BlobFileReaderFactory.getReader(configuration, recordBuilderFactory, jsonFactory, service);
+            reader = BlobFileReaderFactory.getReader(configuration, recordBuilderFactory, jsonFactory, service,
+                    tokenProviderService);
         } catch (Exception e) {
             log.error("[init] Error: {}.", e.getMessage());
             throw new AdlsGen2RuntimeException(e.getMessage(), e);

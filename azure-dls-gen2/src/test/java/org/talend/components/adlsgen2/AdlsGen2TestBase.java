@@ -20,6 +20,8 @@ import java.util.Arrays;
 
 import javax.json.JsonBuilderFactory;
 
+import org.hamcrest.Matchers;
+import org.junit.Assume;
 import org.junit.jupiter.api.BeforeEach;
 import org.talend.components.adlsgen2.common.format.FileFormat;
 import org.talend.components.adlsgen2.common.format.csv.CsvConfiguration;
@@ -32,6 +34,9 @@ import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
 import org.talend.components.adlsgen2.datastore.SharedKeyUtils;
 import org.talend.components.adlsgen2.input.InputConfiguration;
 import org.talend.components.adlsgen2.output.OutputConfiguration;
+import org.talend.components.adlsgen2.runtime.AdlsDatasetRuntimeInfo;
+import org.talend.components.adlsgen2.runtime.AdlsDatastoreRuntimeInfo;
+import org.talend.components.adlsgen2.service.AdlsActiveDirectoryService;
 import org.talend.components.adlsgen2.service.AdlsGen2Service;
 import org.talend.components.adlsgen2.service.I18n;
 import org.talend.sdk.component.api.DecryptedServer;
@@ -62,6 +67,9 @@ public class AdlsGen2TestBase implements Serializable {
     @Service
     protected AdlsGen2Service service;
 
+    @Service
+    protected AdlsActiveDirectoryService tokenProviderService;
+
     @DecryptedServer("azure-dls-gen2.storage")
     private Server mvnStorage;
 
@@ -84,6 +92,10 @@ public class AdlsGen2TestBase implements Serializable {
     protected AdlsGen2Connection connection;
 
     protected AdlsGen2DataSet dataSet;
+
+    protected AdlsDatastoreRuntimeInfo datastoreRuntimeInfo;
+
+    protected AdlsDatasetRuntimeInfo datasetRuntimeInfo;
 
     protected InputConfiguration inputConfiguration;
 
@@ -112,6 +124,9 @@ public class AdlsGen2TestBase implements Serializable {
         accountKey = mvnAccountSharedKey.getPassword();
         sas = mvnAccountSAS.getPassword();
 
+        Assume.assumeThat(accountName, Matchers.not("username"));
+        Assume.assumeThat(sas, Matchers.not("password"));
+
         connection = new AdlsGen2Connection();
         connection.setAuthMethod(AuthMethod.SAS);
         connection.setAccountName(accountName);
@@ -119,11 +134,16 @@ public class AdlsGen2TestBase implements Serializable {
         connection.setSas(sas);
         connection.setTimeout(600);
 
+        datastoreRuntimeInfo = new AdlsDatastoreRuntimeInfo(connection, tokenProviderService);
+
         dataSet = new AdlsGen2DataSet();
         dataSet.setConnection(connection);
         dataSet.setFilesystem(storageFs);
         dataSet.setBlobPath("myNewFolder/customer_20190325.csv");
         dataSet.setFormat(FileFormat.CSV);
+
+        datasetRuntimeInfo = new AdlsDatasetRuntimeInfo(dataSet, tokenProviderService);
+
         CsvConfiguration csvConfig = new CsvConfiguration();
         csvConfig.setFieldDelimiter(CsvFieldDelimiter.SEMICOLON);
         csvConfig.setRecordSeparator(CsvRecordSeparator.LF);

@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import javax.json.JsonArray;
@@ -43,8 +42,8 @@ import org.talend.components.adlsgen2.datastore.Constants;
 import org.talend.components.adlsgen2.datastore.Constants.HeaderConstants;
 import org.talend.components.adlsgen2.datastore.Constants.MethodConstants;
 import org.talend.components.adlsgen2.datastore.SharedKeyUtils;
-import org.talend.components.adlsgen2.input.InputConfiguration;
-import org.talend.components.adlsgen2.output.OutputConfiguration;
+import org.talend.components.adlsgen2.runtime.AdlsDatasetRuntimeInfo;
+import org.talend.components.adlsgen2.runtime.AdlsDatastoreRuntimeInfo;
 import org.talend.components.adlsgen2.runtime.AdlsGen2RuntimeException;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
@@ -52,7 +51,6 @@ import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -89,52 +87,30 @@ public class AdlsGen2Service {
         client.base(connection.apiUrl());
     }
 
-    private Map<String, String> prepareRequestHeaders(final AdlsGen2Connection connection, String url, String method,
-            String payloadLength) {
+    private Map<String, String> prepareRequestHeaders(final Map<String, String> secretsMap, final AdlsGen2Connection connection,
+            String url, String method, String payloadLength) {
         log.debug("[prepareRequest] {} [{}].", url, method);
-        Map<String, String> headers = new HashMap<>();
-        headers.put(HeaderConstants.USER_AGENT, HeaderConstants.USER_AGENT_AZURE_DLS_GEN2);
-        headers.put(Constants.HeaderConstants.DATE, Constants.RFC1123GMTDateFormatter.format(OffsetDateTime.now()));
-        headers.put(HeaderConstants.CONTENT_TYPE, HeaderConstants.DFS_CONTENT_TYPE);
-        headers.put(HeaderConstants.VERSION, HeaderConstants.TARGET_STORAGE_VERSION);
+        secretsMap.put(HeaderConstants.USER_AGENT, HeaderConstants.USER_AGENT_AZURE_DLS_GEN2);
+        secretsMap.put(Constants.HeaderConstants.DATE, Constants.RFC1123GMTDateFormatter.format(OffsetDateTime.now()));
+        secretsMap.put(HeaderConstants.CONTENT_TYPE, HeaderConstants.DFS_CONTENT_TYPE);
+        secretsMap.put(HeaderConstants.VERSION, HeaderConstants.TARGET_STORAGE_VERSION);
         if (StringUtils.isNotEmpty(payloadLength)) {
-            headers.put(HeaderConstants.CONTENT_LENGTH, payloadLength);
+            secretsMap.put(HeaderConstants.CONTENT_LENGTH, payloadLength);
         }
-        switch (connection.getAuthMethod()) {
-        case SharedKey:
+
+        if (connection.getAuthMethod().equals(AdlsGen2Connection.AuthMethod.SharedKey)) {
             try {
                 URL dest = new URL(url);
                 String auth = new SharedKeyUtils(connection.getAccountName(), connection.getSharedKey())
-                        .buildAuthenticationSignature(dest, method, headers);
-                headers.put(HeaderConstants.AUTHORIZATION, auth);
+                        .buildAuthenticationSignature(dest, method, secretsMap);
+                secretsMap.put(HeaderConstants.AUTHORIZATION, auth);
             } catch (Exception e) {
                 log.error("[prepareRequest] {}", e.getMessage());
                 throw new AdlsGen2RuntimeException(e.getMessage());
             }
-            break;
-        case ActiveDirectory:
-            String activeDirToken = Optional.ofNullable(tokenProviderService.getActiveDirAuthToken(connection))
-                    .orElseThrow(() -> new IllegalStateException("Active directory authentication token can't be null"));
-
-            headers.put(HeaderConstants.AUTHORIZATION, "Bearer " + activeDirToken);
-            break;
-        case SAS:
-            // No headers needed
-            break;
-        default:
-            throw new IllegalArgumentException("Incorrect auth method was selected");
         }
 
-        return headers;
-    }
-
-    private Map<String, String> getSASMap(AdlsGen2Connection connection) {
-        Map<String, String> sasMap = new HashMap<>();
-        if (AdlsGen2Connection.AuthMethod.SAS.equals(connection.getAuthMethod())) {
-            sasMap = Splitter.on("&").withKeyValueSeparator("=").split(connection.getSas().substring(1));
-        }
-
-        return sasMap;
+        return secretsMap;
     }
 
     @SuppressWarnings("unchecked")
@@ -195,12 +171,14 @@ public class AdlsGen2Service {
     }
 
     @SuppressWarnings("unchecked")
-    public List<String> filesystemList(@Configuration("connection") final AdlsGen2Connection connection) {
-        setDefaultRequestParameters(connection);
-        String url = String.format("%s/?resource=account&timeout=%d", connection.apiUrl(), connection.getTimeout());
-        Map<String, String> headers = prepareRequestHeaders(connection, url, MethodConstants.GET, "");
-        Response<JsonObject> result = handleResponse(
-                client.filesystemList(headers, getSASMap(connection), Constants.ATTR_ACCOUNT, connection.getTimeout()));
+    public List<String> filesystemList(final AdlsDatastoreRuntimeInfo connectionRuntimeInfo) {
+        setDefaultRequestParameters(connectionRuntimeInfo.getConnection());
+        String url = String.format("%s/?resource=account&timeout=%d", connectionRuntimeInfo.getConnection().apiUrl(),
+                connectionRuntimeInfo.getConnection().getTimeout());
+        Map<String, String> headers = prepareRequestHeaders(connectionRuntimeInfo.getAdTokenMap(),
+                connectionRuntimeInfo.getConnection(), url, MethodConstants.GET, "");
+        Response<JsonObject> result = handleResponse(client.filesystemList(headers, connectionRuntimeInfo.getSASMap(),
+                Constants.ATTR_ACCOUNT, connectionRuntimeInfo.getConnection().getTimeout()));
         List<String> fs = new ArrayList<>();
         for (JsonValue v : result.body().getJsonArray(Constants.ATTR_FILESYSTEMS)) {
             fs.add(v.asJsonObject().getString(Constants.ATTR_NAME));
@@ -209,28 +187,23 @@ public class AdlsGen2Service {
     }
 
     @SuppressWarnings("unchecked")
-    public JsonArray pathList(@Configuration("configuration") final InputConfiguration configuration) {
-        setDefaultRequestParameters(configuration.getDataSet().getConnection());
+    public JsonArray pathList(final AdlsDatasetRuntimeInfo datasetRuntimeInfo) {
+        setDefaultRequestParameters(datasetRuntimeInfo.getDataSet().getConnection());
         String rcfmt = "%s/%s?directory=%s&resource=filesystem&recursive=false&maxResults=5000&timeout=%d";
-        String url = String.format(rcfmt, //
-                configuration.getDataSet().getConnection().apiUrl(), //
-                configuration.getDataSet().getFilesystem(), //
-                configuration.getDataSet().getBlobPath(), //
-                configuration.getDataSet().getConnection().getTimeout() //
-        );
+        String url = getUrlStringWithoutPosition(datasetRuntimeInfo, rcfmt);
         log.debug("[pathList] {}", url);
-        Map<String, String> headers = prepareRequestHeaders(configuration.getDataSet().getConnection(), url, MethodConstants.GET,
-                "");
+        Map<String, String> headers = prepareRequestHeaders(datasetRuntimeInfo.getAdTokenMap(),
+                datasetRuntimeInfo.getDataSet().getConnection(), url, MethodConstants.GET, "");
         Response<JsonObject> result = handleResponse(client.pathList( //
                 headers, //
-                configuration.getDataSet().getFilesystem(), //
-                getSASMap(configuration.getDataSet().getConnection()), //
-                configuration.getDataSet().getBlobPath(), //
+                datasetRuntimeInfo.getDataSet().getFilesystem(), //
+                datasetRuntimeInfo.getSASMap(), //
+                datasetRuntimeInfo.getDataSet().getBlobPath(), //
                 Constants.ATTR_FILESYSTEM, //
                 false, //
                 null, //
                 5000, //
-                configuration.getDataSet().getConnection().getTimeout() //
+                datasetRuntimeInfo.getDataSet().getConnection().getTimeout() //
         ));
         return result.body().getJsonArray(Constants.ATTR_PATHS);
     }
@@ -251,24 +224,25 @@ public class AdlsGen2Service {
     }
 
     @SuppressWarnings("unchecked")
-    public Map<String, String> pathGetProperties(@Configuration("dataSet") final AdlsGen2DataSet dataSet) {
-        setDefaultRequestParameters(dataSet.getConnection());
+    public Map<String, String> pathGetProperties(final AdlsDatasetRuntimeInfo datasetRuntimeInfo) {
+        setDefaultRequestParameters(datasetRuntimeInfo.getConnection());
         String rcfmt = "%s/%s/%s?timeout=%d";
         String url = String.format(rcfmt, //
-                dataSet.getConnection().apiUrl(), //
-                dataSet.getFilesystem(), //
-                dataSet.getBlobPath(), //
-                dataSet.getConnection().getTimeout() //
+                datasetRuntimeInfo.getConnection().apiUrl(), //
+                datasetRuntimeInfo.getDataSet().getFilesystem(), //
+                datasetRuntimeInfo.getDataSet().getBlobPath(), //
+                datasetRuntimeInfo.getConnection().getTimeout() //
         );
         log.debug("[pathGetProperties] {}", url);
-        Map<String, String> headers = prepareRequestHeaders(dataSet.getConnection(), url, MethodConstants.HEAD, "");
+        Map<String, String> headers = prepareRequestHeaders(datasetRuntimeInfo.getAdTokenMap(),
+                datasetRuntimeInfo.getConnection(), url, MethodConstants.HEAD, "");
         Map<String, String> properties = new HashMap<>();
         Response<JsonObject> result = handleResponse(client.pathGetProperties( //
                 headers, //
-                dataSet.getFilesystem(), //
-                dataSet.getBlobPath(), //
-                dataSet.getConnection().getTimeout(), //
-                getSASMap(dataSet.getConnection()) //
+                datasetRuntimeInfo.getDataSet().getFilesystem(), //
+                datasetRuntimeInfo.getDataSet().getBlobPath(), //
+                datasetRuntimeInfo.getConnection().getTimeout(), //
+                datasetRuntimeInfo.getSASMap() //
         ));
         if (result.status() == 200) {
             for (String header : result.headers().keySet()) {
@@ -280,27 +254,23 @@ public class AdlsGen2Service {
         return properties;
     }
 
-    public List<BlobInformations> getBlobs(@Configuration("dataSet") final AdlsGen2DataSet dataSet) {
-        setDefaultRequestParameters(dataSet.getConnection());
+    public List<BlobInformations> getBlobs(final AdlsDatasetRuntimeInfo datasetRuntimeInfo) {
+        setDefaultRequestParameters(datasetRuntimeInfo.getConnection());
         String rcfmt = "%s/%s?directory=%s&resource=filesystem&recursive=false&maxResults=5000&timeout=%d";
-        String url = String.format(rcfmt, //
-                dataSet.getConnection().apiUrl(), //
-                dataSet.getFilesystem(), //
-                dataSet.getBlobPath(), //
-                dataSet.getConnection().getTimeout() //
-        );
+        String url = getUrlStringWithoutPosition(datasetRuntimeInfo, rcfmt);
         log.debug("[getBlobs] {}", url);
-        Map<String, String> headers = prepareRequestHeaders(dataSet.getConnection(), url, MethodConstants.GET, "");
+        Map<String, String> headers = prepareRequestHeaders(datasetRuntimeInfo.getAdTokenMap(),
+                datasetRuntimeInfo.getConnection(), url, MethodConstants.GET, "");
         Response<JsonObject> result = handleResponse(client.pathList( //
                 headers, //
-                dataSet.getFilesystem(), //
-                getSASMap(dataSet.getConnection()), //
-                dataSet.getBlobPath(), //
+                datasetRuntimeInfo.getDataSet().getFilesystem(), //
+                datasetRuntimeInfo.getSASMap(), //
+                datasetRuntimeInfo.getDataSet().getBlobPath(), //
                 Constants.ATTR_FILESYSTEM, //
                 false, //
                 null, //
                 5000, //
-                dataSet.getConnection().getTimeout() //
+                datasetRuntimeInfo.getConnection().getTimeout() //
         ));
         if (result.status() != Constants.HTTP_RESPONSE_CODE_200_OK) {
             log.error("[getBlobs] Invalid request [{}] {}", result.status(), result.headers());
@@ -333,40 +303,41 @@ public class AdlsGen2Service {
         return blobs;
     }
 
-    public BlobInformations getBlobInformations(@Configuration("dataSet") final AdlsGen2DataSet dataSet) {
-        setDefaultRequestParameters(dataSet.getConnection());
+    public BlobInformations getBlobInformations(final AdlsDatasetRuntimeInfo datasetRuntimeInfo) {
+        setDefaultRequestParameters(datasetRuntimeInfo.getConnection());
         String rcfmt = "%s/%s?directory=%s&resource=filesystem&recursive=false&maxResults=5000&timeout=%d";
         String url = String.format(rcfmt, //
-                dataSet.getConnection().apiUrl(), //
-                dataSet.getFilesystem(), //
-                extractFolderPath(dataSet.getBlobPath()), //
-                dataSet.getConnection().getTimeout() //
+                datasetRuntimeInfo.getConnection().apiUrl(), //
+                datasetRuntimeInfo.getDataSet().getFilesystem(), //
+                extractFolderPath(datasetRuntimeInfo.getDataSet().getBlobPath()), //
+                datasetRuntimeInfo.getConnection().getTimeout() //
         );
         log.debug("[getBlobInformations] {}", url);
-        Map<String, String> headers = prepareRequestHeaders(dataSet.getConnection(), url, MethodConstants.GET, "");
+        Map<String, String> headers = prepareRequestHeaders(datasetRuntimeInfo.getAdTokenMap(),
+                datasetRuntimeInfo.getConnection(), url, MethodConstants.GET, "");
         BlobInformations infos = new BlobInformations();
         Response<JsonObject> result = client.pathList( //
                 headers, //
-                dataSet.getFilesystem(), //
-                getSASMap(dataSet.getConnection()), //
-                extractFolderPath(dataSet.getBlobPath()), //
+                datasetRuntimeInfo.getDataSet().getFilesystem(), //
+                datasetRuntimeInfo.getSASMap(), //
+                extractFolderPath(datasetRuntimeInfo.getDataSet().getBlobPath()), //
                 Constants.ATTR_FILESYSTEM, //
                 false, //
                 null, //
                 5000, //
-                dataSet.getConnection().getTimeout() //
+                datasetRuntimeInfo.getConnection().getTimeout() //
         );
         if (result.status() != Constants.HTTP_RESPONSE_CODE_200_OK) {
             log.debug("[getBlobInformations] blob info: {}", infos);
             return infos;
         }
-        String fileName = extractFileName(dataSet.getBlobPath());
+        String fileName = extractFileName(datasetRuntimeInfo.getDataSet().getBlobPath());
         for (JsonValue f : result.body().getJsonArray(Constants.ATTR_PATHS)) {
-            if (f.asJsonObject().getString(Constants.ATTR_NAME).equals(dataSet.getBlobPath())) {
+            if (f.asJsonObject().getString(Constants.ATTR_NAME).equals(datasetRuntimeInfo.getDataSet().getBlobPath())) {
                 infos.setExists(true);
                 infos.setName(f.asJsonObject().getString(Constants.ATTR_NAME));
                 infos.setFileName(fileName);
-                infos.setBlobPath(extractFolderPath(dataSet.getBlobPath()));
+                infos.setBlobPath(extractFolderPath(datasetRuntimeInfo.getDataSet().getBlobPath()));
                 infos.setEtag(f.asJsonObject().getString("etag"));
                 infos.setContentLength(Integer.parseInt(f.asJsonObject().getString("contentLength")));
                 infos.setLastModified(f.asJsonObject().getString("lastModified"));
@@ -382,26 +353,27 @@ public class AdlsGen2Service {
         return infos;
     }
 
-    public boolean blobExists(@Configuration("dataSet") final AdlsGen2DataSet dataSet, String blobName) {
-        setDefaultRequestParameters(dataSet.getConnection());
+    public boolean blobExists(AdlsDatasetRuntimeInfo datasetRuntimeInfo, String blobName) {
+        setDefaultRequestParameters(datasetRuntimeInfo.getConnection());
         String rcfmt = "%s/%s?directory=%s&resource=filesystem&recursive=false&maxResults=5000&timeout=%d";
         String url = String.format(rcfmt, //
-                dataSet.getConnection().apiUrl(), //
-                dataSet.getFilesystem(), //
-                extractFolderPath(blobName), dataSet.getConnection().getTimeout() //
+                datasetRuntimeInfo.getConnection().apiUrl(), //
+                datasetRuntimeInfo.getDataSet().getFilesystem(), //
+                extractFolderPath(blobName), datasetRuntimeInfo.getConnection().getTimeout() //
         );
         log.debug("[blobExists] {}", url);
-        Map<String, String> headers = prepareRequestHeaders(dataSet.getConnection(), url, MethodConstants.GET, "");
+        Map<String, String> headers = prepareRequestHeaders(datasetRuntimeInfo.getAdTokenMap(),
+                datasetRuntimeInfo.getConnection(), url, MethodConstants.GET, "");
         BlobInformations infos = new BlobInformations();
         Response<JsonObject> result = client.pathList( //
                 headers, //
-                dataSet.getFilesystem(), //
-                getSASMap(dataSet.getConnection()), //
+                datasetRuntimeInfo.getDataSet().getFilesystem(), //
+                datasetRuntimeInfo.getSASMap(), //
                 extractFolderPath(blobName), Constants.ATTR_FILESYSTEM, //
                 false, //
                 null, //
                 5000, //
-                dataSet.getConnection().getTimeout() //
+                datasetRuntimeInfo.getDataSet().getConnection().getTimeout() //
         );
         if (result.status() != Constants.HTTP_RESPONSE_CODE_200_OK) {
             log.debug("[blobExists] blob info: {}", infos);
@@ -417,103 +389,85 @@ public class AdlsGen2Service {
         return false;
     }
 
-    public Boolean pathExists(@Configuration("dataSet") final AdlsGen2DataSet dataSet) {
-        return getBlobInformations(dataSet).isExists();
+    public Boolean pathExists(AdlsDatasetRuntimeInfo datasetRuntimeInfo) {
+        return getBlobInformations(datasetRuntimeInfo).isExists();
     }
 
     @SuppressWarnings("unchecked")
-    public Iterator<Record> pathRead(@Configuration("configuration") final InputConfiguration configuration) {
-        setDefaultRequestParameters(configuration.getDataSet().getConnection());
+    public Iterator<Record> pathRead(AdlsDatasetRuntimeInfo datasetRuntimeInfo) {
+        setDefaultRequestParameters(datasetRuntimeInfo.getConnection());
         String rcfmt = "%s/%s/%s?timeout=%d";
-        String url = String.format(rcfmt, //
-                configuration.getDataSet().getConnection().apiUrl(), //
-                configuration.getDataSet().getFilesystem(), //
-                configuration.getDataSet().getBlobPath(), //
-                configuration.getDataSet().getConnection().getTimeout() //
-        );
+        String url = getUrlStringWithoutPosition(datasetRuntimeInfo, rcfmt);
         log.debug("[pathRead] {}", url);
-        Map<String, String> headers = prepareRequestHeaders(configuration.getDataSet().getConnection(), url, MethodConstants.GET,
-                "");
+        Map<String, String> headers = prepareRequestHeaders(datasetRuntimeInfo.getAdTokenMap(),
+                datasetRuntimeInfo.getConnection(), url, MethodConstants.GET, "");
         Response<InputStream> result = handleResponse(client.pathRead( //
                 headers, //
-                configuration.getDataSet().getFilesystem(), //
-                configuration.getDataSet().getBlobPath(), //
-                configuration.getDataSet().getConnection().getTimeout(), //
-                getSASMap(configuration.getDataSet().getConnection()) //
+                datasetRuntimeInfo.getDataSet().getFilesystem(), //
+                datasetRuntimeInfo.getDataSet().getBlobPath(), //
+                datasetRuntimeInfo.getConnection().getTimeout(), //
+                datasetRuntimeInfo.getSASMap() //
         ));
-        return convertToRecordList(configuration.getDataSet(), result.body());
+        return convertToRecordList(datasetRuntimeInfo.getDataSet(), result.body());
     }
 
     @SuppressWarnings("unchecked")
-    public InputStream getBlobInputstream(@Configuration("configuration") final InputConfiguration configuration,
-            BlobInformations blob) {
-        setDefaultRequestParameters(configuration.getDataSet().getConnection());
+    public InputStream getBlobInputstream(AdlsDatasetRuntimeInfo datasetRuntimeInfo, BlobInformations blob) {
+        setDefaultRequestParameters(datasetRuntimeInfo.getConnection());
         String rcfmt = "%s/%s/%s?timeout=%d";
         String url = String.format(rcfmt, //
-                configuration.getDataSet().getConnection().apiUrl(), //
-                configuration.getDataSet().getFilesystem(), //
+                datasetRuntimeInfo.getDataSet().getConnection().apiUrl(), //
+                datasetRuntimeInfo.getDataSet().getFilesystem(), //
                 blob.getBlobPath(), //
-                configuration.getDataSet().getConnection().getTimeout() //
+                datasetRuntimeInfo.getConnection().getTimeout() //
         );
         log.debug("[getBlobInputstream] {}", url);
-        Map<String, String> headers = prepareRequestHeaders(configuration.getDataSet().getConnection(), url, MethodConstants.GET,
-                "");
+        Map<String, String> headers = prepareRequestHeaders(datasetRuntimeInfo.getAdTokenMap(),
+                datasetRuntimeInfo.getConnection(), url, MethodConstants.GET, "");
         Response<InputStream> result = handleResponse(client.pathRead( //
                 headers, //
-                configuration.getDataSet().getFilesystem(), //
+                datasetRuntimeInfo.getDataSet().getFilesystem(), //
                 blob.getBlobPath(), //
-                configuration.getDataSet().getConnection().getTimeout(), //
-                getSASMap(configuration.getDataSet().getConnection()) //
+                datasetRuntimeInfo.getConnection().getTimeout(), //
+                datasetRuntimeInfo.getSASMap() //
         ));
         return result.body();
     }
 
     @SuppressWarnings("unchecked")
-    public Response<JsonObject> pathCreate(@Configuration("configuration") final OutputConfiguration configuration) {
-        setDefaultRequestParameters(configuration.getDataSet().getConnection());
+    public Response<JsonObject> pathCreate(AdlsDatasetRuntimeInfo datasetRuntimeInfo) {
+        setDefaultRequestParameters(datasetRuntimeInfo.getConnection());
         String rcfmt = "%s/%s/%s?resource=file&timeout=%d";
-        String url = String.format(rcfmt, //
-                configuration.getDataSet().getConnection().apiUrl(), //
-                configuration.getDataSet().getFilesystem(), //
-                configuration.getDataSet().getBlobPath(), //
-                configuration.getDataSet().getConnection().getTimeout() //
-        );
+        String url = getUrlStringWithoutPosition(datasetRuntimeInfo, rcfmt);
         log.debug("[pathCreate] {}", url);
-        Map<String, String> headers = prepareRequestHeaders(configuration.getDataSet().getConnection(), url, MethodConstants.PUT,
-                "");
+        Map<String, String> headers = prepareRequestHeaders(datasetRuntimeInfo.getAdTokenMap(),
+                datasetRuntimeInfo.getConnection(), url, MethodConstants.PUT, "");
         return handleResponse(client.pathCreate( //
                 headers, //
-                configuration.getDataSet().getFilesystem(), //
-                configuration.getDataSet().getBlobPath(), //
+                datasetRuntimeInfo.getDataSet().getFilesystem(), //
+                datasetRuntimeInfo.getDataSet().getBlobPath(), //
                 Constants.ATTR_FILE, //
-                configuration.getDataSet().getConnection().getTimeout(), //
-                getSASMap(configuration.getDataSet().getConnection()), //
+                datasetRuntimeInfo.getConnection().getTimeout(), //
+                datasetRuntimeInfo.getSASMap(), //
                 ""));
     }
 
     @SuppressWarnings("unchecked")
-    public Response<JsonObject> pathUpdate(@Configuration("configuration") final OutputConfiguration configuration,
-            byte[] content, long position) {
-        setDefaultRequestParameters(configuration.getDataSet().getConnection());
+    public Response<JsonObject> pathUpdate(AdlsDatasetRuntimeInfo datasetRuntimeInfo, byte[] content, long position) {
+        setDefaultRequestParameters(datasetRuntimeInfo.getConnection());
         String rcfmt = "%s/%s/%s?action=append&position=%s&timeout=%d";
-        String url = String.format(rcfmt, //
-                configuration.getDataSet().getConnection().apiUrl(), //
-                configuration.getDataSet().getFilesystem(), //
-                configuration.getDataSet().getBlobPath(), //
-                position, //
-                configuration.getDataSet().getConnection().getTimeout() //
-        );
+        String url = getUrlStringWithPosition(datasetRuntimeInfo, position, rcfmt);
         log.debug("[pathUpdate] {}", url);
-        Map<String, String> headers = prepareRequestHeaders(configuration.getDataSet().getConnection(), url,
-                MethodConstants.PATCH, String.valueOf(content.length));
+        Map<String, String> headers = prepareRequestHeaders(datasetRuntimeInfo.getAdTokenMap(),
+                datasetRuntimeInfo.getConnection(), url, MethodConstants.PATCH, String.valueOf(content.length));
         return handleResponse(client.pathUpdate( //
                 headers, //
-                configuration.getDataSet().getFilesystem(), //
-                configuration.getDataSet().getBlobPath(), //
+                datasetRuntimeInfo.getDataSet().getFilesystem(), //
+                datasetRuntimeInfo.getDataSet().getBlobPath(), //
                 Constants.ATTR_ACTION_APPEND, //
                 position, //
-                configuration.getDataSet().getConnection().getTimeout(), //
-                getSASMap(configuration.getDataSet().getConnection()), //
+                datasetRuntimeInfo.getDataSet().getConnection().getTimeout(), //
+                datasetRuntimeInfo.getSASMap(), //
                 content //
         ));
     }
@@ -528,28 +482,41 @@ public class AdlsGen2Service {
      * @return
      */
     @SuppressWarnings("unchecked")
-    public Response<JsonObject> flushBlob(@Configuration("configuration") OutputConfiguration configuration, long position) {
-        setDefaultRequestParameters(configuration.getDataSet().getConnection());
+    public Response<JsonObject> flushBlob(AdlsDatasetRuntimeInfo datasetRuntimeInfo, long position) {
+        setDefaultRequestParameters(datasetRuntimeInfo.getConnection());
         String rcfmt = "%s/%s/%s?action=flush&position=%s&timeout=%d";
-        String url = String.format(rcfmt, //
-                configuration.getDataSet().getConnection().apiUrl(), //
-                configuration.getDataSet().getFilesystem(), //
-                configuration.getDataSet().getBlobPath(), //
-                position, //
-                configuration.getDataSet().getConnection().getTimeout() //
-        );
+        String url = getUrlStringWithPosition(datasetRuntimeInfo, position, rcfmt);
         log.debug("[flushBlob#pathUpdate] {}", url);
-        Map<String, String> headers = prepareRequestHeaders(configuration.getDataSet().getConnection(), url,
-                MethodConstants.PATCH, "");
+        Map<String, String> headers = prepareRequestHeaders(datasetRuntimeInfo.getAdTokenMap(),
+                datasetRuntimeInfo.getConnection(), url, MethodConstants.PATCH, "");
         return handleResponse(client.pathUpdate( //
                 headers, //
-                configuration.getDataSet().getFilesystem(), //
-                configuration.getDataSet().getBlobPath(), //
+                datasetRuntimeInfo.getDataSet().getFilesystem(), //
+                datasetRuntimeInfo.getDataSet().getBlobPath(), //
                 Constants.ATTR_ACTION_FLUSH, //
                 position, //
-                configuration.getDataSet().getConnection().getTimeout(), //
-                getSASMap(configuration.getDataSet().getConnection()), //
+                datasetRuntimeInfo.getConnection().getTimeout(), //
+                datasetRuntimeInfo.getSASMap(), //
                 new byte[0] //
         ));
+    }
+
+    private String getUrlStringWithPosition(AdlsDatasetRuntimeInfo datasetRuntimeInfo, long position, String rcfmt) {
+        return String.format(rcfmt, //
+                datasetRuntimeInfo.getDataSet().getConnection().apiUrl(), //
+                datasetRuntimeInfo.getDataSet().getFilesystem(), //
+                datasetRuntimeInfo.getDataSet().getBlobPath(), //
+                position, //
+                datasetRuntimeInfo.getConnection().getTimeout() //
+        );
+    }
+
+    private String getUrlStringWithoutPosition(AdlsDatasetRuntimeInfo datasetRuntimeInfo, String rcfmt) {
+        return String.format(rcfmt, //
+                datasetRuntimeInfo.getConnection().apiUrl(), //
+                datasetRuntimeInfo.getDataSet().getFilesystem(), //
+                datasetRuntimeInfo.getDataSet().getBlobPath(), //
+                datasetRuntimeInfo.getDataSet().getConnection().getTimeout() //
+        );
     }
 }
