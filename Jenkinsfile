@@ -86,7 +86,7 @@ spec:
         choice(name: 'Action', 
                choices: [ 'STANDARD', 'PUSH_TO_XTM', 'DEPLOY_FROM_XTM', 'RELEASE' ],
                description: 'Kind of running : \nSTANDARD (default), normal building\n PUSH_TO_XTM : Export the project i18n resources to Xtm to be translated. This action can be performed from master or maintenance branches only. \nDEPLOY_FROM_XTM: Download and deploy i18n resources from Xtm to nexus for this branch.\nRELEASE : build release')
-        bool(name: 'ForceSonar', default: false, description: 'Turn to true to force sonar analysis')
+        booleanParam(name: 'FORCE_SONAR', default: false, description: 'Turn to true to force sonar analysis')
     }
 
     stages {
@@ -175,7 +175,7 @@ spec:
                         anyOf {
                             branch 'master'
                             expression { env.BRANCH_NAME.startsWith('maintenance/') }
-                            expression { params.ForceSonar == true }
+                            expression { params.FORCE_SONAR == true }
                         }
                     }
                     steps {
