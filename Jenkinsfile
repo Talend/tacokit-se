@@ -86,6 +86,7 @@ spec:
         choice(name: 'Action', 
                choices: [ 'STANDARD', 'PUSH_TO_XTM', 'DEPLOY_FROM_XTM', 'RELEASE' ],
                description: 'Kind of running : \nSTANDARD (default), normal building\n PUSH_TO_XTM : Export the project i18n resources to Xtm to be translated. This action can be performed from master or maintenance branches only. \nDEPLOY_FROM_XTM: Download and deploy i18n resources from Xtm to nexus for this branch.\nRELEASE : build release')
+        bool(name: 'Force Sonar', default: false, description: 'Turn to true to force sonar analysis')
     }
 
     stages {
@@ -100,7 +101,7 @@ spec:
                     // real task
                     withCredentials([nexusCredentials]) {
                         script {
-                            sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -DskipTests -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/ -e ${talendOssRepositoryArg}"
+                            sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/ -e ${talendOssRepositoryArg}"
                         }
                     }
                 }
@@ -124,7 +125,7 @@ spec:
                 expression { params.Action == 'STANDARD' }
             }
             parallel {
-                /*stage('Documentation') {
+                stage('Documentation') {
                     steps {
                         container('main') {
                             withCredentials([dockerCredentials]) {
@@ -144,7 +145,7 @@ spec:
                             ])
                         }
                     }
-                }*/
+                }
                 stage('Site') {
                     steps {
                         container('main') {
@@ -160,7 +161,7 @@ spec:
                         }
                     }
                 }
-                /*stage('Nexus') {
+                stage('Nexus') {
                     steps {
                         container('main') {
                             withCredentials([nexusCredentials]) {
@@ -168,18 +169,18 @@ spec:
                             }
                         }
                     }
-                }*/
+                }
                 stage('Sonar') {
-                    /*when {
+                    when {
                         anyOf {
                             branch 'master'
                             expression { env.BRANCH_NAME.startsWith('maintenance/') }
                         }
-                    }*/
+                    }
                     steps {
                         container('main') {
                             withCredentials([sonarCredentials]) {
-                                sh "mvn -Dsonar.host.url=https://sonar-eks.datapwn.com -Dsonar.login='$SONAR_LOGIN' -Dsonar.password='$SONAR_PASSWORD' sonar:sonar"
+                                sh "mvn -Dsonar.host.url=https://sonar-eks.datapwn.com -Dsonar.login='$SONAR_LOGIN' -Dsonar.password='$SONAR_PASSWORD' sonar:sonar -PITs -s .jenkins/settings.xml -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/"
                             }
                         }
                     }
