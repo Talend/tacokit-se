@@ -20,6 +20,7 @@ import org.talend.components.common.stream.format.OptionalLine;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.condition.ActiveIfs;
+import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
@@ -48,7 +49,8 @@ public class ExcelConfiguration implements ContentFormat {
     @Option
     @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" })
     @Documentation("Excel sheet name.")
-    private String sheetName;
+    @DefaultValue("Sheet1")
+    private String sheetName = "Sheet1";
 
     @Option
     @ActiveIf(target = "excelFormat", value = "HTML")
