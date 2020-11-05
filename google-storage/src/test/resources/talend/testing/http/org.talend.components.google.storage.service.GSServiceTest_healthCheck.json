@@ -2,9 +2,6 @@
   {
     "request":{
       "headers":{
-        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
-        "Connection":"keep-alive",
-        "Accept-Encoding":"gzip",
         "Content-Length":"1076",
         "Content-Type":"application/x-www-form-urlencoded; charset=UTF-8"
       },
@@ -29,12 +26,8 @@
   },
   {
     "request":{
-      "headers":{
-        "Connection":"keep-alive",
-        "Accept-Encoding":"gzip"
-      },
       "method":"GET",
-      "uri":"https://www.googleapis.com/storage/v1/b?project=engineering-152721&projection=full"
+      "uri":"https://storage.googleapis.com/storage/v1/b?project=engineering-152721&projection=full"
     },
     "response":{
       "headers":{

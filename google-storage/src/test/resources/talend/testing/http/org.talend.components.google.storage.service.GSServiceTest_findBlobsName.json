@@ -1,10 +1,6 @@
 [
   {
     "request":{
-      "headers":{
-        "Connection":"keep-alive",
-        "Accept-Encoding":"gzip"
-      },
       "method":"POST",
       "uri":"https://oauth2.googleapis.com/token"
     },
@@ -20,12 +16,8 @@
   },
   {
     "request":{
-      "headers":{
-        "Connection":"keep-alive",
-        "Accept-Encoding":"gzip"
-      },
       "method":"GET",
-      "uri":"https://www.googleapis.com/storage/v1/b/mybucket?projection=full"
+      "uri":"https://storage.googleapis.com/storage/v1/b/mybucket?projection=full"
     },
     "response":{
       "headers":{
@@ -39,12 +31,8 @@
   },
   {
     "request":{
-      "headers":{
-        "Connection":"keep-alive",
-        "Accept-Encoding":"gzip"
-      },
       "method":"GET",
-      "uri":"https://www.googleapis.com/storage/v1/b/mybucket/o?fields=nextPageToken,prefixes,items(bucket,name)&projection=full"
+      "uri":"https://storage.googleapis.com/storage/v1/b/mybucket/o?fields=nextPageToken,prefixes,items(bucket,name)&projection=full"
     },
     "response":{
       "headers":{

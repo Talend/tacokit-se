@@ -39,9 +39,14 @@ import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper;
+
 @HttpApi(useSsl = true)
 @WithComponents("org.talend.components.google.storage")
 class GSServiceTest {
+
+    private final Storage storage = LocalStorageHelper.getOptions().getService();
 
     @Service
     private GSService service;

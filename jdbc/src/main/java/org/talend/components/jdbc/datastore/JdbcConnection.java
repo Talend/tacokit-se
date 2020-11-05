@@ -50,7 +50,7 @@ public class JdbcConnection implements Serializable {
     private String dbType;
 
     @Option
-    @ActiveIf(target = "dbType", value = "Aurora")
+    @ActiveIf(target = "dbType", value = { "Aurora", "SingleStore" })
     @Documentation("Database handlers, this configuration is for cloud databases that support the use of other databases drivers")
     @Suggestable(value = ACTION_LIST_HANDLERS_DB, parameters = { "dbType" })
     private String handler;

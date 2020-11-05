@@ -12,23 +12,10 @@ def dockerCredentials = usernamePassword(
 	credentialsId: 'docker-registry-credentials',
     passwordVariable: 'DOCKER_PASSWORD',
     usernameVariable: 'DOCKER_LOGIN')
-
-
-
-def netsuiteCredentials = usernamePassword(
-                                credentialsId: 'netsuite-integration',
-                                usernameVariable: 'NETSUITE_INTEGRATION_USER',
-                                passwordVariable: 'NETSUITE_INTEGRATION_PASSWORD')
-
-def netsuiteConsumerCredentials = usernamePassword(
-                                credentialsId: 'netsuite-integration-consumer',
-                                usernameVariable: 'NETSUITE_INTEGRATION_CONSUMER_USER',
-                                passwordVariable: 'NETSUITE_INTEGRATION_CONSUMER_PASSWORD')
-
-def netsuiteTokenCredentials = usernamePassword(
-                                credentialsId: 'netsuite-integration-token',
-                                usernameVariable: 'NETSUITE_INTEGRATION_TOKEN_USER',
-                                passwordVariable: 'NETSUITE_INTEGRATION_TOKEN_PASSWORD')
+def sonarCredentials = usernamePassword(
+    credentialsId: 'sonar-credentials',
+    passwordVariable: 'SONAR_PASSWORD', 
+    usernameVariable: 'SONAR_LOGIN')
 
 def PRODUCTION_DEPLOYMENT_REPOSITORY = "TalendOpenSourceSnapshot"
 
@@ -99,6 +86,7 @@ spec:
         choice(name: 'Action', 
                choices: [ 'STANDARD', 'PUSH_TO_XTM', 'DEPLOY_FROM_XTM', 'RELEASE' ],
                description: 'Kind of running : \nSTANDARD (default), normal building\n PUSH_TO_XTM : Export the project i18n resources to Xtm to be translated. This action can be performed from master or maintenance branches only. \nDEPLOY_FROM_XTM: Download and deploy i18n resources from Xtm to nexus for this branch.\nRELEASE : build release')
+        booleanParam(name: 'FORCE_SONAR', defaultValue: false, description: 'Force Sonar analysis')
     }
 
     stages {
@@ -111,12 +99,7 @@ spec:
                     // for next concurrent builds
                     sh 'for i in ci_documentation ci_nexus ci_site; do rm -Rf $i; rsync -av . $i; done'
                     // real task
-                    withCredentials([
-                            nexusCredentials
-                            , netsuiteCredentials
-                            , netsuiteConsumerCredentials
-                            , netsuiteTokenCredentials
-                    ]) {
+                    withCredentials([nexusCredentials]) {
                         script {
                             sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/ -e ${talendOssRepositoryArg}"
                         }
@@ -187,6 +170,22 @@ spec:
                         }
                     }
                 }
+                stage('Sonar') {
+                    when {
+                        anyOf {
+                            branch 'master'
+                            expression { env.BRANCH_NAME.startsWith('maintenance/') }
+                            expression { params.FORCE_SONAR == true }
+                        }
+                    }
+                    steps {
+                        container('main') {
+                            withCredentials([sonarCredentials]) {
+                                sh "mvn -Dsonar.host.url=https://sonar-eks.datapwn.com -Dsonar.login='$SONAR_LOGIN' -Dsonar.password='$SONAR_PASSWORD' sonar:sonar -PITs -s .jenkins/settings.xml -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/"
+                            }
+                        }
+                    }
+                }
             }
         }
         stage('Push to Xtm') {
@@ -240,7 +239,7 @@ spec:
                 }
             }
             steps {
-            	withCredentials([gitCredentials, nexusCredentials, netsuiteCredentials, netsuiteConsumerCredentials, netsuiteTokenCredentials]) {
+            	withCredentials([gitCredentials, nexusCredentials]) {
 					container('main') {
                         sh "sh .jenkins/release.sh"
               		}

@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.talend.components</groupId>
         <artifactId>connectors-se</artifactId>
-        <version>1.15.0-SNAPSHOT</version>
+        <version>1.16.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>bigquery</artifactId>
@@ -15,19 +15,20 @@
 
     <properties>
         <testcontainers.version>1.12.3</testcontainers.version>
-        <google.cloud.sdk.version>1.91.0</google.cloud.sdk.version>
+        <google.bq.sdk.version>1.117.1</google.bq.sdk.version>
+        <google.gcs.sdk.version>1.113.1</google.gcs.sdk.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-bigquery</artifactId>
-            <version>${google.cloud.sdk.version}</version>
+            <version>${google.bq.sdk.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-storage</artifactId>
-            <version>${google.cloud.sdk.version}</version>
+            <version>${google.gcs.sdk.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
