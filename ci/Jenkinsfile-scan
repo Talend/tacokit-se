@@ -70,6 +70,7 @@ spec:
         stage('Vera code') {
             steps {
                 container('main') {
+                    sh "mvn -U -B clean package -Dmaven.test.skip=true"
                     withCredentials([veracodeCredentials]) {
                         veracode applicationName: "$VERACODE_APP_NAME",
                             canFailJob: true,
@@ -83,7 +84,7 @@ spec:
                             createSandbox: true,
                             scanExcludesPattern: '',
                             scanIncludesPattern: '',
-                            scanName: "${env.BRANCH_NAME}-${currentBuild.number}-${currentBuild.startTimeInMillis}",
+                            scanName: "master-${currentBuild.number}-${currentBuild.startTimeInMillis}",
                             uploadExcludesPattern: '',
                             uploadIncludesPattern: '**/*.jar',
                             waitForScan: true,
