@@ -155,3 +155,7 @@ The sink connector configuration migration :
       "configuration.sink_outgoing": "{\n\t\"configuration.sink_legacy\" : \"my_value\",\n\t\"configuration.sink_migration_handler_callback\" : \"1 -> 100 | 2020/11/07 01:14:33\",\n\t\"configuration.sink_duplication\" : \"my_value\",\n\t\"configuration.sink_incoming\" : \"{\n\t\"configuration.sink_legacy\" : \"my_value\"\n}\"\n}",
       "configuration.dse.dse_from_sink": "from source"
     }
+
+## The source return one row
+
+The source connector, return one row that is the recieved configuration. This configuration must be migrated.
