@@ -52,7 +52,6 @@
         <module>cosmosDB</module>
         <module>google-storage</module>
         <module>migration-tester</module>
-        <module>migration_demo</module>
     </modules>
 
     <scm>

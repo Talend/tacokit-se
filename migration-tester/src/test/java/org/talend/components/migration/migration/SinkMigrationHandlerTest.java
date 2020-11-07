@@ -36,7 +36,7 @@ class SinkMigrationHandlerTest {
         incomingData.put("configuration.dse.dso.dso_migration_handler_callback", "");
         incomingData.put("configuration.dse.dse_legacy", "legacy data");
         incomingData.put("configuration.dse.dse_migration_handler_callback", "");
-        incomingData.put("configuration.legacy", "legacy data");
+        incomingData.put("configuration.sink_legacy", "legacy data");
         incomingData.put("configuration.sink_migration_handler_callback", "");
     }
 
@@ -53,18 +53,20 @@ class SinkMigrationHandlerTest {
         assertNull(migrated.get("configuration.dse.dso.dso_duplication"));
         assertTrue(migrated.get("configuration.dse.dso.dso_migration_handler_callback").isEmpty());
 
-        assertEquals(migrated.get("configuration.legacy"), "legacy data");
-        assertEquals(migrated.get("configuration.duplication"), "legacy data");
+        assertEquals(migrated.get("configuration.sink_legacy"), "legacy data");
+        assertEquals(migrated.get("configuration.sink_duplication"), "legacy data");
         assertFalse(migrated.get("configuration.sink_migration_handler_callback").isEmpty());
 
-        assertEquals(migrated.get("configuration.sink_incoming"),
+        assertEquals(
                 "{\n" + "\t\"configuration.sink_migration_handler_callback\" : \"\",\n"
                         + "\t\"configuration.dse.dse_migration_handler_callback\" : \"\",\n"
+                        + "\t\"configuration.sink_legacy\" : \"legacy data\",\n"
                         + "\t\"configuration.dse.dso.dso_legacy\" : \"legacy data\",\n"
                         + "\t\"configuration.dse.dse_legacy\" : \"legacy data\",\n"
                         + "\t\"configuration.sink_incoming\" : \"\",\n" + "\t\"configuration.sink_outgoing\" : \"\",\n"
-                        + "\t\"configuration.legacy\" : \"legacy data\",\n"
-                        + "\t\"configuration.dse.dso.dso_migration_handler_callback\" : \"\"\n" + "}");
+
+                        + "\t\"configuration.dse.dso.dso_migration_handler_callback\" : \"\"\n" + "}",
+                migrated.get("configuration.sink_incoming"));
         assertFalse(migrated.get("configuration.sink_outgoing").isEmpty());
     }
 

@@ -28,12 +28,12 @@ public class SourceMigrationHandler extends AbstractTestMigrationHandler {
 
     @Override
     protected String getDuplication() {
-        return "duplication";
+        return "source_duplication";
     }
 
     @Override
     protected String getLegacy() {
-        return "legacy";
+        return "source_legacy";
     }
 
     @Override

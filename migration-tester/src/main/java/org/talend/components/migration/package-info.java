@@ -1,4 +1,4 @@
-@Components(family = "Tester", categories = "Test")
+@Components(family = "Tester", categories = "Migration")
 @Icon(Icon.IconType.STAR)
 package org.talend.components.migration;
 

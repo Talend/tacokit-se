@@ -28,12 +28,12 @@ public class SinkMigrationHandler extends AbstractTestMigrationHandler {
 
     @Override
     protected String getDuplication() {
-        return "duplication";
+        return "sink_duplication";
     }
 
     @Override
     protected String getLegacy() {
-        return "legacy";
+        return "sink_legacy";
     }
 
     @Override

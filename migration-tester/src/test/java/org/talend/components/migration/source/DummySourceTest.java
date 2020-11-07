@@ -66,7 +66,7 @@ class DummySourceTest {
         dse.setDso(dso);
         config.setDse(dse);
 
-        config.setLegacy("Legacy data");
+        config.setSource_legacy("Legacy data");
     }
 
     @EnvironmentalTest

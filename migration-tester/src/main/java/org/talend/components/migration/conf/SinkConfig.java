@@ -21,7 +21,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 @Data
 @ToString
-@GridLayout({ @GridLayout.Row({ "dse" }), @GridLayout.Row({ "legacy" }), @GridLayout.Row({ "duplication" }),
+@GridLayout({ @GridLayout.Row({ "dse" }), @GridLayout.Row({ "sink_legacy" }), @GridLayout.Row({ "sink_duplication" }),
         @GridLayout.Row({ "sink_migration_handler_callback" }), @GridLayout.Row({ "sink_incoming" }),
         @GridLayout.Row({ "sink_outgoing" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = {})
@@ -29,11 +29,11 @@ public class SinkConfig extends AbstractConfig {
 
     @Option
     @Documentation("New  property to duplicate sink legacy one.")
-    String duplication;
+    String sink_duplication;
 
     @Option
     @Documentation("The legacy property outside the dataset for sink.")
-    String legacy;
+    String sink_legacy;
 
     @Option
     @Documentation("Sink migration handler callback")

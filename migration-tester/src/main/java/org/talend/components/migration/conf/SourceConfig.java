@@ -19,7 +19,7 @@ import org.talend.sdk.component.api.configuration.ui.widget.Code;
 import org.talend.sdk.component.api.meta.Documentation;
 
 @Data
-@GridLayout({ @GridLayout.Row({ "dse" }), @GridLayout.Row({ "legacy" }), @GridLayout.Row({ "duplication" }),
+@GridLayout({ @GridLayout.Row({ "dse" }), @GridLayout.Row({ "source_legacy" }), @GridLayout.Row({ "source_duplication" }),
         @GridLayout.Row({ "source_migration_handler_callback" }), @GridLayout.Row({ "source_incoming" }),
         @GridLayout.Row({ "source_outgoing" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = {})
@@ -27,11 +27,11 @@ public class SourceConfig extends AbstractConfig {
 
     @Option
     @Documentation("New  property to duplicate legacy one.")
-    String duplication;
+    String source_duplication;
 
     @Option
     @Documentation("The legacy property outside the dataset.")
-    String legacy;
+    String source_legacy;
 
     @Option
     @Documentation("Source migration handler callback")
