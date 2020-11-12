@@ -57,6 +57,9 @@ class SourceMigrationHandlerTest {
         assertEquals(migrated.get("configuration.source_duplication"), "legacy data");
         assertFalse(migrated.get("configuration.source_migration_handler_callback").isEmpty());
 
+        assertEquals(migrated.get("configuration.dse.dse_from_source"), "from source");
+        assertEquals(migrated.get("configuration.dse.dso.dso_from_source"), "from source");
+
         assertEquals("{\n" + "\t\"configuration.source_legacy\" : \"legacy data\",\n"
                 + "\t\"configuration.dse.dse_migration_handler_callback\" : \"\",\n"
                 + "\t\"configuration.dse.dso.dso_legacy\" : \"legacy data\",\n"

@@ -57,6 +57,9 @@ class SinkMigrationHandlerTest {
         assertEquals(migrated.get("configuration.sink_duplication"), "legacy data");
         assertFalse(migrated.get("configuration.sink_migration_handler_callback").isEmpty());
 
+        assertEquals(migrated.get("configuration.dse.dse_from_sink"), "from sink");
+        assertEquals(migrated.get("configuration.dse.dso.dso_from_sink"), "from sink");
+
         assertEquals(
                 "{\n" + "\t\"configuration.sink_migration_handler_callback\" : \"\",\n"
                         + "\t\"configuration.dse.dse_migration_handler_callback\" : \"\",\n"
