@@ -1,5 +1,7 @@
 # Migration tester
 
+Here is a PDF that explain TCK migration mechanism : https://talend365.sharepoint.com/:b:/s/component/EUVQqToC-ptJrQFy6rhbm7cBAqkEp-46TeN2-Hle3ZhTAw?e=le5ok4
+
 This module is dedicated to test tck migrations integration in final application. It provides :
 - A datastore
 - A dataset
