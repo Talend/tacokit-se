@@ -35,8 +35,6 @@ public class DummySink implements Serializable {
 
     private final SinkConfig config;
 
-    private transient boolean done = false;
-
     public DummySink(@Option("configuration") final SinkConfig config) {
         this.config = config;
     }
