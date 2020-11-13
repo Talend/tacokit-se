@@ -58,7 +58,7 @@ is not present in `configuration.dse.dso.dso_incoming` but should be in `configu
 
 ## Version 50
 
-The version of those datastore / dataset / connectors is defined in `AbstractConfig#VERSION`. A new attribute has been added in `datastore` by the datastore migration handler if incoming version is inferior to 50 (arbitrary treshold version) `dso_shouldNotBeEmpty`.
+The version of datastore / dataset / connectors is defined in `AbstractConfig#VERSION`, and all has the same verison. A new attribute has been added in the datastore : `dso_shouldNotBeEmpty`. In datastore migration handler, if incoming version is inferior to 50 (arbitrary treshold version) `dso_shouldNotBeEmpty` is set with `Not empty` value.
 Sink & source connectors will throw an exception if `dso_shouldNotBeEmpty` is not set.
 The current version of the connector is 100.
 
