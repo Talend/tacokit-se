@@ -24,7 +24,7 @@ import org.talend.components.common.stream.format.ContentFormat;
 public class AvroWriterSupplier implements RecordWriterSupplier {
 
     @Override
-    public RecordWriter getWriter(TargetFinder target, ContentFormat config) {
+    public RecordWriter getWriter(final TargetFinder target, final ContentFormat config) {
         if (!AvroConfiguration.class.isInstance(config)) {
             throw new IllegalArgumentException("Try to get avro-writer with other than avro config.");
         }
@@ -32,11 +32,7 @@ public class AvroWriterSupplier implements RecordWriterSupplier {
         AvroConfiguration avroConfig = (AvroConfiguration) config;
 
         final RecordConverter<GenericRecord, Schema> converter = new RecordToAvro("records");
-        if (avroConfig.isAttachSchema()) {
-            return new AvroRecordWriter(converter, target);
-        } else {
-            Schema schema = avroConfig.getAvroSchema() != null ? new Schema.Parser().parse(avroConfig.getAvroSchema()) : null;
-            return new HeadlessAvroRecordWriter(converter, target, schema);
-        }
+        final AvroOutput output = AvroOutput.buildOutput(avroConfig, target);
+        return new AvroRecordWriter(converter, output);
     }
 }

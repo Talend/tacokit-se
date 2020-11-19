@@ -31,39 +31,26 @@ public class AvroRecordWriter implements RecordWriter {
     /** convert talend record to Avro. */
     private final RecordConverter<GenericRecord, org.apache.avro.Schema> converter;
 
-    /** output stream finder */
-    private final TargetFinder destination;
+    private final AvroOutput output;
 
-    /** avro writer */
-    private final DataFileWriter<GenericRecord> dataFileWriter;
-
-    private boolean first = true;
-
-    public AvroRecordWriter(RecordConverter<GenericRecord, org.apache.avro.Schema> converter, TargetFinder destination) {
+    public AvroRecordWriter(final RecordConverter<GenericRecord, org.apache.avro.Schema> converter, final AvroOutput output) {
         this.converter = converter;
-        this.destination = destination;
-
-        final DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>();
-        this.dataFileWriter = new DataFileWriter<>(datumWriter);
+        this.output = output;
     }
 
     @Override
     public void add(Record record) throws IOException {
         final GenericRecord avroRecord = converter.fromRecord(record);
-        if (this.first) {
-            this.dataFileWriter.create(avroRecord.getSchema(), this.destination.find());
-            this.first = false;
-        }
-        this.dataFileWriter.append(avroRecord);
+        output.write(avroRecord);
     }
 
     @Override
     public void flush() throws IOException {
-        this.dataFileWriter.flush();
+        this.output.flush();
     }
 
     @Override
     public void close() throws IOException {
-        this.dataFileWriter.close();
+        this.output.close();
     }
 }

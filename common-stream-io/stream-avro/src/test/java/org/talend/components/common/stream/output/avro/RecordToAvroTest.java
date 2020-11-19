@@ -15,17 +15,18 @@ package org.talend.components.common.stream.output.avro;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 
 import org.apache.avro.generic.GenericRecord;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.input.avro.AvroToRecord;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -47,6 +48,95 @@ class RecordToAvroTest {
     }
 
     @Test
+    void withNullSubrecord() {
+        final RecordToAvro converter = new RecordToAvro("test");
+
+        final Entry entryField1 = factory.newEntryBuilder() //
+                .withType(Type.STRING) //
+                .withNullable(true) //
+                .withName("field") //
+                .build();
+        final Schema subRecordSchema = factory //
+                .newSchemaBuilder(Type.RECORD) //
+                .withEntry(entryField1) //
+                .build();
+        final Record subRecord = factory.newRecordBuilder(subRecordSchema) //
+                .withString(entryField1, "Hello") //
+                .build();
+
+        final Entry entryRecord = factory.newEntryBuilder() //
+                .withType(Type.RECORD) //
+                .withNullable(true) //
+                .withName("sub") //
+                .withElementSchema(subRecordSchema) //
+                .build();
+
+        final Schema recordSchema = factory //
+                .newSchemaBuilder(Type.RECORD) //
+                .withEntry(entryRecord) //
+                .build();
+
+        final Record firstRecord = factory.newRecordBuilder(recordSchema) //
+                .withRecord(entryRecord, subRecord) //
+                .build();
+        final GenericRecord genericRecord1 = converter.fromRecord(firstRecord);
+        Assertions.assertNotNull(genericRecord1);
+        final Object sub = genericRecord1.get("sub");
+        Assertions.assertNotNull("sub");
+        Assertions.assertTrue(sub instanceof GenericRecord, "sub is of " + sub.getClass().getName());
+
+        final Record secondRecord = factory.newRecordBuilder(recordSchema) //
+                .build();
+        final GenericRecord genericRecord2 = converter.fromRecord(secondRecord);
+        Assertions.assertNotNull(genericRecord2);
+
+    }
+
+    @Test
+    void withArrayOfRecord() {
+        final RecordToAvro converter = new RecordToAvro("test");
+
+        final Entry entryField1 = factory.newEntryBuilder() //
+                .withType(Type.BYTES) //
+                .withNullable(true) //
+                .withName("field") //
+                .build();
+        final Schema subRecordSchema = factory //
+                .newSchemaBuilder(Type.RECORD) //
+                .withEntry(entryField1) //
+                .build();
+        final Record subRecord1 = factory.newRecordBuilder(subRecordSchema) //
+                .withBytes(entryField1, "Hello1".getBytes()) //
+                .build();
+        final Record subRecord2 = factory.newRecordBuilder(subRecordSchema) //
+                .withBytes(entryField1, "Hello2".getBytes()) //
+                .build();
+        final Record subRecord3 = factory.newRecordBuilder(subRecordSchema) //
+                .build();
+
+        final Entry entryRecord = factory.newEntryBuilder() //
+                .withType(Type.ARRAY) //
+                .withNullable(true) //
+                .withName("sub") //
+                .withElementSchema(subRecordSchema) //
+                .build();
+
+        final Schema recordSchema = factory //
+                .newSchemaBuilder(Type.RECORD) //
+                .withEntry(entryRecord) //
+                .build();
+
+        final Record firstRecord = factory.newRecordBuilder(recordSchema) //
+                .withArray(entryRecord, Arrays.asList(subRecord1, subRecord2, subRecord3)) //
+                .build();
+        final GenericRecord genericRecord1 = converter.fromRecord(firstRecord);
+        Assertions.assertNotNull(genericRecord1);
+        final Object sub = genericRecord1.get("sub");
+        Assertions.assertNotNull(sub);
+        Assertions.assertTrue(sub instanceof Iterable, "sub is of class " + sub.getClass().getName());
+    }
+
+    @Test
     void fromSimpleRecord() {
         RecordToAvro converter = new RecordToAvro("test");
         GenericRecord record = converter.fromRecord(versatileRecord);
@@ -64,8 +154,8 @@ class RecordToAvroTest {
 
     @Test
     void fromComplexRecord() {
-        RecordToAvro converter = new RecordToAvro("test");
-        GenericRecord record = converter.fromRecord(complexRecord);
+        final RecordToAvro converter = new RecordToAvro("test");
+        final GenericRecord record = converter.fromRecord(complexRecord);
         assertNotNull(record);
         System.err.println(record);
         assertEquals("ComplexR", record.get("name"));
@@ -81,8 +171,9 @@ class RecordToAvroTest {
         assertEquals(20.5f, subrecord.get("float"));
         assertEquals(20.5, subrecord.get("double"));
 
-        assertEquals(now.withZoneSameInstant(ZoneOffset.UTC),
-                ZonedDateTime.ofInstant(Instant.ofEpochMilli((long) record.get("now")), ZoneOffset.UTC));
+        final long nowFromRecord = (long) record.get("now");
+        assertEquals(nowFromRecord, this.now.toInstant().toEpochMilli());
+
         assertEquals(Arrays.asList("ary1", "ary2", "ary3"), record.get("array"));
     }
 

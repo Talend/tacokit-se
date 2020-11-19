@@ -70,18 +70,21 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
             org.apache.avro.Schema.Type fieldType = AvroHelper.getFieldType(f);
             switch (fieldType) {
             case RECORD:
-                org.apache.avro.Schema subSchema = fromRecordSchema(fromRecord.getRecord(name).getSchema());
-                GenericRecord subrecord = recordToAvro(fromRecord.getRecord(name), new GenericData.Record(subSchema));
-                toRecord.put(name, subrecord);
+                final Record subRecord = fromRecord.getRecord(name);
+                if (subRecord != null) {
+                    final org.apache.avro.Schema subSchema = fromRecordSchema(subRecord.getSchema());
+                    final GenericRecord subrecord = recordToAvro(subRecord, new GenericData.Record(subSchema));
+                    toRecord.put(name, subrecord);
+                }
                 break;
             case ARRAY:
-                Entry e = getSchemaForEntry(name, fromRecord.getSchema());
-                Collection<Object> recordArray = fromRecord.getOptionalArray(Object.class, name).orElse(new ArrayList<>());
-                if (recordArray.iterator().hasNext()) {
-                    Object firstArrayValue = recordArray.iterator().next();
+                final Entry e = getSchemaForEntry(name, fromRecord.getSchema());
+                final Collection<Object> recordArray = fromRecord.getOptionalArray(Object.class, name).orElse(new ArrayList<>());
+                if (!recordArray.isEmpty()) {
+                    final Object firstArrayValue = recordArray.iterator().next();
                     if (firstArrayValue instanceof Record) {
-                        subSchema = fromRecordSchema(((Record) firstArrayValue).getSchema());
-                        List<GenericRecord> records = recordArray.stream()
+                        final org.apache.avro.Schema subSchema = fromRecordSchema(((Record) firstArrayValue).getSchema());
+                        final List<GenericRecord> records = recordArray.stream()
                                 .map(o -> recordToAvro((Record) o, new GenericData.Record(subSchema)))
                                 .collect(Collectors.toList());
                         toRecord.put(name, records);
@@ -94,7 +97,7 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
                 toRecord.put(name, fromRecord.getOptionalString(name).orElse(null));
                 break;
             case BYTES:
-                Optional<byte[]> optionalBytesValue = fromRecord.getOptionalBytes(name);
+                final Optional<byte[]> optionalBytesValue = fromRecord.getOptionalBytes(name);
                 if (optionalBytesValue.isPresent()) {
                     ByteBuffer byteBuffer = ByteBuffer.wrap(fromRecord.getBytes(name));
                     toRecord.put(name, byteBuffer);

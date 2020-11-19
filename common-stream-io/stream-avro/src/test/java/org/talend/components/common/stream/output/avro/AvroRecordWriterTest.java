@@ -19,6 +19,8 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 
+import org.apache.avro.Schema;
+import org.apache.avro.SchemaBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.output.RecordWriter;
@@ -45,16 +47,48 @@ class AvroRecordWriterTest {
         AvroConfiguration cfg = new AvroConfiguration();
         final RecordWriterSupplier writerSupplier = new AvroWriterSupplier();
 
-        RecordWriter writer = writerSupplier.getWriter(() -> out, cfg);
-        prepareTestRecords();
-        writer.add(versatileRecord);
-        writer.add(complexRecord);
+        try (RecordWriter writer = writerSupplier.getWriter(() -> out, cfg)) {
+            prepareTestRecords();
+            writer.add(versatileRecord);
+            writer.add(complexRecord);
 
-        writer.flush();
-        String res = out.toString();
-        Assertions.assertFalse(res.isEmpty());
+            writer.flush();
+            String res = out.toString();
+            Assertions.assertFalse(res.isEmpty());
+        }
+    }
 
-        writer.close();
+    @Test
+    void addHeadLess() throws IOException {
+        AvroConfiguration cfg = new AvroConfiguration();
+        cfg.setAttachSchema(false);
+        final Schema avroSchema = SchemaBuilder.builder() //
+                .record("testRecord") //
+                .namespace("org.talend.test") //
+                .fields() //
+                .requiredInt("ID") //
+                .requiredString("content") //
+                .endRecord();
+        cfg.setAvroSchema(avroSchema.toString(true));
+        final RecordWriterSupplier writerSupplier = new AvroWriterSupplier();
+
+        final Record record1 = factory.newRecordBuilder() //
+                .withInt("ID", 125) //
+                .withString("content", "Hello") //
+                .build();
+        final Record record2 = factory.newRecordBuilder() //
+                .withInt("ID", 140) //
+                .withString("content", "World") //
+                .build();
+        try (RecordWriter writer = writerSupplier.getWriter(() -> out, cfg)) {
+            prepareTestRecords();
+            writer.add(record1);
+            writer.add(record2);
+
+            writer.flush();
+            String res = out.toString();
+            Assertions.assertFalse(res.isEmpty());
+        }
     }
 
     private void prepareTestRecords() {
