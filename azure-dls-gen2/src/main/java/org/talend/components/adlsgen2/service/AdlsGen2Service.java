@@ -96,6 +96,8 @@ public class AdlsGen2Service {
         secretsMap.put(HeaderConstants.VERSION, HeaderConstants.TARGET_STORAGE_VERSION);
         if (StringUtils.isNotEmpty(payloadLength)) {
             secretsMap.put(HeaderConstants.CONTENT_LENGTH, payloadLength);
+        } else {
+            secretsMap.remove(HeaderConstants.CONTENT_LENGTH);
         }
 
         if (connection.getAuthMethod().equals(AdlsGen2Connection.AuthMethod.SharedKey)) {
