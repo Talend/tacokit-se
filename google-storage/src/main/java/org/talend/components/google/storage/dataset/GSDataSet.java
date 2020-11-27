@@ -23,8 +23,6 @@ import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import com.google.cloud.storage.BlobInfo;
-
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,10 +55,6 @@ public class GSDataSet implements Serializable {
     @Option
     @Required
     @Documentation("Blob content format, CSV, Json ...")
-    private FormatConfiguration contentFormat;
-
-    public BlobInfo blob() {
-        return BlobInfo.newBuilder(bucket, blob).build();
-    }
+    private FormatConfiguration contentFormat = new FormatConfiguration();
 
 }

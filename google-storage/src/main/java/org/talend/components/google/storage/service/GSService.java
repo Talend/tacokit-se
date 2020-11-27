@@ -18,14 +18,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import org.talend.components.google.storage.datastore.GSDataStore;
-import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.completion.SuggestionValues;
-import org.talend.sdk.component.api.service.completion.Suggestions;
-import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
-import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
-
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.Blob;
@@ -36,6 +28,14 @@ import com.google.cloud.storage.Storage.BlobListOption;
 import com.google.cloud.storage.Storage.BucketField;
 import com.google.cloud.storage.Storage.BucketListOption;
 import com.google.cloud.storage.StorageException;
+
+import org.talend.components.google.storage.datastore.GSDataStore;
+import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.completion.SuggestionValues;
+import org.talend.sdk.component.api.service.completion.Suggestions;
+import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
+import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,7 +62,7 @@ public class GSService {
             return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.credentialsRequired());
         }
         try {
-            final GoogleCredentials credentials = credentialService.getCredentials(connection);
+            final GoogleCredentials credentials = credentialService.getCredentials(connection.getJsonCredentials());
             final Storage storage = credentialService.newStorage(credentials);
             storage.list();
             return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18n.successConnection());
@@ -103,8 +103,12 @@ public class GSService {
         }
     }
 
+    public StorageFacade buildStorage(final String jsonCredentials) {
+        return new StorageImpl(this.credentialService, jsonCredentials, this.i18n);
+    }
+
     private Storage newStorage(GSDataStore dataStore) {
-        final GoogleCredentials credentials = credentialService.getCredentials(dataStore);
+        final GoogleCredentials credentials = credentialService.getCredentials(dataStore.getJsonCredentials());
         return credentialService.newStorage(credentials);
     }
 
