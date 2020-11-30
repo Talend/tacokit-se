@@ -15,6 +15,11 @@ package org.talend.components.google.storage.service;
 import java.io.Serializable;
 import java.util.UUID;
 
+/**
+ * Generator name for blob.
+ * To be sure several output connector running in parallel don't overwrite each others
+ * on same blob, it generated before a unique name.
+ */
 public class BlobNameBuilder implements Serializable {
 
     private static final long serialVersionUID = -3957291260058538741L;
@@ -28,6 +33,16 @@ public class BlobNameBuilder implements Serializable {
     public boolean isGenerated(final String begin, final String name) {
         return name.startsWith(begin + '_') && name.length() == begin.length() + 1 + UUID_STRING_SIZE
                 && this.isUUID(name.substring(begin.length() + 1));
+    }
+
+    public String revert(String generatedName) {
+        if (generatedName != null) {
+            int separatorPos = generatedName.lastIndexOf('_');
+            if (separatorPos >= 0 && this.isUUID(generatedName.substring(separatorPos + 1))) {
+                return generatedName.substring(0, separatorPos);
+            }
+        }
+        return generatedName;
     }
 
     private boolean isUUID(final String uuidString) {

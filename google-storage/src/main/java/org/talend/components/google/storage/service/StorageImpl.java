@@ -33,6 +33,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class StorageImpl implements StorageFacade {
 
+    private static final long serialVersionUID = 5310522079015049725L;
+
     private final GoogleCredentials credentials;
 
     private final CredentialService credentialService;

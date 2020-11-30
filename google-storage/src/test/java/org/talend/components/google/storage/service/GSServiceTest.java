@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.util.Collection;
 
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper;
@@ -90,7 +91,11 @@ class GSServiceTest {
         final SuggestionValues blobsName = this.service.findBlobsName(ds, "mybucket");
         Assertions.assertNotNull(blobsName);
 
-        final Item firstItem = blobsName.getItems().iterator().next();
+        final Collection<Item> items = blobsName.getItems();
+        Assertions.assertEquals(1, items.stream().filter((Item it) -> "blob".equals(it.getId())).count());
+        Assertions.assertEquals(1,
+                items.stream().filter((Item it) -> "blob_689d651a-5896-428d-9816-2de624d0046a".equals(it.getId())).count());
+        final Item firstItem = items.iterator().next();
         Assertions.assertEquals("rep/first.txt", firstItem.getId());
     }
 

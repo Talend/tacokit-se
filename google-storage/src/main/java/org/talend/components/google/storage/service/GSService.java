@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import com.google.api.gax.paging.Page;
@@ -113,8 +114,10 @@ public class GSService {
     }
 
     private <T> SuggestionValues retrieveItems(Page<T> pages, Function<T, String> toName) {
+        final BlobNameBuilder nameBuilder = new BlobNameBuilder();
         final List<SuggestionValues.Item> names = StreamSupport.stream(pages.iterateAll().spliterator(), false) //
                 .map(toName) // T -> name
+                .flatMap((String name) -> Stream.of(name, nameBuilder.revert(name)).distinct()).distinct()
                 .map((String name) -> new SuggestionValues.Item(name, name)) // name -> suggestion values item.
                 .collect(Collectors.toList());
         return new SuggestionValues(!names.isEmpty(), names);

@@ -28,5 +28,14 @@ class BlobNameBuilderTest {
         Assertions.assertFalse(builder.isGenerated("Hello", "Hello_XX"));
 
         Assertions.assertFalse(builder.isGenerated("Hello", "Hello_1234567890ABCDEF1234567890ABCDEF1234"));
+
+        Assertions.assertNull(builder.revert(null));
+        Assertions.assertEquals("Hello", builder.revert("Hello"));
+        Assertions.assertEquals("Hello_", builder.revert("Hello_"));
+        Assertions.assertEquals("_", builder.revert("_"));
+        Assertions.assertEquals("Hello_1234567890ABCDEF1234567890ABCDEF1234",
+                builder.revert("Hello_1234567890ABCDEF1234567890ABCDEF1234"));
+
+        Assertions.assertEquals("Hello", builder.revert(builder.generateName("Hello")));
     }
 }
