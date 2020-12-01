@@ -93,6 +93,8 @@ public class BigQueryOutput implements Serializable {
 
     private transient BlobInfo blobInfo;
 
+    private transient WriteChannel writer;
+
     public BigQueryOutput(@Option("configuration") final BigQueryOutputConfig configuration, BigQueryService bigQueryService,
             GoogleStorageService storageService, RecordIORepository ioRepository, I18nMessage i18n) {
         this.configuration = configuration;
@@ -127,11 +129,11 @@ public class BigQueryOutput implements Serializable {
         records = new ArrayList<>();
         if (BigQueryOutputConfig.TableOperation.TRUNCATE == configuration.getTableOperation()) {
             Blob blob = getNewBlob();
-            WriteChannel writer = blob.writer();
+            writer = blob.writer();
             try {
                 recordWriter = buildWriter(writer);
             } catch (IOException e) {
-                log.warn(e.getMessage());
+                throw new BigQueryConnectorException(e.getMessage());
             }
         }
     }
@@ -263,10 +265,11 @@ public class BigQueryOutput implements Serializable {
 
     private void loadData() {
         try {
-            this.recordWriter.add(records);
-            this.recordWriter.end();
-        } catch (IOException exIO) {
-            log.error(exIO.getMessage());
+            recordWriter.add(records);
+            recordWriter.end();
+            writer.close();
+        } catch (IOException e) {
+            throw new BigQueryConnectorException(e.getMessage());
         }
 
         JobInfo jobInfo = buildJobInfo();
@@ -274,10 +277,10 @@ public class BigQueryOutput implements Serializable {
         try {
             job = job.waitFor();
         } catch (InterruptedException e) {
-            log.warn(e.getMessage());
+            throw new BigQueryConnectorException(e.getMessage());
         }
         if (job.getStatus().getError() != null) {
-            log.warn("BigQuery was unable to load into the table due to an error:" + job.getStatus().getError());
+            log.warn(i18n.errorBigqueryLoadJob() + job.getStatus().getError());
         }
 
     }
@@ -285,9 +288,8 @@ public class BigQueryOutput implements Serializable {
     private JobInfo buildJobInfo() {
         String sourceUri = "gs://" + configuration.getDataSet().getGsBucket() + "/" + blobName;
         Table table = bigQuery.getTable(tableId);
-        Schema schema = table.getDefinition().getSchema();
         LoadJobConfiguration.Builder loadConfigurationBuilder = LoadJobConfiguration.newBuilder(tableId, sourceUri)
-                .setFormatOptions(FormatOptions.csv()).setSchema(schema);
+                .setFormatOptions(FormatOptions.csv()).setSchema(tableSchema);
         Job firstJob = bigQuery.getJob(jobId);
         JobInfo jobInfo;
         if (firstJob == null) {
@@ -308,14 +310,6 @@ public class BigQueryOutput implements Serializable {
 
     private void deleteTempBlob() {
         storage.delete(blobInfo.getBlobId());
-    }
-
-    private TableReference createTableReference() {
-        TableReference table = new TableReference();
-        table.setProjectId(connection.getProjectName());
-        table.setDatasetId(configuration.getDataSet().getBqDataset());
-        table.setTableId(configuration.getDataSet().getTableName());
-        return table;
     }
 
 }
