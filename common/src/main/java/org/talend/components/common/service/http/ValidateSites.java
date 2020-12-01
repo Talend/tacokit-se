@@ -12,7 +12,6 @@
  */
 package org.talend.components.common.service.http;
 
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -56,7 +55,7 @@ public class ValidateSites {
         try {
             final URL url = new URL(surl);
             final String host = url.getHost();
-            final InetAddress inetAddress = Inet4Address.getByName(host);
+            final InetAddress inetAddress = InetAddress.getByName(host);
 
             if (!enable_multicast_access && inetAddress.isMulticastAddress()) {
                 // Multicast addresses are forbidden
