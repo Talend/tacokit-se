@@ -31,7 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@GridLayout({ @GridLayout.Row({ "dse" }), @GridLayout.Row({ "dateFormat" }), @GridLayout.Row({ "assertions" }) })
+@GridLayout({ @GridLayout.Row({ "dse" }), @GridLayout.Row({ "dateFormat" }), @GridLayout.Row({ "dieOnError" }),
+        @GridLayout.Row({ "assertions" }) })
 public class Config implements Serializable {
 
     // @TODO : should remove datastore/dataset, the connector should be a simple processor
@@ -43,6 +44,10 @@ public class Config implements Serializable {
     @Documentation("")
     @DefaultValue(DateValidator.DEFAULT_DATE_FORMAT)
     String dateFormat = DateValidator.DEFAULT_DATE_FORMAT;
+
+    @Option
+    @Documentation("Throw a RuntimeException when an assertion fails or only log it.")
+    boolean dieOnError = true;
 
     @Option
     @Required

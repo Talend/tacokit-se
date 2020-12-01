@@ -110,7 +110,7 @@ class AssertServiceTest {
         conf.addAssertEntry(check_a_string);
 
         final List<String> validate = assertService.validate(conf, record);
-        assertEquals(3, validate.size());
+        assertEquals(0, validate.size());
     }
 
 }
