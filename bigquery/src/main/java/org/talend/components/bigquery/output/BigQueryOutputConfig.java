@@ -58,6 +58,14 @@ public class BigQueryOutputConfig implements Serializable {
          * provided schema.
          */
         CREATE_IF_NOT_EXISTS,
+        /**
+         * Specifies that write should replace a table.
+         *
+         * <p>
+         * If the output table does not exist, the write fails.
+         *
+         */
+        TRUNCATE,
 
         /*
          * Currently not supported by Streams.
@@ -67,15 +75,6 @@ public class BigQueryOutputConfig implements Serializable {
          * combine with TRUNCATE and CREATE_IF_NOT_EXISTS
          *
          * DROP_IF_EXISTS_AND_CREATE,
-         * /**
-         * Specifies that write should replace a table.
-         *
-         * <p>
-         * The replacement may occur in multiple steps - for instance by first removing the existing table, then
-         * creating a replacement, then filling it in. This is not an atomic operation, and external programs may see
-         * the table in any of these intermediate steps.
-         * 
-         * TRUNCATE,
          */
     }
 
