@@ -94,7 +94,7 @@ public class BigQueryOutput implements Serializable {
     private transient BlobInfo blobInfo;
 
     public BigQueryOutput(@Option("configuration") final BigQueryOutputConfig configuration, BigQueryService bigQueryService,
-                          GoogleStorageService storageService, RecordIORepository ioRepository, I18nMessage i18n) {
+            GoogleStorageService storageService, RecordIORepository ioRepository, I18nMessage i18n) {
         this.configuration = configuration;
         this.connection = configuration.getDataSet().getConnection();
         this.tableSchema = bigQueryService.guessSchema(configuration);
@@ -126,16 +126,10 @@ public class BigQueryOutput implements Serializable {
     public void beforeGroup() {
         records = new ArrayList<>();
         if (BigQueryOutputConfig.TableOperation.TRUNCATE == configuration.getTableOperation()) {
-            long startTime = System.currentTimeMillis();
             Blob blob = getNewBlob();
-            long endTime = System.currentTimeMillis() - startTime;
-            log.info("Create blob took " + endTime + " ms");
             WriteChannel writer = blob.writer();
             try {
-                long startTime1 = System.currentTimeMillis();
                 recordWriter = buildWriter(writer);
-                long endTime1 = System.currentTimeMillis() - startTime1;
-                log.info("Build csv writer took " + endTime1 + " ms");
             } catch (IOException e) {
                 log.warn(e.getMessage());
             }
@@ -207,7 +201,6 @@ public class BigQueryOutput implements Serializable {
         }
     }
 
-
     private void createTableIfNotExist() {
         try {
             Table table = bigQuery.getTable(tableId);
@@ -261,11 +254,8 @@ public class BigQueryOutput implements Serializable {
 
     private void loadData() {
         try {
-            long startTime = System.currentTimeMillis();
             this.recordWriter.add(records);
             this.recordWriter.end();
-            long endTime = System.currentTimeMillis() - startTime;
-            log.info("load data to the gs took " + endTime + " ms");
         } catch (IOException exIO) {
             log.error(exIO.getMessage());
         }
@@ -290,24 +280,16 @@ public class BigQueryOutput implements Serializable {
             }
             jobInfo = JobInfo.of(loadConfigurationBuilder.build());
         }
-        long startTime = System.currentTimeMillis();
         Job job = bigQuery.create(jobInfo);
         try {
             job = job.waitFor();
-            long endTime = System.currentTimeMillis() - startTime;
-            log.info("Load data from gs to bq took " + endTime + " ms");
         } catch (InterruptedException e) {
             log.warn(e.getMessage());
         }
-        if (job.isDone()) {
-            log.info("CSV from GCS successfully loaded in a table");
-        } else {
+        if (job.getStatus().getError() != null) {
             log.warn("BigQuery was unable to load into the table due to an error:" + job.getStatus().getError());
         }
-        long startTime3 = System.currentTimeMillis();
         storage.delete(blobInfo.getBlobId());
-        long endTime3 = System.currentTimeMillis() - startTime3;
-        log.info("Delete blob took " + endTime3 + " ms");
     }
 
     private TableReference createTableReference() {
