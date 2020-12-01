@@ -195,7 +195,16 @@ public class BigQueryOutput implements Serializable {
         }
 
         if (BigQueryOutputConfig.TableOperation.TRUNCATE == configuration.getTableOperation()) {
-            loadData();
+            try {
+                loadData();
+            } catch (BigQueryException e) {
+                if (e.getMessage().contains("Already Exists")) {
+                    loadData();
+                } else {
+                    log.warn(e.getMessage());
+                }
+            }
+            deleteTempBlob();
         } else {
             streamData();
         }
@@ -260,6 +269,20 @@ public class BigQueryOutput implements Serializable {
             log.error(exIO.getMessage());
         }
 
+        JobInfo jobInfo = buildJobInfo();
+        Job job = bigQuery.create(jobInfo);
+        try {
+            job = job.waitFor();
+        } catch (InterruptedException e) {
+            log.warn(e.getMessage());
+        }
+        if (job.getStatus().getError() != null) {
+            log.warn("BigQuery was unable to load into the table due to an error:" + job.getStatus().getError());
+        }
+
+    }
+
+    private JobInfo buildJobInfo() {
         String sourceUri = "gs://" + configuration.getDataSet().getGsBucket() + "/" + blobName;
         Table table = bigQuery.getTable(tableId);
         Schema schema = table.getDefinition().getSchema();
@@ -280,15 +303,10 @@ public class BigQueryOutput implements Serializable {
             }
             jobInfo = JobInfo.of(loadConfigurationBuilder.build());
         }
-        Job job = bigQuery.create(jobInfo);
-        try {
-            job = job.waitFor();
-        } catch (InterruptedException e) {
-            log.warn(e.getMessage());
-        }
-        if (job.getStatus().getError() != null) {
-            log.warn("BigQuery was unable to load into the table due to an error:" + job.getStatus().getError());
-        }
+        return jobInfo;
+    }
+
+    private void deleteTempBlob() {
         storage.delete(blobInfo.getBlobId());
     }
 
