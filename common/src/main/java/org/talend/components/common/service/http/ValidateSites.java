@@ -34,7 +34,7 @@ public class ValidateSites {
 
     private final static List<String> ADDITIONAL_LOCAL_HOSTS = Arrays.asList(new String[] { "224.0.0." // local multicast : from
             // 224.0.0.0 to 224.0.0.255
-            , "127.0.0.1", "localhost" });
+    });
 
     private ValidateSites() {
     }
@@ -68,7 +68,7 @@ public class ValidateSites {
                 return true;
             }
 
-            return !inetAddress.isSiteLocalAddress()
+            return !inetAddress.isSiteLocalAddress() && !inetAddress.isLoopbackAddress()
                     && !ADDITIONAL_LOCAL_HOSTS.stream().filter(h -> host.contains(h)).findFirst().isPresent();
         } catch (MalformedURLException e) {
             log.error(e.getMessage(), e);

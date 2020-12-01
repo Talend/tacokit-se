@@ -118,8 +118,8 @@ class ValidateSitesTest {
             "http://239.0.0.0:80/my/api, false, false, false", //
             "http://239.0.0.0:80/my/api, false, true, true", //
             "http://239.255.255.255:80/my/api, false, false, false", //
-            "http://239.255.255.255:80/my/api, false, true, true" //
-    })
+            "http://239.255.255.255:80/my/api, false, true, true", //
+            "http://www.google.fr, false, false, true" })
     void valideSite(final String url, final boolean canAccessLocal, final boolean disableMulticast, final boolean expected) {
         final boolean validSite = ValidateSites.isValidSite(url, canAccessLocal, disableMulticast);
         assertEquals(expected, validSite);
