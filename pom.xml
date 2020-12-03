@@ -125,7 +125,7 @@
 
         <!-- CVE fix -->
         <netty-codec.version>4.1.48.Final</netty-codec.version>
-        <jetty.version>9.4.33.v20201020</jetty.version>
+        <jetty.version>9.4.35.v20201120</jetty.version>
         <nimbus-jose-jwt.version>8.11</nimbus-jose-jwt.version>
 
         <!-- code quality enforcer default values.
