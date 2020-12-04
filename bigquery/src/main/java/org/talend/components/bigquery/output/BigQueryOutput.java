@@ -89,8 +89,6 @@ public class BigQueryOutput implements Serializable {
 
     private transient RecordWriter recordWriter;
 
-    private transient String blobName;
-
     private transient BlobInfo blobInfo;
 
     private transient WriteChannel writer;
@@ -118,9 +116,38 @@ public class BigQueryOutput implements Serializable {
 
     @PostConstruct
     public void init() {
+        bigQuery = service.createClient(connection);
+        tableId = TableId.of(connection.getProjectName(), configuration.getDataSet().getBqDataset(),
+                configuration.getDataSet().getTableName());
         if (BigQueryOutputConfig.TableOperation.TRUNCATE == configuration.getTableOperation()) {
-            bigQuery = service.createClient(connection);
             storage = storageService.getStorage(bigQuery.getOptions().getCredentials());
+            truncateTable();
+        }
+    }
+
+    private void truncateTable() {
+        Job firstJob = bigQuery.getJob(jobId);
+        if (firstJob != null) {
+            if (!firstJob.isDone()) {
+                try {
+                    firstJob.waitFor();
+                } catch (InterruptedException e) {
+                    throw new BigQueryConnectorException(e.getMessage());
+                }
+            }
+        } else {
+            Blob blob = getNewBlob();
+            String sourceUri = "gs://" + blob.getBlobId().getBucket() + "/" + blob.getBlobId().getName();
+            LoadJobConfiguration loadConfiguration = LoadJobConfiguration.newBuilder(tableId, sourceUri)
+                    .setWriteDisposition(JobInfo.WriteDisposition.WRITE_TRUNCATE).build();
+            JobInfo jobInfo = JobInfo.newBuilder(loadConfiguration).setJobId(jobId).build();
+            Job job = bigQuery.create(jobInfo);
+            try {
+                job.waitFor();
+            } catch (InterruptedException e) {
+                throw new BigQueryConnectorException(e.getMessage());
+            }
+            storage.delete(blob.getBlobId());
         }
     }
 
@@ -141,7 +168,7 @@ public class BigQueryOutput implements Serializable {
     private Blob getNewBlob() {
         do {
             String uuid = UUID.randomUUID().toString();
-            blobName = "temp/" + uuid + "/" + configuration.getDataSet().getTableName() + ".csv";
+            String blobName = "temp/" + uuid + "/" + configuration.getDataSet().getTableName() + ".csv";
             blobInfo = BlobInfo.newBuilder(configuration.getDataSet().getGsBucket(), blobName).build();
         } while (storage.get(blobInfo.getBlobId()) != null);
         return storage.create(blobInfo);
@@ -165,9 +192,6 @@ public class BigQueryOutput implements Serializable {
 
     private void lazyInit() {
         init = true;
-        bigQuery = service.createClient(connection);
-        tableId = TableId.of(connection.getProjectName(), configuration.getDataSet().getBqDataset(),
-                configuration.getDataSet().getTableName());
         Table table = bigQuery.getTable(tableId);
         if (table != null) {
             tableSchema = table.getDefinition().getSchema();
@@ -206,7 +230,7 @@ public class BigQueryOutput implements Serializable {
                     log.warn(e.getMessage());
                 }
             }
-            deleteTempBlob();
+            storage.delete(blobInfo.getBlobId());
         } else {
             streamData();
         }
@@ -286,30 +310,10 @@ public class BigQueryOutput implements Serializable {
     }
 
     private JobInfo buildJobInfo() {
-        String sourceUri = "gs://" + configuration.getDataSet().getGsBucket() + "/" + blobName;
-        Table table = bigQuery.getTable(tableId);
-        LoadJobConfiguration.Builder loadConfigurationBuilder = LoadJobConfiguration.newBuilder(tableId, sourceUri)
-                .setFormatOptions(FormatOptions.csv()).setSchema(tableSchema);
-        Job firstJob = bigQuery.getJob(jobId);
-        JobInfo jobInfo;
-        if (firstJob == null) {
-            loadConfigurationBuilder.setWriteDisposition(JobInfo.WriteDisposition.WRITE_TRUNCATE);
-            jobInfo = JobInfo.newBuilder(loadConfigurationBuilder.build()).setJobId(jobId).build();
-        } else {
-            if (!firstJob.isDone()) {
-                try {
-                    firstJob.waitFor();
-                } catch (InterruptedException e) {
-                    log.warn(e.getMessage());
-                }
-            }
-            jobInfo = JobInfo.of(loadConfigurationBuilder.build());
-        }
-        return jobInfo;
-    }
-
-    private void deleteTempBlob() {
-        storage.delete(blobInfo.getBlobId());
+        String sourceUri = "gs://" + blobInfo.getBucket() + "/" + blobInfo.getName();
+        LoadJobConfiguration loadConfiguration = LoadJobConfiguration.newBuilder(tableId, sourceUri)
+                .setFormatOptions(FormatOptions.csv()).setSchema(tableSchema).build();
+        return JobInfo.of(loadConfiguration);
     }
 
 }
