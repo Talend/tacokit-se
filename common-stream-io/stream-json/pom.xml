@@ -42,6 +42,13 @@
       <artifactId>connectors-test-bom</artifactId>
       <type>pom</type>
     </dependency>
+
+    <dependency>
+      <groupId>org.talend.components</groupId>
+      <artifactId>common-test</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

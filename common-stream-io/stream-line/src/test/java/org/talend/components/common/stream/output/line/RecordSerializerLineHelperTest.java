@@ -12,16 +12,8 @@
  */
 package org.talend.components.common.stream.output.line;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.talend.components.common.stream.output.line.DatasetGenerator.DataSet;
-import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.record.Schema.Type;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
@@ -32,8 +24,18 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.talend.components.common.test.records.DatasetGenerator;
+import org.talend.components.common.test.records.DatasetGenerator.DataSet;
+import org.talend.components.common.test.records.ExpectedValueBuilder;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.record.Schema.Type;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
 class RecordSerializerLineHelperTest {
 
@@ -107,14 +109,19 @@ class RecordSerializerLineHelperTest {
     }
 
     @ParameterizedTest
-    @MethodSource("testData")
-    void testRecords(DataSet ds) {
+    @MethodSource("testDataLine")
+    void testRecordsLine(DataSet<List<String>> ds) {
         final List<String> values = RecordSerializerLineHelper.valuesFrom(ds.getRecord());
         ds.check(values);
     }
 
-    public static Iterator<DataSet> testData() {
-        return new DatasetGenerator().generate(40);
+
+    private static Iterator<DataSet<List<String>>> testDataLine() {
+        final ExpectedValueBuilder<List<String>> valueBuilder = new LineValueBuilder();
+        final RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");
+        final DatasetGenerator<List<String>> generator = new DatasetGenerator<>(factory,
+                valueBuilder);
+        return generator.generate(40);
     }
 
 }

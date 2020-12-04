@@ -10,53 +10,45 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.common.stream.output.line;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+package org.talend.components.common.test.records;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-public class DatasetGenerator {
+public class DatasetGenerator<T> {
 
     @AllArgsConstructor
-    public static class DataSet {
+    public static class DataSet<T> {
 
         @Getter
         private final Record record;
 
-        private final List<String> expectedValue;
+        private final Consumer<T> checker;
 
-        public void check(final List<String> realValues) {
-            assertEquals(realValues.size(), expectedValue.size(), expectedValue.toString());
-            for (int i = 0; i < realValues.size(); i++) {
-                assertEquals(realValues.get(i), expectedValue.get(i), "Error on field " + i);
-            }
+        public void check(final T realValues) {
+            this.checker.accept(realValues);
         }
     }
 
-    private final RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");
+    private final ExpectedValueBuilder<T> expectedValueBuilder;
+
+    private final RecordBuilderFactory factory;
 
     private final Schema schema;
 
@@ -64,12 +56,15 @@ public class DatasetGenerator {
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.getDefault());
 
-    public DatasetGenerator() {
+    public DatasetGenerator(final RecordBuilderFactory factory,
+            final ExpectedValueBuilder<T> expectedValueBuilder) {
+        this.factory = factory;
+        this.expectedValueBuilder = expectedValueBuilder;
         this.sub_record_schema = buildSubSchema();
         this.schema = this.buildSchema(this.sub_record_schema);
     }
 
-    public Iterator<DataSet> generate(int size) {
+    public Iterator<DataSet<T>> generate(int size) {
         return new RecordIterator(size, this);
     }
 
@@ -118,77 +113,62 @@ public class DatasetGenerator {
 
     private DataSet createARecord(int i) {
         Record.Builder builder = this.factory.newRecordBuilder(this.schema);
+        this.expectedValueBuilder.startRecord(i);
         int current_null_field = i % 11;
         int toggle = i % 2;
 
-        final List<String> expected = new ArrayList<>();
-
-        this.fullData((String b) -> builder.withString("a_string", b), current_null_field == 1, expected, () -> "string_" + i);
-
-        this.fullData((Boolean b) -> builder.withBoolean("a_boolean", b), current_null_field == 2, expected, () -> toggle == 0);
-
-        this.fullData((Integer b) -> builder.withInt("a_int", b), current_null_field == 3, expected,
+        this.fullData(i, builder::withString, "a_string", current_null_field == 1, () -> "string_" + i);
+        this.fullData(i, builder::withBoolean, "a_boolean", current_null_field == 2, () -> toggle == 0);
+        this.fullData(i, builder::withInt, "a_int", current_null_field == 3,
                 () -> (toggle == 0) ? Integer.MIN_VALUE : Integer.MAX_VALUE);
-        this.fullData((Long b) -> builder.withLong("a_long", b), current_null_field == 4, expected,
+        this.fullData(i, builder::withLong, "a_long", current_null_field == 4,
                 () -> (toggle == 0) ? Long.MIN_VALUE : Long.MAX_VALUE);
-
-        this.fullData((Float b) -> builder.withFloat("a_float", b), current_null_field == 5, expected,
+        this.fullData(i, builder::withFloat, "a_float", current_null_field == 5,
                 () -> (toggle == 0) ? Float.MIN_VALUE : Float.MAX_VALUE);
-        this.fullData((Double b) -> builder.withDouble("a_double", b), current_null_field == 6, expected,
+        this.fullData(i, builder::withDouble, "a_double", current_null_field == 6,
                 () -> (toggle == 0) ? Double.MIN_VALUE : Double.MAX_VALUE);
-
-        this.fullData((ZonedDateTime b) -> builder.withDateTime("a_datetime", b), current_null_field == 7, expected, () -> {
+        this.fullData(i, builder::withDateTime, "a_datetime", current_null_field == 7, () -> {
             final LocalDate date = LocalDate.parse("10/04/" + (2000 + i), formatter);
             return date.atStartOfDay(ZoneId.of("UTC"));
         });
 
-        if (current_null_field != 8) {
-            builder.withBytes("a_byte_array", ("index_" + i).getBytes());
-            final String lineValue = new String(Base64.getEncoder().encode(("index_" + i).getBytes()));
-            expected.add(lineValue);
-        } else {
-            expected.add(null);
-        }
+        this.fullData(i, builder::withBytes, "a_byte_array", current_null_field == 8, () -> ("index_" + i).getBytes());
 
-        // Array are ignored by CSV
-        if (current_null_field != 9) {
-            final Entry stringArray = this.findEntry("a_string_array");
-            builder.withArray(stringArray, Arrays.asList("a", "b"));
-        }
-        if (current_null_field != 10) {
-            final Record sub_record = this.factory.newRecordBuilder(this.sub_record_schema)
-                    .withString("rec_string", "rec_string_" + i) //
-                    .withInt("rec_int", i) //
-                    .build();
-            builder.withRecord("a_record", sub_record);
-            expected.add("rec_string_" + i);
-            expected.add(Integer.toString(i));
-        }
+        this.fullData(i, builder::withArray, "a_string_array", current_null_field == 9, () -> Arrays.asList("a", "b"));
+
+        this.fullData(i, builder::withRecord, "a_record", current_null_field == 10,
+                () -> this.factory.newRecordBuilder(this.sub_record_schema).withString("rec_string", "rec_string_" + i) //
+                        .withInt("rec_int", i) //
+                        .build());
 
         final Record rec = builder.build();
+        final Consumer<T> expected = this.expectedValueBuilder.endRecord(i, rec);
         return new DataSet(rec, expected);
     }
 
-    private <T> void fullData(Consumer<T> builder, boolean isNull, List<String> expected, Supplier<T> valueGetter) {
+    private <U> void fullData(int indice, BiConsumer<Schema.Entry, U> builder, String fieldName, boolean isNull,
+            Supplier<U> valueGetter) {
 
+        final Schema.Entry field = this.findEntry(fieldName);
         if (isNull) {
-            expected.add(null);
+            this.expectedValueBuilder.addField(indice, field, null);
         } else {
-            final T value = valueGetter.get();
+            final U value = valueGetter.get();
             if (value != null) {
-                builder.accept(value);
-                expected.add(value.toString());
+                this.findEntry("a_string");
+                this.expectedValueBuilder.addField(indice, field, value);
+                builder.accept(field, value);
             } else {
-                expected.add(null);
+                this.expectedValueBuilder.addField(indice, field, null);
             }
         }
     }
 
-    private static class RecordIterator implements Iterator<DataSet> {
+    private static class RecordIterator<T> implements Iterator<DataSet<T>> {
 
         private final int size;
 
-        private final DatasetGenerator provider;
+        private final DatasetGenerator<T> provider;
 
         private int current = 0;
 
@@ -203,7 +183,7 @@ public class DatasetGenerator {
         }
 
         @Override
-        public DataSet next() {
+        public DataSet<T> next() {
             if (!this.hasNext()) {
                 throw new NoSuchElementException("iterator end already reached.");
             }

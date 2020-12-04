@@ -51,6 +51,7 @@
         <module>cosmosDB</module>
         <module>google-storage</module>
         <module>migration-tester</module>
+        <module>common-test</module>
     </modules>
 
     <scm>
@@ -337,7 +338,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.10</version>
+            <version>1.18.16</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
