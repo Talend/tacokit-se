@@ -92,6 +92,8 @@
         <beanutils.version>1.9.4</beanutils.version>
         <jackson.version>2.10.1</jackson.version>
         <jackson-codehaus.version>1.9.14-TALEND</jackson-codehaus.version>
+        
+        <jsoup.version>1.13.1</jsoup.version>
 
         <tcomp0.version>0.23.2</tcomp0.version> <!-- until they are rewritten -->
         <daikon.version>0.31.0</daikon.version>
@@ -330,6 +332,11 @@
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
                 <version>${commons-codec.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jsoup</groupId>
+                <artifactId>jsoup</artifactId>
+                <version>${jsoup.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
