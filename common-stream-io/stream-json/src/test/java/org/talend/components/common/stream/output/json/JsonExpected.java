@@ -28,11 +28,8 @@ public class JsonExpected implements ExpectedValueBuilder<JsonObject> {
 
     @Override
     public void addField(int id, Entry field, Object value) {
-        if (field.getType() != Type.RECORD) {
-            final Consumer<JsonObject> verifier = (JsonObject obj) -> this.checkContains(obj, field.getName(), value);
-            this.verifiers.add(verifier);
-        }
-
+        final Consumer<JsonObject> verifier = (JsonObject obj) -> this.checkContains(obj, field.getName(), value);
+        this.verifiers.add(verifier);
     }
 
     @Override
@@ -66,6 +63,13 @@ public class JsonExpected implements ExpectedValueBuilder<JsonObject> {
             final int value = obj.getInt(name);
             Assertions.assertEquals(expectedValue, value);
         }
-
+        else if (expectedValue instanceof Long) {
+            final long value = obj.getJsonNumber(name).longValue();
+            Assertions.assertEquals(expectedValue, value);
+        }
+        else if (expectedValue instanceof Record) {
+            final JsonObject value = obj.getJsonObject(name);
+            Assertions.assertNotNull(value);
+        }
     }
 }

@@ -1,9 +1,6 @@
 package org.talend.components.common.stream.output.json;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.Iterator;
-import java.util.List;
 
 import javax.json.JsonObject;
 
@@ -41,11 +38,4 @@ class RecordToJsonTest {
         return generator.generate(40);
     }
 
-    private static void checkList(final JsonObject realValues, final JsonObject expectedValue) {
-
-        assertEquals(realValues.size(), expectedValue.size(), expectedValue.toString());
-        for (int i = 0; i < realValues.size(); i++) {
-            assertEquals(realValues.get(i), expectedValue.get(i), "Error on field " + i);
-        }
-    }
 }

@@ -155,7 +155,6 @@ public class DatasetGenerator<T> {
         } else {
             final U value = valueGetter.get();
             if (value != null) {
-                this.findEntry("a_string");
                 this.expectedValueBuilder.addField(indice, field, value);
                 builder.accept(field, value);
             } else {
