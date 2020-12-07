@@ -42,7 +42,6 @@ public class Datastore implements Serializable {
     @Required
     @Pattern("^https?://.+$")
     @Documentation("URL base of the request")
-    @Validable(RestService.ACTION_VALIDATION_BASE_URL)
     private String base = "";
 
     @Option

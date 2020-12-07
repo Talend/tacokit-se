@@ -12,10 +12,13 @@
  */
 package org.talend.components.rest.source;
 
-import org.talend.components.common.service.http.ValidateSites;
+import java.io.Serializable;
+import java.util.Iterator;
+
+import javax.annotation.PostConstruct;
+
 import org.talend.components.extension.polling.api.Pollable;
 import org.talend.components.rest.configuration.RequestConfig;
-import org.talend.components.rest.service.CompletePayload;
 import org.talend.components.rest.service.RecordBuilderService;
 import org.talend.components.rest.service.RestService;
 import org.talend.sdk.component.api.component.Icon;
@@ -25,13 +28,6 @@ import org.talend.sdk.component.api.input.Emitter;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;
-
-import javax.annotation.PostConstruct;
-import javax.json.JsonStructure;
-import javax.json.JsonValue;
-import java.io.Serializable;
-import java.util.Iterator;
-import java.util.LinkedList;
 
 @Version(1)
 @Icon(value = Icon.IconType.CUSTOM, custom = "talend-rest")
