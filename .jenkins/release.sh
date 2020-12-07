@@ -6,6 +6,7 @@
 git config --global credential.username ${GITHUB_LOGIN}
 git config --global credential.helper '!echo password=${GITHUB_TOKEN}; echo'
 git config --global credential.name "jenkins-build"
+MVN_RELEASE_MORE_OPTIONS="-DskipTests"
 env | sort
 
 pre_release_version=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
@@ -18,14 +19,14 @@ if [[ $pre_release_version != *'-SNAPSHOT' ]]; then
 fi
 
 # prepare release
-mvn -B -s .jenkins/settings.xml release:clean release:prepare -Dtalend.maven.decrypter.m2.location=${WORKSPACE}/.jenkins/
+mvn -B -s .jenkins/settings.xml release:clean release:prepare ${MVN_RELEASE_MORE_OPTIONS} -Dtalend.maven.decrypter.m2.location=${WORKSPACE}/.jenkins/
 if [[ ! $? -eq 0 ]]; then
   echo mvn error during build
   exit 123
 fi
 
 # perform release
-mvn -B -s .jenkins/settings.xml release:perform -Darguments='-Dmaven.javadoc.skip=true' -Dtalend.maven.decrypter.m2.location=${WORKSPACE}/.jenkins/
+mvn -B -s .jenkins/settings.xml release:perform ${MVN_RELEASE_MORE_OPTIONS} -Darguments='-Dmaven.javadoc.skip=true' -Dtalend.maven.decrypter.m2.location=${WORKSPACE}/.jenkins/
 if [[ ! $? -eq 0 ]]; then
   echo mvn error during build
   exit 123

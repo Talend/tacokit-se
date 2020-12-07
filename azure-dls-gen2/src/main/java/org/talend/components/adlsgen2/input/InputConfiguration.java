@@ -12,15 +12,15 @@
  */
 package org.talend.components.adlsgen2.input;
 
-import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
-
 import java.io.Serializable;
 
+import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
+import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
 
 @Data
 @GridLayout(value = { @GridLayout.Row({ "dataSet" }) })
@@ -30,5 +30,5 @@ public class InputConfiguration implements Serializable {
 
     @Option
     @Documentation("Dataset")
-    private org.talend.components.adlsgen2.dataset.AdlsGen2DataSet dataSet;
+    private AdlsGen2DataSet dataSet;
 }

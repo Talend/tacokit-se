@@ -194,7 +194,7 @@ spec:
                     expression { params.Action == 'PUSH_TO_XTM' }
                     allOf {
                         triggeredBy 'TimerTrigger'
-                        expression { calendar.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY }
+                        expression { calendar.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY }
                     }
                 }
                 anyOf {

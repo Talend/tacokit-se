@@ -303,9 +303,4 @@ public class Constants {
         }
     }
 
-    public static final class RuntimeInfoKeys {
-
-        public static final String ACTIVE_DIRECTORY_TOKEN = "activeDirToken";
-    }
-
 }

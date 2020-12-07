@@ -18,6 +18,8 @@ import java.util.Map;
 import javax.json.JsonBuilderFactory;
 
 import org.talend.components.adlsgen2.input.InputConfiguration;
+import org.talend.components.adlsgen2.runtime.AdlsDatasetRuntimeInfo;
+import org.talend.components.adlsgen2.service.AdlsActiveDirectoryService;
 import org.talend.components.adlsgen2.service.AdlsGen2Service;
 import org.talend.components.adlsgen2.service.BlobInformations;
 import org.talend.sdk.component.api.record.Record;
@@ -32,29 +34,29 @@ public abstract class BlobReader {
 
     protected RecordBuilderFactory recordBuilderFactory;
 
-    private Map<String, Object> runtimeInfoMap;
-
     private RecordIterator iterator;
 
     protected InputConfiguration configuration;
 
     protected final AdlsGen2Service service;
 
+    protected final AdlsActiveDirectoryService tokenProviderService;
+
+    protected final AdlsDatasetRuntimeInfo datasetRuntimeInfo;
+
     public BlobReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory, AdlsGen2Service service,
-            Map<String, Object> runtimeInfoMap) {
+            AdlsActiveDirectoryService tokenProviderService) {
         this.recordBuilderFactory = recordBuilderFactory;
-        this.runtimeInfoMap = runtimeInfoMap;
         this.configuration = configuration;
         this.service = service;
-        Iterable<BlobInformations> blobItems = service.getBlobs(this.configuration.getDataSet(), runtimeInfoMap);
+        this.tokenProviderService = tokenProviderService;
+
+        datasetRuntimeInfo = new AdlsDatasetRuntimeInfo(configuration.getDataSet(), tokenProviderService);
+        Iterable<BlobInformations> blobItems = service.getBlobs(datasetRuntimeInfo);
         iterator = initRecordIterator(blobItems);
     }
 
     protected abstract RecordIterator initRecordIterator(Iterable<BlobInformations> blobItems);
-
-    protected Map<String, Object> getRuntimeInfoMap() {
-        return runtimeInfoMap;
-    }
 
     public Record readRecord() {
         return iterator.next();
@@ -65,16 +67,16 @@ public abstract class BlobReader {
         private static JsonBuilderFactory jsonFactory;
 
         public static BlobReader getReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory,
-                JsonBuilderFactory jsonFactory, AdlsGen2Service service, Map<String, Object> runtimeInfoMap) {
+                JsonBuilderFactory jsonFactory, AdlsGen2Service service, AdlsActiveDirectoryService tokenProviderService) {
             switch (configuration.getDataSet().getFormat()) {
             case CSV:
-                return new CsvBlobReader(configuration, recordBuilderFactory, service, runtimeInfoMap);
+                return new CsvBlobReader(configuration, recordBuilderFactory, service, tokenProviderService);
             case AVRO:
-                return new AvroBlobReader(configuration, recordBuilderFactory, service, runtimeInfoMap);
+                return new AvroBlobReader(configuration, recordBuilderFactory, service, tokenProviderService);
             case PARQUET:
-                return new ParquetBlobReader(configuration, recordBuilderFactory, service, runtimeInfoMap);
+                return new ParquetBlobReader(configuration, recordBuilderFactory, service, tokenProviderService);
             case JSON:
-                return new JsonBlobReader(configuration, recordBuilderFactory, jsonFactory, service, runtimeInfoMap);
+                return new JsonBlobReader(configuration, recordBuilderFactory, jsonFactory, service, tokenProviderService);
             default:
                 throw new IllegalArgumentException("Unsupported file format"); // shouldn't be here
             }

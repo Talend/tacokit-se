@@ -29,6 +29,7 @@ import org.apache.parquet.hadoop.util.HadoopInputFile;
 import org.talend.components.adlsgen2.common.format.FileFormatRuntimeException;
 import org.talend.components.adlsgen2.common.format.parquet.ParquetConverter;
 import org.talend.components.adlsgen2.input.InputConfiguration;
+import org.talend.components.adlsgen2.service.AdlsActiveDirectoryService;
 import org.talend.components.adlsgen2.service.AdlsGen2Service;
 import org.talend.components.adlsgen2.service.BlobInformations;
 import org.talend.sdk.component.api.record.Record;
@@ -40,8 +41,8 @@ import lombok.extern.slf4j.Slf4j;
 public class ParquetBlobReader extends BlobReader {
 
     public ParquetBlobReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory,
-            AdlsGen2Service connectionServices, Map<String, Object> runtimeInfoMap) {
-        super(configuration, recordBuilderFactory, connectionServices, runtimeInfoMap);
+            AdlsGen2Service connectionServices, AdlsActiveDirectoryService tokenProviderService) {
+        super(configuration, recordBuilderFactory, connectionServices, tokenProviderService);
     }
 
     @Override
@@ -86,7 +87,7 @@ public class ParquetBlobReader extends BlobReader {
             try {
                 File tmp = File.createTempFile("talend-adls-gen2-tmp", ".parquet");
                 tmp.deleteOnExit();
-                InputStream input = service.getBlobInputstream(configuration, getCurrentBlob(), getRuntimeInfoMap());
+                InputStream input = service.getBlobInputstream(datasetRuntimeInfo, getCurrentBlob());
                 Files.copy(input, tmp.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 IOUtils.closeQuietly(input);
                 HadoopInputFile hdpIn = HadoopInputFile.fromPath(new Path(tmp.getPath()),

@@ -12,7 +12,6 @@
  */
 package org.talend.components.adlsgen2.service;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -52,7 +51,7 @@ class AdlsGen2ServiceTestIT extends AdlsGen2TestBase {
     @ValueSource(strings = { "SharedKey", "SAS" })
     void filesystemList(String authmethod) {
         connection.setAuthMethod(AuthMethod.valueOf(authmethod));
-        List<String> result = service.filesystemList(connection, Collections.emptyMap());
+        List<String> result = service.filesystemList(datastoreRuntimeInfo);
         assertNotNull(result);
         assertTrue(result.size() >= 0);
     }
@@ -62,7 +61,7 @@ class AdlsGen2ServiceTestIT extends AdlsGen2TestBase {
     void pathList(String authmethod) {
         connection.setAuthMethod(AuthMethod.valueOf(authmethod));
         inputConfiguration.getDataSet().setBlobPath("");
-        Object result = service.pathList(inputConfiguration, Collections.emptyMap());
+        Object result = service.pathList(datasetRuntimeInfo);
         assertNotNull(result);
     }
 
@@ -74,7 +73,7 @@ class AdlsGen2ServiceTestIT extends AdlsGen2TestBase {
         inputConfiguration.getDataSet().setBlobPath(path);
         Object result = null;
         try {
-            result = service.pathList(inputConfiguration, Collections.emptyMap());
+            result = service.pathList(datasetRuntimeInfo);
             fail("The path should not exist");
         } catch (Exception e) {
         }
@@ -107,14 +106,14 @@ class AdlsGen2ServiceTestIT extends AdlsGen2TestBase {
         // paths should exists
         String blobPath = "demo_gen2/in/parquet_file.parquet";
         inputConfiguration.getDataSet().setBlobPath(blobPath);
-        assertTrue(service.pathExists(inputConfiguration.getDataSet(), Collections.emptyMap()));
+        assertTrue(service.pathExists(datasetRuntimeInfo));
         // paths do not exist
         blobPath = "myNewFolder/subfolder03/blob.txt";
         inputConfiguration.getDataSet().setBlobPath(blobPath);
-        assertFalse(service.pathExists(inputConfiguration.getDataSet(), Collections.emptyMap()));
+        assertFalse(service.pathExists(datasetRuntimeInfo));
         blobPath = "newFolder01ZZZ/blob.txt";
         inputConfiguration.getDataSet().setBlobPath(blobPath);
-        assertFalse(service.pathExists(inputConfiguration.getDataSet(), Collections.emptyMap()));
+        assertFalse(service.pathExists(datasetRuntimeInfo));
     }
 
     @ParameterizedTest
@@ -124,7 +123,7 @@ class AdlsGen2ServiceTestIT extends AdlsGen2TestBase {
         String path = "demo_gen2/in/parquet_file.parquet";
         inputConfiguration.getDataSet().setBlobPath(path);
         inputConfiguration.getDataSet().setFormat(FileFormat.PARQUET);
-        Iterator<Record> result = service.pathRead(inputConfiguration, Collections.emptyMap());
+        Iterator<Record> result = service.pathRead(datasetRuntimeInfo);
         while (result.hasNext()) {
             Record r = result.next();
             assertNotNull(r);
@@ -138,7 +137,7 @@ class AdlsGen2ServiceTestIT extends AdlsGen2TestBase {
         String path = "demo_gen2/in/userdata1.avro";
         inputConfiguration.getDataSet().setBlobPath(path);
         inputConfiguration.getDataSet().setFormat(FileFormat.AVRO);
-        Iterator<Record> result = service.pathRead(inputConfiguration, Collections.emptyMap());
+        Iterator<Record> result = service.pathRead(datasetRuntimeInfo);
         while (result.hasNext()) {
             Record r = result.next();
             assertNotNull(r);
@@ -146,7 +145,7 @@ class AdlsGen2ServiceTestIT extends AdlsGen2TestBase {
         // another one
         path = "demo_gen2/in/customers.avro";
         inputConfiguration.getDataSet().setBlobPath(path);
-        result = service.pathRead(inputConfiguration, Collections.emptyMap());
+        result = service.pathRead(datasetRuntimeInfo);
         while (result.hasNext()) {
             Record r = result.next();
             assertNotNull(r);

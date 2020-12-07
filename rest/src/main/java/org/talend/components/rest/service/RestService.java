@@ -69,10 +69,6 @@ public class RestService {
     private final static String BODY_SUBSTITUTOR_SUFFIX = System.getProperty("org.talend.components.rest.body_substitutor_suffix",
             "}");
 
-    public final static String HEALTHCHECK = "healthcheck";
-
-    public final static String ACTION_VALIDATION_BASE_URL = "validateBaseURL";
-
     private final Substitutor.KeyFinder parameterFinder = new Substitutor.KeyFinder(RestService.PARAMETERS_SUBSTITUTOR_PREFIX,
             RestService.PARAMETERS_SUBSTITUTOR_SUFFIX);
 
@@ -225,41 +221,6 @@ public class RestService {
 
     private String substitute(final String value, final Substitutor substitutor) {
         return substitutor.replace(value);
-    }
-
-    @HealthCheck(HEALTHCHECK)
-    public HealthCheckStatus healthCheck(@Option final Datastore datastore) {
-        String host = datastore.getBase();
-        try {
-            host = getHost(host);
-            HttpURLConnection conn = (HttpURLConnection) new URL(host).openConnection();
-            conn.setRequestMethod("GET");
-            conn.setConnectTimeout(datastore.getConnectionTimeout());
-            conn.setReadTimeout(datastore.getReadTimeout());
-            conn.connect();
-            final int status = conn.getResponseCode();
-            log.info(i18n.healthCheckStatus(host, status));
-            if (status == HttpURLConnection.HTTP_OK) {
-                return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18n.healthCheckOk());
-            }
-
-        } catch (IOException e) {
-            final StringWriter sw = new StringWriter();
-            final PrintWriter pw = new PrintWriter(sw);
-            e.printStackTrace(pw);
-            log.debug(i18n.healthCheckException(sw.toString()));
-        }
-
-        return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.healthCheckFailed(host));
-    }
-
-    @AsyncValidation(ACTION_VALIDATION_BASE_URL)
-    public ValidationResult validateBaseURL(final String base) {
-        if (!ValidateSites.isValidSite(base)) {
-            return new ValidationResult(ValidationResult.Status.KO,
-                    i18n.notValidAddress(ValidateSites.CAN_ACCESS_LOCAL, ValidateSites.ENABLE_MULTICAST_ACCESS));
-        }
-        return new ValidationResult(ValidationResult.Status.OK, "The base URL is valid.");
     }
 
     public void checkBaseURL(final String base) {

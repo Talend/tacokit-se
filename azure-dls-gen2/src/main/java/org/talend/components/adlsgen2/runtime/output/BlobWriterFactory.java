@@ -12,27 +12,27 @@
  */
 package org.talend.components.adlsgen2.runtime.output;
 
-import java.util.Map;
-
 import javax.json.JsonBuilderFactory;
 
 import org.talend.components.adlsgen2.output.OutputConfiguration;
+import org.talend.components.adlsgen2.service.AdlsActiveDirectoryService;
 import org.talend.components.adlsgen2.service.AdlsGen2Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 public class BlobWriterFactory {
 
     public static BlobWriter getWriter(OutputConfiguration configuration, RecordBuilderFactory recordBuilderFactory,
-            JsonBuilderFactory jsonFactory, AdlsGen2Service service, Map<String, Object> runtimeInfoMap) throws Exception {
+            JsonBuilderFactory jsonFactory, AdlsGen2Service service, AdlsActiveDirectoryService tokenProviderService)
+            throws Exception {
         switch (configuration.getDataSet().getFormat()) {
         case CSV:
-            return new CsvBlobWriter(configuration, recordBuilderFactory, jsonFactory, service, runtimeInfoMap);
+            return new CsvBlobWriter(configuration, recordBuilderFactory, jsonFactory, service, tokenProviderService);
         case AVRO:
-            return new AvroBlobWriter(configuration, recordBuilderFactory, jsonFactory, service, runtimeInfoMap);
+            return new AvroBlobWriter(configuration, recordBuilderFactory, jsonFactory, service, tokenProviderService);
         case JSON:
-            return new JsonBlobWriter(configuration, recordBuilderFactory, jsonFactory, service, runtimeInfoMap);
+            return new JsonBlobWriter(configuration, recordBuilderFactory, jsonFactory, service, tokenProviderService);
         case PARQUET:
-            return new ParquetBlobWriter(configuration, recordBuilderFactory, jsonFactory, service, runtimeInfoMap);
+            return new ParquetBlobWriter(configuration, recordBuilderFactory, jsonFactory, service, tokenProviderService);
         default:
             throw new IllegalArgumentException("Unsupported file format");
         }

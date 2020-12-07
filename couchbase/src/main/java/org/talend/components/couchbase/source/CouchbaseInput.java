@@ -109,8 +109,8 @@ public class CouchbaseInput implements Serializable {
             n1qlQuery = N1qlQuery.simple(configuration.getQuery());
             break;
         case ONE:
-            Statement pathToOneDocument = Select.select("*").from(Expression.i(bucket.name()))
-                    .useKeysValues(configuration.getDocumentId());
+            Statement pathToOneDocument = Select.select("meta().id as " + Expression.i(META_ID_FIELD), "*")
+                    .from(Expression.i(bucket.name())).useKeysValues(configuration.getDocumentId());
             n1qlQuery = N1qlQuery.simple(pathToOneDocument);
             break;
         default:
@@ -133,7 +133,6 @@ public class CouchbaseInput implements Serializable {
                     return createJsonRecord(jsonObject);
                 } catch (ClassCastException e) {
                     // document is a non-json, try to get next document
-                    continue;
                 }
             } else {
                 try {
@@ -147,7 +146,6 @@ public class CouchbaseInput implements Serializable {
                     return documentParser.parse(bucket, id);
                 } catch (TranscodingException e) {
                     // document is not a non-json, try to get next document
-                    continue;
                 }
             }
         }

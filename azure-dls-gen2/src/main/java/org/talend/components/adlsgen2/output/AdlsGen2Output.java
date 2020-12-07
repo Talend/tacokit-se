@@ -13,15 +13,11 @@
 package org.talend.components.adlsgen2.output;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.json.JsonBuilderFactory;
 
-import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
-import org.talend.components.adlsgen2.datastore.Constants;
 import org.talend.components.adlsgen2.runtime.AdlsGen2RuntimeException;
 import org.talend.components.adlsgen2.runtime.output.BlobWriter;
 import org.talend.components.adlsgen2.runtime.output.BlobWriterFactory;
@@ -79,13 +75,8 @@ public class AdlsGen2Output implements Serializable {
     public void init() {
         log.debug("[init]");
         try {
-            Map<String, Object> runtimeInfoMap = new HashMap<>();
-            if (configuration.getDataSet().getConnection().getAuthMethod() == AdlsGen2Connection.AuthMethod.ActiveDirectory) {
-                runtimeInfoMap.put(Constants.RuntimeInfoKeys.ACTIVE_DIRECTORY_TOKEN,
-                        tokenProviderService.getActiveDirAuthToken(configuration.getDataSet().getConnection()));
-            }
             blobWriter = BlobWriterFactory.getWriter(configuration, recordBuilderFactory, jsonBuilderFactory, service,
-                    runtimeInfoMap);
+                    tokenProviderService);
         } catch (Exception e) {
             log.error("[init] {}", e.getMessage());
             throw new AdlsGen2RuntimeException(e.getMessage(), e);

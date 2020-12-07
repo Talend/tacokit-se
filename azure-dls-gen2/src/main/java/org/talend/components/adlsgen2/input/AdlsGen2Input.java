@@ -13,19 +13,14 @@
 package org.talend.components.adlsgen2.input;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.json.JsonBuilderFactory;
 
-import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
-import org.talend.components.adlsgen2.datastore.Constants;
 import org.talend.components.adlsgen2.runtime.AdlsGen2RuntimeException;
 import org.talend.components.adlsgen2.runtime.input.BlobReader;
 import org.talend.components.adlsgen2.runtime.input.BlobReader.BlobFileReaderFactory;
-import org.talend.components.adlsgen2.service.AccessTokenProvider;
 import org.talend.components.adlsgen2.service.AdlsActiveDirectoryService;
 import org.talend.components.adlsgen2.service.AdlsGen2Service;
 import org.talend.sdk.component.api.component.Version;
@@ -47,9 +42,6 @@ public class AdlsGen2Input implements Serializable {
     private final AdlsGen2Service service;
 
     @Service
-    private final AdlsActiveDirectoryService tokenProviderService;
-
-    @Service
     private final RecordBuilderFactory recordBuilderFactory;
 
     @Service
@@ -61,27 +53,24 @@ public class AdlsGen2Input implements Serializable {
 
     private BlobReader reader;
 
+    private AdlsActiveDirectoryService tokenProviderService;
+
     public AdlsGen2Input(@Option("configuration") final InputConfiguration configuration, final AdlsGen2Service service,
             final RecordBuilderFactory recordBuilderFactory, JsonBuilderFactory jsonFactory,
             final AdlsActiveDirectoryService tokenProviderService) {
         this.configuration = configuration;
         this.service = service;
-        this.tokenProviderService = tokenProviderService;
         this.jsonFactory = jsonFactory;
         this.recordBuilderFactory = recordBuilderFactory;
+        this.tokenProviderService = tokenProviderService;
     }
 
     @PostConstruct
     public void init() {
         log.debug("[init]");
         try {
-            Map<String, Object> runtimeInfoMap = new HashMap<>();
-            if (configuration.getDataSet().getConnection().getAuthMethod() == AdlsGen2Connection.AuthMethod.ActiveDirectory) {
-                runtimeInfoMap.put(Constants.RuntimeInfoKeys.ACTIVE_DIRECTORY_TOKEN,
-                        tokenProviderService.getActiveDirAuthToken(configuration.getDataSet().getConnection()));
-            }
-
-            reader = BlobFileReaderFactory.getReader(configuration, recordBuilderFactory, jsonFactory, service, runtimeInfoMap);
+            reader = BlobFileReaderFactory.getReader(configuration, recordBuilderFactory, jsonFactory, service,
+                    tokenProviderService);
         } catch (Exception e) {
             log.error("[init] Error: {}.", e.getMessage());
             throw new AdlsGen2RuntimeException(e.getMessage(), e);

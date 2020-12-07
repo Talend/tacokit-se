@@ -31,6 +31,7 @@ import javax.json.JsonValue.ValueType;
 import org.talend.components.adlsgen2.common.format.json.JsonConverter;
 import org.talend.components.adlsgen2.input.InputConfiguration;
 import org.talend.components.adlsgen2.runtime.AdlsGen2RuntimeException;
+import org.talend.components.adlsgen2.service.AdlsActiveDirectoryService;
 import org.talend.components.adlsgen2.service.AdlsGen2Service;
 import org.talend.components.adlsgen2.service.BlobInformations;
 import org.talend.sdk.component.api.record.Record;
@@ -44,8 +45,8 @@ public class JsonBlobReader extends BlobReader {
     private JsonBuilderFactory jsonFactoryBuilder;
 
     JsonBlobReader(InputConfiguration configuration, RecordBuilderFactory recordBuilderFactory,
-            JsonBuilderFactory jsonFactoryBuilder, AdlsGen2Service service, Map<String, Object> runtimeInfoMap) {
-        super(configuration, recordBuilderFactory, service, runtimeInfoMap);
+            JsonBuilderFactory jsonFactoryBuilder, AdlsGen2Service service, AdlsActiveDirectoryService tokenProviderService) {
+        super(configuration, recordBuilderFactory, service, tokenProviderService);
         this.jsonFactoryBuilder = jsonFactoryBuilder;
     }
 
@@ -83,7 +84,7 @@ public class JsonBlobReader extends BlobReader {
             initMetadataIfNeeded();
             closePreviousInputStream();
             try {
-                currentItemInputStream = service.getBlobInputstream(configuration, getCurrentBlob(), getRuntimeInfoMap());
+                currentItemInputStream = service.getBlobInputstream(datasetRuntimeInfo, getCurrentBlob());
                 reader = Json.createReader((new InputStreamReader(currentItemInputStream, StandardCharsets.UTF_8)));
                 JsonStructure structure = reader.read();
                 if (structure == null) {
