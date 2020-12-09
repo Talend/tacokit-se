@@ -125,15 +125,14 @@ public class UIActionService {
 
     @HealthCheck(ACTION_BASIC_HEALTH_CHECK)
     public HealthCheckStatus validateBasicDataStore(@Option final JdbcConnection datastore) {
-        try (JdbcService.JdbcDatasource dataSource = this.jdbcService.createDataSource(datastore)) {
-            try (final Connection ignored = dataSource.getConnection()) {
-                // no-op
-            } catch (final Exception e) {
-                return new HealthCheckStatus(HealthCheckStatus.Status.KO, e.getMessage());
-            }
-
-            return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18n.successConnection());
+        try (JdbcService.JdbcDatasource dataSource = this.jdbcService.createDataSource(datastore);
+                final Connection ignored = dataSource.getConnection()) {
+            // no-op
+        } catch (final Exception e) {
+            return new HealthCheckStatus(HealthCheckStatus.Status.KO, e.getMessage());
         }
+
+        return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18n.successConnection());
     }
 
     @AsyncValidation(ACTION_VALIDATION_READONLY_QUERY)

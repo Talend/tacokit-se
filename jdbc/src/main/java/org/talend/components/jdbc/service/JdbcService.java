@@ -42,18 +42,19 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-import com.zaxxer.hikari.HikariDataSource;
-
-import org.talend.components.jdbc.configuration.JdbcConfiguration;
-import org.talend.components.jdbc.datastore.JdbcConnection;
-import org.talend.components.jdbc.output.platforms.PlatformFactory;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
+import org.talend.components.jdbc.configuration.JdbcConfiguration;
+import org.talend.components.jdbc.datastore.AuthenticationType;
+import org.talend.components.jdbc.datastore.JdbcConnection;
+import org.talend.components.jdbc.output.platforms.PlatformFactory;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.dependency.Resolver;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+
+import com.zaxxer.hikari.HikariDataSource;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -165,7 +166,12 @@ public class JdbcService {
                     dataSource.setConnectionTestQuery("SELECT 1");
                 }
                 dataSource.setUsername(connection.getUserId());
-                dataSource.setPassword(connection.getPassword());
+                if (AuthenticationType.KEY_PAIR == connection.getAuthenticationType()) {
+                    dataSource.addDataSourceProperty("privateKey", PrivateKeyUtils.getPrivateKey(connection.getPrivateKey(),
+                            connection.getPrivateKeyPassword(), i18nMessage));
+                } else {
+                    dataSource.setPassword(connection.getPassword());
+                }
                 dataSource.setDriverClassName(driver.getClassName());
                 dataSource.setJdbcUrl(connection.getJdbcUrl());
                 dataSource.setAutoCommit(isAutoCommit);
