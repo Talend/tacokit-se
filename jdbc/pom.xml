@@ -15,7 +15,8 @@
 
     <properties>
         <xbean-finder-shaded.version>4.8</xbean-finder-shaded.version>
-        <HikariCP.version>3.1.0</HikariCP.version>
+        <HikariCP.version>3.4.2-talend20200325</HikariCP.version>
+        <bouncycastle.version>1.67</bouncycastle.version>
         <!-- test version -->
         <derby.version>10.12.1.1</derby.version>
         <snowflake.version>3.12.11</snowflake.version>
@@ -149,6 +150,16 @@
             <artifactId>snowflake-jdbc</artifactId>
             <version>${snowflake.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcmail-jdk15on</artifactId>
+            <version>${bouncycastle.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>${bouncycastle.version}</version>
         </dependency>
     </dependencies>
 

@@ -12,16 +12,8 @@
  */
 package org.talend.components.jdbc.service;
 
-import com.zaxxer.hikari.HikariDataSource;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.talend.components.jdbc.configuration.JdbcConfiguration;
-import org.talend.components.jdbc.datastore.JdbcConnection;
-import org.talend.components.jdbc.output.platforms.PlatformFactory;
-import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.configuration.Configuration;
-import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
-import org.talend.sdk.component.api.service.dependency.Resolver;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.joining;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -37,8 +29,19 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.joining;
+import org.talend.components.jdbc.configuration.JdbcConfiguration;
+import org.talend.components.jdbc.datastore.AuthenticationType;
+import org.talend.components.jdbc.datastore.JdbcConnection;
+import org.talend.components.jdbc.output.platforms.PlatformFactory;
+import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.configuration.Configuration;
+import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
+import org.talend.sdk.component.api.service.dependency.Resolver;
+
+import com.zaxxer.hikari.HikariDataSource;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -144,7 +147,12 @@ public class JdbcService {
                     dataSource.setConnectionTestQuery("SELECT 1");
                 }
                 dataSource.setUsername(connection.getUserId());
-                dataSource.setPassword(connection.getPassword());
+                if (AuthenticationType.KEY_PAIR == connection.getAuthenticationType()) {
+                    dataSource.addDataSourceProperty("privateKey", PrivateKeyUtils.getPrivateKey(connection.getPrivateKey(),
+                            connection.getPrivateKeyPassword(), i18nMessage));
+                } else {
+                    dataSource.setPassword(connection.getPassword());
+                }
                 dataSource.setDriverClassName(driver.getClassName());
                 dataSource.setJdbcUrl(connection.getJdbcUrl());
                 dataSource.setAutoCommit(isAutoCommit);
