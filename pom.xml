@@ -108,6 +108,8 @@
         <httpcore.version>4.4.12</httpcore.version>
         <compress.version>1.19</compress.version>
         <commons-codec.version>1.14</commons-codec.version>
+        
+        <jersey.version>2.22.2</jersey.version>
 
         <talend_oss_snapshots>https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceSnapshot/
         </talend_oss_snapshots>
@@ -311,7 +313,7 @@
                 <artifactId>httpclient</artifactId>
                 <version>${httpclient.version}</version>
              </dependency>
-			 <dependency>
+             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpcore</artifactId>
                 <version>${httpcore.version}</version>
@@ -330,6 +332,17 @@
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
                 <version>${commons-codec.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.core</groupId>
+                <artifactId>jersey-server</artifactId>
+                <version>${jersey.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.glassfish.jersey.media</groupId>
+                        <artifactId>jersey-media-jaxb</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
         </dependencies>
     </dependencyManagement>
