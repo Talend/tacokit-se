@@ -117,4 +117,9 @@ public class StorageFacadeFake implements StorageFacade {
         }
         return null;
     }
+
+    @Override
+    public boolean isBucketExist(String bucketName) {
+        return Objects.equals(this.bucket.name, bucketName);
+    }
 }

@@ -27,6 +27,7 @@ import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.Storage.BlobListOption;
+import com.google.cloud.storage.StorageException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -53,10 +54,9 @@ public class StorageImpl implements StorageFacade {
 
     @Override
     public OutputStream buildOuput(final String bucket, final String blob) {
-
-        final BlobInfo blobInfo = BlobInfo.newBuilder(bucket, blob).build();
         final Storage st = this.getStorage();
 
+        final BlobInfo blobInfo = BlobInfo.newBuilder(bucket, blob).build();
         Blob blobObject = st.get(blobInfo.getBlobId());
         if (blobObject == null) {
             blobObject = st.create(blobInfo);
@@ -89,6 +89,15 @@ public class StorageImpl implements StorageFacade {
                 .map(Blob::getName) //
                 .filter((String name) -> Objects.equals(blobStartName, name)
                         || this.nameBuilder.isGenerated(blobStartName, name));
+    }
+
+    @Override
+    public boolean isBucketExist(String bucketName) {
+        try {
+            return this.getStorage().get(bucketName) != null;
+        } catch (StorageException ex) {
+            return false;
+        }
     }
 
     private synchronized Storage getStorage() {

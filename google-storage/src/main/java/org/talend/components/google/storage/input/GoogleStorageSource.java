@@ -72,13 +72,14 @@ public class GoogleStorageSource implements Serializable {
     }
 
     private Iterator<Record> buildRecordIterator() {
-        // reader depending on format.
-        final RecordReader recordReader = this.buildReader();
-
         // blob name list
         final GSDataSet dataset = this.getDataSet();
         final StorageFacade storage = this.services.buildStorage(dataset.getDataStore().getJsonCredentials());
+        this.services.checkBucket(storage, dataset.getBucket());
         final Stream<String> blobsName = storage.findBlobsName(dataset.getBucket(), dataset.getBlob());
+
+        // reader depending on format.
+        final RecordReader recordReader = this.buildReader();
 
         // build iterator on record for each input
         return IteratorComposer.of(blobsName.iterator()) //

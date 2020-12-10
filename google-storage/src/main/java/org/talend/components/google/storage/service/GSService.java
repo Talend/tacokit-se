@@ -104,6 +104,14 @@ public class GSService {
         }
     }
 
+    public void checkBucket(StorageFacade storage, String bucketName) {
+        if (!storage.isBucketExist(bucketName)) { // bucket does not exist.
+            final String errorLabel = this.i18n.bucketUnexist(bucketName);
+            log.warn(errorLabel);
+            throw new IllegalArgumentException(errorLabel);
+        }
+    }
+
     public StorageFacade buildStorage(final String jsonCredentials) {
         return new StorageImpl(this.credentialService, jsonCredentials, this.i18n);
     }

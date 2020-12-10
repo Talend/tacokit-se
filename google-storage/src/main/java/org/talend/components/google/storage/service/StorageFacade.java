@@ -20,10 +20,38 @@ import java.util.stream.Stream;
 
 public interface StorageFacade extends Serializable {
 
+    /**
+     * Build output to write on bucket/blob.
+     * 
+     * @param bucket : bucket to write.
+     * @param blob : blob to write.
+     * @return output stream correspond to bucket/blob.
+     */
     OutputStream buildOuput(final String bucket, final String blob);
 
+    /**
+     * Build input stream getter on bucket/blob
+     * 
+     * @param bucket : bucket.
+     * @param blob : blob.
+     * @return input stream getter to read data.
+     */
     Supplier<InputStream> buildInput(final String bucket, final String blob);
 
+    /**
+     * Find all blob for a given bucket that match name.
+     * 
+     * @param bucket : bucket name.
+     * @param blobStartName : start name of blob so if start name is MyBlob, then MyBlobA will match.
+     * @return all blob name that matches.
+     */
     Stream<String> findBlobsName(final String bucket, final String blobStartName);
 
+    /**
+     * Check if a bucket exist.
+     * 
+     * @param bucketName : bucket name.
+     * @return true if exist.
+     */
+    boolean isBucketExist(final String bucketName);
 }

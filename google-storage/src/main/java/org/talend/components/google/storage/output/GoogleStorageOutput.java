@@ -89,6 +89,7 @@ public class GoogleStorageOutput implements Serializable {
 
     @PostConstruct
     public void init() throws IOException {
+        this.services.checkBucket(this.buildStorage(), this.getDataSet().getBucket());
         this.recordWriter = this.buildWriter();
     }
 
@@ -108,9 +109,13 @@ public class GoogleStorageOutput implements Serializable {
     private OutputStream buildOutputStream() {
         final GSDataSet dataSet = this.getDataSet();
 
-        final StorageFacade storage = this.services.buildStorage(dataSet.getDataStore().getJsonCredentials());
+        final StorageFacade storage = this.buildStorage();
         final String blobOutputName = new BlobNameBuilder().generateName(dataSet.getBlob());
         return storage.buildOuput(dataSet.getBucket(), blobOutputName);
+    }
+
+    private StorageFacade buildStorage() {
+        return this.services.buildStorage(this.getDataSet().getDataStore().getJsonCredentials());
     }
 
 }

@@ -25,6 +25,7 @@ import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.RecordIORepository;
+import org.talend.components.google.storage.StorageFacadeFake;
 import org.talend.components.google.storage.datastore.GSDataStore;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
@@ -97,6 +98,19 @@ class GSServiceTest {
                 items.stream().filter((Item it) -> "blob_689d651a-5896-428d-9816-2de624d0046a".equals(it.getId())).count());
         final Item firstItem = items.iterator().next();
         Assertions.assertEquals("rep/first.txt", firstItem.getId());
+    }
+
+    @Test
+    void checkBucket() {
+        StorageFacade storage = new StorageFacadeFake("bucket", new File("."));
+        this.service.checkBucket(storage, "bucket");
+
+        try {
+            this.service.checkBucket(storage, "unknown");
+            Assertions.fail("should have thrown exception");
+        } catch (IllegalArgumentException ex) {
+
+        }
     }
 
     private String getContentFile(String relativePath) throws IOException {
