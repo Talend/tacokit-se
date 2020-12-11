@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.Iterator;
 
 import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericData;
@@ -26,7 +27,12 @@ import org.apache.avro.generic.GenericRecord;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.talend.components.common.stream.input.avro.AvroToRecord;
+import org.talend.components.common.test.records.DatasetGenerator;
+import org.talend.components.common.test.records.DatasetGenerator.DataSet;
+import org.talend.components.common.test.records.AssertionsBuilder;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Entry;
@@ -34,6 +40,11 @@ import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.runtime.beam.spi.record.AvroRecord;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import javax.json.JsonObject;
 
 class RecordToAvroTest {
 
@@ -310,6 +321,21 @@ class RecordToAvroTest {
                 .withRecord(er, versatileRecord) //
                 .withDateTime("now", now) //
                 .withArray(ea, Arrays.asList("ary1", "ary2", "ary3")).build();
+    }
+
+    @ParameterizedTest
+    @MethodSource("testDataAvro")
+    void testRecordsAvro(DataSet<GenericRecord> ds) {
+        RecordToAvro converter = new RecordToAvro("test");
+        final GenericRecord record = converter.fromRecord(ds.getRecord());
+        ds.check(record);
+    }
+
+    private static Iterator<DataSet<GenericRecord>> testDataAvro() {
+        final AssertionsBuilder<GenericRecord> valueBuilder = new AvroExpected();
+        final RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");
+        final DatasetGenerator<GenericRecord> generator = new DatasetGenerator<>(factory, valueBuilder);
+        return generator.generate(40);
     }
 
 }

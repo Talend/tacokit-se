@@ -78,6 +78,17 @@
       <artifactId>jackson-module-scala_2.11</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.talend.components</groupId>
+      <artifactId>common-test</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.talend.components</groupId>
+      <artifactId>connectors-test-bom</artifactId>
+      <type>pom</type>
+    </dependency>
   </dependencies>
 
   <build>
