@@ -32,26 +32,27 @@
     </license>
   </licenses>
 
-  <modules>
-    <module>jdbc</module>
-    <module>salesforce</module>
-    <module>mongodb</module>
-    <module>couchbase</module>
-    <module>azure</module>
-    <module>rest</module>
-    <module>dynamics-crm</module>
-    <module>azure-dls-gen2</module>
-    <module>marketo</module>
-    <module>common</module>
-    <module>common-stream-io</module>
-    <module>connectors-test-bom</module>
-    <module>bigquery</module>
-    <module>workday</module>
-    <module>extensions</module>
-    <module>cosmosDB</module>
-    <module>google-storage</module>
-    <module>migration-tester</module>
-  </modules>
+    <modules>
+        <module>jdbc</module>
+        <module>salesforce</module>
+        <module>mongodb</module>
+        <module>couchbase</module>
+        <module>azure</module>
+        <module>rest</module>
+        <module>dynamics-crm</module>
+        <module>azure-dls-gen2</module>
+        <module>marketo</module>
+        <module>common</module>
+        <module>common-stream-io</module>
+        <module>connectors-test-bom</module>
+        <module>bigquery</module>
+        <module>workday</module>
+        <module>extensions</module>
+        <module>cosmosDB</module>
+        <module>google-storage</module>
+        <module>migration-tester</module>
+        <module>common-test</module>
+    </modules>
 
   <scm>
     <connection>scm:git:https://github.com/talend/connectors-se.git</connection>
