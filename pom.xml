@@ -51,7 +51,6 @@
         <module>cosmosDB</module>
         <module>google-storage</module>
         <module>migration-tester</module>
-        <module>common-test</module>
     </modules>
 
     <scm>

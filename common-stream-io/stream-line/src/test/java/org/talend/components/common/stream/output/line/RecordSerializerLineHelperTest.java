@@ -20,17 +20,11 @@ import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.talend.components.common.test.records.DatasetGenerator;
-import org.talend.components.common.test.records.DatasetGenerator.DataSet;
-import org.talend.components.common.test.records.ExpectedValueBuilder;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Type;
@@ -107,21 +101,4 @@ class RecordSerializerLineHelperTest {
         return recordBuilderFactory.newEntryBuilder().withName(name).withRawName(name).withType(type).withNullable(nullable)
                 .build();
     }
-
-    @ParameterizedTest
-    @MethodSource("testDataLine")
-    void testRecordsLine(DataSet<List<String>> ds) {
-        final List<String> values = RecordSerializerLineHelper.valuesFrom(ds.getRecord());
-        ds.check(values);
-    }
-
-
-    private static Iterator<DataSet<List<String>>> testDataLine() {
-        final ExpectedValueBuilder<List<String>> valueBuilder = new LineValueBuilder();
-        final RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");
-        final DatasetGenerator<List<String>> generator = new DatasetGenerator<>(factory,
-                valueBuilder);
-        return generator.generate(40);
-    }
-
 }
