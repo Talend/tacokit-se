@@ -93,6 +93,8 @@ public class BigQueryOutput implements Serializable {
 
     private transient WriteChannel writer;
 
+    private transient boolean isTruncateDone;
+
     public BigQueryOutput(@Option("configuration") final BigQueryOutputConfig configuration, BigQueryService bigQueryService,
             GoogleStorageService storageService, RecordIORepository ioRepository, I18nMessage i18n) {
         this.configuration = configuration;
@@ -121,7 +123,6 @@ public class BigQueryOutput implements Serializable {
                 configuration.getDataSet().getTableName());
         if (BigQueryOutputConfig.TableOperation.TRUNCATE == configuration.getTableOperation()) {
             storage = storageService.getStorage(bigQuery.getOptions().getCredentials());
-            truncateTable();
         }
     }
 
@@ -148,6 +149,7 @@ public class BigQueryOutput implements Serializable {
                 throw new BigQueryConnectorException(e.getMessage());
             }
             storage.delete(blob.getBlobId());
+            isTruncateDone = true;
         }
     }
 
@@ -155,6 +157,9 @@ public class BigQueryOutput implements Serializable {
     public void beforeGroup() {
         records = new ArrayList<>();
         if (BigQueryOutputConfig.TableOperation.TRUNCATE == configuration.getTableOperation()) {
+            if (!isTruncateDone) {
+                truncateTable();
+            }
             Blob blob = getNewBlob();
             writer = blob.writer();
             try {
