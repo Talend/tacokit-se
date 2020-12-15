@@ -122,4 +122,10 @@ public class StorageFacadeFake implements StorageFacade {
     public boolean isBucketExist(String bucketName) {
         return Objects.equals(this.bucket.name, bucketName);
     }
+
+    @Override
+    public boolean isBlobExist(String bucketName, String blobName) {
+        final Stream<String> names = this.findBlobsName(bucketName, blobName);
+        return names != null && names.count() > 0;
+    }
 }

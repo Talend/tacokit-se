@@ -20,7 +20,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 public class PostgresqlTestContainer implements JdbcTestContainer {
 
-    @Delegate(types = { JdbcDatabaseContainer.class, GenericContainer.class, ContainerState.class })
+    @Delegate(types = { JdbcDatabaseContainer.class, GenericContainer.class,
+            ContainerState.class }, excludes = AutoCloseable.class)
     private final JdbcDatabaseContainer container = new PostgreSQLContainer("postgres:12.1");
 
     @Override
@@ -28,4 +29,8 @@ public class PostgresqlTestContainer implements JdbcTestContainer {
         return "PostgreSQL";
     }
 
+    @Override
+    public void close() {
+        this.container.close();
+    }
 }

@@ -54,4 +54,13 @@ public interface StorageFacade extends Serializable {
      * @return true if exist.
      */
     boolean isBucketExist(final String bucketName);
+
+    /**
+     * Check if a blob exist.
+     *
+     * @param bucketName : bucket name.
+     * @param blobName : blob name.
+     * @return true if exist.
+     */
+    boolean isBlobExist(final String bucketName, final String blobName);
 }

@@ -112,6 +112,14 @@ public class GSService {
         }
     }
 
+    public void checkBlob(StorageFacade storage, String bucketName, String blobName) {
+        if (!storage.isBlobExist(bucketName, blobName)) { // bucket does not exist.
+            final String errorLabel = this.i18n.blobUnexist(blobName, bucketName);
+            log.warn(errorLabel);
+            throw new IllegalArgumentException(errorLabel);
+        }
+    }
+
     public StorageFacade buildStorage(final String jsonCredentials) {
         return new StorageImpl(this.credentialService, jsonCredentials, this.i18n);
     }

@@ -100,6 +100,11 @@ public class StorageImpl implements StorageFacade {
         }
     }
 
+    @Override
+    public boolean isBlobExist(String bucketName, String blobName) {
+        return this.findBlobsName(bucketName, blobName).count() > 0;
+    }
+
     private synchronized Storage getStorage() {
         if (this.storage == null) {
             this.storage = this.credentialService.newStorage(this.credentials);

@@ -76,6 +76,7 @@ public class GoogleStorageSource implements Serializable {
         final GSDataSet dataset = this.getDataSet();
         final StorageFacade storage = this.services.buildStorage(dataset.getDataStore().getJsonCredentials());
         this.services.checkBucket(storage, dataset.getBucket());
+        this.services.checkBlob(storage, dataset.getBucket(), dataset.getBlob());
         final Stream<String> blobsName = storage.findBlobsName(dataset.getBucket(), dataset.getBlob());
 
         // reader depending on format.
