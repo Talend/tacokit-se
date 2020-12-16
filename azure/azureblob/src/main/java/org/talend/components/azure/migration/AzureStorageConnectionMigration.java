@@ -14,6 +14,7 @@ package org.talend.components.azure.migration;
 
 import java.util.Map;
 
+import org.talend.components.AzureAuthType;
 import org.talend.sdk.component.api.component.MigrationHandler;
 
 public class AzureStorageConnectionMigration implements MigrationHandler {
@@ -21,7 +22,7 @@ public class AzureStorageConnectionMigration implements MigrationHandler {
     @Override
     public Map<String, String> migrate(int incomingVersion, Map<String, String> incomingData) {
         if (incomingVersion < 2) {
-            incomingData.put("accountConnection.authType", "BASIC");
+            incomingData.put("accountConnection.authType", AzureAuthType.BASIC.toString());
         }
         return incomingData;
     }
