@@ -74,13 +74,13 @@ class StorageImplTest {
         try {
             final Supplier<InputStream> inputUnexist = st.buildInput("bucket", "unknown");
             Assertions.fail("unknown should not exist");
-        } catch (IllegalArgumentException ex) {
+        } catch (GSException ex) {
         }
 
         try {
             final Supplier<InputStream> inputUnexist2 = st.buildInput("unknown", "unknown");
             Assertions.fail("unknown should not exist");
-        } catch (IllegalArgumentException ex) {
+        } catch (GSException ex) {
         }
 
     }

@@ -108,7 +108,7 @@ class GSServiceTest {
         try {
             this.service.checkBucket(storage, "unknown");
             Assertions.fail("should have thrown exception");
-        } catch (IllegalArgumentException ex) {
+        } catch (GSException ex) {
 
         }
     }

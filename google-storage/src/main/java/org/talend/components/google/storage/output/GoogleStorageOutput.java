@@ -27,12 +27,14 @@ import org.talend.components.common.stream.api.output.RecordWriterSupplier;
 import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.components.google.storage.dataset.GSDataSet;
 import org.talend.components.google.storage.service.BlobNameBuilder;
+import org.talend.components.google.storage.service.GSException;
 import org.talend.components.google.storage.service.GSService;
 import org.talend.components.google.storage.service.I18nMessage;
 import org.talend.components.google.storage.service.StorageFacade;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Icon.IconType;
 import org.talend.sdk.component.api.component.Version;
+import org.talend.sdk.component.api.exception.ComponentException.ErrorOrigin;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.processor.AfterGroup;
 import org.talend.sdk.component.api.processor.Processor;
@@ -64,7 +66,7 @@ public class GoogleStorageOutput implements Serializable {
     @AfterGroup
     public void write(final Collection<Record> records) {
         if (this.recordWriter == null) {
-            throw new IllegalStateException(this.i18n.outputWasNotInitialize());
+            throw new GSException(ErrorOrigin.BACKEND, this.i18n.outputWasNotInitialize());
         }
         try {
             this.recordWriter.add(records);

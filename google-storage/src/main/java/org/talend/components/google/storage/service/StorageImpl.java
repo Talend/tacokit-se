@@ -29,6 +29,8 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.Storage.BlobListOption;
 import com.google.cloud.storage.StorageException;
 
+import org.talend.sdk.component.api.exception.ComponentException.ErrorOrigin;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -75,7 +77,7 @@ public class StorageImpl implements StorageFacade {
         if (blobObject == null) { // blob does not exist.
             final String errorLabel = this.i18n.blobUnexist(blob, bucket);
             log.warn(errorLabel);
-            throw new IllegalArgumentException(errorLabel);
+            throw new GSException(ErrorOrigin.BACKEND, errorLabel);
         }
         return () -> Channels.newInputStream(blobObject.reader());
     }
