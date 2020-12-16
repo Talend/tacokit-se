@@ -18,10 +18,10 @@ import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.components.common.stream.format.avro.AvroConfiguration;
 import org.talend.components.common.stream.format.csv.CSVConfiguration;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration;
-import org.talend.components.google.storage.service.GSException;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.exception.ComponentException.ErrorOrigin;
 import org.talend.sdk.component.api.meta.Documentation;
 
@@ -82,7 +82,7 @@ public class FormatConfiguration implements Serializable {
         if (this.contentFormat == FormatConfiguration.Type.JSON) {
             return this.jsonConfiguration;
         }
-        throw new GSException(ErrorOrigin.BACKEND,
+        throw new ComponentException(ErrorOrigin.BACKEND,
                 "Wrong value for contentFormat : " + (contentFormat == null ? "null" : this.contentFormat.name()));
     }
 }

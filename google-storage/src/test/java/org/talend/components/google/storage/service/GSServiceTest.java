@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.RecordIORepository;
 import org.talend.components.google.storage.StorageFacadeFake;
 import org.talend.components.google.storage.datastore.GSDataStore;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.completion.SuggestionValues.Item;
@@ -108,7 +109,7 @@ class GSServiceTest {
         try {
             this.service.checkBucket(storage, "unknown");
             Assertions.fail("should have thrown exception");
-        } catch (GSException ex) {
+        } catch (ComponentException ex) {
 
         }
     }

@@ -32,6 +32,7 @@ import com.google.cloud.storage.StorageException;
 
 import org.talend.components.google.storage.datastore.GSDataStore;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.exception.ComponentException.ErrorOrigin;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
@@ -109,7 +110,7 @@ public class GSService {
         if (!storage.isBucketExist(bucketName)) { // bucket does not exist.
             final String errorLabel = this.i18n.bucketUnexist(bucketName);
             log.warn(errorLabel);
-            throw new GSException(ErrorOrigin.USER, errorLabel);
+            throw new ComponentException(ErrorOrigin.USER, errorLabel);
         }
     }
 
@@ -117,7 +118,7 @@ public class GSService {
         if (!storage.isBlobExist(bucketName, blobName)) { // blob does not exist.
             final String errorLabel = this.i18n.blobUnexist(blobName, bucketName);
             log.warn(errorLabel);
-            throw new GSException(ErrorOrigin.USER, errorLabel);
+            throw new ComponentException(ErrorOrigin.USER, errorLabel);
         }
     }
 

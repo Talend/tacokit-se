@@ -34,6 +34,7 @@ import org.talend.components.google.storage.CredentialServiceFake;
 import org.talend.components.google.storage.FakeStorage;
 import org.talend.components.google.storage.dataset.GSDataSet;
 import org.talend.components.google.storage.datastore.GSDataStore;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit5.WithComponents;
 
@@ -74,13 +75,13 @@ class StorageImplTest {
         try {
             final Supplier<InputStream> inputUnexist = st.buildInput("bucket", "unknown");
             Assertions.fail("unknown should not exist");
-        } catch (GSException ex) {
+        } catch (ComponentException ex) {
         }
 
         try {
             final Supplier<InputStream> inputUnexist2 = st.buildInput("unknown", "unknown");
             Assertions.fail("unknown should not exist");
-        } catch (GSException ex) {
+        } catch (ComponentException ex) {
         }
 
     }

@@ -17,7 +17,7 @@ import org.talend.components.common.stream.api.input.RecordReaderSupplier;
 import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.components.common.stream.input.json.JsonToRecord;
 import org.talend.components.google.storage.dataset.JsonAllConfiguration;
-import org.talend.components.google.storage.service.GSException;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.exception.ComponentException.ErrorOrigin;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
@@ -26,7 +26,7 @@ public class JsonAllReaderSupplier implements RecordReaderSupplier {
     @Override
     public RecordReader getReader(RecordBuilderFactory factory, ContentFormat config, Object extraParameter) {
         if (!JsonAllConfiguration.class.isInstance(config)) {
-            throw new GSException(ErrorOrigin.BACKEND, "try to get json-all-reader with other than json-all-config");
+            throw new ComponentException(ErrorOrigin.BACKEND, "try to get json-all-reader with other than json-all-config");
         }
         final JsonAllConfiguration jsonCfg = (JsonAllConfiguration) config;
         final JsonToRecord toRecord = new JsonToRecord(factory, jsonCfg.isForceDouble());
