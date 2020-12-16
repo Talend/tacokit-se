@@ -12,6 +12,19 @@
  */
 package org.talend.components.jdbc.suite;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static org.apache.derby.vti.XmlVTI.asList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
+
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -63,19 +76,6 @@ import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-import static org.apache.derby.vti.XmlVTI.asList;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
-
 @TestInstance(Lifecycle.PER_CLASS)
 public abstract class JDBCBaseContainerTest {
 
@@ -97,7 +97,10 @@ public abstract class JDBCBaseContainerTest {
     @AfterAll
     public void release() {
         if (this.container != null) {
-            this.container.close();
+            try {
+                this.container.close();
+            } catch (Exception e) {
+            }
             this.container = null;
         }
     }

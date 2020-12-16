@@ -34,7 +34,7 @@ public interface JdbcTestContainer extends AutoCloseable {
     void stop();
 
     @Override
-    default void close() {
+    default void close() throws Exception {
         stop();
     }
 
