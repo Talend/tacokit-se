@@ -12,6 +12,10 @@
  */
 package org.talend.components.adlsgen2.input;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -30,10 +34,6 @@ import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
 import lombok.extern.slf4j.Slf4j;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @Slf4j
 @WithComponents("org.talend.components.adlsgen2")
@@ -177,7 +177,7 @@ public class InputTestIT extends AdlsGen2TestBase {
                 .run();
         final List<Record> records = components.getCollectedData(Record.class);
         assertNotNull(records);
-        assertEquals(51, records.size());
+        assertEquals(6, records.size());
     }
 
     @Test
