@@ -196,6 +196,66 @@ class RecordToAvroTest {
         assertEquals(20.5, to.getDouble("double"));
     }
 
+    @Test
+    void testInnerNull() {
+        final Entry field = this.factory.newEntryBuilder() //
+                .withName("field") //
+                .withType(Type.STRING) //
+                .build();
+
+        final Schema subRecordSchema = this.factory.newSchemaBuilder(Type.RECORD) //
+                .withEntry(field) //
+                .build();
+
+        final Entry sub = this.factory.newEntryBuilder() //
+                .withName("sub") //
+                .withType(Type.RECORD) //
+                .withElementSchema(subRecordSchema) //
+                .withNullable(true) //
+                .build();
+
+        final Schema schema = this.factory.newSchemaBuilder(Type.RECORD) //
+                .withEntry(sub) //
+                .build();
+
+        // Non null value
+        final Record record1 = this.factory.newRecordBuilder(schema) //
+                .withRecord(sub, //
+                        this.factory.newRecordBuilder(subRecordSchema) //
+                                .withString(field, "Hello") //
+                                .build()) //
+                .build();
+
+        // implicit null
+        final Record record2 = this.factory.newRecordBuilder(schema) //
+                .build();
+
+        // explicit null
+        final Record record3 = this.factory.newRecordBuilder(schema) //
+                .withRecord(sub, null) //
+                .build();
+
+        final RecordToAvro converter = new RecordToAvro("test");
+        final GenericRecord genericRecord1 = converter.fromRecord(record1);
+        final GenericRecord genericRecord2 = converter.fromRecord(record2);
+        final GenericRecord genericRecord3 = converter.fromRecord(record3);
+        Assertions.assertNotNull(genericRecord1);
+        Assertions.assertNotNull(genericRecord2);
+        Assertions.assertNotNull(genericRecord3);
+
+        final Object sub1 = genericRecord1.get("sub");
+        final Object sub2 = genericRecord2.get("sub");
+        final Object sub3 = genericRecord3.get("sub");
+
+        Assertions.assertTrue(sub1 instanceof GenericRecord);
+        Assertions.assertNull(sub2);
+        Assertions.assertNull(sub3);
+
+        final Object field1 = ((GenericRecord) sub1).get("field");
+        Assertions.assertEquals("Hello", field1);
+
+    }
+
     private void prepareTestRecords() {
         // some demo records
         versatileRecord = factory.newRecordBuilder() //

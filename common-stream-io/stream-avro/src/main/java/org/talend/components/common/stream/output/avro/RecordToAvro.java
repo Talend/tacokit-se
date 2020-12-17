@@ -64,16 +64,19 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
         return recordToAvro(record, new GenericData.Record(avroSchema));
     }
 
-    protected GenericRecord recordToAvro(Record fromRecord, GenericRecord toRecord) {
+    private GenericRecord recordToAvro(Record fromRecord, GenericRecord toRecord) {
+        if (fromRecord == null) {
+            return toRecord;
+        }
         for (org.apache.avro.Schema.Field f : toRecord.getSchema().getFields()) {
-            String name = f.name();
-            org.apache.avro.Schema.Type fieldType = AvroHelper.getFieldType(f);
+            final String name = f.name();
+            final org.apache.avro.Schema.Type fieldType = AvroHelper.getFieldType(f);
             switch (fieldType) {
             case RECORD:
-                final Record subRecord = fromRecord.getRecord(name);
-                if (subRecord != null) {
-                    final org.apache.avro.Schema subSchema = fromRecordSchema(subRecord.getSchema());
-                    final GenericRecord subrecord = recordToAvro(subRecord, new GenericData.Record(subSchema));
+                final Record record = fromRecord.getRecord(name);
+                if (record != null) {
+                    final org.apache.avro.Schema subSchema = fromRecordSchema(record.getSchema());
+                    final GenericRecord subrecord = recordToAvro(record, new GenericData.Record(subSchema));
                     toRecord.put(name, subrecord);
                 }
                 break;
@@ -189,7 +192,7 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
                 throw new IllegalStateException(String.format(ERROR_UNDEFINED_TYPE, e.getType().name()));
             }
             org.apache.avro.Schema unionWithNull;
-            if (builder.getType() == org.apache.avro.Schema.Type.RECORD) {
+            if (builder.getType() == org.apache.avro.Schema.Type.RECORD && (!e.isNullable())) {
                 unionWithNull = builder;
             } else {
                 unionWithNull = SchemaBuilder.unionOf().type(builder).and().nullType().endUnion();
@@ -201,7 +204,7 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
                 currentRecordNamespace, false, fields);
     }
 
-    protected org.apache.avro.Schema.Type translateToAvroType(Type type) {
+    private org.apache.avro.Schema.Type translateToAvroType(final Type type) {
         switch (type) {
         case RECORD:
             return org.apache.avro.Schema.Type.RECORD;
@@ -226,7 +229,7 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
         throw new IllegalStateException(String.format(ERROR_UNDEFINED_TYPE, type.name()));
     }
 
-    protected Entry getSchemaForEntry(String name, Schema schema) {
+    private Entry getSchemaForEntry(String name, Schema schema) {
         for (Entry e : schema.getEntries()) {
             if (name.equals(e.getName())) {
                 return e;
@@ -235,7 +238,7 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
         return null;
     }
 
-    protected Class<?> getJavaClassForType(Schema.Type type) {
+    private Class<?> getJavaClassForType(Schema.Type type) {
         switch (type) {
         case RECORD:
             return Record.class;
