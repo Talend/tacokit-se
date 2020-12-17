@@ -12,13 +12,16 @@
  */
 package org.talend.components.rest.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
-import org.apache.beam.sdk.Pipeline;
 import org.junit.jupiter.api.BeforeEach;
 import org.talend.components.rest.configuration.Format;
 import org.talend.components.rest.configuration.HttpMethod;
@@ -41,10 +44,6 @@ import org.talend.sdk.component.junit5.environment.EnvironmentalTest;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
 import lombok.extern.slf4j.Slf4j;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 /*
  * When -Dtalend.junit.http.capture=true is given
@@ -258,7 +257,7 @@ public class ClientTestWithMockProxyTest {
         assertEquals(5.0d, record.getDouble("upvotes"));
     }
 
-    @EnvironmentalTest
+    // @EnvironmentalTest
     void jsonWithError() {
         final Locale aDefault = Locale.getDefault();
         Locale.setDefault(Locale.ENGLISH);
@@ -279,7 +278,7 @@ public class ClientTestWithMockProxyTest {
                     .build() //
                     .run();
             fail("JSON file has error and shouldn't be parsed.");
-        } catch (IllegalArgumentException | Pipeline.PipelineExecutionException e) {
+        } catch (IllegalArgumentException e) {
             assertEquals("The body's answer can't be read as JSON.",
                     (e instanceof IllegalArgumentException) ? e.getMessage() : e.getCause().getCause().getMessage());
         }

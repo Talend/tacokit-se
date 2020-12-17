@@ -18,7 +18,6 @@
     <javacsv.version>2.0</javacsv.version>
     <antlr4-runtime.version>4.6</antlr4-runtime.version>
     <hamcrest.version>1.3</hamcrest.version>
-    <mockito-core.version>1.10.19</mockito-core.version>
   </properties>
 
   <dependencies>
@@ -57,6 +56,10 @@
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-mapper-asl</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+    </dependency>
 
     <!-- test -->
     <dependency>
@@ -88,7 +91,7 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>${mockito-core.version}</version>
+      <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
 

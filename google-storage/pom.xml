@@ -71,9 +71,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.talend.components</groupId>
-            <artifactId>connectors-test-bom</artifactId>
-            <type>pom</type>
+            <groupId>org.talend.sdk.component</groupId>
+            <artifactId>component-runtime-http-junit</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -39,7 +39,6 @@
 
         <apache.poi.version>3.17</apache.poi.version>
         <jsoup.version>1.11.3</jsoup.version>
-        <avro.version>1.8.2</avro.version>
         <parquet.version>1.10.1</parquet.version>
         <hadoop.version>3.2.0</hadoop.version>
         <excel.streamer.version>2.1.0</excel.streamer.version>

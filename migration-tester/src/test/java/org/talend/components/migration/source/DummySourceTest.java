@@ -12,7 +12,13 @@
  */
 package org.talend.components.migration.source;
 
-import lombok.extern.slf4j.Slf4j;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
+
+import java.io.IOException;
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.talend.components.migration.conf.DSE;
 import org.talend.components.migration.conf.DSO;
@@ -27,11 +33,7 @@ import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.junit5.environment.EnvironmentalTest;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
-import java.io.IOException;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Environment(ContextualEnvironment.class)
