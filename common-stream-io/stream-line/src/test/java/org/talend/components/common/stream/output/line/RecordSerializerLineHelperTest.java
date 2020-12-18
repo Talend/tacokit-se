@@ -12,21 +12,24 @@
  */
 package org.talend.components.common.stream.output.line;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
+import java.util.Base64;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.record.Schema.Type;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
 class RecordSerializerLineHelperTest {
 
@@ -42,10 +45,15 @@ class RecordSerializerLineHelperTest {
         final Record record = buildRecords_simple();
         final List<String> strings = RecordSerializerLineHelper.valuesFrom(record);
 
+        assertEquals(5, strings.size());
         assertEquals("Smith", strings.get(0));
         assertEquals("35", strings.get(1));
         assertEquals("true", strings.get(2));
         assertEquals("2020-08-17T10:10:10.010Z[UTC]", strings.get(3));
+
+        final String value4 = strings.get(4);
+        final String decodedValue4 = new String(Base64.getDecoder().decode(value4));
+        assertEquals("HelloBytes", decodedValue4);
     }
 
     private Record buildRecords_simple() {
@@ -60,11 +68,12 @@ class RecordSerializerLineHelperTest {
         gc.setTimeZone(TimeZone.getTimeZone(ZoneId.of("UTC")));
         final Date date = gc.getTime();
 
-        final Record rec1 = recordBuilderFactory.newRecordBuilder()
-                .withString(createEntry("name", Schema.Type.STRING, false), "Smith")
-                .withInt(createEntry("age", Schema.Type.INT, false), 35)
-                .withBoolean(createEntry("registered", Schema.Type.BOOLEAN, false), true)
-                .withDateTime(createEntry("last_save", Schema.Type.DATETIME, false), date).build();
+        final Record rec1 = recordBuilderFactory.newRecordBuilder() //
+                .withString(createEntry("name", Type.STRING, false), "Smith") //
+                .withInt(createEntry("age", Type.INT, false), 35) //
+                .withBoolean(createEntry("registered", Type.BOOLEAN, false), true) //
+                .withDateTime(createEntry("last_save", Type.DATETIME, false), date) //
+                .withBytes(createEntry("bytes", Type.BYTES, false), "HelloBytes".getBytes(StandardCharsets.UTF_8)).build();
         return rec1;
     }
 
@@ -92,5 +101,4 @@ class RecordSerializerLineHelperTest {
         return recordBuilderFactory.newEntryBuilder().withName(name).withRawName(name).withType(type).withNullable(nullable)
                 .build();
     }
-
 }

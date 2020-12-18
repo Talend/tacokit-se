@@ -39,6 +39,10 @@ public class RecordToJson implements RecordConverter<JsonObject, Void> {
 
     @Override
     public JsonObject fromRecord(Record record) {
+
+        if (record == null) {
+            return null;
+        }
         return convertRecordToJsonObject(record);
     }
 

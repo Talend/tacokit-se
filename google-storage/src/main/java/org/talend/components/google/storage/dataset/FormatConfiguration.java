@@ -21,6 +21,8 @@ import org.talend.components.common.stream.format.excel.ExcelConfiguration;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.exception.ComponentException;
+import org.talend.sdk.component.api.exception.ComponentException.ErrorOrigin;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
@@ -80,7 +82,7 @@ public class FormatConfiguration implements Serializable {
         if (this.contentFormat == FormatConfiguration.Type.JSON) {
             return this.jsonConfiguration;
         }
-        throw new IllegalArgumentException(
+        throw new ComponentException(ErrorOrigin.BACKEND,
                 "Wrong value for contentFormat : " + (contentFormat == null ? "null" : this.contentFormat.name()));
     }
 }
