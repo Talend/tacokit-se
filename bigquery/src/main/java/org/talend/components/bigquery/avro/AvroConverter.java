@@ -400,6 +400,10 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
             }
         case STRING:
         case BYTES:
+            if (AVRO_LOGICAL_TYPE_NUMERIC.equals(logicalType)) {
+                builder.withType(Type.STRING);
+                break;
+            }
         case FLOAT:
         case DOUBLE:
         case BOOLEAN:
