@@ -110,6 +110,8 @@
         <httpcore.version>4.4.12</httpcore.version>
         <compress.version>1.19</compress.version>
         <commons-codec.version>1.14</commons-codec.version>
+        
+        <jersey.version>2.22.2</jersey.version>
 
         <talend_oss_snapshots>https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceSnapshot/
         </talend_oss_snapshots>
@@ -129,6 +131,7 @@
         <netty-codec.version>4.1.48.Final</netty-codec.version>
         <jetty.version>9.4.33.v20201020</jetty.version>
         <nimbus-jose-jwt.version>8.11</nimbus-jose-jwt.version>
+        <zookeeper.version>3.4.14</zookeeper.version>
 
         <!-- code quality enforcer default values.
              run build w/ -Pcode-quality to have a full validation -->
@@ -313,7 +316,7 @@
                 <artifactId>httpclient</artifactId>
                 <version>${httpclient.version}</version>
              </dependency>
-			 <dependency>
+             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpcore</artifactId>
                 <version>${httpcore.version}</version>
@@ -338,13 +341,29 @@
                 <artifactId>jsoup</artifactId>
                 <version>${jsoup.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.core</groupId>
+                <artifactId>jersey-server</artifactId>
+                <version>${jersey.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.glassfish.jersey.media</groupId>
+                        <artifactId>jersey-media-jaxb</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.zookeeper</groupId>
+                <artifactId>zookeeper</artifactId>
+                <version>${zookeeper.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.10</version>
+            <version>1.18.16</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

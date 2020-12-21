@@ -14,46 +14,36 @@ package org.talend.components.google.storage.output;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.nio.channels.Channels;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.talend.components.common.stream.api.Messages;
 import org.talend.components.common.stream.api.RecordIORepository;
 import org.talend.components.common.stream.format.avro.AvroConfiguration;
-import org.talend.components.google.storage.FakeStorage;
+import org.talend.components.google.storage.GSServiceFake;
 import org.talend.components.google.storage.dataset.FormatConfiguration;
 import org.talend.components.google.storage.dataset.GSDataSet;
 import org.talend.components.google.storage.datastore.GSDataStore;
-import org.talend.components.google.storage.service.CredentialService;
+import org.talend.components.google.storage.service.GSService;
 import org.talend.components.google.storage.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-import org.talend.sdk.component.junit.BaseComponentsHandler;
-import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
-
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.ReadChannel;
-import com.google.cloud.storage.Blob;
-import com.google.cloud.storage.BlobId;
-import com.google.cloud.storage.Storage;
 
 @WithComponents(value = "org.talend.components.google.storage")
 public class GoogleStorageOutputAvroTest {
-
-    private static final Storage storage = FakeStorage.buildForTU();
 
     @Service
     private RecordIORepository repository;
@@ -64,21 +54,50 @@ public class GoogleStorageOutputAvroTest {
     @Service
     private I18nMessage i18n;
 
-    @Injected
-    private BaseComponentsHandler handler;
-
     @Service
-    private Messages messages;
-
-    @BeforeEach
-    void buildConfig() throws IOException {
-        // Inject needed services
-        handler.injectServices(this);
-    }
+    private GSService services;
 
     @Test
     void write() throws IOException {
-        GSDataSet dataset = new GSDataSet();
+
+        final URL resource = Thread.currentThread().getContextClassLoader().getResource("./bucketAvro");
+        final File root = new File(resource.getPath());
+        this.services = new GSServiceFake(services, root, "bucketTest");
+
+        final GSDataSet dataset = this.prepareDataset();
+
+        dataset.setBucket("bucketTest");
+        dataset.setBlob("blobavro");
+
+        final GoogleStorageOutput output = this.buildOutput(dataset);
+
+        output.init();
+        final Collection<Record> records = buildRecords();
+        output.write(records);
+        output.release();
+
+        Stream<File> avroFiles = Stream.of(root.listFiles()).filter((File f) -> f.getName().startsWith("blobavro"));
+
+        final Optional<File> first = avroFiles.findFirst();
+        Assertions.assertTrue(first.isPresent());
+
+        try (final InputStream in = new FileInputStream(first.get());
+                final BufferedReader inputStream = new BufferedReader(new InputStreamReader(in))) {
+            final String collect = inputStream.lines().collect(Collectors.joining("\n"));
+            Assertions.assertNotNull(collect);
+            Assertions.assertTrue(collect.startsWith("Obj"));
+        }
+    }
+
+    private GoogleStorageOutput buildOutput(final GSDataSet dataset) {
+        final OutputConfiguration config = new OutputConfiguration();
+        config.setDataset(dataset);
+
+        return new GoogleStorageOutput(config, this.repository, i18n, this.services);
+    }
+
+    private GSDataSet prepareDataset() throws IOException {
+        final GSDataSet dataset = new GSDataSet();
         dataset.setDataStore(new GSDataStore());
 
         final FormatConfiguration format = new FormatConfiguration();
@@ -88,36 +107,8 @@ public class GoogleStorageOutputAvroTest {
 
         final String jwtContent = this.getContentFile("./engineering-test.json");
         dataset.getDataStore().setJsonCredentials(jwtContent);
-        dataset.setBucket("bucketTest");
-        dataset.setBlob("blob/avropath");
 
-        final OutputConfiguration config = new OutputConfiguration();
-        config.setDataset(dataset);
-        CredentialService credService = new CredentialService() {
-
-            @Override
-            public Storage newStorage(GoogleCredentials credentials) {
-                return GoogleStorageOutputAvroTest.this.storage;
-            }
-        };
-        final GoogleStorageOutput output = new GoogleStorageOutput(config, //
-                credService, //
-                this.repository, i18n);
-
-        output.init();
-        final Collection<Record> records = buildRecords();
-        output.write(records);
-        output.release();
-
-        final Blob blob = storage.get(BlobId.of("bucketTest", "blob/avropath"));
-        try (final ReadChannel reader = blob.reader();
-                final InputStream in = Channels.newInputStream(reader);
-                final BufferedReader inputStream = new BufferedReader(new InputStreamReader(in))) {
-            final String collect = inputStream.lines().collect(Collectors.joining("\n"));
-            Assertions.assertNotNull(collect);
-            Assertions.assertTrue(collect.startsWith("Obj"));
-        }
-
+        return dataset;
     }
 
     private Collection<Record> buildRecords() {
