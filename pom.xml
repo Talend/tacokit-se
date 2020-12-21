@@ -129,6 +129,7 @@
         <netty-codec.version>4.1.48.Final</netty-codec.version>
         <jetty.version>9.4.33.v20201020</jetty.version>
         <nimbus-jose-jwt.version>8.11</nimbus-jose-jwt.version>
+        <zookeeper.version>3.4.14</zookeeper.version>
 
         <!-- code quality enforcer default values.
              run build w/ -Pcode-quality to have a full validation -->
@@ -344,13 +345,18 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <dependency>
+                <groupId>org.apache.zookeeper</groupId>
+                <artifactId>zookeeper</artifactId>
+                <version>${zookeeper.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.10</version>
+            <version>1.18.16</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

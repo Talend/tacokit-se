@@ -12,6 +12,7 @@
  */
 package org.talend.components.common.stream.output.json;
 
+import java.time.ZonedDateTime;
 import java.util.Collection;
 
 import javax.json.Json;
@@ -38,6 +39,10 @@ public class RecordToJson implements RecordConverter<JsonObject, Void> {
 
     @Override
     public JsonObject fromRecord(Record record) {
+
+        if (record == null) {
+            return null;
+        }
         return convertRecordToJsonObject(record);
     }
 
@@ -120,7 +125,13 @@ public class RecordToJson implements RecordConverter<JsonObject, Void> {
             json.add(fieldName, record.getBoolean(fieldName));
             break;
         case DATETIME:
-            json.add(fieldName, record.getDateTime(fieldName).toString());
+            final ZonedDateTime dateTime = record.getDateTime(fieldName);
+            if (dateTime != null) {
+                json.add(fieldName, dateTime.toString());
+            }
+            else {
+                json.addNull(fieldName);
+            }
             break;
         }
     }

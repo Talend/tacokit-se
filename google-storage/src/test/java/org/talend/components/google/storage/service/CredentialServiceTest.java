@@ -17,12 +17,11 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.talend.components.google.storage.datastore.GSDataStore;
-
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.Storage;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 class CredentialServiceTest {
 
@@ -30,13 +29,11 @@ class CredentialServiceTest {
     void newStorage() throws IOException {
         final URL resource = Thread.currentThread().getContextClassLoader().getResource("./engineering-test.json");
 
-        File fic = new File(resource.getPath());
-        String json = new String(Files.readAllBytes(fic.toPath()));
-        GSDataStore ds = new GSDataStore();
-        ds.setJsonCredentials(json);
+        final File fic = new File(resource.getPath());
+        final String json = new String(Files.readAllBytes(fic.toPath()));
 
-        CredentialService credentialService = new CredentialService();
-        final GoogleCredentials credentials = credentialService.getCredentials(ds);
+        final CredentialService credentialService = new CredentialService();
+        final GoogleCredentials credentials = credentialService.getCredentials(json);
         Assertions.assertNotNull(credentials);
 
         final Storage storage = credentialService.newStorage(credentials);
