@@ -60,23 +60,23 @@ public class JsonToRecord {
     public Record toRecord(final JsonObject object) {
         final Record.Builder builder = factory.newRecordBuilder();
         object.forEach((String key, JsonValue value) -> {
+            final Schema.Entry.Builder entryBuilder = this.factory.newEntryBuilder().withName(key).withNullable(true);
             switch (value.getValueType()) {
             case ARRAY: {
                 final List<Object> items = value.asJsonArray().stream().map(this::mapJson).collect(toList());
-                builder.withArray(factory.newEntryBuilder().withName(key).withType(Schema.Type.ARRAY)
-                        .withElementSchema(getArrayElementSchema(factory, items)).withNullable(true).build(), items);
+                builder.withArray(entryBuilder.withType(Schema.Type.ARRAY)
+                        .withElementSchema(getArrayElementSchema(factory, items)).build(), items);
                 break;
             }
             case OBJECT: {
                 final Record record = toRecord(value.asJsonObject());
-                builder.withRecord(factory.newEntryBuilder().withName(key).withType(Schema.Type.RECORD)
-                        .withElementSchema(record.getSchema()).withNullable(true).build(), record);
+                builder.withRecord(entryBuilder.withType(Schema.Type.RECORD)
+                        .withElementSchema(record.getSchema()).build(), record);
                 break;
             }
             case TRUE:
             case FALSE:
-                final Schema.Entry entry = factory.newEntryBuilder().withName(key).withType(Schema.Type.BOOLEAN)
-                        .withNullable(true).build();
+                final Schema.Entry entry = entryBuilder.withType(Schema.Type.BOOLEAN).build();
                 builder.withBoolean(entry, JsonValue.TRUE.equals(value));
                 break;
             case STRING:
@@ -84,7 +84,7 @@ public class JsonToRecord {
                 break;
             case NUMBER:
                 final JsonNumber number = JsonNumber.class.cast(value);
-                this.numberOption.setNumber(builder, factory.newEntryBuilder(), key, number);
+                this.numberOption.setNumber(builder, entryBuilder, key, number);
                 break;
             case NULL:
                 break;
@@ -206,7 +206,7 @@ public class JsonToRecord {
             }
 
             public void setNumber(Record.Builder builder, Schema.Entry.Builder entryBuilder, String key, JsonNumber number) {
-                final Schema.Entry entry = entryBuilder.withName(key).withType(Schema.Type.DOUBLE).withNullable(true).build();
+                final Schema.Entry entry = entryBuilder.withType(Schema.Type.DOUBLE).build();
                 builder.withDouble(entry, number.doubleValue());
             }
 
@@ -226,10 +226,10 @@ public class JsonToRecord {
 
             public void setNumber(Record.Builder builder, Schema.Entry.Builder entryBuilder, String key, JsonNumber number) {
                 if (number.isIntegral()) {
-                    final Schema.Entry entry = entryBuilder.withName(key).withType(Schema.Type.LONG).withNullable(true).build();
+                    final Schema.Entry entry = entryBuilder.withType(Schema.Type.LONG).build();
                     builder.withLong(entry, number.longValueExact());
                 } else {
-                    final Schema.Entry entry = entryBuilder.withName(key).withType(Schema.Type.DOUBLE).withNullable(true).build();
+                    final Schema.Entry entry = entryBuilder.withType(Schema.Type.DOUBLE).build();
                     builder.withDouble(entry, number.doubleValue());
                 }
             }
