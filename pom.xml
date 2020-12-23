@@ -105,7 +105,6 @@
 
         <commons-csv.version>1.4</commons-csv.version>
         <commons-lang3.version>3.9</commons-lang3.version>
-        <guava.version>20.0</guava.version>
         <httpclient.version>4.5.10</httpclient.version>
         <httpcore.version>4.4.12</httpcore.version>
         <compress.version>1.19</compress.version>
