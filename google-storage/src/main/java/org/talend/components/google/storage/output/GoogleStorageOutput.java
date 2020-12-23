@@ -13,9 +13,9 @@
 package org.talend.components.google.storage.output;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.io.UncheckedIOException;
-import java.nio.channels.Channels;
 import java.util.Collection;
 
 import javax.annotation.PostConstruct;
@@ -26,21 +26,19 @@ import org.talend.components.common.stream.api.output.RecordWriter;
 import org.talend.components.common.stream.api.output.RecordWriterSupplier;
 import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.components.google.storage.dataset.GSDataSet;
-import org.talend.components.google.storage.service.CredentialService;
+import org.talend.components.google.storage.service.BlobNameBuilder;
+import org.talend.components.google.storage.service.GSService;
 import org.talend.components.google.storage.service.I18nMessage;
+import org.talend.components.google.storage.service.StorageFacade;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Icon.IconType;
 import org.talend.sdk.component.api.component.Version;
+import org.talend.sdk.component.api.exception.ComponentException;
+import org.talend.sdk.component.api.exception.ComponentException.ErrorOrigin;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.processor.AfterGroup;
 import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
-
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.WriteChannel;
-import com.google.cloud.storage.Blob;
-import com.google.cloud.storage.BlobInfo;
-import com.google.cloud.storage.Storage;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,20 +51,22 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class GoogleStorageOutput implements Serializable {
 
-    private final OutputConfiguration config;
+    private static final long serialVersionUID = -5829580591413555957L;
 
-    private final CredentialService credentialService;
+    private final OutputConfiguration config;
 
     private final RecordIORepository ioRepository;
 
     private final I18nMessage i18n;
 
-    private RecordWriter recordWriter;
+    private final GSService services;
+
+    private transient RecordWriter recordWriter;
 
     @AfterGroup
     public void write(final Collection<Record> records) {
         if (this.recordWriter == null) {
-            throw new IllegalStateException(this.i18n.outputWasNotInitialize());
+            throw new ComponentException(ErrorOrigin.BACKEND, this.i18n.outputWasNotInitialize());
         }
         try {
             this.recordWriter.add(records);
@@ -91,34 +91,33 @@ public class GoogleStorageOutput implements Serializable {
 
     @PostConstruct
     public void init() throws IOException {
-        final GoogleCredentials googleCredentials = this.credentialService.getCredentials(this.getDataSet().getDataStore());
-
-        // Blob (byte source)
-        final Storage storage = this.credentialService.newStorage(googleCredentials);
-        final BlobInfo blobInfo = getDataSet().blob();
-        Blob blob = storage.get(blobInfo.getBlobId());
-        if (blob == null) {
-            blob = storage.create(blobInfo);
-        }
-
-        // write channel from blob
-        final WriteChannel writer = blob.writer();
-
-        // to Record Writer
-        this.recordWriter = this.buildWriter(writer);
+        this.services.checkBucket(this.buildStorage(), this.getDataSet().getBucket());
+        this.recordWriter = this.buildWriter();
     }
 
     private GSDataSet getDataSet() {
         return this.config.getDataset();
     }
 
-    private RecordWriter buildWriter(WriteChannel writerChannel) throws IOException {
+    private RecordWriter buildWriter() throws IOException {
         final ContentFormat contentFormat = this.getDataSet().getContentFormat().findFormat();
         final RecordWriterSupplier recordWriterSupplier = this.ioRepository.findWriter(contentFormat.getClass());
 
-        final RecordWriter writer = recordWriterSupplier.getWriter(() -> Channels.newOutputStream(writerChannel), contentFormat);
+        final RecordWriter writer = recordWriterSupplier.getWriter(this::buildOutputStream, contentFormat);
         writer.init(contentFormat);
         return writer;
+    }
+
+    private OutputStream buildOutputStream() {
+        final GSDataSet dataSet = this.getDataSet();
+
+        final StorageFacade storage = this.buildStorage();
+        final String blobOutputName = new BlobNameBuilder().generateName(dataSet.getBlob());
+        return storage.buildOuput(dataSet.getBucket(), blobOutputName);
+    }
+
+    private StorageFacade buildStorage() {
+        return this.services.buildStorage(this.getDataSet().getDataStore().getJsonCredentials());
     }
 
 }

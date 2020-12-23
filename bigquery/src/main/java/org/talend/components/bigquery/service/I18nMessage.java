@@ -54,4 +54,6 @@ public interface I18nMessage {
     String credentialsRequired();
 
     String errorReadingCredentials(String message);
+
+    String errorBigqueryLoadJob();
 }

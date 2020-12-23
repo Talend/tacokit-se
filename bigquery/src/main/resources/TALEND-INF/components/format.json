@@ -1,0 +1,6 @@
+{
+  "org.talend.components.common.stream.format.csv.CSVConfiguration": {
+    "reader": "org.talend.components.common.stream.input.csv.CSVReaderSupplier",
+    "writer": "org.talend.components.common.stream.output.csv.CSVWriterSupplier"
+  }
+}

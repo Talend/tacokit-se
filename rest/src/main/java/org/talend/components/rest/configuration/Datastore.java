@@ -12,12 +12,13 @@
  */
 package org.talend.components.rest.configuration;
 
-import lombok.Data;
+import java.io.Serializable;
+
 import org.talend.components.rest.configuration.auth.Authentication;
 import org.talend.components.rest.service.RestService;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.action.Checkable;
+import org.talend.sdk.component.api.configuration.action.Validable;
 import org.talend.sdk.component.api.configuration.constraint.Min;
 import org.talend.sdk.component.api.configuration.constraint.Pattern;
 import org.talend.sdk.component.api.configuration.constraint.Required;
@@ -26,7 +27,7 @@ import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import java.io.Serializable;
+import lombok.Data;
 
 @Version(1)
 @Data

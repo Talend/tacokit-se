@@ -12,9 +12,11 @@
  */
 package org.talend.components.google.storage.input;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Iterator;
 
 import org.junit.jupiter.api.Assertions;
@@ -26,13 +28,13 @@ import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
 class JsonAllRecordReaderTest {
 
+    private final RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");
+
     @Test
     void read() throws IOException {
-        final RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");
-        final JsonAllRecordReader reader = new JsonAllRecordReader(new JsonToRecord(factory, true));
-
         final URL jsonResource = Thread.currentThread().getContextClassLoader().getResource("./data.json");
-        try (final InputStream in = jsonResource.openStream()) {
+        try (final InputStream in = jsonResource.openStream();
+                final JsonAllRecordReader reader = new JsonAllRecordReader(new JsonToRecord(factory, true))) {
             final Iterator<Record> recordIterator = reader.read(in);
 
             Assertions.assertTrue(recordIterator.hasNext());
@@ -41,5 +43,19 @@ class JsonAllRecordReaderTest {
 
             Assertions.assertFalse(recordIterator.hasNext());
         }
+    }
+
+    @Test
+    void readValue() {
+        try (final JsonAllRecordReader reader = new JsonAllRecordReader(new JsonToRecord(factory, true))) {
+
+            final Iterator<Record> records = reader.read(new ByteArrayInputStream("[1, 2]".getBytes()));
+            Assertions.assertTrue(records.hasNext());
+            final Record record = records.next();
+            final Collection<Double> doubles = record.getArray(Double.class, "field");
+            Assertions.assertEquals(2, doubles.size());
+            Assertions.assertFalse(records.hasNext());
+        }
+
     }
 }

@@ -20,7 +20,8 @@ import org.testcontainers.containers.MSSQLServerContainer;
 
 public class MSSQLServerTestContainer implements JdbcTestContainer {
 
-    @Delegate(types = { JdbcDatabaseContainer.class, GenericContainer.class, ContainerState.class })
+    @Delegate(types = { JdbcDatabaseContainer.class, GenericContainer.class,
+            ContainerState.class }, excludes = AutoCloseable.class)
     private final MSSQLServerContainer container = new MSSQLServerContainer("mcr.microsoft.com/mssql/server:2017-CU12");
 
     @Override
@@ -28,4 +29,8 @@ public class MSSQLServerTestContainer implements JdbcTestContainer {
         return "MSSQL";
     }
 
+    @Override
+    public void close() {
+        this.container.close();
+    }
 }

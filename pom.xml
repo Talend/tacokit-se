@@ -18,7 +18,7 @@
 
     <groupId>org.talend.components</groupId>
     <artifactId>connectors-se</artifactId>
-    <version>1.16.0-SNAPSHOT</version>
+    <version>1.17.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Connectors-se</name>
@@ -48,7 +48,6 @@
         <module>bigquery</module>
         <module>workday</module>
         <module>extensions</module>
-        <module>pubsub</module>
         <module>cosmosDB</module>
         <module>google-storage</module>
         <module>migration-tester</module>
@@ -76,23 +75,25 @@
     </distributionManagement>
 
     <properties>
-        <connectors-test-bom.version>1.16.0-SNAPSHOT</connectors-test-bom.version>
-        <common.version>1.16.0-SNAPSHOT</common.version>
+        <connectors-test-bom.version>1.17.0-SNAPSHOT</connectors-test-bom.version>
+        <common.version>1.17.0-SNAPSHOT</common.version>
 
         <timestamp.year>${maven.build.timestamp}</timestamp.year>
         <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <locales.version>[1.16,)</locales.version>
+        <locales.version>[1.17,)</locales.version>
 
-        <component-runtime.version>1.1.24</component-runtime.version>
+        <component-runtime.version>1.1.27</component-runtime.version>
         <slf4j.version>1.7.28</slf4j.version>
         <log4j-api.version>2.12.1</log4j-api.version>
 
-        <beam.version>2.23.0</beam.version>
+        <beam.version>2.25.0</beam.version>
         <beanutils.version>1.9.4</beanutils.version>
         <jackson.version>2.10.1</jackson.version>
         <jackson-codehaus.version>1.9.14-TALEND</jackson-codehaus.version>
+
+        <jsoup.version>1.13.1</jsoup.version>
 
         <tcomp0.version>0.23.2</tcomp0.version> <!-- until they are rewritten -->
         <daikon.version>0.31.0</daikon.version>
@@ -110,6 +111,8 @@
         <compress.version>1.19</compress.version>
         <commons-codec.version>1.14</commons-codec.version>
 
+        <jersey.version>2.22.2</jersey.version>
+
         <talend_oss_snapshots>https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceSnapshot/
         </talend_oss_snapshots>
 
@@ -126,8 +129,10 @@
 
         <!-- CVE fix -->
         <netty-codec.version>4.1.48.Final</netty-codec.version>
-        <jetty.version>9.4.17.v20190418</jetty.version>
+        <jetty.version>9.4.33.v20201020</jetty.version>
         <nimbus-jose-jwt.version>8.11</nimbus-jose-jwt.version>
+        <zookeeper.version>3.4.14</zookeeper.version>
+        <guava.version>30.0-jre</guava.version>
 
         <!-- code quality enforcer default values.
              run build w/ -Pcode-quality to have a full validation -->
@@ -332,13 +337,39 @@
                 <artifactId>commons-codec</artifactId>
                 <version>${commons-codec.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jsoup</groupId>
+                <artifactId>jsoup</artifactId>
+                <version>${jsoup.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.core</groupId>
+                <artifactId>jersey-server</artifactId>
+                <version>${jersey.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.glassfish.jersey.media</groupId>
+                        <artifactId>jersey-media-jaxb</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.zookeeper</groupId>
+                <artifactId>zookeeper</artifactId>
+                <version>${zookeeper.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.10</version>
+            <version>1.18.16</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

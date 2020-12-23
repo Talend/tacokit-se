@@ -12,10 +12,20 @@
  */
 package org.talend.components.rest.service;
 
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
+import java.net.URL;
+import java.util.List;
+import java.util.Map;
+
 import org.talend.components.common.service.http.RedirectContext;
 import org.talend.components.common.service.http.RedirectService;
+import org.talend.components.common.service.http.ValidateSites;
 import org.talend.components.common.service.http.common.UserNamePassword;
 import org.talend.components.common.service.http.digest.DigestAuthContext;
 import org.talend.components.common.service.http.digest.DigestAuthService;
@@ -31,20 +41,14 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.RecordPointerFactory;
 import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.asyncvalidation.AsyncValidation;
+import org.talend.sdk.component.api.service.asyncvalidation.ValidationResult;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.http.Response;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
-import java.net.URL;
-import java.util.List;
-import java.util.Map;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -64,8 +68,6 @@ public class RestService {
 
     private final static String BODY_SUBSTITUTOR_SUFFIX = System.getProperty("org.talend.components.rest.body_substitutor_suffix",
             "}");
-
-    public final static String HEALTHCHECK = "healthcheck";
 
     private final Substitutor.KeyFinder parameterFinder = new Substitutor.KeyFinder(RestService.PARAMETERS_SUBSTITUTOR_PREFIX,
             RestService.PARAMETERS_SUBSTITUTOR_SUFFIX);
@@ -221,30 +223,11 @@ public class RestService {
         return substitutor.replace(value);
     }
 
-    @HealthCheck(HEALTHCHECK)
-    public HealthCheckStatus healthCheck(@Option final Datastore datastore) {
-        String host = datastore.getBase();
-        try {
-            host = getHost(host);
-            HttpURLConnection conn = (HttpURLConnection) new URL(host).openConnection();
-            conn.setRequestMethod("GET");
-            conn.setConnectTimeout(datastore.getConnectionTimeout());
-            conn.setReadTimeout(datastore.getReadTimeout());
-            conn.connect();
-            final int status = conn.getResponseCode();
-            log.info(i18n.healthCheckStatus(host, status));
-            if (status == HttpURLConnection.HTTP_OK) {
-                return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18n.healthCheckOk());
-            }
-
-        } catch (IOException e) {
-            final StringWriter sw = new StringWriter();
-            final PrintWriter pw = new PrintWriter(sw);
-            e.printStackTrace(pw);
-            log.debug(i18n.healthCheckException(sw.toString()));
+    public void checkBaseURL(final String base) {
+        if (!ValidateSites.isValidSite(base)) {
+            throw new RuntimeException(
+                    i18n.notValidAddress(ValidateSites.CAN_ACCESS_LOCAL, ValidateSites.ENABLE_MULTICAST_ACCESS));
         }
-
-        return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.healthCheckFailed(host));
     }
 
     public String getHost(final String baseUrl) throws MalformedURLException {

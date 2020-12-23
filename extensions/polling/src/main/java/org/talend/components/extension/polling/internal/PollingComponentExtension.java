@@ -365,9 +365,15 @@ public class PollingComponentExtension implements CustomComponentExtension {
             // Retrieve polling configuration factory
             Function<Map<String, String>, Object[]> pollingConfigurationFactory = null;
             try {
-                pollingConfigurationFactory = neededServices.reflectionService.parameterFactory(PollingComponentExtension.class
-                        .getMethod(METHOD_WITH_POLLING_CONFIGURATION_OPTION, PollingConfiguration.class), neededServices.services,
-                        pollingParameters.get().get());
+
+                final Supplier<List<ParameterMeta>> pollingConfigurationParameters = getPollingConfigurationParameters(
+                        pollingParameters, neededServices, initialMapperMeta.getType().getPackage());
+
+                pollingConfigurationFactory = neededServices.reflectionService
+                        .parameterFactory(
+                                PollingComponentExtension.class.getMethod(METHOD_WITH_POLLING_CONFIGURATION_OPTION,
+                                        PollingConfiguration.class),
+                                neededServices.services, pollingConfigurationParameters.get());
 
             } catch (NoSuchMethodException e) {
                 log.error("Can't retrieve the method with the polling configuration.", e);
