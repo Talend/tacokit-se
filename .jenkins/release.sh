@@ -6,7 +6,7 @@
 git config --global credential.username ${GITHUB_LOGIN}
 git config --global credential.helper '!echo password=${GITHUB_TOKEN}; echo'
 git config --global credential.name "jenkins-build"
-MVN_RELEASE_MORE_OPTIONS="-DskipTests"
+MVN_RELEASE_MORE_OPTIONS=""
 env | sort
 
 pre_release_version=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)

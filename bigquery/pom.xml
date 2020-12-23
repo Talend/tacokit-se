@@ -17,6 +17,8 @@
         <testcontainers.version>1.12.3</testcontainers.version>
         <google.bq.sdk.version>1.117.1</google.bq.sdk.version>
         <google.gcs.sdk.version>1.113.1</google.gcs.sdk.version>
+
+        <talend.scan.scannedDependencies>org.talend.components:stream-api</talend.scan.scannedDependencies>
     </properties>
 
     <dependencies>
@@ -38,6 +40,16 @@
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-core-asl</artifactId>
             <version>${jackson-codehaus.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.talend.components</groupId>
+            <artifactId>common-io</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.talend.components</groupId>
+            <artifactId>stream-csv</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
 

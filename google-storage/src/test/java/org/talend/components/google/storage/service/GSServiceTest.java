@@ -15,32 +15,25 @@ package org.talend.components.google.storage.service;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.util.Collection;
+
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.RecordIORepository;
-import org.talend.components.common.stream.format.OptionalLine;
-import org.talend.components.common.stream.format.excel.ExcelConfiguration;
-import org.talend.components.common.stream.format.excel.ExcelConfiguration.ExcelFormat;
-import org.talend.components.google.storage.dataset.FormatConfiguration;
-import org.talend.components.google.storage.dataset.GSDataSet;
+import org.talend.components.google.storage.StorageFacadeFake;
 import org.talend.components.google.storage.datastore.GSDataStore;
-import org.talend.components.google.storage.input.GoogleStorageSource;
-import org.talend.components.google.storage.input.InputConfiguration;
-import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.completion.SuggestionValues.Item;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.junit5.WithComponents;
-import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
-
-import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper;
 
 @HttpApi(useSsl = true)
 @WithComponents("org.talend.components.google.storage")
@@ -100,54 +93,30 @@ class GSServiceTest {
         final SuggestionValues blobsName = this.service.findBlobsName(ds, "mybucket");
         Assertions.assertNotNull(blobsName);
 
-        final Item firstItem = blobsName.getItems().iterator().next();
+        final Collection<Item> items = blobsName.getItems();
+        Assertions.assertEquals(1, items.stream().filter((Item it) -> "blob".equals(it.getId())).count());
+        Assertions.assertEquals(1,
+                items.stream().filter((Item it) -> "blob_689d651a-5896-428d-9816-2de624d0046a".equals(it.getId())).count());
+        final Item firstItem = items.iterator().next();
         Assertions.assertEquals("rep/first.txt", firstItem.getId());
     }
 
     @Test
-    @Disabled("real gs test")
-    public void testExcelFile() throws IOException {
-        final GSDataStore ds = new GSDataStore();
-        final File ficJWT = new File("/home/clesaec/project/googleStorage/engineering-152721-b67b84488c32.json");
-        String jwtContent = new String(Files.readAllBytes(ficJWT.toPath()));
-        ds.setJsonCredentials(jwtContent);
-        final GSDataSet dataset = new GSDataSet();
-        dataset.setDataStore(ds);
-        dataset.setBucket("tdi-43520");
-        dataset.setBlob("excel2007_File.xlsx");
-        final ExcelConfiguration excel = new ExcelConfiguration();
-        final FormatConfiguration format = new FormatConfiguration();
-        format.setContentFormat(FormatConfiguration.Type.EXCEL);
-        format.setExcelConfiguration(excel);
-        dataset.setContentFormat(format);
-        excel.setSheetName("Another Sheet");
-        excel.setExcelFormat(ExcelFormat.EXCEL2007);
-        excel.setHeader(new OptionalLine());
-        excel.getHeader().setActive(true);
-        excel.getHeader().setSize(1);
+    void checkBucket() {
+        StorageFacade storage = new StorageFacadeFake("bucket", new File("."));
+        this.service.checkBucket(storage, "bucket");
 
-        final InputConfiguration config = new InputConfiguration();
-        config.setDataset(dataset);
+        try {
+            this.service.checkBucket(storage, "unknown");
+            Assertions.fail("should have thrown exception");
+        } catch (ComponentException ex) {
 
-        final RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");
-
-        GoogleStorageSource source = new GoogleStorageSource(config, factory, // build record
-                iorepo, // find reader
-                credentialService, i18n);
-        source.init();
-        Record rec = source.next();
-        int k = 0;
-        while (rec != null) {
-            k++;
-            rec = source.next();
         }
-        System.out.println("nbe rec : " + k);
-        source.release();
     }
 
     private String getContentFile(String relativePath) throws IOException {
         final URL urlJWT = Thread.currentThread().getContextClassLoader().getResource(relativePath);
         final File ficJWT = new File(urlJWT.getPath());
-        return new String(Files.readAllBytes(ficJWT.toPath()));
+        return new String(Files.readAllBytes(ficJWT.toPath()), Charset.defaultCharset());
     }
 }

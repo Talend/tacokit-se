@@ -13,6 +13,7 @@
 package org.talend.components.common.stream.output.line;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,8 +38,13 @@ public class RecordSerializerLineHelper {
             } else if (entry.getType() == Type.ARRAY) {
                 // can't translate array to Line.
                 log.warn("Can't translate array in line format ({}).", entry.getName());
+            } else if (entry.getType() == Type.BYTES) {
+                final String value = record.getOptionalBytes(entry.getName()) //
+                        .map(Base64.getEncoder()::encodeToString) //
+                        .orElse(null);
+                result.add(value);
             } else {
-                Object obj = record.get(SchemaHelper.getFrom(entry.getType()), entry.getName());
+                final Object obj = record.get(SchemaHelper.getFrom(entry.getType()), entry.getName());
                 result.add(obj == null ? null : obj.toString());
             }
         }
