@@ -12,16 +12,30 @@
  */
 package org.talend.components.bigquery.avro;
 
+import static java.util.stream.Collectors.toList;
+
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.stream.Collectors;
+
+import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypes;
+import org.apache.avro.LogicalTypes.Decimal;
 import org.apache.avro.SchemaBuilder;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericData.Array;
@@ -35,10 +49,10 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import lombok.extern.slf4j.Slf4j;
 
-import static java.util.stream.Collectors.toList;
-
 @Slf4j
 public class AvroConverter implements RecordConverter<GenericRecord>, Serializable {
+
+    public static final String AVRO_LOGICAL_TYPE_NUMERIC = "decimal";
 
     public static final String AVRO_LOGICAL_TYPE_DATE = "date";
 
@@ -386,6 +400,10 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
             }
         case STRING:
         case BYTES:
+            if (AVRO_LOGICAL_TYPE_NUMERIC.equals(logicalType)) {
+                builder.withType(Type.STRING);
+                break;
+            }
         case FLOAT:
         case DOUBLE:
         case BOOLEAN:
@@ -424,7 +442,7 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
         }
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({ "unchecked" })
     protected void buildArrayField(org.apache.avro.Schema.Field field, Object value, Record.Builder recordBuilder, Entry entry) {
         org.apache.avro.Schema arraySchema = getUnionSchema(field.schema());
         switch (arraySchema.getElementType().getType()) {
@@ -439,7 +457,14 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
             recordBuilder.withArray(entry, (Collection<String>) value);
             break;
         case BYTES:
-            recordBuilder.withArray(entry, ((Collection<Byte[]>) value));
+            // Numeric data type comes as bytes types with logical type decimal.
+            LogicalType logicalType = arraySchema.getElementType().getLogicalType();
+            if (logicalType != null && AVRO_LOGICAL_TYPE_NUMERIC.equals(logicalType.getName())) {
+                final LogicalTypes.Decimal decimal = (LogicalTypes.Decimal) logicalType;
+                recordBuilder.withArray(entry, getNumericArrayAsStringArray(((Collection<ByteBuffer>) value), decimal));
+            } else {
+                recordBuilder.withArray(entry, ((Collection<Byte[]>) value));
+            }
             break;
         case INT:
             recordBuilder.withArray(entry, (Collection<Integer>) value);
@@ -508,7 +533,13 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
             break;
         case BYTES:
             byte[] bytes = value != null ? ((java.nio.ByteBuffer) value).array() : null;
-            recordBuilder.withBytes(entry, bytes);
+            // Numeric data type comes as bytes types with logical type decimal.
+            if (AVRO_LOGICAL_TYPE_NUMERIC.equals(logicalType)) {
+                LogicalTypes.Decimal decimal = (LogicalTypes.Decimal) getUnionSchema(field.schema()).getLogicalType();
+                recordBuilder.withString(entry, getNumericValueAsString(bytes, decimal));
+            } else {
+                recordBuilder.withBytes(entry, bytes);
+            }
             break;
         case INT:
             int ivalue = value != null ? (Integer) value : 0;
@@ -544,6 +575,15 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
         default:
             throw new BigQueryConnectorException(String.format(ERROR_UNDEFINED_TYPE, entry.getType().name()));
         }
+    }
+
+    private Collection<String> getNumericArrayAsStringArray(Collection<ByteBuffer> object, LogicalTypes.Decimal decimal) {
+        return object.stream().map(ByteBuffer::array).map(byteArray -> getNumericValueAsString(byteArray, decimal))
+                .collect(toList());
+    }
+
+    private String getNumericValueAsString(byte[] bytes, Decimal decimal) {
+        return new BigDecimal(new BigInteger(bytes), decimal.getScale()).stripTrailingZeros().toPlainString();
     }
 
     private String getAvroLogicalTypeName(org.apache.avro.Schema.Field field) {

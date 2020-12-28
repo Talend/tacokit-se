@@ -12,14 +12,14 @@
  */
 package org.talend.components.bigquery.input;
 
-import com.google.auth.Credentials;
-import com.google.cloud.ReadChannel;
-import com.google.cloud.bigquery.BigQuery;
-import com.google.cloud.bigquery.BigQueryOptions;
-import com.google.cloud.bigquery.FieldValueList;
-import com.google.cloud.bigquery.LegacySQLTypeName;
-import com.google.cloud.storage.Blob;
-import com.google.cloud.storage.Storage;
+import java.lang.reflect.Field;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
 import org.apache.avro.file.DataFileStream;
@@ -37,11 +37,12 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
-import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
+import com.google.auth.Credentials;
+import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.BigQueryOptions;
+import com.google.cloud.bigquery.FieldValueList;
+import com.google.cloud.bigquery.LegacySQLTypeName;
+import com.google.cloud.storage.Storage;
 
 public class BigQueryTableExtractInputTest {
 
@@ -79,6 +80,12 @@ public class BigQueryTableExtractInputTest {
                         .name("f1").type(Schema.create(Schema.Type.STRING)).noDefault()
 
                         .name("f2").type(Schema.create(Schema.Type.INT)).withDefault(0)
+
+                        .name("f3").type(LogicalTypes.decimal(10, 3).addToSchema(Schema.create(Schema.Type.BYTES))).noDefault()
+
+                        .name("f4")
+                        .type(Schema.createArray(LogicalTypes.decimal(10, 3).addToSchema(Schema.create(Schema.Type.BYTES))))
+                        .noDefault()
 
                         .endRecord();
             }
@@ -165,6 +172,8 @@ public class BigQueryTableExtractInputTest {
         GenericRecord expected = getGenericRecord();
         Assertions.assertEquals(expected.get("f1"), record1.getString("f1"));
         Assertions.assertEquals(expected.get("f2"), record1.getInt("f2"));
+        Assertions.assertEquals("100.101", record1.getString("f3"));
+        Assertions.assertIterableEquals(Arrays.asList("100.101", "100"), record1.getArray(String.class, "f4"));
         Record record2 = beanUnderTest.next();
         Assertions.assertNull(record2);
 
@@ -181,6 +190,14 @@ public class BigQueryTableExtractInputTest {
                 .withType(org.talend.sdk.component.api.record.Schema.Type.STRING).withNullable(true).build());
         schemaBuilder.withEntry(builderFactory.newEntryBuilder().withName("f2")
                 .withType(org.talend.sdk.component.api.record.Schema.Type.INT).withNullable(true).build());
+        schemaBuilder.withEntry(builderFactory.newEntryBuilder().withName("f3")
+                .withType(org.talend.sdk.component.api.record.Schema.Type.STRING).withNullable(true).build());
+        schemaBuilder.withEntry(
+                builderFactory.newEntryBuilder().withName("f4").withType(org.talend.sdk.component.api.record.Schema.Type.ARRAY)
+                        .withElementSchema(schemaBuilder.withEntry(builderFactory.newEntryBuilder().withName("element")
+                                .withType(org.talend.sdk.component.api.record.Schema.Type.STRING).withNullable(true).build())
+                                .build())
+                        .withNullable(true).build());
 
         return schemaBuilder.build();
     }
@@ -208,6 +225,13 @@ public class BigQueryTableExtractInputTest {
         GenericRecord genericRecord = new SimpleGenericRecord();
         genericRecord.put("f1", "A");
         genericRecord.put("f2", 30);
+
+        ByteBuffer buffer = ByteBuffer.wrap(new byte[] { 1, -121, 5 });
+        ByteBuffer buffer2 = ByteBuffer.wrap(new byte[] { 1, -122, -96 });
+        Collection<ByteBuffer> collectionBuffer = Arrays.asList(buffer, buffer2);
+        genericRecord.put("f3", buffer);
+        genericRecord.put("f4", collectionBuffer);
+
         return genericRecord;
     }
 
