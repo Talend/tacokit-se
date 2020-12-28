@@ -65,7 +65,7 @@ public class ParquetBlobWriter extends BlobWriter {
             writer.close();
             uploadContent(Files.readAllBytes(tempFilePath.toPath()));
         } catch (IOException e) {
-            throw new AdlsGen2RuntimeException(e.getMessage());
+            throw new AdlsGen2RuntimeException(e.getMessage(), e);
         } finally {
             getBatch().clear();
             currentItem.setBlobPath("");
