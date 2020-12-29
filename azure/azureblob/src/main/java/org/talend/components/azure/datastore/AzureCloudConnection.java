@@ -12,13 +12,12 @@
  */
 package org.talend.components.azure.datastore;
 
-import static org.talend.components.azure.service.AzureBlobComponentServices.TEST_CONNECTION;
-import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
-
 import java.io.Serializable;
 
 import org.talend.components.azure.common.connection.AzureStorageConnectionAccount;
 import org.talend.components.azure.common.connection.AzureStorageConnectionSignature;
+import org.talend.components.azure.migration.AzureStorageConnectionMigration;
+import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -27,6 +26,8 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
+import static org.talend.components.azure.service.AzureBlobComponentServices.TEST_CONNECTION;
+import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
 
 @GridLayout({ @GridLayout.Row("useAzureSharedSignature"), @GridLayout.Row("accountConnection"),
         @GridLayout.Row("signatureConnection") })
@@ -34,6 +35,7 @@ import lombok.Data;
 @Data
 @DataStore
 @Checkable(TEST_CONNECTION)
+@Version(value = 2, migrationHandler = AzureStorageConnectionMigration.class)
 public class AzureCloudConnection implements Serializable {
 
     @Option
