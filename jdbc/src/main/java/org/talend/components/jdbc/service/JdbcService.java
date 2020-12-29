@@ -47,6 +47,8 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class JdbcService {
 
+    private static final String SNOWFLAKE_DATABASE_NAME = "Snowflake";
+
     private static Pattern READ_ONLY_QUERY_PATTERN = Pattern.compile(
             "^SELECT\\s+((?!((\\bINTO\\b)|(\\bFOR\\s+UPDATE\\b)|(\\bLOCK\\s+IN\\s+SHARE\\s+MODE\\b))).)+$",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.MULTILINE);
@@ -147,7 +149,8 @@ public class JdbcService {
                     dataSource.setConnectionTestQuery("SELECT 1");
                 }
                 dataSource.setUsername(connection.getUserId());
-                if (AuthenticationType.KEY_PAIR == connection.getAuthenticationType()) {
+                if (SNOWFLAKE_DATABASE_NAME.equals(connection.getDbType())
+                        && AuthenticationType.KEY_PAIR == connection.getAuthenticationType()) {
                     dataSource.addDataSourceProperty("privateKey", PrivateKeyUtils.getPrivateKey(connection.getPrivateKey(),
                             connection.getPrivateKeyPassword(), i18nMessage));
                 } else {
