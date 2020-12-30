@@ -128,8 +128,7 @@ public class RecordToJson implements RecordConverter<JsonObject, Void> {
             final ZonedDateTime dateTime = record.getDateTime(fieldName);
             if (dateTime != null) {
                 json.add(fieldName, dateTime.toString());
-            }
-            else {
+            } else {
                 json.addNull(fieldName);
             }
             break;
