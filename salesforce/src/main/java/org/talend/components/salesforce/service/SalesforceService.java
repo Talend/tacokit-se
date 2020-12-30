@@ -16,6 +16,7 @@ import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,7 @@ import com.sforce.soap.partner.Field;
 import com.sforce.soap.partner.FieldType;
 import com.sforce.soap.partner.LoginResult;
 import com.sforce.soap.partner.PartnerConnection;
+import com.sforce.soap.partner.PicklistEntry;
 import com.sforce.soap.partner.fault.ApiFault;
 import com.sforce.ws.ConnectionException;
 import com.sforce.ws.ConnectorConfig;
@@ -336,10 +338,7 @@ public class SalesforceService {
     public boolean isSuppotedType(Field field) {
         // filter the invalid compound columns for salesforce bulk query api
         if (field == null || field.getType() == FieldType.address || // no address
-                field.getType() == FieldType.location || // no location
-                // no picklist that has a parent
-                (field.getType() == FieldType.picklist && field.getCompoundFieldName() != null
-                        && !field.getCompoundFieldName().trim().isEmpty())) {
+                field.getType() == FieldType.location) {
             return false;
         }
         return true;
