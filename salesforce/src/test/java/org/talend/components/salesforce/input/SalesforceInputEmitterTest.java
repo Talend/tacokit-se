@@ -29,6 +29,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.apache.beam.sdk.Pipeline;
 import org.junit.Assert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -43,6 +44,7 @@ import org.talend.components.salesforce.configuration.OutputConfig;
 import org.talend.components.salesforce.dataset.ModuleDataSet;
 import org.talend.components.salesforce.dataset.SOQLQueryDataSet;
 import org.talend.components.salesforce.datastore.BasicDataStore;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
@@ -251,10 +253,11 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
         inputConfig.setDataSet(moduleDataSet);
 
         final String config = configurationByExample().forInstance(inputConfig).configured().toQueryString();
-        IllegalStateException ex = assertThrows(IllegalStateException.class,
+        Pipeline.PipelineExecutionException ex = assertThrows(Pipeline.PipelineExecutionException.class,
                 () -> Job.components().component("salesforce-input", "Salesforce://ModuleQueryInput?" + config)
                         .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build()
                         .run());
+        assertTrue(ex.getMessage().contains("java.lang.IllegalStateException"), ex.getMessage());
     }
 
     @Test
@@ -269,10 +272,11 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
         inputConfig.setDataSet(moduleDataSet);
 
         final String config = configurationByExample().forInstance(inputConfig).configured().toQueryString();
-        IllegalStateException ex = assertThrows(IllegalStateException.class,
+        Pipeline.PipelineExecutionException ex = assertThrows(Pipeline.PipelineExecutionException.class,
                 () -> Job.components().component("salesforce-input", "Salesforce://ModuleQueryInput?" + config)
                         .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build()
                         .run());
+        assertEquals(IllegalStateException.class, ex.getCause().getClass());
     }
 
     // SOQL Query part
@@ -326,10 +330,11 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
         inputConfig.setDataSet(soqlQueryDataSet);
 
         final String config = configurationByExample().forInstance(inputConfig).configured().toQueryString();
-        IllegalStateException ex = assertThrows(IllegalStateException.class,
+        Pipeline.PipelineExecutionException ex = assertThrows(Pipeline.PipelineExecutionException.class,
                 () -> Job.components().component("salesforce-input", "Salesforce://SOQLQueryInput?" + config)
                         .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build()
                         .run());
+        assertEquals(IllegalStateException.class, ex.getCause().getClass());
     }
 
     @Test
