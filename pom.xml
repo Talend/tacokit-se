@@ -90,7 +90,7 @@
 
         <beam.version>2.25.0</beam.version>
         <beanutils.version>1.9.4</beanutils.version>
-        <jackson.version>2.10.1</jackson.version>
+        <jackson.version>2.11.0</jackson.version>
         <jackson-codehaus.version>1.9.14-TALEND</jackson-codehaus.version>
 
         <jsoup.version>1.13.1</jsoup.version>
