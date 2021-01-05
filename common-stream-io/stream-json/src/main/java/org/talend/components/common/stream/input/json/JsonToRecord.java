@@ -27,6 +27,7 @@ import javax.json.JsonObject;
 import javax.json.JsonString;
 import javax.json.JsonValue;
 
+import lombok.Data;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -74,7 +75,15 @@ public class JsonToRecord {
     public Record toRecord(final JsonObject object) {
         final Record.Builder builder = factory.newRecordBuilder();
         object.forEach((String key, JsonValue value) -> {
-            switch (value.getValueType()) {
+            final JsonValue.ValueType type = value.getValueType();
+            updateBuilder(type, key, value, builder);
+        });
+
+        return builder.build();
+    }
+
+    private Record.Builder updateBuilder(final JsonValue.ValueType type, final String key, final JsonValue value, final Record.Builder builder){
+        switch (type) {
             case ARRAY: {
                 final List<Object> items = value.asJsonArray().stream().map(this::mapJson).collect(toList());
                 builder.withArray(factory.newEntryBuilder().withName(key).withType(Schema.Type.ARRAY)
@@ -94,7 +103,8 @@ public class JsonToRecord {
             case STRING:
                 final String s = JsonString.class.cast(value).getString();
                 if (typeAsPrefix && s.startsWith("__")) {
-                    forceType(builder, key, s);
+
+                    //forceType(builder, key, s);
                 } else {
                     builder.withString(key, s);
                 }
@@ -107,10 +117,8 @@ public class JsonToRecord {
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported value type: " + value);
-            }
-        });
-        return builder.build();
-    }
+        }
+        }
 
     private void forceType(final Record.Builder builder, final String key, final String value) {
         final String substring = value.substring(2); // remove prefix "__"
@@ -124,32 +132,6 @@ public class JsonToRecord {
 
         final String stype = substring.substring(0, i);
         final String content = substring.substring(i + 2);
-
-        final Schema.Type type = Schema.Type.valueOf(stype);
-        switch (type) {
-        case BYTES:
-            final byte[] bytes = hexStringToByteArray(content);
-            builder.withBytes(key, bytes);
-            break;
-        case INT:
-            builder.withInt(key, Integer.valueOf(content));
-            break;
-        case LONG:
-            builder.withLong(key, Long.valueOf(content));
-            break;
-        case FLOAT:
-            builder.withFloat(key, Float.valueOf(content));
-            break;
-        case DOUBLE:
-            builder.withDouble(key, Float.valueOf(content));
-            break;
-        case DATETIME:
-            ZonedDateTime zdt = ZonedDateTime.parse(content, dtf);
-            builder.withDateTime(key, zdt);
-            break;
-        default:
-            throw new RuntimeException("The given type is not supported : " + type);
-        }
     }
 
     public static byte[] hexStringToByteArray(String s) {
@@ -315,6 +297,12 @@ public class JsonToRecord {
         public abstract void setNumber(Record.Builder builder, String key, JsonNumber number);
 
         public abstract Schema.Type getNumberType(JsonNumber number);
+    }
+
+    @Data
+    private static class RealTypeValue{
+        private JsonValue.ValueType type;
+        private JsonValue value;
     }
 
 }
