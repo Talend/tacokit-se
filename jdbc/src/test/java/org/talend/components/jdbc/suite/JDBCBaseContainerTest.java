@@ -38,6 +38,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -334,6 +335,46 @@ public abstract class JDBCBaseContainerTest {
             final SuggestionValues values = this.getUiActionService().getTableColumns(tableNameDataset);
             assertNotNull(values);
             assertTrue(values.getItems().isEmpty());
+        }
+
+        @Test
+        @DisplayName("Guess Table Schema - valid connection")
+        void guessTableSchema(final TestInfo testInfo) throws SQLException {
+            final String testTableName = getTestTableName(testInfo);
+            final TableNameDataset tableNameDataset = newTableNameDataset(testTableName);
+            final JdbcConnection dataStore = tableNameDataset.getConnection();
+            final ArrayList<Record> records = new ArrayList<>();
+
+            Record.Builder recordBuilder = this.getRecordBuilderFactory().newRecordBuilder().withInt("id", 1)
+                    .withString("email", "user@talend.com").withString("t_text", RandomStringUtils.randomAlphabetic(300))
+                    .withLong("t_long", 10000000000L).withDouble("t_double", 1000.85d).withFloat("t_float", 15.50f)
+                    .withDateTime("t_date", ZonedDateTime.now()).withDateTime("t_datetime", new Date())
+                    .withDateTime("t_time", new Date(1000 * 60 * 60 * 15 + 1000 * 60 * 20 + 39000));
+            records.add(recordBuilder.build());
+
+            try (final JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(dataStore)) {
+                try (final Connection connection = dataSource.getConnection()) {
+                    Platform platform = PlatformFactory.get(tableNameDataset.getConnection(), getI18nMessage());
+                    platform.createTableIfNotExist(connection, testTableName, asList("id", "email"),
+                            RedshiftSortStrategy.COMPOUND, emptyList(), DistributionStrategy.KEYS, emptyList(), -1, records);
+                }
+            }
+            final Schema guessed = getUiActionService().guessSchema(tableNameDataset);
+            assertNotNull(guessed);
+            assertEquals(9, guessed.getEntries().size());
+            assertEquals(
+                    Arrays.asList("id", "email", "t_text", "t_long", "t_double", "t_float", "t_date", "t_datetime", "t_time"),
+                    guessed.getEntries().stream().map(e -> e.getName()).collect(toList()));
+        }
+
+        @Test
+        @DisplayName("Guess Table Schema - invalid table name")
+        void guessTableSchemaWithInvalidTableName() {
+            final JdbcConnection datastore = newConnection();
+            final TableNameDataset tableNameDataset = new TableNameDataset();
+            tableNameDataset.setTableName("tableNeverExist159");
+            tableNameDataset.setConnection(datastore);
+            assertThrows(IllegalStateException.class, () -> getUiActionService().guessSchema(tableNameDataset));
         }
 
     }
