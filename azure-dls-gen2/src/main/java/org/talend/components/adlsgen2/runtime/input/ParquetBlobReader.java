@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.Map;
 
 import org.apache.avro.generic.GenericRecord;
 import org.apache.commons.io.IOUtils;
@@ -70,6 +69,7 @@ public class ParquetBlobReader extends BlobReader {
 
         private void initConfig() {
             hadoopConfig = new Configuration();
+            hadoopConfig.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
         }
 
         @Override
@@ -90,8 +90,7 @@ public class ParquetBlobReader extends BlobReader {
                 InputStream input = service.getBlobInputstream(datasetRuntimeInfo, getCurrentBlob());
                 Files.copy(input, tmp.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 IOUtils.closeQuietly(input);
-                HadoopInputFile hdpIn = HadoopInputFile.fromPath(new Path(tmp.getPath()),
-                        new org.apache.hadoop.conf.Configuration());
+                HadoopInputFile hdpIn = HadoopInputFile.fromPath(new Path(tmp.getPath()), hadoopConfig);
                 reader = AvroParquetReader.<GenericRecord> builder(hdpIn).build();
                 currentRecord = reader.read();
             } catch (IOException e) {
