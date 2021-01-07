@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -20,6 +20,8 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 
+import org.apache.avro.Schema.Field;
+import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,6 +32,7 @@ import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+import org.talend.sdk.component.runtime.beam.spi.record.AvroRecord;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
 class RecordToAvroTest {
@@ -201,11 +204,17 @@ class RecordToAvroTest {
         final Entry field = this.factory.newEntryBuilder() //
                 .withName("field") //
                 .withType(Type.STRING) //
+                .withNullable(true) //
+                .build();
+        final Entry sf = this.factory.newEntryBuilder() //
+                .withName("subfield") //
+                .withType(Type.INT) //
+                .withNullable(true) //
                 .build();
 
         final Schema subRecordSchema = this.factory.newSchemaBuilder(Type.RECORD) //
                 .withEntry(field) //
-                .build();
+                .withEntry(sf).build();
 
         final Entry sub = this.factory.newEntryBuilder() //
                 .withName("sub") //
@@ -214,8 +223,20 @@ class RecordToAvroTest {
                 .withNullable(true) //
                 .build();
 
+        final Entry field1 = this.factory.newEntryBuilder() //
+                .withName("field1") //
+                .withType(Type.STRING) //
+                .withNullable(true) //
+                .build();
+        final Entry field2 = this.factory.newEntryBuilder() //
+                .withName("field2") //
+                .withType(Type.STRING) //
+                .withNullable(true) //
+                .build();
+
         final Schema schema = this.factory.newSchemaBuilder(Type.RECORD) //
-                .withEntry(sub) //
+                .withEntry(field1) //
+                .withEntry(field2).withEntry(sub) //
                 .build();
 
         // Non null value
@@ -223,6 +244,7 @@ class RecordToAvroTest {
                 .withRecord(sub, //
                         this.factory.newRecordBuilder(subRecordSchema) //
                                 .withString(field, "Hello") //
+                                .withInt(sf, 45) //
                                 .build()) //
                 .build();
 
@@ -251,9 +273,18 @@ class RecordToAvroTest {
         Assertions.assertNull(sub2);
         Assertions.assertNull(sub3);
 
-        final Object field1 = ((GenericRecord) sub1).get("field");
-        Assertions.assertEquals("Hello", field1);
+        final Object fieldValue = ((GenericRecord) sub1).get("field");
+        Assertions.assertEquals("Hello", fieldValue);
 
+        final AvroRecord avrRc = new AvroRecord(genericRecord1);
+        final GenericRecord record = converter.fromRecord(avrRc);
+        Assertions.assertNotNull(record);
+        final Object sub4 = record.get("sub");
+        Assertions.assertNotNull(sub4);
+        final Field fieldN = record.getSchema().getField("sub");
+        final Object o = record.get(fieldN.pos());
+        Assertions.assertSame(sub4, o);
+        Assertions.assertTrue(GenericData.get().validate(record.getSchema(), record));
     }
 
     private void prepareTestRecords() {

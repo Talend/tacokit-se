@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -74,6 +74,8 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
             switch (fieldType) {
             case RECORD:
                 final Record record = fromRecord.getRecord(name);
+                final Schema schema = fromRecord.getSchema().getEntries().stream().filter(e -> name.equals(e.getName()))
+                        .findFirst().map(Entry::getElementSchema).orElse(null);
                 if (record != null) {
                     final org.apache.avro.Schema subSchema = fromRecordSchema(record.getSchema());
                     final GenericRecord subrecord = recordToAvro(record, new GenericData.Record(subSchema));
@@ -147,6 +149,7 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
                 throw new IllegalStateException(String.format(ERROR_UNDEFINED_TYPE, fieldType.name()));
             }
         }
+
         return toRecord;
     }
 
@@ -200,8 +203,19 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
             org.apache.avro.Schema.Field field = new org.apache.avro.Schema.Field(name, unionWithNull, comment, defaultValue);
             fields.add(field);
         }
-        return org.apache.avro.Schema.createRecord(RECORD_NAME + String.valueOf(schema.hashCode()).replace("-", ""), "",
-                currentRecordNamespace, false, fields);
+        return org.apache.avro.Schema.createRecord(this.buildSchemaId(schema), "", currentRecordNamespace, false, fields);
+    }
+
+    /**
+     * Build an id that is same for equivalent schema independently of implementation.
+     * 
+     * @param schema : schema.
+     * @return id
+     */
+    private String buildSchemaId(Schema schema) {
+        final List<String> fields = schema.getEntries().stream()
+                .map((Entry e) -> e.getName() + "_" + e.getType() + e.isNullable()).collect(Collectors.toList());
+        return (RECORD_NAME + fields.hashCode()).replace('-', '1');
     }
 
     private org.apache.avro.Schema.Type translateToAvroType(final Type type) {
