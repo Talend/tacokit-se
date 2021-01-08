@@ -69,8 +69,7 @@ public class DefaultRecordGenerator implements DatasetGenerator.RecordGenerator 
             return date.atStartOfDay(ZoneId.of("UTC"));
         });
 
-        this.fullData(assertionsBuilder, builder::withBytes, "a_byte_array", currentNullField == 8,
-                ("index_" + index)::getBytes);
+        this.fullData(assertionsBuilder, builder::withBytes, "a_byte_array", currentNullField == 8, ("index_" + index)::getBytes);
 
         this.fullData(assertionsBuilder, builder::withArray, "a_string_array", currentNullField == 9,
                 () -> Arrays.asList("a", "b"));
