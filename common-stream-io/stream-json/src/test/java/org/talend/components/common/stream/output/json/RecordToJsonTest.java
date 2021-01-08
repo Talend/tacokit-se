@@ -14,23 +14,18 @@ package org.talend.components.common.stream.output.json;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-
 import java.util.Iterator;
-
 
 import javax.json.JsonObject;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import org.talend.sdk.component.api.record.Record;
-
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.talend.components.common.test.records.AssertionsBuilder;
 import org.talend.components.common.test.records.DatasetGenerator;
 import org.talend.components.common.test.records.DatasetGenerator.DataSet;
-import org.talend.components.common.test.records.AssertionsBuilder;
-
+import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 

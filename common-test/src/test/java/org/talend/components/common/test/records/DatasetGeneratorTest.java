@@ -12,8 +12,6 @@
  */
 package org.talend.components.common.test.records;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.Iterator;
 import java.util.function.Consumer;
 

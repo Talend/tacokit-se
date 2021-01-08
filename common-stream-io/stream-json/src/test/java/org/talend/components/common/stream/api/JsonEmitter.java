@@ -12,8 +12,13 @@
  */
 package org.talend.components.common.stream.api;
 
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.Iterator;
+
+import javax.json.JsonReaderFactory;
+
 import org.talend.components.common.stream.api.input.RecordReader;
 import org.talend.components.common.stream.api.input.RecordReaderSupplier;
 import org.talend.components.common.stream.format.json.JsonConfiguration;
@@ -27,11 +32,8 @@ import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import javax.json.JsonReaderFactory;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.util.Iterator;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Version(1)

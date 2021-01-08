@@ -19,13 +19,10 @@ import java.util.Iterator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.format.Encoding;
-import org.talend.components.common.stream.format.Encoding.Type;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration.ExcelFormat;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class HTMLReaderTest {
 

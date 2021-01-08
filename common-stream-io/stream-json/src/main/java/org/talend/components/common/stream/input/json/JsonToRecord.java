@@ -12,6 +12,9 @@
  */
 package org.talend.components.common.stream.input.json;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.Collection;
@@ -28,9 +31,6 @@ import javax.json.JsonValue;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 public class JsonToRecord {
 

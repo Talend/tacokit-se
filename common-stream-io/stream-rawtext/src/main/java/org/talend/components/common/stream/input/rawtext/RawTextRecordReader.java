@@ -12,11 +12,6 @@
  */
 package org.talend.components.common.stream.input.rawtext;
 
-import org.talend.components.common.stream.api.input.RecordReader;
-import org.talend.components.common.stream.format.rawtext.ExtendedRawTextConfiguration;
-import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +20,11 @@ import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+
+import org.talend.components.common.stream.api.input.RecordReader;
+import org.talend.components.common.stream.format.rawtext.ExtendedRawTextConfiguration;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 public class RawTextRecordReader implements RecordReader {
 

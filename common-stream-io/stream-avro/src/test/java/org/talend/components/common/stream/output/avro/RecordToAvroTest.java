@@ -30,9 +30,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.talend.components.common.stream.input.avro.AvroToRecord;
+import org.talend.components.common.test.records.AssertionsBuilder;
 import org.talend.components.common.test.records.DatasetGenerator;
 import org.talend.components.common.test.records.DatasetGenerator.DataSet;
-import org.talend.components.common.test.records.AssertionsBuilder;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Entry;
@@ -40,11 +40,6 @@ import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.runtime.beam.spi.record.AvroRecord;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import javax.json.JsonObject;
 
 class RecordToAvroTest {
 

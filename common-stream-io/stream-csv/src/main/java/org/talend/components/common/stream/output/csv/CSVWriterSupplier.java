@@ -15,8 +15,8 @@ package org.talend.components.common.stream.output.csv;
 import org.talend.components.common.stream.api.output.RecordWriter;
 import org.talend.components.common.stream.api.output.RecordWriterSupplier;
 import org.talend.components.common.stream.api.output.TargetFinder;
-import org.talend.components.common.stream.format.csv.CSVConfiguration;
 import org.talend.components.common.stream.format.ContentFormat;
+import org.talend.components.common.stream.format.csv.CSVConfiguration;
 
 public class CSVWriterSupplier implements RecordWriterSupplier {
 

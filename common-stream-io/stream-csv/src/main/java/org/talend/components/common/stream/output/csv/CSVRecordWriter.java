@@ -15,7 +15,6 @@ package org.talend.components.common.stream.output.csv;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 

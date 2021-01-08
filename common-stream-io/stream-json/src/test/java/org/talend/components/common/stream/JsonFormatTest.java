@@ -12,7 +12,13 @@
  */
 package org.talend.components.common.stream;
 
-import lombok.extern.slf4j.Slf4j;
+import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
+
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.talend.components.common.stream.api.JsonEmitter;
@@ -35,13 +41,7 @@ import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.junit5.environment.EnvironmentalTest;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Environment(ContextualEnvironment.class)

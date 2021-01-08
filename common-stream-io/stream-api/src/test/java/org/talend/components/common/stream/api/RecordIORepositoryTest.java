@@ -15,22 +15,14 @@ package org.talend.components.common.stream.api;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
-import org.apache.xbean.finder.filter.Filter;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.input.RecordReaderSupplier;
 import org.talend.components.common.stream.api.output.RecordWriterSupplier;
 import org.talend.components.common.stream.api.reader.FakeReaderSupplier;
 import org.talend.components.common.stream.api.writer.FakeWriterSupplier;
 import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.injector.Injector;
 import org.talend.sdk.component.junit5.WithComponents;
-import org.talend.sdk.component.runtime.manager.ComponentManager;
-import org.talend.sdk.component.runtime.manager.ComponentManager.AllServices;
-
-import static org.talend.sdk.component.runtime.manager.ComponentManager.findM2;
 
 @WithComponents("org.talend.components.common.stream.api")
 class RecordIORepositoryTest {

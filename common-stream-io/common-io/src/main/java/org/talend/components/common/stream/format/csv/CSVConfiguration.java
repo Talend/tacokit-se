@@ -14,7 +14,6 @@ package org.talend.components.common.stream.format.csv;
 
 import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.components.common.stream.format.LineConfiguration;
-import org.talend.components.common.stream.format.csv.FieldSeparator;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
