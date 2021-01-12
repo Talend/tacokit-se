@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,13 +14,9 @@ package org.talend.components.common.stream.output.avro;
 
 import java.io.IOException;
 
-import org.apache.avro.file.DataFileWriter;
-import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.io.DatumWriter;
 import org.talend.components.common.stream.api.output.RecordConverter;
 import org.talend.components.common.stream.api.output.RecordWriter;
-import org.talend.components.common.stream.api.output.TargetFinder;
 import org.talend.sdk.component.api.record.Record;
 
 /**
@@ -31,39 +27,26 @@ public class AvroRecordWriter implements RecordWriter {
     /** convert talend record to Avro. */
     private final RecordConverter<GenericRecord, org.apache.avro.Schema> converter;
 
-    /** output stream finder */
-    private final TargetFinder destination;
+    private final AvroOutput output;
 
-    /** avro writer */
-    private final DataFileWriter<GenericRecord> dataFileWriter;
-
-    private boolean first = true;
-
-    public AvroRecordWriter(RecordConverter<GenericRecord, org.apache.avro.Schema> converter, TargetFinder destination) {
+    public AvroRecordWriter(final RecordConverter<GenericRecord, org.apache.avro.Schema> converter, final AvroOutput output) {
         this.converter = converter;
-        this.destination = destination;
-
-        final DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>();
-        this.dataFileWriter = new DataFileWriter<>(datumWriter);
+        this.output = output;
     }
 
     @Override
     public void add(Record record) throws IOException {
         final GenericRecord avroRecord = converter.fromRecord(record);
-        if (this.first) {
-            this.dataFileWriter.create(avroRecord.getSchema(), this.destination.find());
-            this.first = false;
-        }
-        this.dataFileWriter.append(avroRecord);
+        output.write(avroRecord);
     }
 
     @Override
     public void flush() throws IOException {
-        this.dataFileWriter.flush();
+        this.output.flush();
     }
 
     @Override
     public void close() throws IOException {
-        this.dataFileWriter.close();
+        this.output.close();
     }
 }

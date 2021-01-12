@@ -95,8 +95,8 @@ public class UiActionServiceTest extends SalesforceTestBase {
                 "ContactHistory", "ContactShare", "Contract", "ContractContactRole", "ContractFeed", "ContractHistory",
                 "CronTrigger", "Document", "DocumentAttachmentMap", "EmailServicesAddress", "EmailServicesFunction",
                 "EmailTemplate", "EntitySubscription", "Event", "FeedComment", "FeedTrackedChange", "FiscalYearSettings",
-                "Folder", "ForecastShare", "Group", "GroupMember", "Holiday", "Idea", "IdeaComment", "Lead", "LeadFeed",
-                "LeadHistory", "LeadShare", "LeadStatus", "MailmergeTemplate", "Note", "Opportunity", "OpportunityCompetitor",
+                "Folder", "Group", "GroupMember", "Holiday", "Idea", "IdeaComment", "Lead", "LeadFeed", "LeadHistory",
+                "LeadShare", "LeadStatus", "MailmergeTemplate", "Note", "Opportunity", "OpportunityCompetitor",
                 "OpportunityContactRole", "OpportunityFeed", "OpportunityFieldHistory", "OpportunityHistory",
                 "OpportunityLineItem", "OpportunityPartner", "OpportunityShare", "OpportunityStage", "OrgWideEmailAddress",
                 "Organization", "Partner", "Period", "Pricebook2", "PricebookEntry", "ProcessInstance", "ProcessInstanceStep",
@@ -149,4 +149,16 @@ public class UiActionServiceTest extends SalesforceTestBase {
 
     }
 
+    @Test
+    @DisplayName("Test retrieve picklist column [Valid]")
+    public void retrievePicklistColumn() {
+        final String moduleName = "Contact";
+        SuggestionValues filedNameList = service.listColumns(getDataStore(), moduleName);
+        assertNotNull(filedNameList);
+        List<String> fieldNames = new ArrayList<>();
+        filedNameList.getItems().stream().forEach(item -> fieldNames.add(item.getLabel()));
+        assertTrue("Return module field name list is not include all expected fields!",
+                fieldNames.containsAll(asList("Salutation")));
+
+    }
 }

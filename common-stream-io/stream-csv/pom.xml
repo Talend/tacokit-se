@@ -18,7 +18,7 @@
   <parent>
     <groupId>org.talend.components</groupId>
     <artifactId>common-stream-io</artifactId>
-    <version>1.17.0-SNAPSHOT</version>
+    <version>1.18.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>stream-csv</artifactId>
@@ -34,7 +34,7 @@
     <dependency>
       <groupId>org.talend.components</groupId>
       <artifactId>stream-line</artifactId>
-      <version>1.17.0-SNAPSHOT</version>
+      <version>1.18.0-SNAPSHOT</version>
     </dependency>
 
     <!-- CSV -->

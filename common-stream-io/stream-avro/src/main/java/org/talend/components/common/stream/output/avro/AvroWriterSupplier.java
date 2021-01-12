@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -18,13 +18,13 @@ import org.talend.components.common.stream.api.output.RecordConverter;
 import org.talend.components.common.stream.api.output.RecordWriter;
 import org.talend.components.common.stream.api.output.RecordWriterSupplier;
 import org.talend.components.common.stream.api.output.TargetFinder;
-import org.talend.components.common.stream.format.avro.AvroConfiguration;
 import org.talend.components.common.stream.format.ContentFormat;
+import org.talend.components.common.stream.format.avro.AvroConfiguration;
 
 public class AvroWriterSupplier implements RecordWriterSupplier {
 
     @Override
-    public RecordWriter getWriter(TargetFinder target, ContentFormat config) {
+    public RecordWriter getWriter(final TargetFinder target, final ContentFormat config) {
         if (!AvroConfiguration.class.isInstance(config)) {
             throw new IllegalArgumentException("Try to get avro-writer with other than avro config.");
         }
@@ -32,11 +32,7 @@ public class AvroWriterSupplier implements RecordWriterSupplier {
         AvroConfiguration avroConfig = (AvroConfiguration) config;
 
         final RecordConverter<GenericRecord, Schema> converter = new RecordToAvro("records");
-        if (avroConfig.isAttachSchema()) {
-            return new AvroRecordWriter(converter, target);
-        } else {
-            Schema schema = avroConfig.getAvroSchema() != null ? new Schema.Parser().parse(avroConfig.getAvroSchema()) : null;
-            return new HeadlessAvroRecordWriter(converter, target, schema);
-        }
+        final AvroOutput output = AvroOutput.buildOutput(avroConfig, target);
+        return new AvroRecordWriter(converter, output);
     }
 }

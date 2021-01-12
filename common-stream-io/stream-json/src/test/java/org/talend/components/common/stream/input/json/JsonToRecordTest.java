@@ -23,6 +23,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.talend.components.common.stream.output.json.RecordToJson;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -53,8 +55,12 @@ class JsonToRecordTest {
 
     @BeforeEach
     void start() {
+        start(false);
+    }
+
+    void start(final boolean forceDouble) {
         final RecordBuilderFactory recordBuilderFactory = new RecordBuilderFactoryImpl("test");
-        this.toRecord = new JsonToRecord(recordBuilderFactory);
+        this.toRecord = new JsonToRecord(recordBuilderFactory, forceDouble);
         toRecordDoubleOption = new JsonToRecord(recordBuilderFactory, true);
     }
 
@@ -128,6 +134,20 @@ class JsonToRecordTest {
 
         final Entry aNumberEntryDouble = findEntry(recordDouble.getSchema(), "aNumber");
         Assertions.assertEquals(Schema.Type.DOUBLE, aNumberEntryDouble.getType());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { true, false })
+    void fieldAreNullable(final boolean forceDouble) {
+        start(forceDouble);
+
+        String source = "{\"a_string\" : \"string1\", \"a_long\" : 123, \"a_double\" : 123.123, \"a_boolean\" : true, \"an_object\" : {\"att_a\" : \"aaa\", \"att_b\" : \"bbb\"}, \"an_array\" : [\"aaa\", \"bbb\", \"ccc\"]}";
+        JsonObject json = getJsonObject(source);
+        final Record record = toRecord.toRecord(json);
+
+        record.getSchema().getEntries().stream().forEach(e -> {
+            Assertions.assertTrue(e.isNullable(), e.getName() + " of type " + e.getType() + " should be nullable.");
+        });
     }
 
     private Entry findEntry(Schema schema, String entryName) {

@@ -60,29 +60,32 @@ public class JsonToRecord {
     public Record toRecord(final JsonObject object) {
         final Record.Builder builder = factory.newRecordBuilder();
         object.forEach((String key, JsonValue value) -> {
+            final Schema.Entry.Builder entryBuilder = this.factory.newEntryBuilder().withName(key).withNullable(true);
             switch (value.getValueType()) {
             case ARRAY: {
                 final List<Object> items = value.asJsonArray().stream().map(this::mapJson).collect(toList());
-                builder.withArray(factory.newEntryBuilder().withName(key).withType(Schema.Type.ARRAY)
-                        .withElementSchema(getArrayElementSchema(factory, items)).build(), items);
+                builder.withArray(
+                        entryBuilder.withType(Schema.Type.ARRAY).withElementSchema(getArrayElementSchema(factory, items)).build(),
+                        items);
                 break;
             }
             case OBJECT: {
                 final Record record = toRecord(value.asJsonObject());
-                builder.withRecord(factory.newEntryBuilder().withName(key).withType(Schema.Type.RECORD)
-                        .withElementSchema(record.getSchema()).build(), record);
+                builder.withRecord(entryBuilder.withType(Schema.Type.RECORD).withElementSchema(record.getSchema()).build(),
+                        record);
                 break;
             }
             case TRUE:
             case FALSE:
-                builder.withBoolean(key, JsonValue.TRUE.equals(value));
+                final Schema.Entry entry = entryBuilder.withType(Schema.Type.BOOLEAN).build();
+                builder.withBoolean(entry, JsonValue.TRUE.equals(value));
                 break;
             case STRING:
                 builder.withString(key, JsonString.class.cast(value).getString());
                 break;
             case NUMBER:
                 final JsonNumber number = JsonNumber.class.cast(value);
-                this.numberOption.setNumber(builder, key, number);
+                this.numberOption.setNumber(builder, entryBuilder, number);
                 break;
             case NULL:
                 break;
@@ -203,8 +206,9 @@ public class JsonToRecord {
                 return number.doubleValue();
             }
 
-            public void setNumber(Record.Builder builder, String key, JsonNumber number) {
-                builder.withDouble(key, number.doubleValue());
+            public void setNumber(Record.Builder builder, Schema.Entry.Builder entryBuilder, JsonNumber number) {
+                final Schema.Entry entry = entryBuilder.withType(Schema.Type.DOUBLE).build();
+                builder.withDouble(entry, number.doubleValue());
             }
 
             public Schema.Type getNumberType(JsonNumber number) {
@@ -221,11 +225,13 @@ public class JsonToRecord {
                 }
             }
 
-            public void setNumber(Record.Builder builder, String key, JsonNumber number) {
+            public void setNumber(Record.Builder builder, Schema.Entry.Builder entryBuilder, JsonNumber number) {
                 if (number.isIntegral()) {
-                    builder.withLong(key, number.longValueExact());
+                    final Schema.Entry entry = entryBuilder.withType(Schema.Type.LONG).build();
+                    builder.withLong(entry, number.longValueExact());
                 } else {
-                    builder.withDouble(key, number.doubleValue());
+                    final Schema.Entry entry = entryBuilder.withType(Schema.Type.DOUBLE).build();
+                    builder.withDouble(entry, number.doubleValue());
                 }
             }
 
@@ -239,7 +245,7 @@ public class JsonToRecord {
 
         public abstract Number getNumber(JsonNumber number);
 
-        public abstract void setNumber(Record.Builder builder, String key, JsonNumber number);
+        public abstract void setNumber(Record.Builder builder, Schema.Entry.Builder entryBuilder, JsonNumber number);
 
         public abstract Schema.Type getNumberType(JsonNumber number);
     }

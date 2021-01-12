@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -64,24 +64,32 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
         return recordToAvro(record, new GenericData.Record(avroSchema));
     }
 
-    protected GenericRecord recordToAvro(Record fromRecord, GenericRecord toRecord) {
+    private GenericRecord recordToAvro(Record fromRecord, GenericRecord toRecord) {
+        if (fromRecord == null) {
+            return toRecord;
+        }
         for (org.apache.avro.Schema.Field f : toRecord.getSchema().getFields()) {
-            String name = f.name();
-            org.apache.avro.Schema.Type fieldType = AvroHelper.getFieldType(f);
+            final String name = f.name();
+            final org.apache.avro.Schema.Type fieldType = AvroHelper.getFieldType(f);
             switch (fieldType) {
             case RECORD:
-                org.apache.avro.Schema subSchema = fromRecordSchema(fromRecord.getRecord(name).getSchema());
-                GenericRecord subrecord = recordToAvro(fromRecord.getRecord(name), new GenericData.Record(subSchema));
-                toRecord.put(name, subrecord);
+                final Record record = fromRecord.getRecord(name);
+                final Schema schema = fromRecord.getSchema().getEntries().stream().filter(e -> name.equals(e.getName()))
+                        .findFirst().map(Entry::getElementSchema).orElse(null);
+                if (record != null) {
+                    final org.apache.avro.Schema subSchema = fromRecordSchema(record.getSchema());
+                    final GenericRecord subrecord = recordToAvro(record, new GenericData.Record(subSchema));
+                    toRecord.put(name, subrecord);
+                }
                 break;
             case ARRAY:
-                Entry e = getSchemaForEntry(name, fromRecord.getSchema());
-                Collection<Object> recordArray = fromRecord.getOptionalArray(Object.class, name).orElse(new ArrayList<>());
-                if (recordArray.iterator().hasNext()) {
-                    Object firstArrayValue = recordArray.iterator().next();
+                final Entry e = getSchemaForEntry(name, fromRecord.getSchema());
+                final Collection<Object> recordArray = fromRecord.getOptionalArray(Object.class, name).orElse(new ArrayList<>());
+                if (!recordArray.isEmpty()) {
+                    final Object firstArrayValue = recordArray.iterator().next();
                     if (firstArrayValue instanceof Record) {
-                        subSchema = fromRecordSchema(((Record) firstArrayValue).getSchema());
-                        List<GenericRecord> records = recordArray.stream()
+                        final org.apache.avro.Schema subSchema = fromRecordSchema(((Record) firstArrayValue).getSchema());
+                        final List<GenericRecord> records = recordArray.stream()
                                 .map(o -> recordToAvro((Record) o, new GenericData.Record(subSchema)))
                                 .collect(Collectors.toList());
                         toRecord.put(name, records);
@@ -94,7 +102,7 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
                 toRecord.put(name, fromRecord.getOptionalString(name).orElse(null));
                 break;
             case BYTES:
-                Optional<byte[]> optionalBytesValue = fromRecord.getOptionalBytes(name);
+                final Optional<byte[]> optionalBytesValue = fromRecord.getOptionalBytes(name);
                 if (optionalBytesValue.isPresent()) {
                     ByteBuffer byteBuffer = ByteBuffer.wrap(fromRecord.getBytes(name));
                     toRecord.put(name, byteBuffer);
@@ -141,6 +149,7 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
                 throw new IllegalStateException(String.format(ERROR_UNDEFINED_TYPE, fieldType.name()));
             }
         }
+
         return toRecord;
     }
 
@@ -186,7 +195,7 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
                 throw new IllegalStateException(String.format(ERROR_UNDEFINED_TYPE, e.getType().name()));
             }
             org.apache.avro.Schema unionWithNull;
-            if (builder.getType() == org.apache.avro.Schema.Type.RECORD) {
+            if (builder.getType() == org.apache.avro.Schema.Type.RECORD && (!e.isNullable())) {
                 unionWithNull = builder;
             } else {
                 unionWithNull = SchemaBuilder.unionOf().type(builder).and().nullType().endUnion();
@@ -194,11 +203,22 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
             org.apache.avro.Schema.Field field = new org.apache.avro.Schema.Field(name, unionWithNull, comment, defaultValue);
             fields.add(field);
         }
-        return org.apache.avro.Schema.createRecord(RECORD_NAME + String.valueOf(schema.hashCode()).replace("-", ""), "",
-                currentRecordNamespace, false, fields);
+        return org.apache.avro.Schema.createRecord(this.buildSchemaId(schema), "", currentRecordNamespace, false, fields);
     }
 
-    protected org.apache.avro.Schema.Type translateToAvroType(Type type) {
+    /**
+     * Build an id that is same for equivalent schema independently of implementation.
+     * 
+     * @param schema : schema.
+     * @return id
+     */
+    private String buildSchemaId(Schema schema) {
+        final List<String> fields = schema.getEntries().stream()
+                .map((Entry e) -> e.getName() + "_" + e.getType() + e.isNullable()).collect(Collectors.toList());
+        return (RECORD_NAME + fields.hashCode()).replace('-', '1');
+    }
+
+    private org.apache.avro.Schema.Type translateToAvroType(final Type type) {
         switch (type) {
         case RECORD:
             return org.apache.avro.Schema.Type.RECORD;
@@ -223,7 +243,7 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
         throw new IllegalStateException(String.format(ERROR_UNDEFINED_TYPE, type.name()));
     }
 
-    protected Entry getSchemaForEntry(String name, Schema schema) {
+    private Entry getSchemaForEntry(String name, Schema schema) {
         for (Entry e : schema.getEntries()) {
             if (name.equals(e.getName())) {
                 return e;
@@ -232,7 +252,7 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
         return null;
     }
 
-    protected Class<?> getJavaClassForType(Schema.Type type) {
+    private Class<?> getJavaClassForType(Schema.Type type) {
         switch (type) {
         case RECORD:
             return Record.class;
