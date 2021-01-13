@@ -106,6 +106,7 @@ public class AdlsGen2TestBase implements Serializable {
         dataSet.setFilesystem("storageFs");
         dataSet.setBlobPath("myNewFolder/customer_20190325.csv");
         dataSet.setFormat(FileFormat.CSV);
+        dataSet.setCsvConfiguration(new CsvConfiguration());
 
         // datasetRuntimeInfo = new AdlsDatasetRuntimeInfo(dataSet, tokenProviderService);
 

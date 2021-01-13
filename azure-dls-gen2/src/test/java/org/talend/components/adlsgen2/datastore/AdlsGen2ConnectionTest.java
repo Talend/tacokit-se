@@ -68,7 +68,6 @@ class AdlsGen2ConnectionTest {
         assertEquals(CHINA_ENDPOINT_SUFFIX, connection.getEndpointSuffix());
     }
 
-
     @Test
     void testSerial() throws IOException, ClassNotFoundException {
         this.connection.setAuthMethod(AuthMethod.ActiveDirectory);
@@ -79,11 +78,11 @@ class AdlsGen2ConnectionTest {
         this.connection.setTimeout(200);
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        final ObjectOutputStream oos =  new ObjectOutputStream(out);
+        final ObjectOutputStream oos = new ObjectOutputStream(out);
         oos.writeObject(this.connection);
 
         ByteArrayInputStream input = new ByteArrayInputStream(out.toByteArray());
-        final ObjectInputStream ois =  new ObjectInputStream(input);
+        final ObjectInputStream ois = new ObjectInputStream(input);
         final AdlsGen2Connection cnxCopy = (AdlsGen2Connection) ois.readObject();
         Assertions.assertEquals(this.connection, cnxCopy);
 
