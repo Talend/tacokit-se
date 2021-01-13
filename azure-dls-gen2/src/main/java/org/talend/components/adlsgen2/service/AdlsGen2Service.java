@@ -479,7 +479,7 @@ public class AdlsGen2Service {
      * length of the file after all data has been written, and there must not be a request entity body included with the
      * request.
      *
-     * @param configuration
+     * @param datasetRuntimeInfo
      * @param position
      * @return
      */

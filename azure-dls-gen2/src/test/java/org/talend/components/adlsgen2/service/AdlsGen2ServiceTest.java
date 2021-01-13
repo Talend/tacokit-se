@@ -12,6 +12,10 @@
  */
 package org.talend.components.adlsgen2.service;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,6 +25,7 @@ import java.util.Map;
 import javax.json.Json;
 import javax.json.JsonObject;
 
+import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,6 +33,8 @@ import org.talend.components.adlsgen2.AdlsGen2TestBase;
 import org.talend.components.adlsgen2.ClientGen2Fake;
 import org.talend.components.adlsgen2.FakeActiveDirectoryService;
 import org.talend.components.adlsgen2.FakeResponse;
+import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
+import org.talend.components.adlsgen2.datastore.Constants;
 import org.talend.components.adlsgen2.datastore.Constants.HeaderConstants;
 import org.talend.components.adlsgen2.runtime.AdlsDatasetRuntimeInfo;
 import org.talend.components.adlsgen2.runtime.AdlsGen2RuntimeException;
@@ -74,8 +81,7 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
                 .build();
 
         final AdlsGen2Service service = this.getServiceForJson(filesystems);
-        AdlsDatasetRuntimeInfo runtimeInfo = new AdlsDatasetRuntimeInfo(this.dataSet, new FakeActiveDirectoryService());
-        final List<BlobInformations> blobs = service.getBlobs(runtimeInfo);
+        final List<BlobInformations> blobs = service.getBlobs(this.runtimeInfo());
         Assertions.assertEquals(1, blobs.size());
 
         final BlobInformations informations = blobs.get(0);
@@ -113,11 +119,56 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
         Assertions.assertTrue(service.blobExists(runtimeInfo, "/paht1/file1.txt"));
     }
 
+    @Test
+    void testGetPathProperties() {
+        final ComponentManager manager = componentsHandler.asManager();
+        Map<String, List<String>> headers = new HashMap<>();
+
+        ClientGen2Fake fake = new ClientGen2Fake(new FakeResponse<>(200, null, headers, null));
+        ClientGen2Fake.inject(manager, fake);
+        final AdlsGen2Service service = this.componentsHandler.findService(AdlsGen2Service.class);
+        final AdlsDatasetRuntimeInfo runtimeInfo = this.runtimeInfo();
+        final Map<String, String> properties = service.pathGetProperties(runtimeInfo);
+        Assertions.assertTrue(properties.isEmpty());
+
+        headers.put(Constants.PREFIX_FOR_STORAGE_HEADER + "_1", Arrays.asList("value1"));
+        headers.put(Constants.PREFIX_FOR_STORAGE_HEADER + "_2", Arrays.asList("value1", "value2"));
+        final Map<String, String> properties2 = service.pathGetProperties(runtimeInfo);
+        Assertions.assertNotNull(properties2);
+        Assertions.assertTrue(properties2.get(Constants.PREFIX_FOR_STORAGE_HEADER + "_1").contains("value1"));
+    }
+
+    @Test
+    void testGetBlobInputstream() {
+        final ComponentManager manager = componentsHandler.asManager();
+        this.connection.setAuthMethod(AuthMethod.SharedKey);
+
+        ClientGen2Fake fake = new ClientGen2Fake(new FakeResponse<>(200, null, null, null),
+                new FakeResponse<>(200, new ByteArrayInputStream("Hello".getBytes(StandardCharsets.UTF_8)), null, null));
+        ClientGen2Fake.inject(manager, fake);
+        final AdlsGen2Service service = this.componentsHandler.findService(AdlsGen2Service.class);
+        BlobInformations blob = new BlobInformations();
+        blob.setBlobPath("/file/hello/txt");
+        try (InputStream inputstream = service.getBlobInputstream(this.runtimeInfo(), blob)) {
+            byte[] octets = new byte[20];
+            int n = inputstream.read(octets);
+            Assertions.assertEquals("Hello", new String(octets, 0, n));
+        } catch (IOException e) {
+            Assertions.fail("IOException " + e.getMessage());
+        }
+
+    }
+
+    private AdlsDatasetRuntimeInfo runtimeInfo() {
+        return new AdlsDatasetRuntimeInfo(this.dataSet, new FakeActiveDirectoryService());
+    }
+
     private AdlsGen2Service getServiceForJson(JsonObject expectedResult) {
         final ComponentManager manager = componentsHandler.asManager();
 
         ClientGen2Fake fake = new ClientGen2Fake(new FakeResponse<>(200, expectedResult, null, null));
         ClientGen2Fake.inject(manager, fake);
         return this.componentsHandler.findService(AdlsGen2Service.class);
+
     }
 }

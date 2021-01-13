@@ -12,10 +12,18 @@
  */
 package org.talend.components.adlsgen2.datastore;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 class AdlsGen2ConnectionTest {
 
@@ -58,5 +66,26 @@ class AdlsGen2ConnectionTest {
     void getChinaEndpointSuffix() {
         connection.setEndpointSuffix(CHINA_ENDPOINT_SUFFIX);
         assertEquals(CHINA_ENDPOINT_SUFFIX, connection.getEndpointSuffix());
+    }
+
+
+    @Test
+    void testSerial() throws IOException, ClassNotFoundException {
+        this.connection.setAuthMethod(AuthMethod.ActiveDirectory);
+        this.connection.setSas("sas");
+        this.connection.setClientId("clientId");
+        this.connection.setClientSecret("clientSecret");
+        this.connection.setTenantId("tenant");
+        this.connection.setTimeout(200);
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final ObjectOutputStream oos =  new ObjectOutputStream(out);
+        oos.writeObject(this.connection);
+
+        ByteArrayInputStream input = new ByteArrayInputStream(out.toByteArray());
+        final ObjectInputStream ois =  new ObjectInputStream(input);
+        final AdlsGen2Connection cnxCopy = (AdlsGen2Connection) ois.readObject();
+        Assertions.assertEquals(this.connection, cnxCopy);
+
     }
 }

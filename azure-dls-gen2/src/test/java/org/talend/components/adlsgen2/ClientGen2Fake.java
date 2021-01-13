@@ -74,7 +74,7 @@ public class ClientGen2Fake implements AdlsGen2APIClient {
     @Override
     public Response<InputStream> pathRead(Map<String, String> headers, String filesystem, String path, Integer timeout,
             Map<String, String> sas) {
-        return null;
+        return this.pathReadResponse;
     }
 
     @Override
