@@ -20,8 +20,6 @@ import java.util.Arrays;
 
 import javax.json.JsonBuilderFactory;
 
-import org.hamcrest.Matchers;
-import org.junit.Assume;
 import org.junit.jupiter.api.BeforeEach;
 import org.talend.components.adlsgen2.common.format.FileFormat;
 import org.talend.components.adlsgen2.common.format.csv.CsvConfiguration;
@@ -39,7 +37,6 @@ import org.talend.components.adlsgen2.runtime.AdlsDatastoreRuntimeInfo;
 import org.talend.components.adlsgen2.service.AdlsActiveDirectoryService;
 import org.talend.components.adlsgen2.service.AdlsGen2Service;
 import org.talend.components.adlsgen2.service.I18n;
-import org.talend.sdk.component.api.DecryptedServer;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.record.Schema.Type;
@@ -48,11 +45,8 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
-import org.talend.sdk.component.junit5.WithMavenServers;
-import org.talend.sdk.component.maven.Server;
 
 @WithComponents("org.talend.components.adlsgen2")
-@WithMavenServers
 public class AdlsGen2TestBase implements Serializable {
 
     @Injected
@@ -70,32 +64,13 @@ public class AdlsGen2TestBase implements Serializable {
     @Service
     protected AdlsActiveDirectoryService tokenProviderService;
 
-    @DecryptedServer("azure-dls-gen2.storage")
-    private Server mvnStorage;
-
-    @DecryptedServer("azure-dls-gen2.sas")
-    private Server mvnAccountSAS;
-
-    @DecryptedServer("azure-dls-gen2.sharedkey")
-    private Server mvnAccountSharedKey;
-
-    protected static String accountName;
-
-    protected static String storageFs;
-
-    protected static String accountKey = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX==";
-
-    protected static String sas;
-
     protected SharedKeyUtils utils;
 
     protected AdlsGen2Connection connection;
 
     protected AdlsGen2DataSet dataSet;
 
-    protected AdlsDatastoreRuntimeInfo datastoreRuntimeInfo;
-
-    protected AdlsDatasetRuntimeInfo datasetRuntimeInfo;
+    // protected AdlsDatasetRuntimeInfo datasetRuntimeInfo;
 
     protected InputConfiguration inputConfiguration;
 
@@ -119,30 +94,20 @@ public class AdlsGen2TestBase implements Serializable {
 
         service = new AdlsGen2Service();
 
-        accountName = mvnAccountSAS.getUsername();
-        storageFs = mvnStorage.getUsername();
-        accountKey = mvnAccountSharedKey.getPassword();
-        sas = mvnAccountSAS.getPassword();
-
-        Assume.assumeThat(accountName, Matchers.not("username"));
-        Assume.assumeThat(sas, Matchers.not("password"));
-
         connection = new AdlsGen2Connection();
         connection.setAuthMethod(AuthMethod.SAS);
-        connection.setAccountName(accountName);
-        connection.setSharedKey(accountKey);
-        connection.setSas(sas);
+        connection.setAccountName("accountName");
+        connection.setSharedKey("accountKey");
+        connection.setSas(";Fake=Sas");
         connection.setTimeout(600);
-
-        datastoreRuntimeInfo = new AdlsDatastoreRuntimeInfo(connection, tokenProviderService);
 
         dataSet = new AdlsGen2DataSet();
         dataSet.setConnection(connection);
-        dataSet.setFilesystem(storageFs);
+        dataSet.setFilesystem("storageFs");
         dataSet.setBlobPath("myNewFolder/customer_20190325.csv");
         dataSet.setFormat(FileFormat.CSV);
 
-        datasetRuntimeInfo = new AdlsDatasetRuntimeInfo(dataSet, tokenProviderService);
+        // datasetRuntimeInfo = new AdlsDatasetRuntimeInfo(dataSet, tokenProviderService);
 
         CsvConfiguration csvConfig = new CsvConfiguration();
         csvConfig.setFieldDelimiter(CsvFieldDelimiter.SEMICOLON);

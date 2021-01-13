@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.talend.components.adlsgen2.AdlsGen2IntegrationTestBase;
 import org.talend.components.adlsgen2.AdlsGen2TestBase;
 import org.talend.components.adlsgen2.common.format.FileEncoding;
 import org.talend.components.adlsgen2.common.format.FileFormat;
@@ -37,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @WithComponents("org.talend.components.adlsgen2")
-public class InputTestIT extends AdlsGen2TestBase {
+public class InputTestIT extends AdlsGen2IntegrationTestBase {
 
     @Test
     void readCsvWithHeader() {

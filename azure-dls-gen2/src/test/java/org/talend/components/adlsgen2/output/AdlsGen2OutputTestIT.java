@@ -14,6 +14,7 @@ package org.talend.components.adlsgen2.output;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.talend.components.adlsgen2.AdlsGen2IntegrationTestBase;
 import org.talend.components.adlsgen2.AdlsGen2TestBase;
 import org.talend.components.adlsgen2.common.format.FileFormat;
 import org.talend.components.adlsgen2.common.format.csv.CsvConfiguration;
@@ -30,7 +31,7 @@ import static java.util.Arrays.asList;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.adlsgen2")
-class AdlsGen2OutputTestIT extends AdlsGen2TestBase {
+class AdlsGen2OutputTestIT extends AdlsGen2IntegrationTestBase {
 
     @Service
     private LocalConfiguration configuration;

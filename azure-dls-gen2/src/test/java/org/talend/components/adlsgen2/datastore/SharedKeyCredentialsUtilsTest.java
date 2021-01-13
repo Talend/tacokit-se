@@ -12,6 +12,11 @@
  */
 package org.talend.components.adlsgen2.datastore;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.net.URL;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -25,11 +30,6 @@ import org.junit.jupiter.api.condition.JRE;
 import org.talend.components.adlsgen2.AdlsGen2TestBase;
 import org.talend.components.adlsgen2.datastore.Constants.MethodConstants;
 import org.talend.sdk.component.junit5.WithComponents;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @WithComponents("org.talend.components.adlsgen2")
 class SharedKeyCredentialsUtilsTest extends AdlsGen2TestBase {
@@ -49,7 +49,7 @@ class SharedKeyCredentialsUtilsTest extends AdlsGen2TestBase {
     @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
-        utils = new SharedKeyUtils(USERNAME, accountKey);
+        utils = new SharedKeyUtils(USERNAME, "accountKey");
         url = new URL(
                 "https://undxgen2.dfs.core.windows.net/adls-gen2?directory=myNewFolder&recursive=false&resource=filesystem&timeout=60");
         headers = new HashMap<>();
@@ -66,9 +66,9 @@ class SharedKeyCredentialsUtilsTest extends AdlsGen2TestBase {
     }
 
     @Test
-    @EnabledOnJre({ JRE.JAVA_11 })
+    // @EnabledOnJre({ JRE.JAVA_11 })
     void checkSignature() throws Exception {
-        expectedSignature = "SharedKey username:8GgdJcEk+FLk2oNJeLuAAIj4O2QMrG4Z1SE4xoV3oTI=";
+        expectedSignature = "SharedKey username:aNHXDMVg6kTna4Ws5WIwW7+a4QX6b/UFGu2oHDVl/oo=";
         signature = utils.buildAuthenticationSignature(url, MethodConstants.GET, headers);
         assertNotNull(signature);
         assertTrue(signature.startsWith("SharedKey username:"));
@@ -80,9 +80,9 @@ class SharedKeyCredentialsUtilsTest extends AdlsGen2TestBase {
     }
 
     @Test
-    @EnabledOnJre({ JRE.JAVA_11 })
+    // @EnabledOnJre({ JRE.JAVA_11 })
     void checkSignatureWithSpacesInBlobName() throws Exception {
-        expectedSignature = "SharedKey username:jIgUXkXGQGVmfyHYMWDC7AGEkQyVmcldGmTiQYL4oFc=";
+        expectedSignature = "SharedKey username:hwC5gN+16KxhcP0rxytUwyF9+lQKB//IdDSY9SM9z3Y=";
         url = new URL("https://undxgen2.dfs.core.windows.net/adls-gen2/directory/my New Blob.spacy&timeout=60");
         signature = utils.buildAuthenticationSignature(url, MethodConstants.GET, headers);
         assertNotNull(signature);

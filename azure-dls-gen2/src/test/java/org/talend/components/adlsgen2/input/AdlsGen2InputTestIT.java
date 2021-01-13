@@ -16,6 +16,7 @@ import java.util.List;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.talend.components.adlsgen2.AdlsGen2IntegrationTestBase;
 import org.talend.components.adlsgen2.AdlsGen2TestBase;
 import org.talend.components.adlsgen2.common.format.csv.CsvConfiguration;
 import org.talend.components.adlsgen2.common.format.csv.CsvFieldDelimiter;
@@ -30,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.adlsgen2")
-class AdlsGen2InputTestIT extends AdlsGen2TestBase {
+class AdlsGen2InputTestIT extends AdlsGen2IntegrationTestBase {
 
     @ParameterizedTest
     @ValueSource(strings = { "SharedKey", "SAS" })

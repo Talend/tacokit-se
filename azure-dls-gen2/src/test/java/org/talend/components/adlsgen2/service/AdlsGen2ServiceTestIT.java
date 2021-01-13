@@ -12,34 +12,49 @@
  */
 package org.talend.components.adlsgen2.service;
 
-import java.util.Iterator;
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.talend.components.adlsgen2.AdlsGen2TestBase;
-import org.talend.components.adlsgen2.common.format.FileFormat;
-import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
-import org.talend.components.adlsgen2.datastore.Constants.HeaderConstants;
-import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.junit5.WithComponents;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.Iterator;
+import java.util.List;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.talend.components.adlsgen2.AdlsGen2IntegrationTestBase;
+import org.talend.components.adlsgen2.common.format.FileFormat;
+import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
+import org.talend.components.adlsgen2.datastore.Constants.HeaderConstants;
+import org.talend.components.adlsgen2.runtime.AdlsDatasetRuntimeInfo;
+import org.talend.components.adlsgen2.runtime.AdlsDatastoreRuntimeInfo;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.junit5.WithComponents;
+
 @WithComponents("org.talend.components.adlsgen2")
-class AdlsGen2ServiceTestIT extends AdlsGen2TestBase {
+class AdlsGen2ServiceTestIT extends AdlsGen2IntegrationTestBase {
 
     @Service
     AdlsGen2Service service;
 
     @Service
     AdlsGen2APIClient serviceTestClient;
+
+    private AdlsDatastoreRuntimeInfo datastoreRuntimeInfo;
+
+    private AdlsDatasetRuntimeInfo datasetRuntimeInfo;
+
+    @BeforeEach
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        datastoreRuntimeInfo = new AdlsDatastoreRuntimeInfo(connection, tokenProviderService);
+        datasetRuntimeInfo = new AdlsDatasetRuntimeInfo(dataSet, tokenProviderService);
+    }
 
     @Test
     void getClient() {
