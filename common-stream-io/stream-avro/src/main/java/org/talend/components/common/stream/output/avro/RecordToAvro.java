@@ -135,7 +135,7 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
                 }
                 break;
             case DOUBLE:
-                OptionalDouble optionalDouble = fromRecord.getOptionalFloat(name);
+                OptionalDouble optionalDouble = fromRecord.getOptionalDouble(name);
                 if (optionalDouble.isPresent()) {
                     toRecord.put(name, optionalDouble.getAsDouble());
                 } else {

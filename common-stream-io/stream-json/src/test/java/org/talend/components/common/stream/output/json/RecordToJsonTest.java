@@ -31,7 +31,6 @@ import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
 class RecordToJsonTest {
 
-
     @Test
     void fromRecord() {
         final RecordToJson toJson = new RecordToJson();
@@ -68,13 +67,11 @@ class RecordToJsonTest {
         ds.check(jsonObject);
     }
 
-
     private static Iterator<DataSet<JsonObject>> testDataJson() {
         final AssertionsBuilder<JsonObject> valueBuilder = new JsonExpected();
         final RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");
         DatasetGenerator<JsonObject> generator = new DatasetGenerator<>(factory, valueBuilder);
         return generator.generate(40);
     }
-
 
 }

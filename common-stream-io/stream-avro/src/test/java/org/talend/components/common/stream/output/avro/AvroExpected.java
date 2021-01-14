@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,6 +12,8 @@
  */
 package org.talend.components.common.stream.output.avro;
 
+import java.nio.ByteBuffer;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -63,15 +65,28 @@ public class AvroExpected implements AssertionsBuilder<GenericRecord> {
         final Object value = record.get(field.getName());
         if (expectedValue == null) {
             Assertions.assertNull(value);
+            return;
         }
-        else if (field.getType() == Schema.Type.RECORD) {
-            Assertions.assertNotNull(value);
+        Assertions.assertNotNull(value);
+        if (field.getType() == Schema.Type.RECORD) {
             Assertions.assertTrue(value instanceof GenericRecord);
-        }
-        else if (field.getType() != Schema.Type.DATETIME
-                && field.getType() != Schema.Type.BYTES) {
-            Assertions.assertNotNull(value);
+            Assertions.assertTrue(expectedValue instanceof Record);
+            final GenericRecord innerRecord = (GenericRecord) value;
+            final Record expectedRecord = (Record) expectedValue;
+
+            for (Schema.Entry subField : expectedRecord.getSchema().getEntries()) {
+                final Object subExpectedValue = expectedRecord.get(Object.class, subField.getName());
+                checkContains(innerRecord, subField, subExpectedValue);
+            }
+
+        } else if (field.getType() != Schema.Type.DATETIME && field.getType() != Schema.Type.BYTES) {
             Assertions.assertEquals(value.getClass(), expectedValue.getClass());
+            Assertions.assertEquals(value, expectedValue);
+        } else if (field.getType() == Schema.Type.DATETIME) {
+            Assertions.assertEquals(((ZonedDateTime) expectedValue).toInstant().toEpochMilli(), (Long) value);
+        } else { // Schema.Type.BYTES
+            Assertions.assertTrue(value instanceof ByteBuffer);
+            Assertions.assertArrayEquals(((ByteBuffer) value).array(), (byte[]) expectedValue);
         }
     }
 
