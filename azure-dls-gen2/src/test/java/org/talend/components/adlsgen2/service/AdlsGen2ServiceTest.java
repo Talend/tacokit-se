@@ -13,6 +13,7 @@
 package org.talend.components.adlsgen2.service;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -87,7 +88,7 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
         final BlobInformations informations = blobs.get(0);
         Assertions.assertEquals(120, informations.getContentLength());
         Assertions.assertEquals("0x8D89D1980D8BD4B", informations.getEtag());
-        Assertions.assertEquals("/paht1", informations.getDirectory());
+        Assertions.assertEquals(File.separatorChar + "paht1", informations.getDirectory());
         Assertions.assertEquals("file1.txt", informations.getFileName());
         Assertions.assertNull(informations.getPermissions());
         Assertions.assertEquals("admin", informations.getOwner());
