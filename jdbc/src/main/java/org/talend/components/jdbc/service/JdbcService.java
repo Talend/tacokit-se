@@ -146,7 +146,7 @@ public class JdbcService {
                 dataSource.setUsername(connection.getUserId());
                 dataSource.setPassword(connection.getPassword());
                 dataSource.setDriverClassName(driver.getClassName());
-                dataSource.setJdbcUrl(connection.getJdbcUrl());
+                dataSource.setJdbcUrl(connection.getExplodedURL().getJdbcUrl());
                 dataSource.setAutoCommit(isAutoCommit);
                 dataSource.setMaximumPoolSize(1);
                 dataSource.setConnectionTimeout(connection.getConnectionTimeOut() * 1000);

@@ -83,7 +83,10 @@ public abstract class AbstractBaseJDBC {
         connection.setUserId(container.getUsername());
         connection.setPassword(container.getPassword());
         connection.setDbType(container.getDatabaseType());
-        connection.setJdbcUrl(container.getJdbcUrl());
+
+        final JdbcConnection.ExplodedURL explodedURL = new JdbcConnection.ExplodedURL();
+        explodedURL.setJdbcUrl(container.getJdbcUrl());
+        connection.setExplodedURL(explodedURL);
         return connection;
     }
 

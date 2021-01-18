@@ -224,7 +224,10 @@ public abstract class JDBCBaseContainerTest {
         void healthCheckWithBadCredentials() {
             final JdbcConnection datastore = new JdbcConnection();
             datastore.setDbType(JDBCBaseContainerTest.this.getContainer().getDatabaseType());
-            datastore.setJdbcUrl(JDBCBaseContainerTest.this.getContainer().getJdbcUrl());
+
+            final JdbcConnection.ExplodedURL explodedURL = new JdbcConnection.ExplodedURL();
+            explodedURL.setJdbcUrl(JDBCBaseContainerTest.this.getContainer().getJdbcUrl());
+            datastore.setExplodedURL(explodedURL);
             datastore.setUserId("bad");
             datastore.setPassword("az");
             final HealthCheckStatus status = this.getUiActionService().validateBasicDataStore(datastore);
@@ -237,7 +240,10 @@ public abstract class JDBCBaseContainerTest {
         void healthCheckWithBadDataBaseName() {
             final JdbcConnection datastore = new JdbcConnection();
             datastore.setDbType(JDBCBaseContainerTest.this.getContainer().getDatabaseType());
-            datastore.setJdbcUrl(JDBCBaseContainerTest.this.getContainer().getJdbcUrl() + "DontExistUnlessyouCreatedDB");
+
+            final JdbcConnection.ExplodedURL explodedURL = new JdbcConnection.ExplodedURL();
+            explodedURL.setJdbcUrl(JDBCBaseContainerTest.this.getContainer().getJdbcUrl() + "DontExistUnlessyouCreatedDB");
+            datastore.setExplodedURL(explodedURL);
             datastore.setUserId("bad");
             datastore.setPassword("az");
             final HealthCheckStatus status = this.getUiActionService().validateBasicDataStore(datastore);
@@ -250,7 +256,10 @@ public abstract class JDBCBaseContainerTest {
         void healthCheckWithBadSubProtocol() {
             final JdbcConnection datastore = new JdbcConnection();
             datastore.setDbType(JDBCBaseContainerTest.this.getContainer().getDatabaseType());
-            datastore.setJdbcUrl("jdbc:darby/DB");
+
+            final JdbcConnection.ExplodedURL explodedURL = new JdbcConnection.ExplodedURL();
+            explodedURL.setJdbcUrl("jdbc:darby/DB");
+            datastore.setExplodedURL(explodedURL);
             datastore.setUserId("bad");
             datastore.setPassword("az");
             final HealthCheckStatus status = this.getUiActionService().validateBasicDataStore(datastore);
@@ -287,7 +296,10 @@ public abstract class JDBCBaseContainerTest {
         void getTableFromDatabaseWithInvalidConnection() {
             final JdbcConnection datastore = new JdbcConnection();
             datastore.setDbType(JDBCBaseContainerTest.this.getContainer().getDatabaseType());
-            datastore.setJdbcUrl(JDBCBaseContainerTest.this.getContainer().getJdbcUrl());
+
+            final JdbcConnection.ExplodedURL explodedURL = new JdbcConnection.ExplodedURL();
+            explodedURL.setJdbcUrl(JDBCBaseContainerTest.this.getContainer().getJdbcUrl());
+            datastore.setExplodedURL(explodedURL);
             datastore.setUserId("wrong");
             datastore.setPassword("wrong");
             final SuggestionValues values = this.getUiActionService().getTableFromDatabase(datastore);
@@ -313,7 +325,10 @@ public abstract class JDBCBaseContainerTest {
         void getTableColumnsFromDatabaseWithInvalidConnection(final TestInfo testInfo) {
             final JdbcConnection datastore = new JdbcConnection();
             datastore.setDbType(JDBCBaseContainerTest.this.getContainer().getDatabaseType());
-            datastore.setJdbcUrl(JDBCBaseContainerTest.this.getContainer().getJdbcUrl());
+
+            final JdbcConnection.ExplodedURL explodedURL = new JdbcConnection.ExplodedURL();
+            explodedURL.setJdbcUrl(JDBCBaseContainerTest.this.getContainer().getJdbcUrl());
+            datastore.setExplodedURL(explodedURL);
             datastore.setUserId("wrong");
             datastore.setPassword("wrong");
             final TableNameDataset tableNameDataset = new TableNameDataset();

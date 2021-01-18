@@ -34,7 +34,9 @@ class JdbcDriverLoadingTest {
         connection.setUserId("sa");
         connection.setPassword("sa");
         connection.setDbType("ORACLEXX");
-        connection.setJdbcUrl("jdbc:DDL://localhost:1234/foo");
+        final JdbcConnection.ExplodedURL explodedURL = new JdbcConnection.ExplodedURL();
+        explodedURL.setJdbcUrl("jdbc:DDL://localhost:1234/foo");
+        connection.setExplodedURL(explodedURL);
         final SqlQueryDataset dataset = new SqlQueryDataset();
         dataset.setConnection(connection);
         dataset.setSqlQuery("select * from users");
@@ -53,7 +55,10 @@ class JdbcDriverLoadingTest {
         connection.setUserId("sa");
         connection.setPassword("sa");
         connection.setDbType("ORACLE");
-        connection.setJdbcUrl("jdbc:DDL://localhost:1234/foo");
+
+        final JdbcConnection.ExplodedURL explodedURL = new JdbcConnection.ExplodedURL();
+        explodedURL.setJdbcUrl("jdbc:DDL://localhost:1234/foo");
+        connection.setExplodedURL(explodedURL);
         final SqlQueryDataset dataset = new SqlQueryDataset();
         dataset.setConnection(connection);
         dataset.setSqlQuery("select * from users");

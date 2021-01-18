@@ -29,6 +29,7 @@ import org.talend.sdk.component.api.service.completion.Values;
 import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
+import org.talend.sdk.component.api.service.update.Update;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -43,6 +44,7 @@ import java.util.Objects;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -80,6 +82,79 @@ public class UIActionService {
 
     @Configuration("jdbc")
     private Supplier<JdbcConfiguration> jdbcConfiguration;
+
+    public JdbcConfiguration.Driver getConfiguration(final String dbType, final String handler) {
+        JdbcConfiguration.Driver driver = jdbcConfiguration.get().getDrivers().stream().filter(d -> d.getId().equals(dbType))
+                .findFirst().orElse(null);
+
+        log.info("With : " + dbType + " Find drive : " + driver.getId());
+        log.info("Given handler : " + handler);
+
+        if (driver.getHandlers().contains(handler)) {
+            log.info("Handler is in the driver ! : " + driver.getHandlers());
+            driver = jdbcConfiguration.get().getDrivers().stream().filter(d -> d.getId().equals(handler)).findFirst()
+                    .orElse(null);
+        }
+
+        log.info("Returned driver : " + driver);
+
+        return driver;
+    }
+
+    @Update("DEFAULT_URL")
+    public JdbcConnection.ExplodedURL setDefaultURLValues(final String dbType, final String handler,
+            JdbcConnection.ExplodedURL explodedURL) {
+        final JdbcConnection.ExplodedURL newConf = new JdbcConnection.ExplodedURL();
+
+        final JdbcConfiguration.Driver configuration = this.getConfiguration(dbType, handler);
+
+        if (configuration == null) {
+            return newConf;
+        }
+
+        newConf.setDefineUrl(explodedURL.getDefineUrl());
+
+        newConf.setJdbcUrl(buildUrl(configuration.getDefaults()));
+
+        newConf.setDatabase(configuration.getDefaults().getDatabase());
+        newConf.setHost(configuration.getDefaults().getHost());
+        newConf.setPort(configuration.getDefaults().getPort());
+        newConf.setParameters(configuration.getDefaults().getParameters());
+
+        return newConf;
+    }
+
+    private List<JdbcConfiguration.KeyVal> setIfEmpty(List<JdbcConfiguration.KeyVal> current,
+            List<JdbcConfiguration.KeyVal> newVal) {
+        if (current == null) {
+            return newVal;
+        }
+
+        if (current.size() > 0) {
+            return current;
+        }
+
+        return newVal;
+    }
+
+    private Integer setIfEmpty(final Integer current, final Integer newValue) {
+        if (current == null) {
+            return newValue;
+        }
+
+        if (current == 0) {
+            return newValue;
+        }
+
+        return current;
+    }
+
+    private String buildUrl(JdbcConfiguration.Defaults defaults) {
+        final String params = defaults.getParameters().stream().map(p -> p.getKey() + "=" + p.getValue())
+                .collect(Collectors.joining("&"));
+        return "jdbc:" + defaults.getProtocol() + "://" + defaults.getHost() + ":" + defaults.getPort() + "/"
+                + defaults.getDatabase() + "?" + params;
+    }
 
     @DynamicValues(ACTION_LIST_SUPPORTED_DB)
     public Values loadSupportedDataBaseTypes() {

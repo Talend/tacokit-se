@@ -86,7 +86,7 @@ public class ChangeDataCaptureDataset implements BaseDataSet {
     }
 
     private String getQN(String table) {
-        String jdbcUrl = connection.getJdbcUrl();
+        String jdbcUrl = connection.getExplodedURL().getJdbcUrl();
         String[] splitParts = jdbcUrl.split("\\?");
         if (splitParts.length == 1)
             return table;
