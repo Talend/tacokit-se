@@ -19,6 +19,7 @@ import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +68,6 @@ public class Insert extends QueryManagerImpl {
 
     @Override
     public Map<Integer, Schema.Entry> getQueryParams() {
-        return namedParams;
+        return namedParams != null ? Collections.unmodifiableMap(namedParams) : null;
     }
 }

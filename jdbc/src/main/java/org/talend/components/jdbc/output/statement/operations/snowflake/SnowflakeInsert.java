@@ -29,7 +29,7 @@ import java.util.List;
 
 public class SnowflakeInsert extends Insert {
 
-    SnowflakeCopyService snowflakeCopy = new SnowflakeCopyService();
+    private final SnowflakeCopyService snowflakeCopy = new SnowflakeCopyService();
 
     public SnowflakeInsert(Platform platform, OutputConfig configuration, I18nMessage i18n) {
         super(platform, configuration, i18n);

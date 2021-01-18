@@ -31,7 +31,7 @@ import static java.util.stream.Collectors.joining;
 
 public class SnowflakeUpdate extends Update {
 
-    SnowflakeCopyService snowflakeCopy = new SnowflakeCopyService();
+    private final SnowflakeCopyService snowflakeCopy = new SnowflakeCopyService();
 
     public SnowflakeUpdate(Platform platform, OutputConfig configuration, I18nMessage i18n) {
         super(platform, configuration, i18n);

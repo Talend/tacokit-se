@@ -40,9 +40,9 @@ import java.util.Map;
 @Documentation("JDBC Output component")
 public class SimpleOutput extends Output implements Serializable {
 
-    private QueryManagerImpl queryManager;
+    private final QueryManagerImpl queryManager;
 
-    private Platform platform;
+    private final Platform platform;
 
     public SimpleOutput(@Option("configuration") final OutputConfig configuration, final JdbcService jdbcService,
             final I18nMessage i18n) {

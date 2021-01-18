@@ -51,7 +51,7 @@ public abstract class AbstractInputEmitter implements Serializable {
 
     private final InputConfig inputConfig;
 
-    private RecordBuilderFactory recordBuilderFactory;
+    private final RecordBuilderFactory recordBuilderFactory;
 
     private final JdbcService jdbcDriversService;
 
@@ -186,7 +186,7 @@ public abstract class AbstractInputEmitter implements Serializable {
                     } else if (value instanceof Short) {
                         builder.withInt(entryBuilder.withType(INT).build(), ((Short) value).intValue());
                     } else {
-                        builder.withLong(entryBuilder.withType(LONG).build(), Long.valueOf(value.toString()));
+                        builder.withLong(entryBuilder.withType(LONG).build(), Long.parseLong(value.toString()));
                     }
                 }
                 break;

@@ -28,6 +28,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
@@ -147,7 +148,7 @@ public class OutputConfig implements Serializable {
     }
 
     public List<String> getKeys() {
-        return keys.getKeys();
+        return Collections.unmodifiableList(keys.getKeys());
     }
 
     public void setKeys(List<String> keys) {

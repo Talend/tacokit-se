@@ -82,7 +82,7 @@ public class UpsertDefault extends QueryManagerImpl {
 
     @Override
     public Map<Integer, Schema.Entry> getQueryParams() {
-        return queryParams;
+        return queryParams != null ? Collections.unmodifiableMap(queryParams) : null;
     }
 
     @Override

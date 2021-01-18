@@ -31,7 +31,7 @@ import static java.util.stream.Collectors.joining;
 
 public class SnowflakeDelete extends Delete {
 
-    SnowflakeCopyService snowflakeCopy = new SnowflakeCopyService();
+    private final SnowflakeCopyService snowflakeCopy = new SnowflakeCopyService();
 
     public SnowflakeDelete(Platform platform, OutputConfig configuration, I18nMessage i18n) {
         super(platform, configuration, i18n);

@@ -21,6 +21,7 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -63,7 +64,7 @@ public class Update extends QueryManagerImpl {
 
     @Override
     public Map<Integer, Schema.Entry> getQueryParams() {
-        return queryParams;
+        return queryParams != null ? Collections.unmodifiableMap(queryParams) : null;
     }
 
     @Override
