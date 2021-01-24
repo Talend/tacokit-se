@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,10 +12,11 @@
  */
 package org.talend.components.common.stream.input.json;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+
 import java.math.BigDecimal;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -27,43 +28,27 @@ import javax.json.JsonObject;
 import javax.json.JsonString;
 import javax.json.JsonValue;
 
-import lombok.Data;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-
 public class JsonToRecord {
-
-    public final static String DEFAULT_DATE_FORMAT = "yyyy/MM/dd HH:mm:ssX";
-
-    public final static DateTimeFormatter dtf = DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT).withZone(ZoneId.of("UTC"));
 
     private final RecordBuilderFactory factory;
 
     private final NumberOption numberOption;
-
-    private final boolean typeAsPrefix;
 
     public JsonToRecord(final RecordBuilderFactory factory) {
         this(factory, false);
     }
 
     public JsonToRecord(RecordBuilderFactory factory, boolean forceNumberAsDouble) {
-        this(factory, forceNumberAsDouble, false);
-    }
-
-    public JsonToRecord(RecordBuilderFactory factory, boolean forceNumberAsDouble, boolean typeAsPrefix) {
         this.factory = factory;
         if (forceNumberAsDouble) {
             this.numberOption = NumberOption.ForceDoubleType;
         } else {
             this.numberOption = NumberOption.InferType;
         }
-
-        this.typeAsPrefix = typeAsPrefix;
     }
 
     /*
@@ -75,77 +60,40 @@ public class JsonToRecord {
     public Record toRecord(final JsonObject object) {
         final Record.Builder builder = factory.newRecordBuilder();
         object.forEach((String key, JsonValue value) -> {
-            final JsonValue.ValueType type = value.getValueType();
-            updateBuilder(type, key, value, builder);
-        });
-
-        return builder.build();
-    }
-
-    private Record.Builder updateBuilder(final JsonValue.ValueType type, final String key, final JsonValue value, final Record.Builder builder){
-        switch (type) {
+            final Schema.Entry.Builder entryBuilder = this.factory.newEntryBuilder().withName(key).withNullable(true);
+            switch (value.getValueType()) {
             case ARRAY: {
                 final List<Object> items = value.asJsonArray().stream().map(this::mapJson).collect(toList());
-                builder.withArray(factory.newEntryBuilder().withName(key).withType(Schema.Type.ARRAY)
-                        .withElementSchema(getArrayElementSchema(factory, items)).build(), items);
+                builder.withArray(
+                        entryBuilder.withType(Schema.Type.ARRAY).withElementSchema(getArrayElementSchema(factory, items)).build(),
+                        items);
                 break;
             }
             case OBJECT: {
                 final Record record = toRecord(value.asJsonObject());
-                builder.withRecord(factory.newEntryBuilder().withName(key).withType(Schema.Type.RECORD)
-                        .withElementSchema(record.getSchema()).build(), record);
+                builder.withRecord(entryBuilder.withType(Schema.Type.RECORD).withElementSchema(record.getSchema()).build(),
+                        record);
                 break;
             }
             case TRUE:
             case FALSE:
-                builder.withBoolean(key, JsonValue.TRUE.equals(value));
+                final Schema.Entry entry = entryBuilder.withType(Schema.Type.BOOLEAN).build();
+                builder.withBoolean(entry, JsonValue.TRUE.equals(value));
                 break;
             case STRING:
-                final String s = JsonString.class.cast(value).getString();
-                if (typeAsPrefix && s.startsWith("__")) {
-
-                    //forceType(builder, key, s);
-                } else {
-                    builder.withString(key, s);
-                }
+                builder.withString(key, JsonString.class.cast(value).getString());
                 break;
             case NUMBER:
                 final JsonNumber number = JsonNumber.class.cast(value);
-                this.numberOption.setNumber(builder, key, number);
+                this.numberOption.setNumber(builder, entryBuilder, number);
                 break;
             case NULL:
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported value type: " + value);
-        }
-        }
-
-    private void forceType(final Record.Builder builder, final String key, final String value) {
-        final String substring = value.substring(2); // remove prefix "__"
-        final int i = substring.indexOf("__"); // search suffix "__"
-
-        if (i < 1) {
-            // no type defined
-            builder.withString(key, value);
-            return;
-        }
-
-        final String stype = substring.substring(0, i);
-        final String content = substring.substring(i + 2);
-    }
-
-    public static byte[] hexStringToByteArray(String s) {
-        int len = s.length();
-
-        if (len % 2 != 0) {
-            throw new RuntimeException("Expected bytes array is wrong. It should have an even length : " + s);
-        }
-
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));
-        }
-        return data;
+            }
+        });
+        return builder.build();
     }
 
     private Object mapJson(final JsonValue it) {
@@ -258,8 +206,9 @@ public class JsonToRecord {
                 return number.doubleValue();
             }
 
-            public void setNumber(Record.Builder builder, String key, JsonNumber number) {
-                builder.withDouble(key, number.doubleValue());
+            public void setNumber(Record.Builder builder, Schema.Entry.Builder entryBuilder, JsonNumber number) {
+                final Schema.Entry entry = entryBuilder.withType(Schema.Type.DOUBLE).build();
+                builder.withDouble(entry, number.doubleValue());
             }
 
             public Schema.Type getNumberType(JsonNumber number) {
@@ -276,11 +225,13 @@ public class JsonToRecord {
                 }
             }
 
-            public void setNumber(Record.Builder builder, String key, JsonNumber number) {
+            public void setNumber(Record.Builder builder, Schema.Entry.Builder entryBuilder, JsonNumber number) {
                 if (number.isIntegral()) {
-                    builder.withLong(key, number.longValueExact());
+                    final Schema.Entry entry = entryBuilder.withType(Schema.Type.LONG).build();
+                    builder.withLong(entry, number.longValueExact());
                 } else {
-                    builder.withDouble(key, number.doubleValue());
+                    final Schema.Entry entry = entryBuilder.withType(Schema.Type.DOUBLE).build();
+                    builder.withDouble(entry, number.doubleValue());
                 }
             }
 
@@ -294,15 +245,9 @@ public class JsonToRecord {
 
         public abstract Number getNumber(JsonNumber number);
 
-        public abstract void setNumber(Record.Builder builder, String key, JsonNumber number);
+        public abstract void setNumber(Record.Builder builder, Schema.Entry.Builder entryBuilder, JsonNumber number);
 
         public abstract Schema.Type getNumberType(JsonNumber number);
-    }
-
-    @Data
-    private static class RealTypeValue{
-        private JsonValue.ValueType type;
-        private JsonValue value;
     }
 
 }
