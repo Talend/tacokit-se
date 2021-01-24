@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,9 +13,6 @@
 package org.talend.components.common.stream.input.json;
 
 import java.io.StringReader;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -26,6 +23,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.talend.components.common.stream.output.json.RecordToJson;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -49,8 +48,6 @@ class JsonToRecordTest {
 
     private JsonToRecord toRecordDoubleOption;
 
-    private JsonToRecord toRecordForceType;
-
     @BeforeAll
     static void initLog() {
         System.setProperty("org.slf4j.simpleLogger.log.org.talend.components.common.stream", "debug");
@@ -58,10 +55,13 @@ class JsonToRecordTest {
 
     @BeforeEach
     void start() {
+        start(false);
+    }
+
+    void start(final boolean forceDouble) {
         final RecordBuilderFactory recordBuilderFactory = new RecordBuilderFactoryImpl("test");
-        this.toRecord = new JsonToRecord(recordBuilderFactory);
-        this.toRecordDoubleOption = new JsonToRecord(recordBuilderFactory, true);
-        this.toRecordForceType = new JsonToRecord(recordBuilderFactory, false, true);
+        this.toRecord = new JsonToRecord(recordBuilderFactory, forceDouble);
+        toRecordDoubleOption = new JsonToRecord(recordBuilderFactory, true);
     }
 
     @Test
@@ -136,38 +136,18 @@ class JsonToRecordTest {
         Assertions.assertEquals(Schema.Type.DOUBLE, aNumberEntryDouble.getType());
     }
 
-    @Test
-    void testForceType() {
-        String source = "{\"is_int\" : \"__INT__10\", \"is_long\" : \"__LONG__10\", \"is_float\" : \"__FLOAT__10\", \"is_double\" : \"__DOUBLE__10\", \"is_bytes\" : \"__BYTES__000102030A7F80FFFEFDF6\", \"is_datetime\" : \"__DATETIME__2020/10/01 00:06:00+02\"}";
+    @ParameterizedTest
+    @ValueSource(booleans = { true, false })
+    void fieldAreNullable(final boolean forceDouble) {
+        start(forceDouble);
+
+        String source = "{\"a_string\" : \"string1\", \"a_long\" : 123, \"a_double\" : 123.123, \"a_boolean\" : true, \"an_object\" : {\"att_a\" : \"aaa\", \"att_b\" : \"bbb\"}, \"an_array\" : [\"aaa\", \"bbb\", \"ccc\"]}";
         JsonObject json = getJsonObject(source);
-        final Record record = toRecordForceType.toRecord(json);
+        final Record record = toRecord.toRecord(json);
 
-        final Entry is_int = findEntry(record.getSchema(), "is_int");
-        Assertions.assertEquals(Schema.Type.INT, is_int.getType());
-        Assertions.assertEquals(10, record.getInt("is_int"));
-
-        final Entry is_long = findEntry(record.getSchema(), "is_long");
-        Assertions.assertEquals(Schema.Type.LONG, is_long.getType());
-        Assertions.assertEquals(10L, record.getLong("is_long"));
-
-        final Entry is_float = findEntry(record.getSchema(), "is_float");
-        Assertions.assertEquals(Schema.Type.FLOAT, is_float.getType());
-        Assertions.assertEquals(10f, record.getFloat("is_float"));
-
-        final Entry is_double = findEntry(record.getSchema(), "is_double");
-        Assertions.assertEquals(Schema.Type.DOUBLE, is_double.getType());
-        Assertions.assertEquals(10d, record.getDouble("is_double"));
-
-        final Entry is_bytes = findEntry(record.getSchema(), "is_bytes");
-        Assertions.assertEquals(Schema.Type.BYTES, is_bytes.getType());
-        Assertions.assertArrayEquals(new byte[] { 0, 1, 2, 3, 10, 127, -128, -1, -2, -3, -10 }, record.getBytes("is_bytes"));
-
-        final Entry is_datetime = findEntry(record.getSchema(), "is_datetime");
-        Assertions.assertEquals(Schema.Type.DATETIME, is_datetime.getType());
-
-        final String DEFAULT_DATE_FORMAT = "yyyy/MM/dd HH:mm:ssX";
-        final DateTimeFormatter dtf = DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT).withZone(ZoneId.of("UTC"));
-        Assertions.assertEquals(ZonedDateTime.parse("2020/10/01 00:06:00+02", dtf), record.getDateTime("is_datetime"));
+        record.getSchema().getEntries().stream().forEach(e -> {
+            Assertions.assertTrue(e.isNullable(), e.getName() + " of type " + e.getType() + " should be nullable.");
+        });
     }
 
     private Entry findEntry(Schema schema, String entryName) {
