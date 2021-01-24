@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -56,15 +56,15 @@ class AssertServiceTest {
         Config conf = new Config();
 
         Config.AssertEntry check_a_string = new Config.AssertEntry("/a_string", Schema.Type.STRING, Config.Condition.EQUALS,
-                "aaa0", "Check a 1st level string attribute.\"");
+                "aaa0", "", "Check a 1st level string attribute.\"");
         conf.addAssertEntry(check_a_string);
 
         Config.AssertEntry check_a_nested_string = new Config.AssertEntry("/a_record/a_nested_string", Schema.Type.STRING,
-                Config.Condition.EQUALS, "aaa1", "Check a 1st level string attribute.");
+                Config.Condition.EQUALS, "aaa1", "", "Check a 1st level string attribute.");
         conf.addAssertEntry(check_a_nested_string);
 
         Config.AssertEntry check_a_nested_int = new Config.AssertEntry("/a_record/a_nested_int", Schema.Type.INT,
-                Config.Condition.EQUALS, "2234", "Check a 2st level int nested attribute.");
+                Config.Condition.EQUALS, "2234", "", "Check a 2st level int nested attribute.");
         conf.addAssertEntry(check_a_nested_string);
 
         final List<String> validate = assertService.validate(conf, record);
@@ -81,15 +81,15 @@ class AssertServiceTest {
         Config conf = new Config();
 
         Config.AssertEntry check_a_string = new Config.AssertEntry("/a_stringX", Schema.Type.STRING, Config.Condition.EQUALS,
-                "aaa0", "Check a 1st level string attribute.");
+                "aaa0", "", "Check a 1st level string attribute.");
         conf.addAssertEntry(check_a_string);
 
         Config.AssertEntry check_a_nested_string = new Config.AssertEntry("/a_record/a_nested_stringX", Schema.Type.STRING,
-                Config.Condition.EQUALS, "aaa1", "Check a 1st level string attribute.");
+                Config.Condition.EQUALS, "aaa1", "", "Check a 1st level string attribute.");
         conf.addAssertEntry(check_a_nested_string);
 
         Config.AssertEntry check_a_nested_int = new Config.AssertEntry("/a_record/a_nested_int", Schema.Type.STRING,
-                Config.Condition.EQUALS, "2234", "Check a 2st level int nested attribute.");
+                Config.Condition.EQUALS, "2234", "", "Check a 2st level int nested attribute.");
         conf.addAssertEntry(check_a_nested_string);
 
         final List<String> validate = assertService.validate(conf, record);
@@ -105,7 +105,7 @@ class AssertServiceTest {
 
         Config conf = new Config();
 
-        Config.AssertEntry check_a_string = new Config.AssertEntry("/a_string", Schema.Type.STRING, Config.Condition.CUSTOM,
+        Config.AssertEntry check_a_string = new Config.AssertEntry("/a_string", Schema.Type.STRING, Config.Condition.CUSTOM, "",
                 "\"${/a_record/a_nested_string}\".equals(\"${value}\")", "Check a 1st level string attribute.");
         conf.addAssertEntry(check_a_string);
 

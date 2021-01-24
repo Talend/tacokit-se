@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -50,12 +50,12 @@ public class CustomValidator extends Validator {
     }
 
     @Override
-    boolean validate(Config.Condition condition, String expected, Object value, Record record) {
+    boolean validate(Config.Condition condition, String code, Object value, Record record) {
         final Substitutor.KeyFinder parameterFinder = new Substitutor.KeyFinder("${", "}");
         final RecordDictionary dictionary = new RecordDictionary(record, recordPointerFactory, value.toString());
         final Substitutor substitutor = new Substitutor(parameterFinder, dictionary);
 
-        final String substituted = substitutor.replace(expected);
+        final String substituted = substitutor.replace(code);
         log.info(AssertService.LOG_PREFIX + "CUSTOM validator substituted value to test : " + substituted);
 
         try {

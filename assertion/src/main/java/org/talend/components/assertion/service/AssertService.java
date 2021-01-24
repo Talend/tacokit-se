@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -19,20 +19,36 @@ import org.talend.components.common.stream.api.RecordIORepository;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.RecordPointer;
 import org.talend.sdk.component.api.record.RecordPointerFactory;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.completion.SuggestionValues;
+import org.talend.sdk.component.api.service.completion.Suggestions;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.api.service.record.RecordService;
+import org.talend.sdk.component.api.service.update.Update;
 
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
 import javax.json.stream.JsonParserFactory;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @Data
 public class AssertService {
+
+    public final static String SUPPORTED_TYPES = "SUPPORTED_TYPES";
+
+    public final static String LOAD_CONFIG = "LOAD_CONFIG";
 
     public final static String LOG_PREFIX = "ASSERT - ";
 
@@ -51,8 +67,42 @@ public class AssertService {
     @Service
     private RecordService recordService;
 
+    @Update(LOAD_CONFIG)
+    public Config.AssertionConfig loadConfig(final Config config) throws Exception {
+        InputStream configInputStream = new ByteArrayInputStream(
+                config.getAssertionConfig().getJsonConfiguration().getJsonConfiguration().getBytes());
+        final JsonReader reader = jsonReaderFactory.createReader(configInputStream);
+        final List<Config.AssertEntry> assertions = reader.readArray().stream().map(e -> e.asJsonObject())
+                .map(this::jsonToAssertEntry).collect(Collectors.toList());
+
+        config.getAssertionConfig().setAssertions(assertions);
+        return config.getAssertionConfig();
+    }
+
+    public Config.AssertEntry jsonToAssertEntry(final JsonObject o) {
+        return new Config.AssertEntry(o.getString("path"), Schema.Type.valueOf(o.getString("type")),
+                Config.Condition.valueOf(o.getString("condition")), o.getString("value"), o.getString("custom"),
+                o.getString("message"));
+    }
+
+    @Suggestions(AssertService.SUPPORTED_TYPES)
+    public SuggestionValues getSupportedTypes() {
+        final List<SuggestionValues.Item> supportedTypes = Arrays
+                .asList(Schema.Type.ARRAY, Schema.Type.STRING, Schema.Type.BYTES, Schema.Type.INT, Schema.Type.LONG,
+                        Schema.Type.FLOAT, Schema.Type.DOUBLE, Schema.Type.BOOLEAN, Schema.Type.DATETIME)
+                .stream().sorted(new Comparator<Schema.Type>() {
+
+                    @Override
+                    public int compare(Schema.Type o1, Schema.Type o2) {
+                        return o1.name().compareTo(o2.name());
+                    }
+                }).map(t -> new SuggestionValues.Item(t.name(), t.name())).collect(Collectors.toList());
+
+        return new SuggestionValues(true, supportedTypes);
+    }
+
     public List<String> validate(final Config config, final Record record) {
-        return validateAssertionsOnRecord(config.getAssertions(), record, config.getDateFormat());
+        return validateAssertionsOnRecord(config.getAssertionConfig().getAssertions(), record, config.getDateFormat());
     }
 
     private List<String> validateAssertionsOnRecord(final List<Config.AssertEntry> assertions, final Record record,
@@ -79,7 +129,13 @@ public class AssertService {
         final RecordPointer pointer = recordPointerFactory.apply(asrt.getPath());
         try {
             final Object value = pointer.getValue(record, Util.getClassFromType(asrt.getType()));
-            final boolean validate = validator.validate(asrt.getCondition(), asrt.getValue(), value, record);
+
+            String expected = asrt.getValue();
+            if (asrt.getCondition() == Config.Condition.CUSTOM) {
+                expected = asrt.getCustom();
+            }
+
+            final boolean validate = validator.validate(asrt.getCondition(), expected, value, record);
             String err = this.buildErrorMsg(validate, asrt, value);
             return Optional.ofNullable(err);
         } catch (IllegalArgumentException | ClassCastException e) {

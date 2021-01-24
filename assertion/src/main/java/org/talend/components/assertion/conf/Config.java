@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,24 +15,30 @@ package org.talend.components.assertion.conf;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.talend.components.assertion.service.AssertService;
 import org.talend.components.assertion.service.DateValidator;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Suggestable;
+import org.talend.sdk.component.api.configuration.action.Updatable;
+import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataStore;
 import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.OptionsOrder;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.widget.Code;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.record.Schema;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 @Data
 @GridLayout({ @GridLayout.Row({ "dse" }), @GridLayout.Row({ "dateFormat" }), @GridLayout.Row({ "dieOnError" }),
-        @GridLayout.Row({ "assertions" }) })
+        @GridLayout.Row({ "assertionConfig" }) })
 public class Config implements Serializable {
 
     // @TODO : should remove datastore/dataset, the connector should be a simple processor
@@ -50,9 +56,24 @@ public class Config implements Serializable {
     boolean dieOnError = true;
 
     @Option
-    @Required
-    @Documentation("List of assertions.")
-    List<AssertEntry> assertions;
+    @Documentation("Assetion configuration")
+    @Updatable(value = AssertService.LOAD_CONFIG, parameters = { ".." }, after = "jsonConfiguration")
+    AssertionConfig assertionConfig = new AssertionConfig();
+
+    @Data
+    @GridLayout({ @GridLayout.Row({ "assertions" }), @GridLayout.Row({ "jsonConfiguration" }) })
+    public static class AssertionConfig implements Serializable {
+
+        @Option
+        @Required
+        @Documentation("List of assertions.")
+        List<AssertEntry> assertions;
+
+        @Option
+        @Documentation("Load configuration from json description")
+        JsonConfiguration jsonConfiguration;
+
+    }
 
     @GridLayout({ @GridLayout.Row({ "dso" }) })
     @Data
@@ -72,17 +93,17 @@ public class Config implements Serializable {
     }
 
     public void addAssertEntry(AssertEntry e) {
-        if (this.assertions == null) {
-            this.assertions = new ArrayList<>();
+        if (this.getAssertionConfig().getAssertions() == null) {
+            this.getAssertionConfig().setAssertions(new ArrayList<>());
         }
 
-        this.assertions.add(e);
+        this.getAssertionConfig().getAssertions().add(e);
     }
 
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    @OptionsOrder({ "path", "type", "condition", "value", "err_message" })
+    @OptionsOrder({ "path", "type", "condition", "value", "err_message", "custom" })
     @Documentation("Assertion description entry.")
     public static class AssertEntry implements Serializable {
 
@@ -93,6 +114,7 @@ public class Config implements Serializable {
 
         @Option
         @Required
+        @Suggestable(value = AssertService.SUPPORTED_TYPES)
         @Documentation("Check the expected type.")
         private Schema.Type type;
 
@@ -102,9 +124,15 @@ public class Config implements Serializable {
         private Condition condition;
 
         @Option
-        @Required
         @Documentation("The expected value.")
+        @ActiveIf(target = "condition", value = "CUSTOM", negate = true)
         private String value;
+
+        @Option
+        @Documentation("Custom code validation")
+        @Code("java")
+        @ActiveIf(target = "condition", value = "CUSTOM")
+        private String custom;
 
         @Option
         @Required
@@ -117,6 +145,24 @@ public class Config implements Serializable {
                     + " with expected value '" + value + "'";
         }
 
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @OptionsOrder({ "displayJsonConfiguration", "jsonConfiguration" })
+    @Documentation("Load assertion configuration from json description.")
+    public final static class JsonConfiguration implements Serializable {
+
+        @Option
+        @Documentation("Display json configuration.")
+        boolean displayJsonConfiguration = false;
+
+        @Option
+        @Documentation("Display json configuration.")
+        @Code("json")
+        @ActiveIf(target = "displayJsonConfiguration", value = "true")
+        String jsonConfiguration;
     }
 
     public enum Condition {
