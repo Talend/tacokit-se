@@ -13,35 +13,27 @@
 package org.talend.components.marketo.service;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.talend.components.marketo.MarketoBaseTest;
-import org.talend.components.marketo.MarketoBaseTestIT;
-import org.talend.components.marketo.datastore.MarketoDataStore;
-import org.talend.sdk.component.api.DecryptedServer;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.junit.http.internal.impl.MarketoResponseLocator;
 import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.junit5.WithMavenServers;
-import org.talend.sdk.component.maven.Server;
 
 import lombok.extern.slf4j.Slf4j;
 
 @TestInstance(Lifecycle.PER_CLASS)
 @Slf4j
-@WithMavenServers
 @WithComponents("org.talend.components.marketo")
-public class UIActionServiceTestIT extends MarketoBaseTestIT {
-
-
+@HttpApi(useSsl = true, responseLocator = MarketoResponseLocator.class)
+public class UIActionServiceTest extends MarketoBaseTest {
 
     @Service
     protected UIActionService service;
-
 
     @Test
     void getListNamesExceedingBatchLimit() {

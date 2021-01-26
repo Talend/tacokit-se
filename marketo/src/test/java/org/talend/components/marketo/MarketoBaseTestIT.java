@@ -33,42 +33,32 @@ import org.talend.sdk.component.maven.Server;
 import lombok.Data;
 
 @Data
+@WithMavenServers
 @WithComponents("org.talend.components.marketo")
-public class MarketoBaseTest {
+public class MarketoBaseTestIT extends MarketoBaseTest {
 
-    @ClassRule
-    public static final SimpleComponentRule component = new SimpleComponentRule("org.talend.components.marketo");
 
-    @Injected
-    protected BaseComponentsHandler handler;
+    @DecryptedServer(value = "marketo-nocrm")
+    protected Server serverNoCrm;
 
-    @Service
-    protected RecordBuilderFactory recordBuilderFactory;
+    @DecryptedServer(value = "marketo-nocrm-instance")
+    protected Server serverNoCrmInstance;
 
-    @Service
-    protected MarketoService service;
-
-    protected final MarketoDataStore dataStore = new MarketoDataStore();
-
-    protected final MarketoDataSet dataSet = new MarketoDataSet();
-
-    protected MarketoInputConfiguration inputConfiguration = new MarketoInputConfiguration();
-
-    protected MarketoOutputConfiguration outputConfiguration = new MarketoOutputConfiguration();
 
     @BeforeClass
     void init() {
-        service = component.findService(MarketoService.class);
+        super.init();
     }
 
     @BeforeEach
     protected void setUp() {
-        dataStore.setEndpoint("https://marketo.com");
-        dataStore.setClientId("clientId");
-        dataStore.setClientSecret("clientSecret");
+        super.setUp();
+        final String endpoint = serverNoCrmInstance.getUsername();
+        final String clientId = serverNoCrm.getUsername();
+        final String clientSecret = serverNoCrm.getPassword();
 
-        dataSet.setDataStore(dataStore);
-        inputConfiguration.setDataSet(dataSet);
-        outputConfiguration.setDataSet(dataSet);
+        dataStore.setEndpoint(endpoint);
+        dataStore.setClientId(clientId);
+        dataStore.setClientSecret(clientSecret);
     }
 }

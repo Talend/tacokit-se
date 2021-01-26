@@ -12,6 +12,9 @@
  */
 package org.talend.components.marketo;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,20 +22,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.marketo.dataset.MarketoOutputConfiguration.OutputAction;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.junit.http.internal.impl.MarketoResponseLocator;
 import org.talend.sdk.component.junit.http.junit5.HttpApi;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
 import lombok.extern.slf4j.Slf4j;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
-
 @Slf4j
 @WithComponents("org.talend.components.marketo")
 @HttpApi(useSsl = true)
-public class PeopleTestIT extends MarketoBaseTestIT {
+public class PeopleTest extends MarketoBaseTest {
 
     public static final String LIST_ID_COMPQA = "1011";
 
