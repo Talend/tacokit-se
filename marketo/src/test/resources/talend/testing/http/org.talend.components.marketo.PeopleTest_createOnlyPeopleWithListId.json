@@ -13,7 +13,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"e644406d-6329-4c1a-8458-e3fa27fff572:sj\",\"token_type\":\"bearer\",\"expires_in\":458,\"scope\":\"xxxx@talend.com\"}",
+      "payload":"{\"access_token\":\"fake_token_for_unittest\",\"token_type\":\"bearer\",\"expires_in\":458,\"scope\":\"xxxx@talend.com\"}",
       "status":200
     }
   },
@@ -24,7 +24,7 @@
         "Content-Length":"135"
       },
       "method":"POST",
-      "uri":"https://marketo.com/rest/v1/leads.json?access_token=e644406d-6329-4c1a-8458-e3fa27fff572%3Asj"
+      "uri":"https://marketo.com/rest/v1/leads.json?access_token=fake_token_for_unittest"
     },
     "response":{
       "headers":{
@@ -43,7 +43,7 @@
         "Content-Length":"12"
       },
       "method":"POST",
-      "uri":"https://marketo.com/rest/v1/lists/1011/leads.json?access_token=e644406d-6329-4c1a-8458-e3fa27fff572%3Asj"
+      "uri":"https://marketo.com/rest/v1/lists/1011/leads.json?access_token=fake_token_for_unittest"
     },
     "response":{
       "headers":{

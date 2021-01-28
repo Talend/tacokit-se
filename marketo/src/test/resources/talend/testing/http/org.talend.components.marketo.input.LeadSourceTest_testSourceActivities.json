@@ -3,7 +3,6 @@
     "request":{
       "headers":{
         "content-length":"0",
-        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
         "Connection":"keep-alive"
       },
       "method":"GET",
@@ -12,13 +11,10 @@
     "response":{
       "headers":{
         "Transfer-Encoding":"chunked",
-        "Cache-Control":"no-store",
-        "Server":"nginx",
-        "Connection":"keep-alive",
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"06102713-0b47-4422-9e84-cdb74196179b:sj\",\"token_type\":\"bearer\",\"expires_in\":106,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"false_token_for_unittest2\",\"token_type\":\"bearer\",\"expires_in\":106,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -30,16 +26,16 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://marketo.com/rest/v1/activities/pagingtoken.json?access_token=06102713-0b47-4422-9e84-cdb74196179b%3Asj&sinceDatetime=2019-03-23"
+      "uri":"https://marketo.com/rest/v1/activities/pagingtoken.json?access_token=false_token_for_unittest2&sinceDatetime=2019-03-23"
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
-        "Content-Length":"122",
+        "Content-Length":"88",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"17ed#1773f6c4d35\",\"success\":true,\"nextPageToken\":\"VECJ6AWMIQQF3LK4TOE4PIOQRK5YY4RPA56B2EV5JWCQBEUFDNPA====\"}",
+      "payload":"{\"requestId\":\"17ed#1773f6c4d35\",\"success\":true,\"nextPageToken\":\"NEXT_PAGE_TOKEN_FOR_UT\"}",
       "status":200
     }
   },
@@ -47,20 +43,19 @@
     "request":{
       "headers":{
         "content-length":"0",
-        "Accept":"text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2",
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://marketo.com/rest/v1/activities.json?access_token=06102713-0b47-4422-9e84-cdb74196179b%3Asj&nextPageToken=VECJ6AWMIQQF3LK4TOE4PIOQRK5YY4RPA56B2EV5JWCQBEUFDNPA%3D%3D%3D%3D&activityTypeIds=1,2,3,6,7,8,9,10,22&assetIds=&listId=1011&leadIds="
+      "uri":"https://marketo.com/rest/v1/activities.json?access_token=false_token_for_unittest2&nextPageToken=NEXT_PAGE_TOKEN_FOR_UT&activityTypeIds=1,2,3,6,7,8,9,10,22&assetIds=&listId=1011&leadIds="
     },
     "response":{
       "headers":{
         "Server":"nginx",
         "Connection":"keep-alive",
-        "Content-Length":"142",
+        "Content-Length":"110",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"requestId\":\"1288c#1773f6c519a\",\"success\":true,\"nextPageToken\":\"VECJ6AWMIQQF3LK4TOE4PIOQRIPUDBRGQPJ7BP6IO4KONMWSZBHQ====\",\"moreResult\":false}",
+      "payload":"{\"requestId\":\"1288c#1773f6c519a\",\"success\":true,\"nextPageToken\":\"NEXT_PAGE_2_TOKEN_FOR_UT\",\"moreResult\":false}",
       "status":200
     }
   }

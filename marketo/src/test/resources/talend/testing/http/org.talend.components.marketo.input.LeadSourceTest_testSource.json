@@ -14,7 +14,7 @@
         "Pragma":"no-cache",
         "Content-Type":"application/json;charset=UTF-8"
       },
-      "payload":"{\"access_token\":\"06102713-0b47-4422-9e84-cdb74196179b:sj\",\"token_type\":\"bearer\",\"expires_in\":2741,\"scope\":\"undx@talend.com\"}",
+      "payload":"{\"access_token\":\"false_token_for_unittest\",\"token_type\":\"bearer\",\"expires_in\":2741,\"scope\":\"undx@talend.com\"}",
       "status":200
     }
   },
@@ -25,7 +25,7 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://marketo.com/rest/v1/leads/describe.json?access_token=06102713-0b47-4422-9e84-cdb74196179b%3Asj"
+      "uri":"https://marketo.com/rest/v1/leads/describe.json?access_token=false_token_for_unittest"
     },
     "response":{
       "headers":{
@@ -43,7 +43,7 @@
         "Connection":"keep-alive"
       },
       "method":"GET",
-      "uri":"https://marketo.com/rest/v1/lists/1011/leads.json?access_token=06102713-0b47-4422-9e84-cdb74196179b%3Asj&fields=leadStatus,isLead,mainPhone,originalSourceType,mktoDoNotCallCause,registrationSourceType,billingCountry,id,state,fax,relativeUrgency,inferredStateRegion,originalSearchEngine,originalSearchPhrase,mktoIsCustomer,facebookId,mktoAcquisitionDate,priority,numberOfEmployees,externalSalesPersonId,isAnonymous,externalCompanyId,mobilePhone,phone,inferredPhoneAreaCode,lastName,gender,customtest,city,emailInvalidCause,linkedInDisplayName,twitterReferredEnrollments,industry,mktoCompanyNotes,marketingSuspended,cookies,twitterId,unsubscribedReason,originalReferrer,personTimeZone,blackListedCause,leadPerson,emailSuspended,leadRevenueStageId,linkedInPhotoURL,personType,deliveryCount,email,customdate,website,syndicationId,address,emailSuspendedCause,dateOfBirth,site,unsubscribed,relativeScore,twitterProfileURL,billingStreet,customstring,sicCode,twitterReferredVisits,contactCompany,country,originalSourceInfo,mktoIsPartner,postalCode,inferredPostalCode,rating,facebookProfileURL,lastReferredVisit,mktoName,linkedInProfileURL,mktoPersonNotes,custominteger,inferredCompany,createdAt,customemail,registrationSourceInfo,linkedInReferredVisits,inferredMetropolitanArea,anonymousIP,updatedAt,leadRevenueCycleModelId,inferredCity,leadSource,linkedInReferredEnrollments,billingState,facebookReach,facebookReferredVisits,firstName,doNotCall,salutation,annualRevenue,marketingSuspendedCause,leadScore,personPrimaryLeadInterest,twitterDisplayName,twitterReach,twitterPhotoURL,title,doNotCallReason,facebookReferredEnrollments,lastReferredEnrollment,urgency,emailSuspendedAt,emailInvalid,company,totalReferredEnrollments,department,linkedInId,totalReferredVisits,linkedInReach,leadPartitionId,blackListed,leadRole,facebookDisplayName,acquisitionProgramId,inferredCountry,billingPostalCode,facebookPhotoURL,middleName,billingCity"
+      "uri":"https://marketo.com/rest/v1/lists/1011/leads.json?access_token=false_token_for_unittest&fields=leadStatus,isLead,mainPhone,originalSourceType,mktoDoNotCallCause,registrationSourceType,billingCountry,id,state,fax,relativeUrgency,inferredStateRegion,originalSearchEngine,originalSearchPhrase,mktoIsCustomer,facebookId,mktoAcquisitionDate,priority,numberOfEmployees,externalSalesPersonId,isAnonymous,externalCompanyId,mobilePhone,phone,inferredPhoneAreaCode,lastName,gender,customtest,city,emailInvalidCause,linkedInDisplayName,twitterReferredEnrollments,industry,mktoCompanyNotes,marketingSuspended,cookies,twitterId,unsubscribedReason,originalReferrer,personTimeZone,blackListedCause,leadPerson,emailSuspended,leadRevenueStageId,linkedInPhotoURL,personType,deliveryCount,email,customdate,website,syndicationId,address,emailSuspendedCause,dateOfBirth,site,unsubscribed,relativeScore,twitterProfileURL,billingStreet,customstring,sicCode,twitterReferredVisits,contactCompany,country,originalSourceInfo,mktoIsPartner,postalCode,inferredPostalCode,rating,facebookProfileURL,lastReferredVisit,mktoName,linkedInProfileURL,mktoPersonNotes,custominteger,inferredCompany,createdAt,customemail,registrationSourceInfo,linkedInReferredVisits,inferredMetropolitanArea,anonymousIP,updatedAt,leadRevenueCycleModelId,inferredCity,leadSource,linkedInReferredEnrollments,billingState,facebookReach,facebookReferredVisits,firstName,doNotCall,salutation,annualRevenue,marketingSuspendedCause,leadScore,personPrimaryLeadInterest,twitterDisplayName,twitterReach,twitterPhotoURL,title,doNotCallReason,facebookReferredEnrollments,lastReferredEnrollment,urgency,emailSuspendedAt,emailInvalid,company,totalReferredEnrollments,department,linkedInId,totalReferredVisits,linkedInReach,leadPartitionId,blackListed,leadRole,facebookDisplayName,acquisitionProgramId,inferredCountry,billingPostalCode,facebookPhotoURL,middleName,billingCity"
     },
     "response":{
       "headers":{
