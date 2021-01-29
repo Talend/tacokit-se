@@ -12,12 +12,8 @@
  */
 package org.talend.components.jdbc.datastore;
 
-import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_HANDLERS_DB;
-import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_SUPPORTED_DB;
-import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.OR;
-
-import java.io.Serializable;
-
+import lombok.Data;
+import lombok.ToString;
 import org.talend.components.jdbc.service.UIActionService;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -34,11 +30,14 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import lombok.Data;
-import lombok.ToString;
+import java.io.Serializable;
+
+import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_HANDLERS_DB;
+import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_SUPPORTED_DB;
+import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.OR;
 
 @Data
-@Version(2)
+@Version(value = 2, migrationHandler = JdbcConnectionMigrationHandler.class)
 @ToString(exclude = { "password", "privateKey", "privateKeyPassword" })
 @GridLayout({ @GridLayout.Row({ "dbType", "handler" }), @GridLayout.Row("jdbcUrl"), @GridLayout.Row("authenticationType"),
         @GridLayout.Row("userId"), @GridLayout.Row("password"), @GridLayout.Row("privateKey"),
