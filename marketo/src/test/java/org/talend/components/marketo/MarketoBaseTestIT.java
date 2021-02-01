@@ -37,13 +37,11 @@ import lombok.Data;
 @WithComponents("org.talend.components.marketo")
 public class MarketoBaseTestIT extends MarketoBaseTest {
 
-
     @DecryptedServer(value = "marketo-nocrm")
     protected Server serverNoCrm;
 
     @DecryptedServer(value = "marketo-nocrm-instance")
     protected Server serverNoCrmInstance;
-
 
     @BeforeClass
     void init() {
