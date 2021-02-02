@@ -97,4 +97,6 @@ public interface I18nMessage {
     String errorPrivateKeyPasswordIncorrect();
 
     String errorPrivateKeyIncorrect();
+
+    String errorCantDiscoverDataset();
 }
