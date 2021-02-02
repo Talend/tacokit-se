@@ -31,7 +31,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.talend.components.azure.common.FileFormat;
 import org.talend.components.azure.common.connection.AzureStorageConnectionAccount;
 import org.talend.components.azure.common.csv.CSVFormatOptions;
@@ -151,7 +151,7 @@ public class BlobTestUtils {
                 records.addAll(parser.getRecords());
             } catch (Exception e) {
                 e.printStackTrace();
-                Assert.fail();
+                Assertions.fail();
             }
         }
         return records;

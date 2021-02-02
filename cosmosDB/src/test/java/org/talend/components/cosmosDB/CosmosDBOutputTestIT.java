@@ -14,7 +14,7 @@ package org.talend.components.cosmosDB;
 
 import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.documentdb.DocumentClientException;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.talend.components.cosmosDB.output.CosmosDBOutput;
@@ -43,7 +43,7 @@ public class CosmosDBOutputTestIT extends CosmosDbTestBase {
         cosmosDBOutput.onNext(record);
         cosmosDBOutput.release();
         Document document = cosmosTestUtils.readDocuments(collectionID, record.getString("id"), "firstfirst");
-        Assert.assertTrue(this.recordEqual(record, document));
+        Assertions.assertTrue(this.recordEqual(record, document));
 
     }
 
@@ -60,7 +60,7 @@ public class CosmosDBOutputTestIT extends CosmosDbTestBase {
         cosmosDBOutput.onNext(record);
         cosmosDBOutput.release();
         boolean exist = cosmosTestUtils.isCollectionExist("pyzhouTest2");
-        Assert.assertTrue(exist);
+        Assertions.assertTrue(exist);
         if (exist)
             cosmosTestUtils.deleteCollection("pyzhouTest2");
     }
@@ -78,9 +78,9 @@ public class CosmosDBOutputTestIT extends CosmosDbTestBase {
         cosmosDBOutput.release();
         try {
             cosmosTestUtils.readDocuments(collectionID, "Andersen.1", "Andersen");
-            Assert.fail();
+            Assertions.fail();
         } catch (DocumentClientException e) {
-            Assert.assertEquals(404, e.getStatusCode());
+            Assertions.assertEquals(404, e.getStatusCode());
         }
 
     }

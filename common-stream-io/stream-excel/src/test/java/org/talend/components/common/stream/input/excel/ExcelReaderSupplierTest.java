@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -92,19 +92,19 @@ class ExcelReaderSupplierTest {
 
             if (config.getHeader().isActive()) {
 
-                Assert.assertEquals(idValue, firstRecord.getDouble("id"), 0.01);
-                Assert.assertEquals(nameValue, firstRecord.getString("name"));
-                Assert.assertEquals(longValue, firstRecord.getDouble("longValue"), 0.01);
-                Assert.assertEquals(doubleValue, firstRecord.getDouble("doubleValue"), 0.01);
-                Assert.assertEquals(dateValue, firstRecord.getDouble("dateValue"), 0.01);
-                Assert.assertEquals(booleanValue, firstRecord.getBoolean("booleanValue"));
+                Assertions.assertEquals(idValue, firstRecord.getDouble("id"), 0.01);
+                Assertions.assertEquals(nameValue, firstRecord.getString("name"));
+                Assertions.assertEquals(longValue, firstRecord.getDouble("longValue"), 0.01);
+                Assertions.assertEquals(doubleValue, firstRecord.getDouble("doubleValue"), 0.01);
+                Assertions.assertEquals(dateValue, firstRecord.getDouble("dateValue"), 0.01);
+                Assertions.assertEquals(booleanValue, firstRecord.getBoolean("booleanValue"));
             } else {
-                Assert.assertEquals(idValue, firstRecord.getDouble("field0"), 0.01);
-                Assert.assertEquals(nameValue, firstRecord.getString("field1"));
-                Assert.assertEquals(longValue, firstRecord.getDouble("field2"), 0.01);
-                Assert.assertEquals(doubleValue, firstRecord.getDouble("field3"), 0.01);
-                Assert.assertEquals(dateValue, firstRecord.getDouble("field4"), 0.01);
-                Assert.assertEquals(booleanValue, firstRecord.getBoolean("field5"));
+                Assertions.assertEquals(idValue, firstRecord.getDouble("field0"), 0.01);
+                Assertions.assertEquals(nameValue, firstRecord.getString("field1"));
+                Assertions.assertEquals(longValue, firstRecord.getDouble("field2"), 0.01);
+                Assertions.assertEquals(doubleValue, firstRecord.getDouble("field3"), 0.01);
+                Assertions.assertEquals(dateValue, firstRecord.getDouble("field4"), 0.01);
+                Assertions.assertEquals(booleanValue, firstRecord.getBoolean("field5"));
             }
             Assertions.assertFalse(records.hasNext(), "more than one record");
         }

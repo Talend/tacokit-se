@@ -37,11 +37,8 @@ import lombok.extern.slf4j.Slf4j;
 @WithComponents("org.talend.components.marketo")
 public class UIActionServiceTestIT extends MarketoBaseTestIT {
 
-
-
     @Service
     protected UIActionService service;
-
 
     @Test
     void getListNamesExceedingBatchLimit() {

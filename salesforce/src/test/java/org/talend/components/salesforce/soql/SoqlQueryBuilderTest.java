@@ -14,7 +14,7 @@ package org.talend.components.salesforce.soql;
 
 import java.util.Arrays;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -33,7 +33,7 @@ public class SoqlQueryBuilderTest {
 
         String queryFromBuilder = new SoqlQueryBuilder(Arrays.asList("Id", "Name", "BillingCity"), "Account").buildSoqlQuery();
 
-        Assert.assertEquals(expected, queryFromBuilder);
+        Assertions.assertEquals(expected, queryFromBuilder);
     }
 
     /**
@@ -48,7 +48,7 @@ public class SoqlQueryBuilderTest {
         String queryFromBuilder = new SoqlQueryBuilder(Arrays.asList("Name", "Account_Name", "Account_Owner_Name"), "Contact")
                 .buildSoqlQuery();
 
-        Assert.assertEquals(expected, queryFromBuilder);
+        Assertions.assertEquals(expected, queryFromBuilder);
     }
 
     /**
@@ -63,7 +63,7 @@ public class SoqlQueryBuilderTest {
         String queryFromBuilder = new SoqlQueryBuilder(Arrays.asList("Name", "Contacts_records_LastName"), "Account")
                 .buildSoqlQuery();
 
-        Assert.assertEquals(expected, queryFromBuilder);
+        Assertions.assertEquals(expected, queryFromBuilder);
     }
 
     /**
@@ -79,7 +79,7 @@ public class SoqlQueryBuilderTest {
                 Arrays.asList("Name", "Contacts_records_LastName", "Contacts_records_Account_Owner_Name"), "Account")
                         .buildSoqlQuery();
 
-        Assert.assertEquals(expected, queryFromBuilder);
+        Assertions.assertEquals(expected, queryFromBuilder);
     }
 
     /**
@@ -94,7 +94,7 @@ public class SoqlQueryBuilderTest {
                 "OpportunityLineItems_records_ListPrice", "OpportunityLineItems_records_PricebookEntry_UnitPrice",
                 "OpportunityLineItems_records_PricebookEntry_Name"), "Opportunity").buildSoqlQuery();
 
-        Assert.assertEquals(expected, queryFromBuilder);
+        Assertions.assertEquals(expected, queryFromBuilder);
     }
 
     /**
@@ -108,7 +108,7 @@ public class SoqlQueryBuilderTest {
 
         String queryFromBuilder = new SoqlQueryBuilder(Arrays.asList("Id", "SLAExpirationDate__c"), "Account").buildSoqlQuery();
 
-        Assert.assertEquals(expected, queryFromBuilder);
+        Assertions.assertEquals(expected, queryFromBuilder);
     }
 
     /**
@@ -123,7 +123,7 @@ public class SoqlQueryBuilderTest {
         String queryFromBuilder = new SoqlQueryBuilder(Arrays.asList("Id", "SLAExpirationDate__c"), "talend_custom__c")
                 .buildSoqlQuery();
 
-        Assert.assertEquals(expected, queryFromBuilder);
+        Assertions.assertEquals(expected, queryFromBuilder);
     }
 
     /**
@@ -138,7 +138,7 @@ public class SoqlQueryBuilderTest {
         String queryFromBuilder = new SoqlQueryBuilder(Arrays.asList("talend_custom__c_Name", "talend_custom__c_custom_name__c",
                 "talend_contact__r_Name", "talend_contact__r_Account_Name"), "talend_custom__c").buildSoqlQuery();
 
-        Assert.assertEquals(expected, queryFromBuilder);
+        Assertions.assertEquals(expected, queryFromBuilder);
     }
 
     /**
@@ -155,7 +155,7 @@ public class SoqlQueryBuilderTest {
                 "talend_custom__r_records_talend_account__c_custom_lastName__c",
                 "talend_custom__r_records_talend_account__c_Age"), "talend_contact__c").buildSoqlQuery();
 
-        Assert.assertEquals(expected, queryFromBuilder);
+        Assertions.assertEquals(expected, queryFromBuilder);
     }
 
     /**
@@ -171,6 +171,6 @@ public class SoqlQueryBuilderTest {
                 "contact_title__c", "talend_contact__c_Persons_records_talend_account__c_Age"), "talend_contact__c")
                         .buildSoqlQuery();
 
-        Assert.assertEquals(expected, queryFromBuilder);
+        Assertions.assertEquals(expected, queryFromBuilder);
     }
 }

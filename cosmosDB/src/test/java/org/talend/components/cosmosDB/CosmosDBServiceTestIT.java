@@ -12,7 +12,7 @@
  */
 package org.talend.components.cosmosDB;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.Test;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
@@ -21,21 +21,21 @@ public class CosmosDBServiceTestIT extends CosmosDbTestBase {
 
     @Test
     public void cosmosDBSuccessfulConnectionTest() {
-        Assert.assertEquals(HealthCheckStatus.Status.OK, service.healthCheck(dataStore).getStatus());
+        Assertions.assertEquals(HealthCheckStatus.Status.OK, service.healthCheck(dataStore).getStatus());
     }
 
     @Test
     public void cosmosDBFailConnectionTest() {
         dataStore.setPrimaryKey("fakeKey");
         HealthCheckStatus healthCheckStatus = service.healthCheck(dataStore);
-        Assert.assertEquals(HealthCheckStatus.Status.KO, healthCheckStatus.getStatus());
+        Assertions.assertEquals(HealthCheckStatus.Status.KO, healthCheckStatus.getStatus());
     }
 
     @Test
     public void cosmosDBnullIDConnectionTest() {
         dataStore.setDatabaseID("");
         HealthCheckStatus healthCheckStatus = service.healthCheck(dataStore);
-        Assert.assertEquals(HealthCheckStatus.Status.KO, healthCheckStatus.getStatus());
+        Assertions.assertEquals(HealthCheckStatus.Status.KO, healthCheckStatus.getStatus());
     }
 
     @Test
@@ -44,8 +44,8 @@ public class CosmosDBServiceTestIT extends CosmosDbTestBase {
         dataSet.setQuery("SELECT {\"Name\":f.id, \"City\":f.address.city} AS Family\n" + "    FROM Families f");
         Schema schema = service.addColumns(dataSet);
         System.out.println(schema);
-        Assert.assertNotNull(schema);
-        Assert.assertEquals(Schema.Type.RECORD, schema.getType());
+        Assertions.assertNotNull(schema);
+        Assertions.assertEquals(Schema.Type.RECORD, schema.getType());
     }
 
 }

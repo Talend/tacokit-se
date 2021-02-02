@@ -17,7 +17,7 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,8 +64,8 @@ public class CSVInputIT extends BaseIT {
         List<Record> records = componentsHandler.getCollectedData(Record.class);
         Record firstRecord = records.get(0);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
-        Assert.assertEquals("Columns number is different", columns.size(), firstRecord.getSchema().getEntries().size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
+        Assertions.assertEquals(columns.size(), firstRecord.getSchema().getEntries().size(), "Columns number is different");
     }
 
     @Test
@@ -114,7 +114,7 @@ public class CSVInputIT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
     }
 
     @Test
@@ -131,7 +131,7 @@ public class CSVInputIT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
     }
 
     @Test
@@ -148,7 +148,7 @@ public class CSVInputIT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
     }
 
     @Test
@@ -164,6 +164,6 @@ public class CSVInputIT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
     }
 }

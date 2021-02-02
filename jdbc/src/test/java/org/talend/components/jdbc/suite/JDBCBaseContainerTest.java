@@ -46,7 +46,7 @@ import java.util.Locale;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -545,7 +545,7 @@ public abstract class JDBCBaseContainerTest {
                             "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, false, null, withBoolean, withBytes))
                     .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput")
                     .build().run();
-            Assert.assertEquals(rowCount, countAll(testTableName));
+            Assertions.assertEquals(rowCount, countAll(testTableName));
         }
 
         @Test
@@ -565,7 +565,7 @@ public abstract class JDBCBaseContainerTest {
                     .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput")
                     .build();
             job.run();
-            Assert.assertEquals(rowCount, countAll(testTableName));
+            Assertions.assertEquals(rowCount, countAll(testTableName));
         }
 
         @Test
@@ -584,7 +584,7 @@ public abstract class JDBCBaseContainerTest {
                             "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, true, null, withBoolean, withBytes))
                     .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput")
                     .build().run();
-            Assert.assertEquals(rowCount, countAll(testTableName));
+            Assertions.assertEquals(rowCount, countAll(testTableName));
         }
 
         @Test
@@ -628,7 +628,7 @@ public abstract class JDBCBaseContainerTest {
             runWithBad("datetime", "bad datetime", testTableName);
             runWithBad("time", "bad time", testTableName);
 
-            Assert.assertEquals(0, countAll(testTableName));
+            Assertions.assertEquals(0, countAll(testTableName));
         }
 
         private void runWithBad(final String field, final String value, final String testTableName) {
@@ -659,9 +659,9 @@ public abstract class JDBCBaseContainerTest {
             final String testTableName = getTestTableName(testInfo);
             final long rowCount = 5;
             insertRows(testTableName, rowCount, false, null);
-            Assert.assertEquals(rowCount, countAll(testTableName));
+            Assertions.assertEquals(rowCount, countAll(testTableName));
             insertRows(testTableName, rowCount, false, null);
-            Assert.assertEquals(rowCount, countAll(testTableName));
+            Assertions.assertEquals(rowCount, countAll(testTableName));
         }
 
         @Test
@@ -684,7 +684,7 @@ public abstract class JDBCBaseContainerTest {
                     .build().run();
 
             // check the update
-            Assert.assertEquals(0L, countAll(testTableName));
+            Assertions.assertEquals(0L, countAll(testTableName));
         }
 
         @Test
@@ -705,7 +705,7 @@ public abstract class JDBCBaseContainerTest {
                         .build().run();
             });
             assertTrue(error.getMessage().contains(getI18nMessage().errorNoKeyForDeleteQuery()));
-            Assert.assertEquals(rowCount, countAll(testTableName));
+            Assertions.assertEquals(rowCount, countAll(testTableName));
         }
 
         @Test
@@ -727,7 +727,7 @@ public abstract class JDBCBaseContainerTest {
                         .build().run();
             });
             assertTrue(error.getMessage().contains(getI18nMessage().errorNoFieldForQueryParam("aMissingColumn")));
-            Assert.assertEquals(rowCount, countAll(testTableName));
+            Assertions.assertEquals(rowCount, countAll(testTableName));
         }
 
         @Test
@@ -751,9 +751,10 @@ public abstract class JDBCBaseContainerTest {
 
             // check the update
             final List<Record> users = readAll(testTableName, this.getComponentsHandler());
-            Assert.assertEquals(rowCount, users.size());
-            Assert.assertEquals(IntStream.rangeClosed(1, rowCount).mapToObj(i -> "updated" + i).collect(toSet()), users.stream()
-                    .map(r -> ofNullable(r.getString("T_STRING")).orElseGet(() -> r.getString("t_string"))).collect(toSet()));
+            Assertions.assertEquals(rowCount, users.size());
+            Assertions.assertEquals(IntStream.rangeClosed(1, rowCount).mapToObj(i -> "updated" + i).collect(toSet()),
+                    users.stream().map(r -> ofNullable(r.getString("T_STRING")).orElseGet(() -> r.getString("t_string")))
+                            .collect(toSet()));
         }
 
         @Test
@@ -796,9 +797,10 @@ public abstract class JDBCBaseContainerTest {
 
             // check the update
             final List<Record> users = readAll(testTableName, this.getComponentsHandler());
-            Assert.assertEquals(newRecords, users.size());
-            Assert.assertEquals(IntStream.rangeClosed(1, newRecords).mapToObj(i -> "updated" + i).collect(toSet()), users.stream()
-                    .map(r -> ofNullable(r.getString("t_string")).orElseGet(() -> r.getString("T_STRING"))).collect(toSet()));
+            Assertions.assertEquals(newRecords, users.size());
+            Assertions.assertEquals(IntStream.rangeClosed(1, newRecords).mapToObj(i -> "updated" + i).collect(toSet()),
+                    users.stream().map(r -> ofNullable(r.getString("t_string")).orElseGet(() -> r.getString("T_STRING")))
+                            .collect(toSet()));
         }
 
         @Test
@@ -823,11 +825,12 @@ public abstract class JDBCBaseContainerTest {
             Job.components().component("emitter", "test://emitter").component("jdbcOutput", "Jdbc://Output?" + config)
                     .connections().from("emitter").to("jdbcOutput").build().run();
             List<Record> inserted = readAll(testTableName, this.getComponentsHandler());
-            Assert.assertEquals(1, inserted.size());
+            Assertions.assertEquals(1, inserted.size());
             final Record result = inserted.iterator().next();
-            Assert.assertEquals(date.toInstant().toEpochMilli(), result.getDateTime("date").toInstant().toEpochMilli());
-            Assert.assertEquals(datetime.toInstant().toEpochMilli(), result.getDateTime("datetime").toInstant().toEpochMilli());
-            Assert.assertEquals(time.toInstant().toEpochMilli(), result.getDateTime("time").toInstant().toEpochMilli());
+            Assertions.assertEquals(date.toInstant().toEpochMilli(), result.getDateTime("date").toInstant().toEpochMilli());
+            Assertions.assertEquals(datetime.toInstant().toEpochMilli(),
+                    result.getDateTime("datetime").toInstant().toEpochMilli());
+            Assertions.assertEquals(time.toInstant().toEpochMilli(), result.getDateTime("time").toInstant().toEpochMilli());
         }
 
         @Test
@@ -878,7 +881,7 @@ public abstract class JDBCBaseContainerTest {
                             "jdbcTest://RowGenerator?" + rowGeneratorConfig(rowCount, false, null, withBoolean, withBytes))
                     .component("jdbcOutput", "Jdbc://Output?" + config).connections().from("rowGenerator").to("jdbcOutput")
                     .build().run();
-            Assert.assertEquals(rowCount, countAll(testTableName));
+            Assertions.assertEquals(rowCount, countAll(testTableName));
         }
 
         private String getOldComponentConfigString4MigrationTest(OutputConfig configuration, boolean old) {

@@ -14,7 +14,7 @@ package org.talend.components.azure.output;
 
 import java.net.URISyntaxException;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,7 +64,8 @@ public class BlobOutputTest {
         BlobOutput output = new BlobOutput(outputConfiguration, blobComponentServicesMock, Mockito.mock(MessageService.class));
         BlobRuntimeException thrownException = Assertions.assertThrows(BlobRuntimeException.class, output::init);
 
-        Assert.assertEquals("Exception message is different", expectedExceptionMessage, thrownException.getCause().getMessage());
+        Assertions.assertEquals(expectedExceptionMessage, thrownException.getCause().getMessage(),
+                "Exception message is different");
     }
 
     @Test

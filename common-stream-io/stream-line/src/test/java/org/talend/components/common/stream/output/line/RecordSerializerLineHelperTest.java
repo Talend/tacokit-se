@@ -108,7 +108,6 @@ class RecordSerializerLineHelperTest {
                 .build();
     }
 
-
     @ParameterizedTest
     @MethodSource("testDataLine")
     void testRecordsLine(DataSet<List<String>> ds) {
@@ -116,12 +115,10 @@ class RecordSerializerLineHelperTest {
         ds.check(values);
     }
 
-
     private static Iterator<DataSet<List<String>>> testDataLine() {
         final AssertionsBuilder<List<String>> valueBuilder = new LineValueBuilder();
         final RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");
-        final DatasetGenerator<List<String>> generator = new DatasetGenerator<>(factory,
-                valueBuilder);
+        final DatasetGenerator<List<String>> generator = new DatasetGenerator<>(factory, valueBuilder);
         return generator.generate(40);
     }
 

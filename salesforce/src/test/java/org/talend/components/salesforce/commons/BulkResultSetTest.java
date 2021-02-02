@@ -12,7 +12,7 @@
  */
 package org.talend.components.salesforce.commons;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -29,7 +29,7 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Map;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -79,7 +79,7 @@ public class BulkResultSetTest {
         try {
             prepareSafetySwitchTest(true, 100_001);
         } catch (Exception ioe) {
-            Assert.assertTrue(ioe.getCause().getMessage().startsWith("Maximum column length of 100,000 exceeded"));
+            Assertions.assertTrue(ioe.getCause().getMessage().startsWith("Maximum column length of 100,000 exceeded"));
         }
     }
 
@@ -87,7 +87,7 @@ public class BulkResultSetTest {
     @DisplayName("Test safetySwitch false success")
     public void testSafetySwitchFalseSuccess() throws IOException {
         final int columnLength = 200_000;
-        Assert.assertEquals(columnLength, prepareSafetySwitchTest(false, columnLength));
+        Assertions.assertEquals(columnLength, prepareSafetySwitchTest(false, columnLength));
     }
 
     private int prepareSafetySwitchTest(boolean safetySwitchParameter, int columnLength) throws IOException {

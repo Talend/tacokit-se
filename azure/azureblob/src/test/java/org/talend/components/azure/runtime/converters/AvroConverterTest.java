@@ -164,8 +164,8 @@ class AvroConverterTest {
         assertEquals(20.5f, subrecord.get("float"));
         assertEquals(20.5, subrecord.get("double"));
 
-        assertEquals(now.withZoneSameInstant(ZoneOffset.UTC),
-                ZonedDateTime.ofInstant(Instant.ofEpochMilli((long) record.get("now")), ZoneOffset.UTC));
+        assertEquals(now.toInstant().toEpochMilli(), (long) record.get("now"));
+
         assertEquals(Arrays.asList("ary1", "ary2", "ary3"), record.get("array"));
     }
 
