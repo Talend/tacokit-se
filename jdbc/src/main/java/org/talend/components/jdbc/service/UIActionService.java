@@ -26,7 +26,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -35,7 +34,6 @@ import java.util.Objects;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -46,7 +44,6 @@ import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.output.platforms.PlatformFactory;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.asyncvalidation.AsyncValidation;
@@ -57,11 +54,11 @@ import org.talend.sdk.component.api.service.completion.SuggestionValues.Item;
 import org.talend.sdk.component.api.service.completion.Suggestions;
 import org.talend.sdk.component.api.service.completion.Values;
 import org.talend.sdk.component.api.service.configuration.Configuration;
-import org.talend.sdk.component.api.service.discovery.DatasetDiscovery;
-import org.talend.sdk.component.api.service.discovery.DatasetDiscoveryResult;
-import org.talend.sdk.component.api.service.discovery.DatasetDiscoveryResult.DatasetDescription;
-import org.talend.sdk.component.api.service.discovery.DatasetDiscoveryResult.Response;
-import org.talend.sdk.component.api.service.discovery.DatasetDiscoveryResult.STATUS;
+import org.talend.sdk.component.api.service.discovery.DiscoverDataset;
+import org.talend.sdk.component.api.service.discovery.DiscoverDatasetResult;
+import org.talend.sdk.component.api.service.discovery.DiscoverDatasetResult.DatasetDescription;
+import org.talend.sdk.component.api.service.discovery.DiscoverDatasetResult.Response;
+import org.talend.sdk.component.api.service.discovery.DiscoverDatasetResult.STATUS;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -107,16 +104,16 @@ public class UIActionService {
     @Configuration("jdbc")
     private Supplier<JdbcConfiguration> jdbcConfiguration;
 
-    @DatasetDiscovery("db")
-    public DatasetDiscoveryResult discoverdb(@Option final JdbcConnection datastore) {
+    @DiscoverDataset
+    public DiscoverDatasetResult discoverDatasets(@Option final JdbcConnection datastore) {
         try {
             final List<TableInfo> tableInfos = listTables(datastore);
-            return new DatasetDiscoveryResult(new Response(),
+            return new DiscoverDatasetResult(new Response(),
                     tableInfos.stream().map(t -> new DatasetDescription(t.getName(), t.getType())).collect(toList()));
         } catch (SQLException e) {
-            log.error(i18n.errorCantDiscoverDataset(), e);
-            return new DatasetDiscoveryResult(new Response(STATUS.ERROR, i18n.errorCantDiscoverDataset()),
-                    Collections.emptyList());
+            final String msg = i18n.errorCantDiscoverDataset(e.getMessage());
+            log.error(msg, e);
+            return new DiscoverDatasetResult(new Response(STATUS.ERROR, msg), Collections.emptyList());
         }
 
     }

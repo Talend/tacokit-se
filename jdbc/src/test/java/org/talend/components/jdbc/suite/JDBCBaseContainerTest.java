@@ -28,7 +28,9 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -43,6 +45,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -71,6 +75,9 @@ import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
+import org.talend.sdk.component.api.service.discovery.DiscoverDatasetResult;
+import org.talend.sdk.component.api.service.discovery.DiscoverDatasetResult.DatasetDescription;
+import org.talend.sdk.component.api.service.discovery.DiscoverDatasetResult.STATUS;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit5.WithComponents;
@@ -258,6 +265,23 @@ public abstract class JDBCBaseContainerTest {
             assertNotNull(status);
             assertEquals(HealthCheckStatus.Status.KO, status.getStatus());
             assertFalse(status.getComment().isEmpty());
+        }
+
+        @Test
+        @DisplayName("Get potential datasets - valid connection")
+        void getPotentialDataset(final TestInfo testInfo) throws SQLException {
+            final JdbcConnection datastore = newConnection();
+            final String testTableName = getTestTableName(testInfo);
+            createTestTable(testTableName, datastore);
+            final DiscoverDatasetResult result = this.getUiActionService().discoverDatasets(datastore);
+            assertNotNull(result);
+            assertEquals(STATUS.SUCCESS, result.getResponse().getStatus());
+            final Optional<DatasetDescription> first = result.getDatasetDescriptionList().stream()
+                    .filter(d -> d.getName().equalsIgnoreCase(testTableName)).findFirst();
+            assertTrue(first.isPresent());
+            final DatasetDescription datasetDescription = first.get();
+            assertEquals(testTableName.toUpperCase(), datasetDescription.getName().toUpperCase());
+            assertEquals("TABLE", datasetDescription.getType().toUpperCase());
         }
 
         @Test
