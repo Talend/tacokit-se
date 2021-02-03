@@ -77,7 +77,7 @@ class RecordToExcelTest {
                 .withEntry(a_datetime) // 8
                 .build();
 
-        final Record record = factory.newRecordBuilder(schema).build();// .withString("a_string", "A string").build();
+        final Record record = factory.newRecordBuilder(schema).build();
 
         final XSSFWorkbook wb = new XSSFWorkbook();
         final XSSFSheet sheet = wb.createSheet();
