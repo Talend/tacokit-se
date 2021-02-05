@@ -16,6 +16,11 @@
     <dependencies>
         <dependency>
             <groupId>org.talend.components</groupId>
+            <artifactId>stream-json</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.talend.components</groupId>
             <artifactId>connectors-test-bom</artifactId>
             <type>pom</type>
         </dependency>
