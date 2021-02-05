@@ -112,30 +112,6 @@
             <build>
                 <plugins>
                     <plugin>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>${surefire.version}</version>
-                        <configuration>
-                            <includes>
-                                <include>**/*ITCase</include>
-                            </includes>
-                            <excludes>
-                                <exclude>**/*Test</exclude>
-                            </excludes>
-                            <additionalClasspathElements>
-                                <additionalClasspathElement>${basedir}/target/classes</additionalClasspathElement>
-                                <additionalClasspathElement>${basedir}/target/test-classes</additionalClasspathElement>
-                            </additionalClasspathElements>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>integration-test</goal>
-                                    <goal>verify</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>build-helper-maven-plugin</artifactId>
                         <version>3.0.0</version>

@@ -1148,5 +1148,43 @@
         <validation.metadata>true</validation.metadata>
       </properties>
     </profile>
+    <profile>
+      <id>failsafe</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <version>${surefire.version}</version>
+            <configuration>
+              <includes>
+                <include>**/*IT.java</include>
+                <include>**/*ITCase</include>
+              </includes>
+              <systemPropertyVariables>
+                <talend.component.junit.handler.state>static</talend.component.junit.handler.state>
+              </systemPropertyVariables>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <!--TODO uncomment it to enable its on CI once creds are added -->
+                  <!--<goal>integration-test</goal>
+                  <goal>verify</goal>-->
+                </goals>
+                <configuration>
+                  <classpathDependencyExcludes>
+                    <classpathDependencyExcludes>org.talend.sdk.component:component-runtime-beam
+                    </classpathDependencyExcludes>
+                    <classpathDependencyExcludes>org.apache.beam:beam-runners-direct-java
+                    </classpathDependencyExcludes>
+                  </classpathDependencyExcludes>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 </project>
