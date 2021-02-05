@@ -30,6 +30,7 @@ import org.talend.sdk.component.api.configuration.ui.widget.Code;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.record.Schema.Type;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ import java.util.List;
 
 @Data
 @GridLayout({ @GridLayout.Row({ "dse" }), @GridLayout.Row({ "dateFormat" }), @GridLayout.Row({ "dieOnError" }),
-        @GridLayout.Row({ "assertionConfig" }) })
+        @GridLayout.Row({ "generateConf" }), @GridLayout.Row({ "assertionConfig" }) })
 public class Config implements Serializable {
 
     // @TODO : should remove datastore/dataset, the connector should be a simple processor
@@ -54,6 +55,10 @@ public class Config implements Serializable {
     @Option
     @Documentation("Throw a RuntimeException when an assertion fails or only log it.")
     boolean dieOnError = true;
+
+    @Option
+    @Documentation(("Generate configuration in logs"))
+    boolean generateConf = false;
 
     @Option
     @Documentation("Assetion configuration")
@@ -103,9 +108,13 @@ public class Config implements Serializable {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    @OptionsOrder({ "path", "type", "condition", "value", "err_message", "custom" })
+    @OptionsOrder({ "path", "type", "arrayType", "condition", "value", "err_message", "custom" })
     @Documentation("Assertion description entry.")
     public static class AssertEntry implements Serializable {
+
+        public AssertEntry(String path, Schema.Type type, Condition condition, String value, String custom, String message) {
+            this(path, type, Type.STRING, condition, value, custom, message);
+        }
 
         @Option
         @Required
@@ -117,6 +126,13 @@ public class Config implements Serializable {
         @Suggestable(value = AssertService.SUPPORTED_TYPES)
         @Documentation("Check the expected type.")
         private Schema.Type type;
+
+        @Option
+        @Required
+        @Suggestable(value = AssertService.ARRAY_SUPPORTED_TYPES)
+        @Documentation("Check the expected type of the array.")
+        @ActiveIf(target = "type", value = "ARRAY")
+        private Schema.Type arrayType;
 
         @Option
         @Required
@@ -150,13 +166,18 @@ public class Config implements Serializable {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    @OptionsOrder({ "displayJsonConfiguration", "jsonConfiguration" })
+    @OptionsOrder({ "displayJsonConfiguration", "loadFromRecord", "jsonConfiguration" })
     @Documentation("Load assertion configuration from json description.")
     public final static class JsonConfiguration implements Serializable {
 
         @Option
         @Documentation("Display json configuration.")
         boolean displayJsonConfiguration = false;
+
+        @Option
+        @Documentation("From record.")
+        @ActiveIf(target = "displayJsonConfiguration", value = "true")
+        boolean loadFromRecord = false;
 
         @Option
         @Documentation("Display json configuration.")

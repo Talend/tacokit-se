@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -49,6 +49,11 @@ public class Assertion implements Serializable {
 
     @ElementListener
     public void doAssert(final Record in) {
+
+        if (config.isGenerateConf()) {
+            service.generateConf(in);
+        }
+
         final List<String> validates = service.validate(this.config, in);
         if (validates.size() > 0) {
             final String collect = AssertService.LOG_PREFIX + "\n" + validates.stream().collect(Collectors.joining("\n"));

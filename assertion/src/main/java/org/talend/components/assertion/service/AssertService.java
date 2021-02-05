@@ -15,13 +15,16 @@ package org.talend.components.assertion.service;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.assertion.conf.Config;
-import org.talend.components.common.stream.api.RecordIORepository;
+import org.talend.components.assertion.conf.Config.AssertEntry;
+import org.talend.components.common.stream.input.json.JsonToRecord;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.RecordPointer;
 import org.talend.sdk.component.api.record.RecordPointerFactory;
 import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
+import org.talend.sdk.component.api.service.completion.SuggestionValues.Item;
 import org.talend.sdk.component.api.service.completion.Suggestions;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.api.service.record.RecordService;
@@ -48,6 +51,8 @@ public class AssertService {
 
     public final static String SUPPORTED_TYPES = "SUPPORTED_TYPES";
 
+    public final static String ARRAY_SUPPORTED_TYPES = "ARRAY_SUPPORTED_TYPES";
+
     public final static String LOAD_CONFIG = "LOAD_CONFIG";
 
     public final static String LOG_PREFIX = "ASSERT - ";
@@ -72,33 +77,55 @@ public class AssertService {
         InputStream configInputStream = new ByteArrayInputStream(
                 config.getAssertionConfig().getJsonConfiguration().getJsonConfiguration().getBytes());
         final JsonReader reader = jsonReaderFactory.createReader(configInputStream);
-        final List<Config.AssertEntry> assertions = reader.readArray().stream().map(e -> e.asJsonObject())
-                .map(this::jsonToAssertEntry).collect(Collectors.toList());
 
+        final List<Config.AssertEntry> assertions = new ArrayList<>();
+        if (config.getAssertionConfig().getJsonConfiguration().isLoadFromRecord()) {
+            final JsonToRecord jsonToRecord = new JsonToRecord(recordBuilderFactory, false);
+            final Record record = jsonToRecord.toRecord(reader.readObject());
+            final List<AssertEntry> entries = recordToAssertions(record);
+            assertions.addAll(entries);
+        } else {
+            final List<AssertEntry> entries = reader.readArray().stream().map(e -> e.asJsonObject()).map(this::jsonToAssertEntry)
+                    .collect(Collectors.toList());
+            assertions.addAll(entries);
+        }
         config.getAssertionConfig().setAssertions(assertions);
         return config.getAssertionConfig();
     }
 
+    private List<AssertEntry> recordToAssertions(final Record record) {
+        final List<AssertEntry> assertions = recordService.visit(new RecordToAssertionVisitor(), record);
+
+        return assertions;
+    }
+
     public Config.AssertEntry jsonToAssertEntry(final JsonObject o) {
         return new Config.AssertEntry(o.getString("path"), Schema.Type.valueOf(o.getString("type")),
-                Config.Condition.valueOf(o.getString("condition")), o.getString("value"), o.getString("custom"),
-                o.getString("message"));
+                Schema.Type.valueOf(o.getString("array_type")), Config.Condition.valueOf(o.getString("condition")),
+                o.getString("value"), o.getString("custom"), o.getString("message"));
     }
 
     @Suggestions(AssertService.SUPPORTED_TYPES)
+    public SuggestionValues getArraySupportedTypes() {
+        final List<Item> supportedTypes = _getSupportedTypes(Collections.emptyList());
+        return new SuggestionValues(true, supportedTypes);
+    }
+
+    @Suggestions(AssertService.ARRAY_SUPPORTED_TYPES)
     public SuggestionValues getSupportedTypes() {
-        final List<SuggestionValues.Item> supportedTypes = Arrays
-                .asList(Schema.Type.ARRAY, Schema.Type.STRING, Schema.Type.BYTES, Schema.Type.INT, Schema.Type.LONG,
-                        Schema.Type.FLOAT, Schema.Type.DOUBLE, Schema.Type.BOOLEAN, Schema.Type.DATETIME)
-                .stream().sorted(new Comparator<Schema.Type>() {
+        final List<Item> supportedTypes = _getSupportedTypes(Arrays.asList(Type.ARRAY));
+        return new SuggestionValues(true, supportedTypes);
+    }
+
+    private List<Item> _getSupportedTypes(final List<Type> excluded) {
+        return Arrays.asList(Type.ARRAY, Type.STRING, Type.BYTES, Type.INT, Type.LONG, Type.FLOAT, Type.DOUBLE, Type.BOOLEAN,
+                Type.DATETIME).stream().filter(t -> !excluded.contains(t)).sorted(new Comparator<Type>() {
 
                     @Override
-                    public int compare(Schema.Type o1, Schema.Type o2) {
+                    public int compare(Type o1, Type o2) {
                         return o1.name().compareTo(o2.name());
                     }
-                }).map(t -> new SuggestionValues.Item(t.name(), t.name())).collect(Collectors.toList());
-
-        return new SuggestionValues(true, supportedTypes);
+                }).map(t -> new Item(t.name(), t.name())).collect(Collectors.toList());
     }
 
     public List<String> validate(final Config config, final Record record) {
@@ -153,4 +180,7 @@ public class AssertService {
 
     }
 
+    public void generateConf(final Record in) {
+
+    }
 }
