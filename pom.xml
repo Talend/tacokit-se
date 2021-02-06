@@ -51,6 +51,7 @@
         <module>google-storage</module>
         <module>migration-tester</module>
         <module>common-test</module>
+        <module>assertion</module>
     </modules>
 
   <scm>
