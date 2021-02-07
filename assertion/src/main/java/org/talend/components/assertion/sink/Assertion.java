@@ -49,11 +49,6 @@ public class Assertion implements Serializable {
 
     @ElementListener
     public void doAssert(final Record in) {
-
-        if (config.isGenerateConf()) {
-            service.generateConf(in);
-        }
-
         final List<String> validates = service.validate(this.config, in);
         if (validates.size() > 0) {
             final String collect = AssertService.LOG_PREFIX + "\n" + validates.stream().collect(Collectors.joining("\n"));

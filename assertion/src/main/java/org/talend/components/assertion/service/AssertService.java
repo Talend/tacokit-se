@@ -100,9 +100,13 @@ public class AssertService {
     }
 
     public Config.AssertEntry jsonToAssertEntry(final JsonObject o) {
-        return new Config.AssertEntry(o.getString("path"), Schema.Type.valueOf(o.getString("type")),
-                Schema.Type.valueOf(o.getString("array_type")), Config.Condition.valueOf(o.getString("condition")),
-                o.getString("value"), o.getString("custom"), o.getString("message"));
+        final String array_type = o.getString("array_type", "STRING");
+        final String type = o.getString("type", "STRING");
+        final String condition = o.getString("condition", "EQUALS");
+        final String custom = o.getString("custom", "");
+
+        return new Config.AssertEntry(o.getString("path"), Schema.Type.valueOf(type), Schema.Type.valueOf(array_type),
+                Config.Condition.valueOf(condition), o.getString("value"), custom, o.getString("message"));
     }
 
     @Suggestions(AssertService.SUPPORTED_TYPES)
@@ -180,7 +184,4 @@ public class AssertService {
 
     }
 
-    public void generateConf(final Record in) {
-
-    }
 }
