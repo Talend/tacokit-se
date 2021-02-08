@@ -88,53 +88,53 @@ public class RecordToExcel {
 
     private void majCellValue(Cell cell, Record record, Schema.Entry entry) {
 
-        final String entityName = entry.getName();
+        final String name = entry.getName();
         switch (entry.getType()) {
         case BOOLEAN:
             cell.setCellType(CellType.BOOLEAN);
-            final Optional<Boolean> optionalBoolean = record.getOptionalBoolean(entityName);
+            final Optional<Boolean> optionalBoolean = record.getOptionalBoolean(name);
             if (optionalBoolean.isPresent()) {
-                cell.setCellValue((Boolean) null);
+                cell.setCellValue(optionalBoolean.get());
             }
             break;
         case DATETIME:
             cell.setCellType(CellType.NUMERIC);
-            final Optional<ZonedDateTime> optionalDateTime = record.getOptionalDateTime(entityName);
+            final Optional<ZonedDateTime> optionalDateTime = record.getOptionalDateTime(name);
             if (optionalDateTime.isPresent()) {
                 cell.setCellValue(Date.from(optionalDateTime.get().toInstant()));
             }
             break;
         case INT:
             cell.setCellType(CellType.NUMERIC);
-            final OptionalInt optionalInt = record.getOptionalInt(entityName);
+            final OptionalInt optionalInt = record.getOptionalInt(name);
             if (optionalInt.isPresent()) {
                 cell.setCellValue(optionalInt.getAsInt());
             }
             break;
         case LONG:
             cell.setCellType(CellType.NUMERIC);
-            final OptionalLong optionalLong = record.getOptionalLong(entityName);
+            final OptionalLong optionalLong = record.getOptionalLong(name);
             if (optionalLong.isPresent()) {
                 cell.setCellValue(optionalLong.getAsLong());
             }
             break;
         case FLOAT:
             cell.setCellType(CellType.NUMERIC);
-            final OptionalDouble optionalFloat = record.getOptionalFloat(entityName);
+            final OptionalDouble optionalFloat = record.getOptionalFloat(name);
             if (optionalFloat.isPresent()) {
                 cell.setCellValue(optionalFloat.getAsDouble());
             }
             break;
         case DOUBLE:
             cell.setCellType(CellType.NUMERIC);
-            final OptionalDouble optionalDouble = record.getOptionalDouble(entityName);
+            final OptionalDouble optionalDouble = record.getOptionalDouble(name);
             if (optionalDouble.isPresent()) {
                 cell.setCellValue(optionalDouble.getAsDouble());
             }
             break;
         case BYTES:
             cell.setCellType(CellType.STRING);
-            cell.setCellValue(Arrays.toString(record.getBytes(entityName)));
+            cell.setCellValue(Arrays.toString(record.getBytes(name)));
             break;
         default:
             cell.setCellType(CellType.STRING);
