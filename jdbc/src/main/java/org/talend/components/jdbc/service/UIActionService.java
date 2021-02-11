@@ -44,6 +44,8 @@ import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.output.platforms.PlatformFactory;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.exception.ComponentException;
+import org.talend.sdk.component.api.exception.ComponentException.ErrorOrigin;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.asyncvalidation.AsyncValidation;
@@ -57,8 +59,6 @@ import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.discovery.DiscoverDataset;
 import org.talend.sdk.component.api.service.discovery.DiscoverDatasetResult;
 import org.talend.sdk.component.api.service.discovery.DiscoverDatasetResult.DatasetDescription;
-import org.talend.sdk.component.api.service.discovery.DiscoverDatasetResult.Response;
-import org.talend.sdk.component.api.service.discovery.DiscoverDatasetResult.STATUS;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -108,12 +108,12 @@ public class UIActionService {
     public DiscoverDatasetResult discoverDatasets(@Option final JdbcConnection datastore) {
         try {
             final List<TableInfo> tableInfos = listTables(datastore);
-            return new DiscoverDatasetResult(new Response(),
+            return new DiscoverDatasetResult(
                     tableInfos.stream().map(t -> new DatasetDescription(t.getName(), t.getType())).collect(toList()));
         } catch (SQLException e) {
             final String msg = i18n.errorCantDiscoverDataset(e.getMessage());
             log.error(msg, e);
-            return new DiscoverDatasetResult(new Response(STATUS.ERROR, msg), Collections.emptyList());
+            throw new ComponentException(ErrorOrigin.BACKEND, i18n.errorCantDiscoverDataset(e.getMessage()), e);
         }
 
     }

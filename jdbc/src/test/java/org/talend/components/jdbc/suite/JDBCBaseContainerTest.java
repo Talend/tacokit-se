@@ -77,7 +77,6 @@ import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.discovery.DiscoverDatasetResult;
 import org.talend.sdk.component.api.service.discovery.DiscoverDatasetResult.DatasetDescription;
-import org.talend.sdk.component.api.service.discovery.DiscoverDatasetResult.STATUS;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit5.WithComponents;
@@ -275,7 +274,6 @@ public abstract class JDBCBaseContainerTest {
             createTestTable(testTableName, datastore);
             final DiscoverDatasetResult result = this.getUiActionService().discoverDatasets(datastore);
             assertNotNull(result);
-            assertEquals(STATUS.SUCCESS, result.getResponse().getStatus());
             final Optional<DatasetDescription> first = result.getDatasetDescriptionList().stream()
                     .filter(d -> d.getName().equalsIgnoreCase(testTableName)).findFirst();
             assertTrue(first.isPresent());
