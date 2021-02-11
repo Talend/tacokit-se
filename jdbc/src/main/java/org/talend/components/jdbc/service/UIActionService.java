@@ -113,7 +113,7 @@ public class UIActionService {
         } catch (SQLException e) {
             final String msg = i18n.errorCantDiscoverDataset(e.getMessage());
             log.error(msg, e);
-            throw new ComponentException(ErrorOrigin.BACKEND, i18n.errorCantDiscoverDataset(e.getMessage()), e);
+            throw new ComponentException(ErrorOrigin.USER, i18n.errorCantDiscoverDataset(e.getMessage()), e);
         }
 
     }
