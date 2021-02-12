@@ -72,6 +72,7 @@ import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.output.platforms.Platform;
 import org.talend.components.jdbc.output.platforms.PlatformFactory;
 import org.talend.components.jdbc.service.JdbcService;
+import org.talend.components.jdbc.service.UIActionService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
@@ -279,7 +280,9 @@ public abstract class JDBCBaseContainerTest {
             assertTrue(first.isPresent());
             final DatasetDescription datasetDescription = first.get();
             assertEquals(testTableName.toUpperCase(), datasetDescription.getName().toUpperCase());
-            assertEquals("TABLE", datasetDescription.getType().toUpperCase());
+            final String type = datasetDescription.getMetadata().get(UIActionService.DATASET_METADATA_TYPE_KEY);
+            assertNotNull(type);
+            assertEquals("TABLE", type.toUpperCase());
         }
 
         @Test
