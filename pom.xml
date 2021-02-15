@@ -1157,10 +1157,6 @@
             <artifactId>maven-failsafe-plugin</artifactId>
             <version>${surefire.version}</version>
             <configuration>
-              <includes>
-                <include>**/*IT.java</include>
-                <include>**/*ITCase</include>
-              </includes>
               <systemPropertyVariables>
                 <talend.component.junit.handler.state>static</talend.component.junit.handler.state>
               </systemPropertyVariables>
@@ -1169,8 +1165,8 @@
               <execution>
                 <goals>
                   <!--TODO uncomment it to enable its on CI once creds are added -->
-                  <!--<goal>integration-test</goal>
-                  <goal>verify</goal>-->
+                  <goal>integration-test</goal>
+                  <!--<goal>verify</goal>-->
                 </goals>
                 <configuration>
                   <classpathDependencyExcludes>
