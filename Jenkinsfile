@@ -108,7 +108,7 @@ spec:
             }
             post {
                 always {
-                    junit testResults: '*/target/surefire-reports/*.xml', allowEmptyResults: true
+                    junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
                     publishHTML(target: [
                             allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true,
                             reportDir   : 'target/talend-component-kit', reportFiles: 'icon-report.html', reportName: "Icon Report"
@@ -199,7 +199,7 @@ spec:
                     steps {
                         container('main') {
                             withCredentials([sonarCredentials]) {
-                                sh "mvn -Dsonar.host.url=https://sonar-eks.datapwn.com -Dsonar.login='$SONAR_LOGIN' -Dsonar.password='$SONAR_PASSWORD' -Dsonar.branch.name=${env.BRANCH_NAME} sonar:sonar -PITs -s .jenkins/settings.xml -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/"
+                                sh "mvn -Dsonar.host.url=https://sonar-eks.datapwn.com -Dsonar.login='${SONAR_LOGIN}' -Dsonar.password='${SONAR_PASSWORD}' -Dsonar.branch.name=${env.BRANCH_NAME} sonar:sonar -PITs -s .jenkins/settings.xml -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/"
                             }
                         }
                     }
