@@ -165,7 +165,6 @@ class AvroConverterTest {
         assertEquals(20.5, subrecord.get("double"));
 
         assertEquals(now.toInstant().toEpochMilli(), (long) record.get("now"));
-
         assertEquals(Arrays.asList("ary1", "ary2", "ary3"), record.get("array"));
     }
 
