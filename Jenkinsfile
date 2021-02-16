@@ -126,6 +126,12 @@ spec:
             }
             parallel {
                 stage('Documentation') {
+                    when {
+                        anyOf {
+                            branch 'master'
+                            expression { env.BRANCH_NAME.startsWith('maintenance/') }
+                        }
+                    }
                     steps {
                         container('main') {
                             withCredentials([dockerCredentials]) {
@@ -147,6 +153,12 @@ spec:
                     }
                 }
                 stage('Site') {
+                    when {
+                        anyOf {
+                            branch 'master'
+                            expression { env.BRANCH_NAME.startsWith('maintenance/') }
+                        }
+                    }
                     steps {
                         container('main') {
                             sh 'cd ci_site && mvn -U -B -s .jenkins/settings.xml clean site site:stage -Dmaven.test.failure.ignore=true'
@@ -162,6 +174,12 @@ spec:
                     }
                 }
                 stage('Nexus') {
+                    when {
+                        anyOf {
+                            branch 'master'
+                            expression { env.BRANCH_NAME.startsWith('maintenance/') }
+                        }
+                    }
                     steps {
                         container('main') {
                             withCredentials([nexusCredentials]) {
