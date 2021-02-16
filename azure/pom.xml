@@ -14,8 +14,9 @@
     <name>Components :: Azure</name>
 
     <modules>
-        <module>azurecommon</module>
-        <module>azureblob</module>
+        <module>azure-common</module>
+        <module>azure-blob</module>
+        <module>azure-dls-gen2</module>
     </modules>
 
     <properties>
