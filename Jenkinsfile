@@ -199,7 +199,7 @@ spec:
                     steps {
                         container('main') {
                             withCredentials([sonarCredentials]) {
-                                sh "mvn -Dsonar.host.url=https://sonar-eks.datapwn.com -Dsonar.login='${SONAR_LOGIN}' -Dsonar.password='${SONAR_PASSWORD}' -Dsonar.coverage.jacoco.xmlReportPaths=$(find '$(pwd)' -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',') sonar:sonar -PITs -s .jenkins/settings.xml -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/"
+                                sh "mvn -Dsonar.host.url=https://sonar-eks.datapwn.com -Dsonar.login='${SONAR_LOGIN}' -Dsonar.password='${SONAR_PASSWORD}' -Dsonar.coverage.jacoco.xmlReportPaths=$(find . -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',') sonar:sonar -PITs -s .jenkins/settings.xml -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/"
                             }
                         }
                     }
