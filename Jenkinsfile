@@ -196,10 +196,13 @@ spec:
                             expression { params.FORCE_SONAR == true }
                         }
                     }
+                    environment {
+                        LIST_FILE= sh(returnStdout: true, script: "find \$(pwd) -type f -name 'jacoco.xml'  | sed 's/.*/&/' | tr '\n' ','").trim()
+                    }
                     steps {
                         container('main') {
                             withCredentials([sonarCredentials]) {
-                                sh "mvn -Dsonar.host.url=https://sonar-eks.datapwn.com -Dsonar.login='${SONAR_LOGIN}' -Dsonar.password='${SONAR_PASSWORD}' -Dsonar.coverage.jacoco.xmlReportPaths=$(find . -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',') sonar:sonar -PITs -s .jenkins/settings.xml -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/"
+                                sh "mvn -Dsonar.host.url=https://sonar-eks.datapwn.com -Dsonar.login='$SONAR_LOGIN' -Dsonar.password='$SONAR_PASSWORD' -Dsonar.branch.name=${env.BRANCH_NAME} -Dsonar.coverage.jacoco.xmlReportPaths='${LIST_FILE}' sonar:sonar -PITs -s .jenkins/settings.xml -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/"
                             }
                         }
                     }

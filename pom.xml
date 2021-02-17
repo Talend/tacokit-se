@@ -881,7 +881,7 @@
             </goals>
             <configuration>
               <destFile>${project.build.directory}/coverage-reports/jacoco-it.exec</destFile>
-              <propertyName>failSafeArgLine</propertyName>
+              <!--<propertyName>failSafeArgLine</propertyName>-->
               <append>true</append>
             </configuration>
           </execution>
