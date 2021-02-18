@@ -12,16 +12,14 @@
  */
 package org.talend.components.common.text;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.talend.sdk.component.maven.MavenDecrypter;
-import org.talend.sdk.component.maven.Server;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 class SubstitutorTest {
 
@@ -67,17 +65,4 @@ class SubstitutorTest {
         Assertions.assertFalse(res.hasNext());
     }
 
-    @Test
-    public void testJenkinsSecret() {
-        final MavenDecrypter decrypter = new MavenDecrypter();
-        try {
-            final Server server = decrypter.find("talend.oss.snapshots");
-            Assertions.assertNotNull(server, "'talend.oss.snapshots' is not known");
-            Assertions.assertNotNull(server.getUsername());
-            Assertions.assertNotNull(server.getPassword());
-        }
-        catch (RuntimeException ex) {
-            Assertions.fail(ex);
-        }
-    }
 }
