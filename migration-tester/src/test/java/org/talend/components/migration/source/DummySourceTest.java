@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.talend.components.migration.conf.DSE;
 import org.talend.components.migration.conf.DSO;
 import org.talend.components.migration.conf.SourceConfig;
@@ -72,6 +73,10 @@ class DummySourceTest {
     }
 
     @EnvironmentalTest
+    // TODO : raised an uncatched bug on conversion of POJOs (not implementing IpersistableRow) having inherited fields.
+    // Bug in JsonRecordGenerator (TCOMP-1857).
+    // Should be re-enabled once 1.31.0 released.
+    @Disabled
     void testInput() {
 
         config.getDse().getDso().setDso_shouldNotBeEmpty("set !");
