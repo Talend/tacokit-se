@@ -12,7 +12,7 @@
  */
 package org.talend.components.cosmosDB;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.talend.components.cosmosDB.input.CosmosDBInput;
@@ -40,7 +40,7 @@ public class CosmosInputTestIT extends CosmosDbTestBase {
         Record next = input.next();
         System.out.println(next);
         input.release();
-        Assert.assertEquals("Wakefield.7", next.getRecord("Family").getString("Name"));
+        Assertions.assertEquals("Wakefield.7", next.getRecord("Family").getString("Name"));
 
     }
 
@@ -54,6 +54,6 @@ public class CosmosInputTestIT extends CosmosDbTestBase {
         input.init();
         Record next = input.next();
         input.release();
-        Assert.assertNotNull(next);
+        Assertions.assertNotNull(next);
     }
 }

@@ -14,9 +14,9 @@ package org.talend.components.salesforce.input;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.talend.components.salesforce.service.SalesforceService.URL;
@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.beam.sdk.Pipeline;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
@@ -187,7 +187,7 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
         Job.components().component("salesforce-input", "Salesforce://ModuleQueryInput?" + config)
                 .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
         final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
-        Assert.assertEquals(10, records.size());
+        Assertions.assertEquals(10, records.size());
 
         records.stream().forEach(r -> assertTrue(records.iterator().next().getString("Name").contains("TestName")));
     }
@@ -215,7 +215,7 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
         Job.components().component("salesforce-input", "Salesforce://ModuleQueryInput?" + config)
                 .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
         final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
-        Assert.assertEquals(8, records.size());
+        Assertions.assertEquals(8, records.size());
         Record record = records.get(0);
         assertEquals(8000, record.getInt("NumberOfEmployees"));
     }
@@ -294,7 +294,7 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
         Job.components().component("salesforce-input", "Salesforce://SOQLQueryInput?" + config)
                 .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
         final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
-        Assert.assertEquals(300, records.size());
+        Assertions.assertEquals(300, records.size());
         Record record = records.get(0);
         Schema schema = record.getSchema();
         assertNotNull(schema);
@@ -316,7 +316,7 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
         Job.components().component("salesforce-input", "Salesforce://SOQLQueryInput?" + config)
                 .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
         final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
-        Assert.assertEquals(0, records.size());
+        Assertions.assertEquals(0, records.size());
     }
 
     @Test
@@ -351,7 +351,7 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
         Job.components().component("salesforce-input", "Salesforce://SOQLQueryInput?" + config)
                 .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
         final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
-        Assert.assertEquals(1, records.size());
+        Assertions.assertEquals(1, records.size());
         Record record = records.get(0);
         assertNotNull(record.getString("CreatedBy_Name"));
     }
@@ -372,7 +372,7 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
         Job.components().component("salesforce-input", "Salesforce://SOQLQueryInput?" + config)
                 .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
         final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
-        Assert.assertEquals(1, records.size());
+        Assertions.assertEquals(1, records.size());
         Record record = records.get(0);
         assertEquals("F_test_types_" + UNIQUE_ID + " " + "L_test_types_" + UNIQUE_ID, record.getString("Contact_Name"));
         assertNull(record.getString("Account_Name"));
@@ -394,7 +394,7 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
         Job.components().component("salesforce-input", "Salesforce://ModuleQueryInput?" + config)
                 .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
         final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
-        Assert.assertEquals(10, records.size());
+        Assertions.assertEquals(10, records.size());
         Schema schema = records.iterator().next().getSchema();
         assertTrue(schema.getEntries().size() > 50, "schema fields list size: " + schema.getEntries().size());
     }

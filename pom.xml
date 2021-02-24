@@ -18,7 +18,7 @@
 
   <groupId>org.talend.components</groupId>
   <artifactId>connectors-se</artifactId>
-  <version>1.18.0-SNAPSHOT</version>
+  <version>1.19.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Connectors-se</name>
@@ -76,16 +76,16 @@
   </distributionManagement>
 
   <properties>
-    <connectors-test-bom.version>1.18.0-SNAPSHOT</connectors-test-bom.version>
-    <common.version>1.18.0-SNAPSHOT</common.version>
+    <connectors-test-bom.version>1.19.0-SNAPSHOT</connectors-test-bom.version>
+    <common.version>1.19.0-SNAPSHOT</common.version>
 
     <timestamp.year>${maven.build.timestamp}</timestamp.year>
     <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <locales.version>1.18.1</locales.version>
+    <locales.version>[1.19,)</locales.version>
 
-    <component-runtime.version>1.29.1</component-runtime.version>
+    <component-runtime.version>1.29.2</component-runtime.version>
     <slf4j.version>1.7.28</slf4j.version>
     <log4j-api.version>2.14.0</log4j-api.version>
     <beanutils.version>1.9.4</beanutils.version>
@@ -537,6 +537,38 @@
   </pluginRepositories>
 
   <build>
+    <pluginManagement>
+<plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${surefire.version}</version>
+        <configuration>
+          <systemPropertyVariables>
+            <talend.component.junit.handler.state>static</talend.component.junit.handler.state>
+          </systemPropertyVariables>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>test</phase>
+            <goals>
+              <!--TODO uncomment it to enable its on CI once creds are added -->
+              <goal>integration-test</goal>
+              <!--<goal>verify</goal>-->
+            </goals>
+            <configuration>
+              <classpathDependencyExcludes>
+                <classpathDependencyExcludes>org.talend.sdk.component:component-runtime-beam
+                </classpathDependencyExcludes>
+                <classpathDependencyExcludes>org.apache.beam:beam-runners-direct-java
+                </classpathDependencyExcludes>
+              </classpathDependencyExcludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+</plugins>
+    </pluginManagement>
     <plugins>
       <plugin>
         <groupId>pl.project13.maven</groupId>
@@ -826,6 +858,34 @@
         </dependencies>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${surefire.version}</version>
+        <configuration>
+          <systemPropertyVariables>
+            <talend.component.junit.handler.state>static</talend.component.junit.handler.state>
+          </systemPropertyVariables>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>test</phase>
+            <goals>
+              <!--TODO uncomment it to enable its on CI once creds are added -->
+              <goal>integration-test</goal>
+              <!--<goal>verify</goal>-->
+            </goals>
+            <configuration>
+              <classpathDependencyExcludes>
+                <classpathDependencyExcludes>org.talend.sdk.component:component-runtime-beam
+                </classpathDependencyExcludes>
+                <classpathDependencyExcludes>org.apache.beam:beam-runners-direct-java
+                </classpathDependencyExcludes>
+              </classpathDependencyExcludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
         <version>${jacoco.version}</version>
@@ -840,6 +900,19 @@
               <append>true</append>
             </configuration>
           </execution>
+
+          <execution>
+            <id>prepare-agent-it</id>
+            <goals>
+              <goal>prepare-agent-integration</goal>
+            </goals>
+            <configuration>
+              <destFile>${project.build.directory}/coverage-reports/jacoco-it.exec</destFile>
+              <!--<propertyName>failSafeArgLine</propertyName>-->
+              <append>true</append>
+            </configuration>
+          </execution>
+
           <execution>
             <id>post-unit-test</id>
             <phase>test</phase>
@@ -848,6 +921,49 @@
             </goals>
             <configuration>
               <dataFile>${project.build.directory}/coverage-reports/jacoco-ut.exec</dataFile>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>post-integration-test</id>
+            <phase>post-integration-test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+            <configuration>
+              <dataFile>${project.build.directory}/coverage-reports/jacoco-it.exec</dataFile>
+            </configuration>
+          </execution>
+
+
+          <execution>
+            <id>merge-results</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>merge</goal>
+            </goals>
+            <configuration>
+              <fileSets>
+                <fileSet>
+                  <directory>${project.build.directory}/coverage-reports</directory>
+                  <includes>
+                    <include>*.exec</include>
+                  </includes>
+                </fileSet>
+              </fileSets>
+              <destFile>${project.build.directory}/coverage-reports/aggregate.exec</destFile>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>post-merge-report</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+            <configuration>
+              <dataFile>${project.build.directory}/coverage-reports/aggregate.exec</dataFile>
+              <outputDirectory>${project.reporting.outputDirectory}/jacoco-aggregate</outputDirectory>
             </configuration>
           </execution>
         </executions>

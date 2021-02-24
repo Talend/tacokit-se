@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -83,16 +83,16 @@ class Excel97IT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
         Record firstRecord = records.get(0);
-        Assert.assertEquals("Record's schema is different", columnSize, firstRecord.getSchema().getEntries().size());
+        Assertions.assertEquals(columnSize, firstRecord.getSchema().getEntries().size(), "Record's schema is different");
 
-        Assert.assertEquals(idValue, firstRecord.getDouble("field0"), 0.01);
-        Assert.assertEquals(nameValue, firstRecord.getString("field1"));
-        Assert.assertEquals(longValue, firstRecord.getDouble("field2"), 0.01);
-        Assert.assertEquals(doubleValue, firstRecord.getDouble("field3"), 0.01);
-        Assert.assertEquals(dateValue, firstRecord.getDouble("field4"), 0.01);
-        Assert.assertEquals(booleanValue, firstRecord.getBoolean("field5"));
+        Assertions.assertEquals(idValue, firstRecord.getDouble("field0"), 0.01);
+        Assertions.assertEquals(nameValue, firstRecord.getString("field1"));
+        Assertions.assertEquals(longValue, firstRecord.getDouble("field2"), 0.01);
+        Assertions.assertEquals(doubleValue, firstRecord.getDouble("field3"), 0.01);
+        Assertions.assertEquals(dateValue, firstRecord.getDouble("field4"), 0.01);
+        Assertions.assertEquals(booleanValue, firstRecord.getBoolean("field5"));
     }
 
     @Test
@@ -109,9 +109,9 @@ class Excel97IT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
         Record firstRecord = records.get(0);
-        Assert.assertEquals("Record's schema is different", columnSize, firstRecord.getSchema().getEntries().size());
+        Assertions.assertEquals(columnSize, firstRecord.getSchema().getEntries().size(), "Record's schema is different");
     }
 
     @Test
@@ -130,7 +130,7 @@ class Excel97IT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
     }
 
     @Test
@@ -148,16 +148,16 @@ class Excel97IT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
         Record firstRecord = records.get(0);
-        Assert.assertEquals("Record's schema is different", columnSize, firstRecord.getSchema().getEntries().size());
+        Assertions.assertEquals(columnSize, firstRecord.getSchema().getEntries().size(), "Record's schema is different");
 
-        Assert.assertEquals(idValue, firstRecord.getDouble("id"), 0.01);
-        Assert.assertEquals(nameValue, firstRecord.getString("name"));
-        Assert.assertEquals(longValue, firstRecord.getDouble("longValue"), 0.01);
-        Assert.assertEquals(doubleValue, firstRecord.getDouble("doubleValue"), 0.01);
-        Assert.assertEquals(dateValue, firstRecord.getDouble("dateValue"), 0.01);
-        Assert.assertEquals(booleanValue, firstRecord.getBoolean("booleanValue"));
+        Assertions.assertEquals(idValue, firstRecord.getDouble("id"), 0.01);
+        Assertions.assertEquals(nameValue, firstRecord.getString("name"));
+        Assertions.assertEquals(longValue, firstRecord.getDouble("longValue"), 0.01);
+        Assertions.assertEquals(doubleValue, firstRecord.getDouble("doubleValue"), 0.01);
+        Assertions.assertEquals(dateValue, firstRecord.getDouble("dateValue"), 0.01);
+        Assertions.assertEquals(booleanValue, firstRecord.getBoolean("booleanValue"));
     }
 
     @Test
@@ -175,9 +175,9 @@ class Excel97IT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
         Record firstRecord = records.get(0);
-        Assert.assertEquals("Record's schema is different", columnSize, firstRecord.getSchema().getEntries().size());
+        Assertions.assertEquals(columnSize, firstRecord.getSchema().getEntries().size(), "Record's schema is different");
     }
 
     @Test
@@ -197,7 +197,7 @@ class Excel97IT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
     }
 
     @Test
@@ -221,16 +221,16 @@ class Excel97IT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
         Record firstRecord = records.get(0);
-        Assert.assertEquals("Record's schema is different", columnSize, firstRecord.getSchema().getEntries().size());
+        Assertions.assertEquals(columnSize, firstRecord.getSchema().getEntries().size(), "Record's schema is different");
 
-        Assert.assertEquals(idValue, firstRecord.getDouble("id"), 0.01);
-        Assert.assertEquals(nameValue, firstRecord.getString("name"));
-        Assert.assertEquals(longValue, firstRecord.getDouble("longValue"), 0.01);
-        Assert.assertEquals(doubleValue, firstRecord.getDouble("doubleValue"), 0.01);
-        Assert.assertEquals(dateValue, firstRecord.getDouble("dateValue"), 0.01);
-        Assert.assertEquals(booleanValue, firstRecord.getBoolean("booleanValue"));
+        Assertions.assertEquals(idValue, firstRecord.getDouble("id"), 0.01);
+        Assertions.assertEquals(nameValue, firstRecord.getString("name"));
+        Assertions.assertEquals(longValue, firstRecord.getDouble("longValue"), 0.01);
+        Assertions.assertEquals(doubleValue, firstRecord.getDouble("doubleValue"), 0.01);
+        Assertions.assertEquals(dateValue, firstRecord.getDouble("dateValue"), 0.01);
+        Assertions.assertEquals(booleanValue, firstRecord.getBoolean("booleanValue"));
     }
 
     @Test
@@ -248,9 +248,9 @@ class Excel97IT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
         Record firstRecord = records.get(0);
-        Assert.assertEquals("Record's schema is different", columnSize, firstRecord.getSchema().getEntries().size());
+        Assertions.assertEquals(columnSize, firstRecord.getSchema().getEntries().size(), "Record's schema is different");
     }
 
     @Test
@@ -270,7 +270,7 @@ class Excel97IT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
     }
 
     @Test
@@ -288,16 +288,16 @@ class Excel97IT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
         Record firstRecord = records.get(0);
-        Assert.assertEquals("Record's schema is different", columnSize, firstRecord.getSchema().getEntries().size());
+        Assertions.assertEquals(columnSize, firstRecord.getSchema().getEntries().size(), "Record's schema is different");
 
-        Assert.assertEquals(idValue, firstRecord.getDouble("field0"), 0.01);
-        Assert.assertEquals(nameValue, firstRecord.getString("field1"));
-        Assert.assertEquals(longValue, firstRecord.getDouble("field2"), 0.01);
-        Assert.assertEquals(doubleValue, firstRecord.getDouble("field3"), 0.01);
-        Assert.assertEquals(dateValue, firstRecord.getDouble("field4"), 0.01);
-        Assert.assertEquals(booleanValue, firstRecord.getBoolean("field5"));
+        Assertions.assertEquals(idValue, firstRecord.getDouble("field0"), 0.01);
+        Assertions.assertEquals(nameValue, firstRecord.getString("field1"));
+        Assertions.assertEquals(longValue, firstRecord.getDouble("field2"), 0.01);
+        Assertions.assertEquals(doubleValue, firstRecord.getDouble("field3"), 0.01);
+        Assertions.assertEquals(dateValue, firstRecord.getDouble("field4"), 0.01);
+        Assertions.assertEquals(booleanValue, firstRecord.getBoolean("field5"));
     }
 
     @Test
@@ -313,13 +313,13 @@ class Excel97IT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
         Record fullRecord = records.get(0);
         Record recordWithEmptyCells = records.get(1);
-        Assert.assertEquals("Column number for row without empty cells is different", columnSizeForFullRecord,
-                fullRecord.getSchema().getEntries().size());
-        Assert.assertEquals("Column number for row with empty cells is different", columnSizeForRecordsWithNulls,
-                recordWithEmptyCells.getSchema().getEntries().size());
+        Assertions.assertEquals(columnSizeForFullRecord, fullRecord.getSchema().getEntries().size(),
+                "Column number for row without empty cells is different");
+        Assertions.assertEquals(columnSizeForRecordsWithNulls, recordWithEmptyCells.getSchema().getEntries().size(),
+                "Column number for row with empty cells is different");
     }
 
     @Test
@@ -337,7 +337,7 @@ class Excel97IT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
     }
 
     @Test
@@ -360,6 +360,6 @@ class Excel97IT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
     }
 }

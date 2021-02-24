@@ -18,7 +18,7 @@
   <parent>
     <groupId>org.talend.components</groupId>
     <artifactId>common-stream-io</artifactId>
-    <version>1.18.0-SNAPSHOT</version>
+    <version>1.19.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>stream-api</artifactId>
@@ -29,7 +29,7 @@
     <dependency>
       <groupId>org.talend.components</groupId>
       <artifactId>common-io</artifactId>
-      <version>1.18.0-SNAPSHOT</version>
+      <version>1.19.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>

@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.azure.BaseIT;
@@ -93,13 +93,15 @@ class CSVOutputIT extends BaseIT {
                 storageAccount, blobOutputProperties.getDataset(),
                 CSVConverter.of(recordBuilderFactory, blobOutputProperties.getDataset().getCsvOptions()).getCsvFormat());
 
-        Assert.assertEquals(recordSize, retrievedRecords.size());
-        Assert.assertEquals(testRecord.getSchema().getEntries().size(), retrievedRecords.get(0).getSchema().getEntries().size());
-        Assert.assertEquals(String.valueOf(testRecord.getBoolean("booleanValue")), retrievedRecords.get(0).getString("field0"));
-        Assert.assertEquals(String.valueOf(testRecord.getLong("longValue")), retrievedRecords.get(0).getString("field1"));
-        Assert.assertEquals(String.valueOf(testRecord.getInt("intValue")), retrievedRecords.get(0).getString("field2"));
-        Assert.assertEquals(String.valueOf(testRecord.getDouble("doubleValue")), retrievedRecords.get(0).getString("field3"));
-        Assert.assertEquals(String.valueOf(testRecord.getDateTime("dateValue")), retrievedRecords.get(0).getString("field4"));
-        Assert.assertEquals(Arrays.toString(testRecord.getBytes("byteArray")), retrievedRecords.get(0).getString("field5"));
+        Assertions.assertEquals(recordSize, retrievedRecords.size());
+        Assertions.assertEquals(testRecord.getSchema().getEntries().size(),
+                retrievedRecords.get(0).getSchema().getEntries().size());
+        Assertions.assertEquals(String.valueOf(testRecord.getBoolean("booleanValue")),
+                retrievedRecords.get(0).getString("field0"));
+        Assertions.assertEquals(String.valueOf(testRecord.getLong("longValue")), retrievedRecords.get(0).getString("field1"));
+        Assertions.assertEquals(String.valueOf(testRecord.getInt("intValue")), retrievedRecords.get(0).getString("field2"));
+        Assertions.assertEquals(String.valueOf(testRecord.getDouble("doubleValue")), retrievedRecords.get(0).getString("field3"));
+        Assertions.assertEquals(String.valueOf(testRecord.getDateTime("dateValue")), retrievedRecords.get(0).getString("field4"));
+        Assertions.assertEquals(Arrays.toString(testRecord.getBytes("byteArray")), retrievedRecords.get(0).getString("field5"));
     }
 }

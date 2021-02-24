@@ -12,14 +12,14 @@
  */
 package org.talend.components.common.text;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 class SubstitutorTest {
 
@@ -64,4 +64,5 @@ class SubstitutorTest {
         Assertions.assertEquals("world:-tdi", r2.key);
         Assertions.assertFalse(res.hasNext());
     }
+
 }

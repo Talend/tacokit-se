@@ -14,7 +14,7 @@ package org.talend.components.azure;
 
 import java.net.URISyntaxException;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.talend.components.azure.common.connection.AzureStorageConnectionAccount;
 import org.talend.components.azure.common.connection.AzureStorageConnectionSignature;
@@ -34,9 +34,9 @@ public class RegionTest {
         AzureComponentServices service = new AzureComponentServices();
         CloudStorageAccount csa = service.createStorageAccount(accountConnection);
 
-        Assert.assertEquals("myaccount", csa.getCredentials().getAccountName().toString());
-        Assert.assertNull(csa.getEndpointSuffix());
-        Assert.assertEquals("https://myaccount.blob.core.windows.net", csa.getBlobEndpoint().toString());
+        Assertions.assertEquals("myaccount", csa.getCredentials().getAccountName().toString());
+        Assertions.assertNull(csa.getEndpointSuffix());
+        Assertions.assertEquals("https://myaccount.blob.core.windows.net", csa.getBlobEndpoint().toString());
     }
 
     @Test
@@ -48,9 +48,9 @@ public class RegionTest {
         AzureComponentServices service = new AzureComponentServices();
         CloudStorageAccount csa = service.createStorageAccount(accountConnection, "core.chinacloudapi.cn");
 
-        Assert.assertEquals("myaccount", csa.getCredentials().getAccountName().toString());
-        Assert.assertEquals("core.chinacloudapi.cn", csa.getEndpointSuffix());
-        Assert.assertEquals("https://myaccount.blob.core.chinacloudapi.cn", csa.getBlobEndpoint().toString());
+        Assertions.assertEquals("myaccount", csa.getCredentials().getAccountName().toString());
+        Assertions.assertEquals("core.chinacloudapi.cn", csa.getEndpointSuffix());
+        Assertions.assertEquals("https://myaccount.blob.core.chinacloudapi.cn", csa.getBlobEndpoint().toString());
     }
 
     @Test
@@ -61,8 +61,8 @@ public class RegionTest {
         AzureComponentServices service = new AzureComponentServices();
         CloudStorageAccount csa = service.createStorageAccount(accountConnection);
 
-        Assert.assertEquals("core.windows.net", csa.getEndpointSuffix());
-        Assert.assertEquals("https://myaccount.blob.core.windows.net", csa.getBlobEndpoint().toString());
+        Assertions.assertEquals("core.windows.net", csa.getEndpointSuffix());
+        Assertions.assertEquals("https://myaccount.blob.core.windows.net", csa.getBlobEndpoint().toString());
     }
 
     @Test
@@ -73,8 +73,8 @@ public class RegionTest {
         AzureComponentServices service = new AzureComponentServices();
         CloudStorageAccount csa = service.createStorageAccount(accountConnection);
 
-        Assert.assertEquals("core.chinacloudapi.cn", csa.getEndpointSuffix());
-        Assert.assertEquals("https://myaccount.blob.core.chinacloudapi.cn", csa.getBlobEndpoint().toString());
+        Assertions.assertEquals("core.chinacloudapi.cn", csa.getEndpointSuffix());
+        Assertions.assertEquals("https://myaccount.blob.core.chinacloudapi.cn", csa.getBlobEndpoint().toString());
     }
 
     @Test
@@ -84,14 +84,14 @@ public class RegionTest {
             AzureStorageConnectionSignature accountConnection = new AzureStorageConnectionSignature();
             accountConnection.setAzureSharedAccessSignature("https://myaccount.blob." + region + "/mytoken");
             RegionUtils ru = new RegionUtils(accountConnection);
-            Assert.assertEquals("myaccount", ru.getAccountName4SignatureAuth());
-            Assert.assertEquals(region, ru.getEndpointSuffix4SignatureAuth());
-            Assert.assertEquals("mytoken", ru.getToken4SignatureAuth());
-            Assert.assertEquals("fs.azure.sas.mycontainer.myaccount.blob." + region, RegionUtils.getSasKey4SignatureAuth(
+            Assertions.assertEquals("myaccount", ru.getAccountName4SignatureAuth());
+            Assertions.assertEquals(region, ru.getEndpointSuffix4SignatureAuth());
+            Assertions.assertEquals("mytoken", ru.getToken4SignatureAuth());
+            Assertions.assertEquals("fs.azure.sas.mycontainer.myaccount.blob." + region, RegionUtils.getSasKey4SignatureAuth(
                     "mycontainer", ru.getAccountName4SignatureAuth(), ru.getEndpointSuffix4SignatureAuth()));
-            Assert.assertEquals("fs.azure.account.key.myaccount.blob." + region,
+            Assertions.assertEquals("fs.azure.account.key.myaccount.blob." + region,
                     RegionUtils.getAccountCredKey4AccountAuth("myaccount", region));
-            Assert.assertEquals("wasbs://mycontainer@myaccount.blob." + region + "/myitem",
+            Assertions.assertEquals("wasbs://mycontainer@myaccount.blob." + region + "/myitem",
                     RegionUtils.getBlobURI(true, "mycontainer", "myaccount", region, "myitem"));
         }
     }

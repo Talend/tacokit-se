@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -69,11 +69,11 @@ class HTMLInputIT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
         Record firstRecord = records.get(0);
-        Assert.assertEquals("Record's schema is different", columnSize, firstRecord.getSchema().getEntries().size());
-        Assert.assertEquals("a1", firstRecord.getString("field0"));
-        Assert.assertEquals("b1", firstRecord.getString("field1"));
+        Assertions.assertEquals(columnSize, firstRecord.getSchema().getEntries().size(), "Record's schema is different");
+        Assertions.assertEquals("a1", firstRecord.getString("field0"));
+        Assertions.assertEquals("b1", firstRecord.getString("field1"));
     }
 
     @Test
@@ -89,12 +89,12 @@ class HTMLInputIT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
         for (int i = 0; i < recordSize; i++) {
             Record record = records.get(i);
-            Assert.assertEquals("Record's schema is different", columnSize, record.getSchema().getEntries().size());
-            Assert.assertEquals("a" + (i + 1), record.getString("field0"));
-            Assert.assertEquals("b" + (i + 1), record.getString("field1"));
+            Assertions.assertEquals(columnSize, record.getSchema().getEntries().size(), "Record's schema is different");
+            Assertions.assertEquals("a" + (i + 1), record.getString("field0"));
+            Assertions.assertEquals("b" + (i + 1), record.getString("field1"));
         }
     }
 
@@ -111,7 +111,7 @@ class HTMLInputIT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
     }
 
     @Test
@@ -126,15 +126,16 @@ class HTMLInputIT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals("Records amount is different", recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size(), "Records amount is different");
         Record firstRecord = records.get(0);
-        Assert.assertEquals("Record's column amount is different", columnSize, firstRecord.getSchema().getEntries().size());
-        Assert.assertEquals("compqa talend", firstRecord.getString("Account_Owner"));
-        Assert.assertEquals("CLoud_salesforce", firstRecord.getString("Account_Name"));
-        Assert.assertTrue("Type should be empty", firstRecord.getString("Type").isEmpty());
-        Assert.assertTrue("Rating should be empty", firstRecord.getString("Rating").isEmpty());
-        Assert.assertTrue("Last_Activity should be empty", firstRecord.getString("Last_Activity").isEmpty());
-        Assert.assertEquals("2/3/2020", firstRecord.getString("Last_Modified_Date"));
-        Assert.assertTrue("Billing_State_Province should be empty", firstRecord.getString("Billing_State_Province").isEmpty());
+        Assertions.assertEquals(columnSize, firstRecord.getSchema().getEntries().size(), "Record's column amount is different");
+        Assertions.assertEquals("compqa talend", firstRecord.getString("Account_Owner"));
+        Assertions.assertEquals("CLoud_salesforce", firstRecord.getString("Account_Name"));
+        Assertions.assertTrue(firstRecord.getString("Type").isEmpty(), "Type should be empty");
+        Assertions.assertTrue(firstRecord.getString("Rating").isEmpty(), "Rating should be empty");
+        Assertions.assertTrue(firstRecord.getString("Last_Activity").isEmpty(), "Last_Activity should be empty");
+        Assertions.assertEquals("2/3/2020", firstRecord.getString("Last_Modified_Date"));
+        Assertions.assertTrue(firstRecord.getString("Billing_State_Province").isEmpty(),
+                "Billing_State_Province should be empty");
     }
 }

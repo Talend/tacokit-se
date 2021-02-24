@@ -19,7 +19,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.azure.BaseIT;
@@ -93,8 +93,9 @@ class AvroOutputIT extends BaseIT {
 
         CloudBlobContainer container = storageAccount.createCloudBlobClient().getContainerReference(containerName);
 
-        Assert.assertTrue("No files were created in test container",
-                container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext());
+        Assertions.assertTrue(
+                container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext(),
+                "No files were created in test container");
 
         BlobInputProperties inputProperties = new BlobInputProperties();
         inputProperties.setDataset(blobOutputProperties.getDataset());
@@ -104,15 +105,15 @@ class AvroOutputIT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals(recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size());
         Record firstRecord = records.get(0);
-        Assert.assertEquals(testRecord.getString("stringValue"), firstRecord.getString("stringValue"));
-        Assert.assertEquals(testRecord.getBoolean("booleanValue"), firstRecord.getBoolean("booleanValue"));
-        Assert.assertEquals(testRecord.getLong("longValue"), firstRecord.getLong("longValue"));
-        Assert.assertEquals(testRecord.getInt("intValue"), firstRecord.getInt("intValue"));
-        Assert.assertEquals(testRecord.getDouble("doubleValue"), firstRecord.getDouble("doubleValue"), 0.01);
-        Assert.assertEquals(testRecord.getDateTime("dateValue"), firstRecord.getDateTime("dateValue"));
-        Assert.assertArrayEquals(testRecord.getBytes("byteArray"), firstRecord.getBytes("byteArray"));
+        Assertions.assertEquals(testRecord.getString("stringValue"), firstRecord.getString("stringValue"));
+        Assertions.assertEquals(testRecord.getBoolean("booleanValue"), firstRecord.getBoolean("booleanValue"));
+        Assertions.assertEquals(testRecord.getLong("longValue"), firstRecord.getLong("longValue"));
+        Assertions.assertEquals(testRecord.getInt("intValue"), firstRecord.getInt("intValue"));
+        Assertions.assertEquals(testRecord.getDouble("doubleValue"), firstRecord.getDouble("doubleValue"), 0.01);
+        Assertions.assertEquals(testRecord.getDateTime("dateValue"), firstRecord.getDateTime("dateValue"));
+        Assertions.assertArrayEquals(testRecord.getBytes("byteArray"), firstRecord.getBytes("byteArray"));
     }
 
     @Test
@@ -137,8 +138,9 @@ class AvroOutputIT extends BaseIT {
 
         CloudBlobContainer container = storageAccount.createCloudBlobClient().getContainerReference(containerName);
 
-        Assert.assertTrue("No files were created in test container",
-                container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext());
+        Assertions.assertTrue(
+                container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext(),
+                "No files were created in test container");
     }
 
     @Test
@@ -174,19 +176,19 @@ class AvroOutputIT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals(recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size());
         Record firstRecord = records.get(0);
 
-        Assert.assertEquals(schemaSize, firstRecord.getSchema().getEntries().size());
-        Assert.assertNull(firstRecord.getString("nullStringColumn"));
-        Assert.assertNull(firstRecord.getString("nullStringColumn2"));
-        Assert.assertNull(firstRecord.get(Integer.class, "nullIntColumn"));
-        Assert.assertNull(firstRecord.get(Long.class, "nullLongColumn"));
-        Assert.assertNull(firstRecord.get(Float.class, "nullFloatColumn"));
-        Assert.assertNull(firstRecord.get(Double.class, "nullDoubleColumn"));
-        Assert.assertNull(firstRecord.get(Boolean.class, "nullBooleanColumn"));
-        Assert.assertNull(firstRecord.get(byte[].class, "nullByteArrayColumn"));
-        Assert.assertNull(firstRecord.getDateTime("nullDateColumn"));
+        Assertions.assertEquals(schemaSize, firstRecord.getSchema().getEntries().size());
+        Assertions.assertNull(firstRecord.getString("nullStringColumn"));
+        Assertions.assertNull(firstRecord.getString("nullStringColumn2"));
+        Assertions.assertNull(firstRecord.get(Integer.class, "nullIntColumn"));
+        Assertions.assertNull(firstRecord.get(Long.class, "nullLongColumn"));
+        Assertions.assertNull(firstRecord.get(Float.class, "nullFloatColumn"));
+        Assertions.assertNull(firstRecord.get(Double.class, "nullDoubleColumn"));
+        Assertions.assertNull(firstRecord.get(Boolean.class, "nullBooleanColumn"));
+        Assertions.assertNull(firstRecord.get(byte[].class, "nullByteArrayColumn"));
+        Assertions.assertNull(firstRecord.getDateTime("nullDateColumn"));
     }
 
     @Test
@@ -219,9 +221,9 @@ class AvroOutputIT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals(recordSize, records.size());
-        Assert.assertEquals(fieldSize, records.get(0).getSchema().getEntries().size());
-        Assert.assertEquals(fieldSize, records.get(1).getSchema().getEntries().size());
+        Assertions.assertEquals(recordSize, records.size());
+        Assertions.assertEquals(fieldSize, records.get(0).getSchema().getEntries().size());
+        Assertions.assertEquals(fieldSize, records.get(1).getSchema().getEntries().size());
     }
 
     @Test
@@ -247,7 +249,7 @@ class AvroOutputIT extends BaseIT {
 
         CloudBlobContainer container = storageAccount.createCloudBlobClient().getContainerReference(containerName);
         Iterator blobIterator = container.listBlobs("", false).iterator();
-        Assert.assertTrue("No files were created in test container root directory", blobIterator.hasNext());
-        Assert.assertTrue("Directory was created", blobIterator.next() instanceof CloudBlob);
+        Assertions.assertTrue(blobIterator.hasNext(), "No files were created in test container root directory");
+        Assertions.assertTrue(blobIterator.next() instanceof CloudBlob, "Directory was created");
     }
 }

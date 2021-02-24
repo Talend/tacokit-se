@@ -13,7 +13,7 @@
 package org.talend.components.salesforce.service;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -84,25 +84,25 @@ public class UiActionServiceTest extends SalesforceTestBase {
         assertTrue(modules.isCacheable());
         final List<String> moduleNames = new ArrayList<>();
         modules.getItems().stream().forEach(e -> moduleNames.add(e.getId()));
-        assertTrue("Return module name list is not include all expected modules!", moduleNames.containsAll(asList("Account",
-                "AccountContactRole", "AccountFeed", "AccountHistory", "AccountPartner", "AccountShare", "AdditionalNumber",
-                "ApexClass", "ApexComponent", "ApexLog", "ApexPage", "ApexTrigger", "Asset", "AssetFeed", "AssignmentRule",
-                "AsyncApexJob", "Attachment", "BrandTemplate", "BusinessHours", "BusinessProcess", "CallCenter", "Campaign",
-                "CampaignFeed", "CampaignMember", "CampaignMemberStatus", "CampaignShare", "Case", "CaseComment",
-                "CaseContactRole", "CaseFeed", "CaseHistory", "CaseShare", "CaseSolution", "CaseTeamMember", "CaseTeamRole",
-                "CaseTeamTemplate", "CaseTeamTemplateMember", "CaseTeamTemplateRecord", "CategoryData", "CategoryNode",
-                "CollaborationGroup", "CollaborationGroupFeed", "CollaborationGroupMember", "Community", "Contact", "ContactFeed",
-                "ContactHistory", "ContactShare", "Contract", "ContractContactRole", "ContractFeed", "ContractHistory",
-                "CronTrigger", "Document", "DocumentAttachmentMap", "EmailServicesAddress", "EmailServicesFunction",
-                "EmailTemplate", "EntitySubscription", "Event", "FeedComment", "FeedTrackedChange", "FiscalYearSettings",
-                "Folder", "Group", "GroupMember", "Holiday", "Idea", "IdeaComment", "Lead", "LeadFeed", "LeadHistory",
-                "LeadShare", "LeadStatus", "MailmergeTemplate", "Note", "Opportunity", "OpportunityCompetitor",
-                "OpportunityContactRole", "OpportunityFeed", "OpportunityFieldHistory", "OpportunityHistory",
-                "OpportunityLineItem", "OpportunityPartner", "OpportunityShare", "OpportunityStage", "OrgWideEmailAddress",
-                "Organization", "Partner", "Period", "Pricebook2", "PricebookEntry", "ProcessInstance", "ProcessInstanceStep",
-                "ProcessInstanceWorkitem", "Product2", "Product2Feed", "Profile", "QueueSobject", "RecordType", "Scontrol",
-                "Site", "SiteHistory", "Solution", "SolutionFeed", "SolutionHistory", "StaticResource", "User", "UserFeed",
-                "UserLicense", "UserPreference", "UserRole", "Vote", "WebLink")));
+        assertTrue(moduleNames.containsAll(asList("Account", "AccountContactRole", "AccountFeed", "AccountHistory",
+                "AccountPartner", "AccountShare", "AdditionalNumber", "ApexClass", "ApexComponent", "ApexLog", "ApexPage",
+                "ApexTrigger", "Asset", "AssetFeed", "AssignmentRule", "AsyncApexJob", "Attachment", "BrandTemplate",
+                "BusinessHours", "BusinessProcess", "CallCenter", "Campaign", "CampaignFeed", "CampaignMember",
+                "CampaignMemberStatus", "CampaignShare", "Case", "CaseComment", "CaseContactRole", "CaseFeed", "CaseHistory",
+                "CaseShare", "CaseSolution", "CaseTeamMember", "CaseTeamRole", "CaseTeamTemplate", "CaseTeamTemplateMember",
+                "CaseTeamTemplateRecord", "CategoryData", "CategoryNode", "CollaborationGroup", "CollaborationGroupFeed",
+                "CollaborationGroupMember", "Community", "Contact", "ContactFeed", "ContactHistory", "ContactShare", "Contract",
+                "ContractContactRole", "ContractFeed", "ContractHistory", "CronTrigger", "Document", "DocumentAttachmentMap",
+                "EmailServicesAddress", "EmailServicesFunction", "EmailTemplate", "EntitySubscription", "Event", "FeedComment",
+                "FeedTrackedChange", "FiscalYearSettings", "Folder", "Group", "GroupMember", "Holiday", "Idea", "IdeaComment",
+                "Lead", "LeadFeed", "LeadHistory", "LeadShare", "LeadStatus", "MailmergeTemplate", "Note", "Opportunity",
+                "OpportunityCompetitor", "OpportunityContactRole", "OpportunityFeed", "OpportunityFieldHistory",
+                "OpportunityHistory", "OpportunityLineItem", "OpportunityPartner", "OpportunityShare", "OpportunityStage",
+                "OrgWideEmailAddress", "Organization", "Partner", "Period", "Pricebook2", "PricebookEntry", "ProcessInstance",
+                "ProcessInstanceStep", "ProcessInstanceWorkitem", "Product2", "Product2Feed", "Profile", "QueueSobject",
+                "RecordType", "Scontrol", "Site", "SiteHistory", "Solution", "SolutionFeed", "SolutionHistory", "StaticResource",
+                "User", "UserFeed", "UserLicense", "UserPreference", "UserRole", "Vote", "WebLink")),
+                "Return module name list is not include all expected modules!");
     }
 
     @Test
@@ -137,15 +137,14 @@ public class UiActionServiceTest extends SalesforceTestBase {
         assertNotNull(filedNameList);
         List<String> fieldNames = new ArrayList<>();
         filedNameList.getItems().stream().forEach(item -> fieldNames.add(item.getLabel()));
-        assertTrue("Return module field name list is not include all expected fields!",
-                fieldNames.containsAll(asList("Id", "IsDeleted", "MasterRecordId", "Name", "Type", "ParentId", "BillingStreet",
-                        "BillingCity", "BillingState", "BillingPostalCode", "BillingCountry", "BillingLatitude",
-                        "BillingLongitude", "ShippingStreet", "ShippingCity", "ShippingState", "ShippingPostalCode",
-                        "ShippingCountry", "ShippingLatitude", "ShippingLongitude", "Phone", "Fax", "AccountNumber", "Website",
-                        "PhotoUrl", "Sic", "Industry", "AnnualRevenue", "NumberOfEmployees", "Ownership", "TickerSymbol",
-                        "Description", "Rating", "Site", "OwnerId", "CreatedDate", "CreatedById", "LastModifiedDate",
-                        "LastModifiedById", "SystemModstamp", "LastActivityDate", "LastViewedDate", "LastReferencedDate",
-                        "Jigsaw", "JigsawCompanyId", "AccountSource", "SicDesc")));
+        assertTrue(fieldNames.containsAll(asList("Id", "IsDeleted", "MasterRecordId", "Name", "Type", "ParentId", "BillingStreet",
+                "BillingCity", "BillingState", "BillingPostalCode", "BillingCountry", "BillingLatitude", "BillingLongitude",
+                "ShippingStreet", "ShippingCity", "ShippingState", "ShippingPostalCode", "ShippingCountry", "ShippingLatitude",
+                "ShippingLongitude", "Phone", "Fax", "AccountNumber", "Website", "PhotoUrl", "Sic", "Industry", "AnnualRevenue",
+                "NumberOfEmployees", "Ownership", "TickerSymbol", "Description", "Rating", "Site", "OwnerId", "CreatedDate",
+                "CreatedById", "LastModifiedDate", "LastModifiedById", "SystemModstamp", "LastActivityDate", "LastViewedDate",
+                "LastReferencedDate", "Jigsaw", "JigsawCompanyId", "AccountSource", "SicDesc")),
+                "Return module field name list is not include all expected fields!");
 
     }
 
@@ -157,8 +156,8 @@ public class UiActionServiceTest extends SalesforceTestBase {
         assertNotNull(filedNameList);
         List<String> fieldNames = new ArrayList<>();
         filedNameList.getItems().stream().forEach(item -> fieldNames.add(item.getLabel()));
-        assertTrue("Return module field name list is not include all expected fields!",
-                fieldNames.containsAll(asList("Salutation")));
+        assertTrue(fieldNames.containsAll(asList("Salutation")),
+                "Return module field name list is not include all expected fields!");
 
     }
 }
