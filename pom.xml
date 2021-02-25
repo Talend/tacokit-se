@@ -94,7 +94,7 @@
     <spark.version>2.4.7</spark.version>
     <shrinkwrap.version>3.1.4</shrinkwrap.version>
     <avro.version>1.8.2</avro.version>
-    <jackson.version>2.10.1</jackson.version>
+    <jackson.version>2.11.4</jackson.version>
     <jackson-codehaus.version>1.9.14-TALEND</jackson-codehaus.version>
 
     <jsoup.version>1.13.1</jsoup.version>
