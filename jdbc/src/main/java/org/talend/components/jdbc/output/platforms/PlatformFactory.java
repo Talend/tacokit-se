@@ -28,6 +28,7 @@ import static org.talend.components.jdbc.output.platforms.PostgreSQLPlatform.POS
 import static org.talend.components.jdbc.output.platforms.RedshiftPlatform.REDSHIFT;
 import static org.talend.components.jdbc.output.platforms.SQLDWHPlatform.SQLDWH;
 import static org.talend.components.jdbc.output.platforms.SnowflakePlatform.SNOWFLAKE;
+import static org.talend.components.jdbc.output.platforms.DeltaLakePlatform.DELTALAKE;
 
 public final class PlatformFactory {
 
@@ -51,6 +52,8 @@ public final class PlatformFactory {
             return new MSSQLPlatform(i18n);
         case SQLDWH:
             return new SQLDWHPlatform(i18n);
+        case DELTALAKE:
+            return new DeltaLakePlatform(i18n);
         case DERBY:
         default:
             return new DerbyPlatform(i18n);
