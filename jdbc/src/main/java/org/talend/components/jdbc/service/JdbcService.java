@@ -177,7 +177,11 @@ public class JdbcService {
                 }
                 dataSource.setDriverClassName(driver.getClassName());
                 dataSource.setJdbcUrl(connection.getJdbcUrl());
-                dataSource.setAutoCommit(isAutoCommit);
+                if("DeltaLake".equals(driver.getId())) {
+                    //do nothing, DeltaLake default don't allow set auto commit to false
+                } else {
+                    dataSource.setAutoCommit(isAutoCommit);
+                }
                 dataSource.setMaximumPoolSize(1);
                 dataSource.setConnectionTimeout(connection.getConnectionTimeOut() * 1000);
                 dataSource.setValidationTimeout(connection.getConnectionValidationTimeOut() * 1000);
