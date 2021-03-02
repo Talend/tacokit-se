@@ -75,7 +75,9 @@ public abstract class Platform implements Serializable {
             statement.executeUpdate(sql);
             connection.commit();
         } catch (final Throwable e) {
-            connection.rollback();
+            if(!connection.getAutoCommit()) {
+                connection.rollback();
+            }
             if (!isTableExistsCreationError(e)) {
                 log.error("Create Table error for '" + sql + "'", e);
                 throw toIllegalStateException(e);
