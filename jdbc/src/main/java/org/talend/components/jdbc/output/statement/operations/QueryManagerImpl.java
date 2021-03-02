@@ -98,7 +98,9 @@ public abstract class QueryManagerImpl implements QueryManager {
 
                 try {
                     statement.executeBatch();
-                    connection.commit();
+                    if(!connection.getAutoCommit()) {
+                        connection.commit();
+                    }
                     break;
                 } catch (final SQLException e) {
                     if (!connection.getAutoCommit()) {
