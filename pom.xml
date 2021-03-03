@@ -46,7 +46,6 @@
         <module>common-stream-io</module>
         <module>connectors-test-bom</module>
         <module>bigquery</module>
-        <module>workday</module>
         <module>extensions</module>
         <module>cosmosDB</module>
         <module>google-storage</module>
