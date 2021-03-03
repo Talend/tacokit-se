@@ -72,11 +72,11 @@ public abstract class Platform implements Serializable {
         final String sql = buildQuery(connection, table);
         try (final Statement statement = connection.createStatement()) {
             statement.executeUpdate(sql);
-            if(!connection.getAutoCommit()) {
+            if (!connection.getAutoCommit()) {
                 connection.commit();
             }
         } catch (final Throwable e) {
-            if(!connection.getAutoCommit()) {
+            if (!connection.getAutoCommit()) {
                 connection.rollback();
             }
             if (!isTableExistsCreationError(e)) {

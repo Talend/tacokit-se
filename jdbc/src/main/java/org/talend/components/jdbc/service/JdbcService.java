@@ -120,7 +120,8 @@ public class JdbcService {
                         } catch (final SQLException e) {
                             return null;
                         }
-                    })).filter(tableName::equals).isPresent()) {
+                    })).filter(tn -> ("DeltaLake".equalsIgnoreCase(dataSource.driverId) ? tableName.equalsIgnoreCase(tn)
+                            : tableName.equals(tn))).isPresent()) {
                         return true;
                     }
                 }
@@ -149,6 +150,8 @@ public class JdbcService {
 
         private HikariDataSource dataSource;
 
+        private String driverId;
+
         public JdbcDatasource(final I18nMessage i18nMessage, final Resolver resolver, final JdbcConnection connection,
                 final JdbcConfiguration.Driver driver, final boolean isAutoCommit, final boolean rewriteBatchedStatements) {
             final Thread thread = Thread.currentThread();
@@ -160,6 +163,8 @@ public class JdbcService {
             if (!classLoaderDescriptor.resolvedDependencies().containsAll(driver.getPaths())) {
                 throw new IllegalStateException(i18nMessage.errorDriverLoad(driver.getId(), missingJars));
             }
+
+            driverId = driver.getId();
 
             try {
                 thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
@@ -177,8 +182,8 @@ public class JdbcService {
                 }
                 dataSource.setDriverClassName(driver.getClassName());
                 dataSource.setJdbcUrl(connection.getJdbcUrl());
-                if("DeltaLake".equals(driver.getId())) {
-                    //do nothing, DeltaLake default don't allow set auto commit to false
+                if ("DeltaLake".equalsIgnoreCase(driver.getId())) {
+                    // do nothing, DeltaLake default don't allow set auto commit to false
                 } else {
                     dataSource.setAutoCommit(isAutoCommit);
                 }
@@ -268,8 +273,8 @@ public class JdbcService {
         String schema = null;
         try {
             String result = connection.getSchema();
-            //delta lake database driver return empty string which not follow jdbc spec.
-            if(result!=null && !"".equals(result)) {
+            // delta lake database driver return empty string which not follow jdbc spec.
+            if (result != null && !"".equals(result)) {
                 schema = result;
             }
         } catch (AbstractMethodError e) {

@@ -127,13 +127,13 @@ public abstract class AbstractInputEmitter implements Serializable {
         }
         if (connection != null) {
             try {
-                if(!connection.getAutoCommit()) {
+                if (!connection.getAutoCommit()) {
                     connection.commit();
                 }
             } catch (final SQLException e) {
                 log.error(i18n.errorSQL(e.getErrorCode(), e.getMessage()), e);
                 try {
-                    if(!connection.getAutoCommit()) {
+                    if (!connection.getAutoCommit()) {
                         connection.rollback();
                     }
                 } catch (final SQLException rollbackError) {

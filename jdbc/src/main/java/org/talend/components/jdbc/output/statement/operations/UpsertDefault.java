@@ -114,11 +114,11 @@ public class UpsertDefault extends QueryManagerImpl {
                         }
                     }
                 }
-                if(!connection.getAutoCommit()) {
+                if (!connection.getAutoCommit()) {
                     connection.commit();
                 }
             } catch (final SQLException e) {
-                if(!connection.getAutoCommit()) {
+                if (!connection.getAutoCommit()) {
                     connection.rollback();
                 }
                 throw e;
