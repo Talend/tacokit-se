@@ -267,8 +267,11 @@ public class JdbcService {
         // Special code for MSSQL JDTS driver
         String schema = null;
         try {
-
-            schema = connection.getSchema();
+            String result = connection.getSchema();
+            //delta lake database driver return empty string which not follow jdbc spec.
+            if(result!=null && !"".equals(result)) {
+                schema = result;
+            }
         } catch (AbstractMethodError e) {
             // ignore
         }
