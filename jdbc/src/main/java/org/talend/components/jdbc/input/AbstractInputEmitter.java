@@ -77,10 +77,11 @@ public abstract class AbstractInputEmitter implements Serializable {
 
     @PostConstruct
     public void init() {
-        if (inputConfig.getDataSet().getQuery() == null || inputConfig.getDataSet().getQuery().trim().isEmpty()) {
+        String query = inputConfig.getDataSet().getQuery();
+        if (query == null || query.trim().isEmpty()) {
             throw new IllegalArgumentException(i18n.errorEmptyQuery());
         }
-        if (jdbcDriversService.isNotReadOnlySQLQuery(inputConfig.getDataSet().getQuery())) {
+        if (jdbcDriversService.isNotReadOnlySQLQuery(query)) {
             throw new IllegalArgumentException(i18n.errorUnauthorizedQuery());
         }
 
@@ -89,7 +90,7 @@ public abstract class AbstractInputEmitter implements Serializable {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
             statement.setFetchSize(inputConfig.getDataSet().getFetchSize());
-            resultSet = statement.executeQuery(inputConfig.getDataSet().getQuery());
+            resultSet = statement.executeQuery(query);
         } catch (final SQLException e) {
             throw toIllegalStateException(e);
         }

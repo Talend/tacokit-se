@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -18,6 +18,7 @@ import org.talend.components.jdbc.configuration.OutputConfig;
 import org.talend.components.jdbc.configuration.RedshiftSortStrategy;
 import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.JdbcConnection;
+import org.talend.components.jdbc.output.platforms.PlatformFactory;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.asyncvalidation.AsyncValidation;
@@ -55,6 +56,8 @@ import static java.util.stream.Collectors.toSet;
 @Slf4j
 @Service
 public class UIActionService {
+
+    public static final String ACTION_LIST_COLUMNS = "ACTION_LIST_COLUMNS";
 
     public static final String ACTION_LIST_SUPPORTED_DB = "ACTION_LIST_SUPPORTED_DB";
 
@@ -135,28 +138,10 @@ public class UIActionService {
 
     @Suggestions(ACTION_SUGGESTION_TABLE_COLUMNS_NAMES)
     public SuggestionValues getTableColumns(@Option final TableNameDataset dataset) {
-        try (JdbcService.JdbcDatasource dataSource = jdbcService.createDataSource(dataset.getConnection());
-                Connection conn = dataSource.getConnection();
-                final Statement statement = conn.createStatement()) {
-            statement.setMaxRows(1);
-            try (final ResultSet result = statement.executeQuery(dataset.getQuery())) {
-                return new SuggestionValues(true, IntStream.rangeClosed(1, result.getMetaData().getColumnCount()).mapToObj(i -> {
-                    try {
-                        return result.getMetaData().getColumnName(i);
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-
-                    return null;
-                }).filter(Objects::nonNull).map(columnName -> new SuggestionValues.Item(columnName, columnName))
-                        .collect(toSet()));
-            }
-        } catch (final Exception unexpected) {
-            // catch all exceptions for this ui label to return empty list
-            log.error(i18n.errorCantLoadTableSuggestions(), unexpected);
-        }
-
-        return new SuggestionValues(false, emptyList());
+        List<String> listColumns = dataset.getListColumns();
+        return listColumns != null && !listColumns.isEmpty() ? new SuggestionValues(true,
+                listColumns.stream().map(columnName -> new SuggestionValues.Item(columnName, columnName)).collect(toList()))
+                : getListColumns(dataset.getConnection(), dataset.getTableName());
     }
 
     @Suggestions(ACTION_SUGGESTION_TABLE_NAMES)
@@ -204,4 +189,30 @@ public class UIActionService {
         return new ValidationResult(ValidationResult.Status.OK, "");
     }
 
+    @Suggestions(value = ACTION_LIST_COLUMNS)
+    public SuggestionValues getListColumns(@Option final JdbcConnection datastore, String tableName) {
+        String indetifier = PlatformFactory.get(datastore, i18n).identifier(tableName);
+        try (JdbcService.JdbcDatasource dataSource = jdbcService.createDataSource(datastore);
+                Connection conn = dataSource.getConnection();
+                final Statement statement = conn.createStatement()) {
+            statement.setMaxRows(1);
+            try (final ResultSet result = statement.executeQuery("select * from " + indetifier)) {
+                return new SuggestionValues(true, IntStream.rangeClosed(1, result.getMetaData().getColumnCount()).mapToObj(i -> {
+                    try {
+                        return result.getMetaData().getColumnName(i);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+
+                    return null;
+                }).filter(Objects::nonNull).map(columnName -> new SuggestionValues.Item(columnName, columnName))
+                        .collect(toSet()));
+            }
+        } catch (final Exception unexpected) {
+            // catch all exceptions for this ui label to return empty list
+            log.error(i18n.errorCantLoadTableSuggestions(), unexpected);
+        }
+
+        return new SuggestionValues(false, emptyList());
+    }
 }
