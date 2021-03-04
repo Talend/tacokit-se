@@ -83,7 +83,7 @@
     <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <locales.version>[1.19,)</locales.version>
+    <locales.version>1.19.1</locales.version>
 
     <component-runtime.version>1.30.0</component-runtime.version>
     <slf4j.version>1.7.28</slf4j.version>
