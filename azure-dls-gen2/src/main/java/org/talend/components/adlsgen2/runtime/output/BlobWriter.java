@@ -12,6 +12,8 @@
  */
 package org.talend.components.adlsgen2.runtime.output;
 
+import static java.util.Optional.ofNullable;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -130,10 +132,10 @@ public abstract class BlobWriter {
      * Finish everything
      */
     public void complete() throws Exception {
-        if (!getBatch().isEmpty()) {
-            log.info("[complete] Executing last batch with {} records", getBatch().size());
+        ofNullable(getBatch()).filter(list -> !list.isEmpty()).ifPresent(list -> {
+            log.info("[complete] Executing last batch with {} records", list.size());
             flush();
-        }
+        });
     }
 
 }
