@@ -56,4 +56,6 @@ public interface I18nMessage {
     String errorReadingCredentials(String message);
 
     String errorBigqueryLoadJob();
+
+    String infoStorageBucketRequired();
 }

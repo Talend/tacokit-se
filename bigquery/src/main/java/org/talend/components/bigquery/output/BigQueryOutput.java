@@ -171,6 +171,9 @@ public class BigQueryOutput implements Serializable {
     }
 
     private Blob getNewBlob() {
+        if (configuration.getDataSet().getGsBucket() == null) {
+            throw new BigQueryConnectorException(i18n.infoStorageBucketRequired());
+        }
         do {
             String uuid = UUID.randomUUID().toString();
             String blobName = "temp/" + uuid + "/" + configuration.getDataSet().getTableName() + ".csv";
