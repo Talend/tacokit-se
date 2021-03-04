@@ -24,10 +24,6 @@ public class BlobWriterTest extends AdlsGen2TestBase{
          * There was a NPE issue.
          * No batch was created, since the {@link BlobWriter#newBatch()} was not called.
         */
-        try {
-            blobWriter.complete();
-        } catch (Exception e) {
-            Assertions.fail("Shouldn't happen on zero incoming records.");
-        }
+        Assertions.assertDoesNotThrow(blobWriter::complete);
     }
 }
