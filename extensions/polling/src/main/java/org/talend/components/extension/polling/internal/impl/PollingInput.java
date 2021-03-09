@@ -22,6 +22,7 @@ import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
@@ -38,13 +39,20 @@ public class PollingInput implements Input, Serializable {
 
     private Method resumeMethod;
 
+    private AtomicInteger currentRead = new AtomicInteger(0);
+
     @Override
     public Object next() {
-        long current = System.currentTimeMillis();
+        long currentTime = System.currentTimeMillis();
+        final int n = this.currentRead.incrementAndGet();
 
-        final long duration = current - this.lastExec.get();
-        if (duration < pollingConfiguration.getDelay()) {
-            return null; // currenty resume not supported, just to know that we will recall the input
+        if (pollingConfiguration.getMaxRead() > 0 && n > pollingConfiguration.getMaxRead()) {
+            final long duration = currentTime - this.lastExec.get();
+            if (duration < pollingConfiguration.getDelay()) {
+                return null; // currently resume not supported, just to know that we will recall the input
+            }
+            currentRead.set(1);
+            log.info("Call batch input from polling after {} ms.", duration);
         }
 
         final Object delegate = Delegated.class.cast(input).getDelegate();
@@ -55,9 +63,10 @@ public class PollingInput implements Input, Serializable {
         // Resumable.class.cast(Delegated.class.cast(input).getDelegate()).resume(null);
         resume(delegate, resumeMethodName, null);
 
-        log.info("Call batch input from polling after {} ms.", duration);
-        this.lastExec.set(current);
-        return input.next();
+        final Object next = input.next();
+        this.lastExec.set(currentTime);
+
+        return next;
     }
 
     private void resume(final Object delegate, final String resumeMethodName, final Object configuration) {
