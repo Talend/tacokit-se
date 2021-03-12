@@ -15,6 +15,7 @@ package org.talend.components.extension.polling.internal.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.extension.polling.api.Pollable;
+import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.runtime.base.Delegated;
 import org.talend.sdk.component.runtime.input.Input;
 
@@ -25,6 +26,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+@Version(2)
 @Slf4j
 @RequiredArgsConstructor
 public class PollingInput implements Input, Serializable {

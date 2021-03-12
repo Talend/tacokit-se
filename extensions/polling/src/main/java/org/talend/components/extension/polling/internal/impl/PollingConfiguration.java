@@ -24,7 +24,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 
-@Version(1)
+@Version(2)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
