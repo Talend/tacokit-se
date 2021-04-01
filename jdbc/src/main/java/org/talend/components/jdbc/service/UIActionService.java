@@ -164,6 +164,16 @@ public class UIActionService {
     }
 
     public List<TableInfo> listTables(final JdbcConnection datastore) throws SQLException {
+        try {
+            return rawListTables(datastore);
+        } catch (final Exception unexpected) { // catch all exceptions for this ui label to return empty list
+            log.error(i18n.errorCantLoadTableSuggestions(), unexpected);
+        }
+
+        return Collections.emptyList();
+    }
+
+    public List<TableInfo> rawListTables(final JdbcConnection datastore) throws SQLException {
         List<TableInfo> infos = new ArrayList<>();
         try (JdbcService.JdbcDatasource dataSource = jdbcService.createDataSource(datastore);
                 Connection connection = dataSource.getConnection()) {
@@ -186,8 +196,6 @@ public class UIActionService {
                 }
 
             }
-        } catch (final Exception unexpected) { // catch all exceptions for this ui label to return empty list
-            log.error(i18n.errorCantLoadTableSuggestions(), unexpected);
         }
 
         return infos;
