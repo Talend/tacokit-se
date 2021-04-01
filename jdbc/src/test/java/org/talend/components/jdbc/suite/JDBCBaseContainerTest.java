@@ -268,24 +268,6 @@ public abstract class JDBCBaseContainerTest {
         }
 
         @Test
-        @DisplayName("Get potential datasets - valid connection")
-        void getPotentialDataset(final TestInfo testInfo) throws SQLException {
-            final JdbcConnection datastore = newConnection();
-            final String testTableName = getTestTableName(testInfo);
-            createTestTable(testTableName, datastore);
-            final DiscoverDatasetResult result = this.getUiActionService().discoverDatasets(datastore);
-            assertNotNull(result);
-            final Optional<DatasetDescription> first = result.getDatasetDescriptionList().stream()
-                    .filter(d -> d.getName().equalsIgnoreCase(testTableName)).findFirst();
-            assertTrue(first.isPresent());
-            final DatasetDescription datasetDescription = first.get();
-            assertEquals(testTableName.toUpperCase(), datasetDescription.getName().toUpperCase());
-            final String type = datasetDescription.getMetadata().get(UIActionService.DATASET_METADATA_TYPE_KEY);
-            assertNotNull(type);
-            assertEquals("TABLE", type.toUpperCase());
-        }
-
-        @Test
         @DisplayName("Get Table list - valid connection")
         void getTableFromDatabase(final TestInfo testInfo) throws SQLException {
             final JdbcConnection datastore = newConnection();

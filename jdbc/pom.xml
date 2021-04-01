@@ -181,7 +181,7 @@
             <id>ITs</id>
             <properties>
                 <jdbc.it>true</jdbc.it>
-                <test.excluded />
+                <test.excluded/>
             </properties>
             <dependencies>
                 <dependency>

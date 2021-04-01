@@ -92,8 +92,6 @@ public class UIActionService {
 
     private static final String ACTION_DISCOVER_SCHEMA = "ACTION_DISCOVER_SCHEMA";
 
-    public static final String DATASET_METADATA_TYPE_KEY = "type";
-
     @Service
     private JdbcService jdbcService;
 
@@ -105,26 +103,6 @@ public class UIActionService {
 
     @Configuration("jdbc")
     private Supplier<JdbcConfiguration> jdbcConfiguration;
-
-    @DiscoverDataset
-    public DiscoverDatasetResult discoverDatasets(@Option final JdbcConnection datastore) {
-        try {
-            final List<TableInfo> tableInfos = listTables(datastore);
-            return new DiscoverDatasetResult(tableInfos.stream().map(this::buildDatasetDescription).collect(toList()));
-        } catch (SQLException e) {
-            final String msg = i18n.errorCantDiscoverDataset(e.getMessage());
-            log.error(msg, e);
-            throw new ComponentException(ErrorOrigin.USER, i18n.errorCantDiscoverDataset(e.getMessage()), e);
-        }
-
-    }
-
-    private DatasetDescription buildDatasetDescription(final TableInfo tableInfo) {
-        final DatasetDescription datasetDescription = new DatasetDescription(tableInfo.getName());
-        datasetDescription.addMetadata(DATASET_METADATA_TYPE_KEY, tableInfo.getType());
-
-        return datasetDescription;
-    }
 
     @DynamicValues(ACTION_LIST_SUPPORTED_DB)
     public Values loadSupportedDataBaseTypes() {
