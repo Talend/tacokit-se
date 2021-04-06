@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
+import org.talend.components.jdbc.datastore.GrantType;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.components.jdbc.configuration.JdbcConfiguration;
@@ -52,12 +53,14 @@ import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.dependency.Resolver;
+import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import com.zaxxer.hikari.HikariDataSource;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import javax.json.JsonObject;
 
 @Slf4j
 @Service
@@ -78,6 +81,9 @@ public class JdbcService {
     private I18nMessage i18n;
 
     @Service
+    private TokenClient tokenClient;
+
+    @Service
     private RecordBuilderFactory recordBuilderFactory;
 
     @Configuration("jdbc")
@@ -92,7 +98,6 @@ public class JdbcService {
     }
 
     /**
-     *
      * @param query the query to check
      * @return return false if the sql query is not a read only query, true otherwise
      */
@@ -131,17 +136,18 @@ public class JdbcService {
     }
 
     public JdbcDatasource createDataSource(final JdbcConnection connection) {
-        return new JdbcDatasource(i18n, resolver, connection, getDriver(connection), false, false);
+        return new JdbcDatasource(tokenClient, i18n, resolver, connection, getDriver(connection), false, false);
     }
 
     public JdbcDatasource createDataSource(final JdbcConnection connection, final boolean rewriteBatchedStatements) {
-        return new JdbcDatasource(i18n, resolver, connection, getDriver(connection), false, rewriteBatchedStatements);
+        return new JdbcDatasource(tokenClient, i18n, resolver, connection, getDriver(connection), false,
+                rewriteBatchedStatements);
     }
 
     public JdbcDatasource createDataSource(final JdbcConnection connection, boolean isAutoCommit,
             final boolean rewriteBatchedStatements) {
         final JdbcConfiguration.Driver driver = getDriver(connection);
-        return new JdbcDatasource(i18n, resolver, connection, driver, isAutoCommit, rewriteBatchedStatements);
+        return new JdbcDatasource(tokenClient, i18n, resolver, connection, driver, isAutoCommit, rewriteBatchedStatements);
     }
 
     public static class JdbcDatasource implements AutoCloseable {
@@ -152,8 +158,9 @@ public class JdbcService {
 
         private String driverId;
 
-        public JdbcDatasource(final I18nMessage i18nMessage, final Resolver resolver, final JdbcConnection connection,
-                final JdbcConfiguration.Driver driver, final boolean isAutoCommit, final boolean rewriteBatchedStatements) {
+        public JdbcDatasource(final TokenClient tokenClient, final I18nMessage i18nMessage, final Resolver resolver,
+                final JdbcConnection connection, final JdbcConfiguration.Driver driver, final boolean isAutoCommit,
+                final boolean rewriteBatchedStatements) {
             final Thread thread = Thread.currentThread();
             final ClassLoader prev = thread.getContextClassLoader();
 
@@ -172,12 +179,21 @@ public class JdbcService {
                 if ("MSSQL_JTDS".equals(driver.getId())) {
                     dataSource.setConnectionTestQuery("SELECT 1");
                 }
-                dataSource.setUsername(connection.getUserId());
-                if (SNOWFLAKE_DATABASE_NAME.equals(connection.getDbType())
-                        && AuthenticationType.KEY_PAIR == connection.getAuthenticationType()) {
-                    dataSource.addDataSourceProperty("privateKey", PrivateKeyUtils.getPrivateKey(connection.getPrivateKey(),
-                            connection.getPrivateKeyPassword(), i18nMessage));
+                if (SNOWFLAKE_DATABASE_NAME.equals(connection.getDbType())) {
+
+                    if (AuthenticationType.KEY_PAIR == connection.getAuthenticationType()) {
+                        dataSource.setUsername(connection.getUserId());
+                        dataSource.addDataSourceProperty("privateKey", PrivateKeyUtils.getPrivateKey(connection.getPrivateKey(),
+                                connection.getPrivateKeyPassword(), i18nMessage));
+                    } else if (AuthenticationType.OAUTH == connection.getAuthenticationType()) {
+                        dataSource.addDataSourceProperty("authenticator", "oauth");
+                        dataSource.addDataSourceProperty("token", getAccessToken(tokenClient, connection));
+                    } else {
+                        dataSource.setUsername(connection.getUserId());
+                        dataSource.setPassword(connection.getPassword());
+                    }
                 } else {
+                    dataSource.setUsername(connection.getUserId());
                     dataSource.setPassword(connection.getPassword());
                 }
                 dataSource.setDriverClassName(driver.getClassName());
@@ -206,6 +222,30 @@ public class JdbcService {
             } finally {
                 thread.setContextClassLoader(prev);
             }
+        }
+
+        private String getAccessToken(TokenClient tokenClient, JdbcConnection connection) {
+            tokenClient.base(connection.getOauthTokenEndpoint());
+            StringBuilder builder = new StringBuilder();
+            builder.append("client_id=").append(connection.getClientId()).append("&client_secret=")
+                    .append(connection.getClientSecret()).append("&grant_type=")
+                    .append(connection.getGrantType().name().toLowerCase());
+
+            if (connection.getGrantType() == GrantType.PASSWORD) {
+                builder.append("&username=").append(connection.getOauthUsername()).append("&password=")
+                        .append(connection.getOauthPassword());
+            }
+
+            builder.append("&scope=").append(connection.getScope());
+
+            Response<JsonObject> response = tokenClient.getAccessToken(builder.toString());
+            JsonObject jsonResult = response.body();
+
+            if (response.status() != 200) {
+                throw new IllegalArgumentException(jsonResult.getString("error_description"));
+            }
+
+            return jsonResult.getString("access_token");
         }
 
         public Connection getConnection() throws SQLException {
