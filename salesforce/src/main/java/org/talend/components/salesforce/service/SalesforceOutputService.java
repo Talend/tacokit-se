@@ -12,6 +12,7 @@
  */
 package org.talend.components.salesforce.service;
 
+import static org.talend.components.salesforce.configuration.OutputConfig.OutputAction.DELETE;
 import static org.talend.components.salesforce.configuration.OutputConfig.OutputAction.UPDATE;
 import static org.talend.components.salesforce.configuration.OutputConfig.OutputAction.UPSERT;
 
@@ -117,7 +118,7 @@ public class SalesforceOutputService implements Serializable {
         this.operations.put(UPDATE, buildThreshold(new Update(cnx, converter)));
         this.operations.put(OutputAction.INSERT, buildThreshold(new Insert(cnx, converter)));
         this.operations.put(UPSERT, buildThreshold(new Upsert(cnx, updateConv, outputConfig.getUpsertKeyColumn())));
-        this.operations.put(UPSERT, buildThreshold(new Delete(cnx)));
+        this.operations.put(DELETE, buildThreshold(new Delete(cnx)));
     }
 
     private ThresholdOperation buildThreshold(RecordsOperation operation) {
