@@ -80,9 +80,10 @@ public class SnowflakeCopyTest {
             Method createWorkDir = SnowflakeCopyService.class.getDeclaredMethod("createWorkDir");
             createWorkDir.setAccessible(true);
             Path path = (Path) createWorkDir.invoke(snowflakeCopyService);
-            Method splitRecords = SnowflakeCopyService.class.getDeclaredMethod("splitRecords", Path.class, List.class);
+            Method splitRecords = SnowflakeCopyService.class.getDeclaredMethod("splitRecords", Path.class, List.class,
+                    long.class);
             splitRecords.setAccessible(true);
-            List chunks = (List) splitRecords.invoke(snowflakeCopyService, path, createData(300000));
+            List chunks = (List) splitRecords.invoke(snowflakeCopyService, path, createData(300000), 16 * 1024 * 1024);
             Assertions.assertEquals(2, chunks.size());
         } finally {
             snowflakeCopyService.cleanTmpFiles();

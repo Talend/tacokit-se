@@ -43,7 +43,8 @@ public class SnowflakeInsert extends Insert {
             final String tableName = getConfiguration().getDataset().getTableName();
             final String fqTableName = namespace(connection) + "." + getPlatform().identifier(tableName);
             final String fqStageName = namespace(connection) + ".%" + getPlatform().identifier(tableName);
-            rejects.addAll(snowflakeCopy.putAndCopy(connection, records, fqStageName, fqTableName));
+            rejects.addAll(
+                    snowflakeCopy.putAndCopy(connection, records, fqStageName, fqTableName, getConfiguration().getChunkSize()));
             if (rejects.isEmpty()) {
                 connection.commit();
             } else {

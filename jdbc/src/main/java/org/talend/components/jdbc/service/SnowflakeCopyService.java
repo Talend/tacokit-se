@@ -52,7 +52,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SnowflakeCopyService implements Serializable {
 
-    private static final long maxChunk = 16 * 1024 * 1024; // 16MB
+    private static final long DEFAULT_CHUNK_SIZE = 50 * 1024 * 1024; // 50MB
 
     private static final String TIMESTAMP_FORMAT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
 
@@ -61,16 +61,16 @@ public class SnowflakeCopyService implements Serializable {
     private Path tmpFolder;
 
     public List<Reject> putAndCopy(final Connection connection, final List<Record> records, final String fqStageName,
-            final String fqTableName, final String fqTmpTableName) throws SQLException {
+            final String fqTableName, final String fqTmpTableName, final long chunkSize) throws SQLException {
         try (final Statement statement = connection.createStatement()) {
             statement.execute("create temporary table if not exists " + fqTmpTableName + " like " + fqTableName);
         }
-        return putAndCopy(connection, records, fqStageName, fqTmpTableName);
+        return putAndCopy(connection, records, fqStageName, fqTmpTableName, chunkSize);
     }
 
     public List<Reject> putAndCopy(final Connection connection, final List<Record> records, final String fqStageName,
-            final String fqTableName) {
-        final List<RecordChunk> chunks = splitRecords(createWorkDir(), records);
+            final String fqTableName, final long chunkSize) {
+        final List<RecordChunk> chunks = splitRecords(createWorkDir(), records, chunkSize);
         final List<Reject> rejects = new ArrayList<>();
         final List<RecordChunk> copy = chunks.stream().parallel().map(chunk -> doPUT(fqStageName, connection, chunk, rejects))
                 .filter(Objects::nonNull).collect(Collectors.toList());
@@ -192,11 +192,12 @@ public class SnowflakeCopyService implements Serializable {
         private final int rowParsed;
     }
 
-    private List<RecordChunk> splitRecords(final Path directoryPath, final List<Record> records) {
+    private List<RecordChunk> splitRecords(final Path directoryPath, final List<Record> records, final long chunkSize) {
         final AtomicLong size = new AtomicLong(0);
         final AtomicInteger count = new AtomicInteger(0);
         final AtomicInteger recordCounter = new AtomicInteger(0);
         final Map<Integer, RecordChunk> chunks = new HashMap<>();
+        final long maxChunk = chunkSize > 0l ? chunkSize : DEFAULT_CHUNK_SIZE;
         records.stream().map(record -> record.getSchema().getEntries().stream().map(entry -> format(record, entry))
                 .collect(Collectors.joining(","))).forEach(line -> {
                     if (size.addAndGet(line.getBytes(StandardCharsets.UTF_8).length) > maxChunk) {
@@ -262,6 +263,7 @@ public class SnowflakeCopyService implements Serializable {
         void close() {
             if (writer != null) {
                 try {
+                    writer.flush();
                     writer.close();
                 } catch (IOException e) {
                     throw new IllegalStateException(e);

@@ -50,7 +50,8 @@ public class SnowflakeUpsert extends UpsertDefault {
             final String fqTableName = namespace(connection) + "." + getPlatform().identifier(tableName);
             final String fqTmpTableName = namespace(connection) + "." + getPlatform().identifier(tmpTableName);
             final String fqStageName = namespace(connection) + ".%" + getPlatform().identifier(tmpTableName);
-            rejects.addAll(snowflakeCopy.putAndCopy(connection, records, fqStageName, fqTableName, fqTmpTableName));
+            rejects.addAll(snowflakeCopy.putAndCopy(connection, records, fqStageName, fqTableName, fqTmpTableName,
+                    getConfiguration().getChunkSize()));
             if (records.size() != rejects.size()) {
                 try (final Statement statement = connection.createStatement()) {
                     statement.execute("merge into " + fqTableName + " target using " + fqTmpTableName + " as source on "
