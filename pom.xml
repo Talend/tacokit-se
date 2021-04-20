@@ -18,7 +18,7 @@
 
   <groupId>org.talend.components</groupId>
   <artifactId>connectors-se</artifactId>
-  <version>1.20.0-SNAPSHOT</version>
+  <version>1.21.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Connectors-se</name>
@@ -75,16 +75,16 @@
   </distributionManagement>
 
   <properties>
-    <connectors-test-bom.version>1.20.0-SNAPSHOT</connectors-test-bom.version>
-    <common.version>1.20.0-SNAPSHOT</common.version>
+    <connectors-test-bom.version>1.21.0-SNAPSHOT</connectors-test-bom.version>
+    <common.version>1.21.0-SNAPSHOT</common.version>
 
     <timestamp.year>${maven.build.timestamp}</timestamp.year>
     <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <locales.version>[1.20,)</locales.version>
+    <locales.version>[1.21,)</locales.version>
 
-    <component-runtime.version>1.31.0</component-runtime.version>
+    <component-runtime.version>1.31.2</component-runtime.version>
     <slf4j.version>1.7.28</slf4j.version>
     <log4j-api.version>2.14.0</log4j-api.version>
     <beanutils.version>1.9.4</beanutils.version>
@@ -94,7 +94,7 @@
     <shrinkwrap.version>3.1.4</shrinkwrap.version>
     <avro.version>1.8.2</avro.version>
     <jackson.version>2.11.4</jackson.version>
-    <jackson-codehaus.version>1.9.14-TALEND</jackson-codehaus.version>
+    <jackson-codehaus.version>1.9.15-TALEND</jackson-codehaus.version>
 
     <jsoup.version>1.13.1</jsoup.version>
 
