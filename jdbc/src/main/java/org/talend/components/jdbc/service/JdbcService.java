@@ -57,6 +57,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import com.zaxxer.hikari.HikariDataSource;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -122,7 +123,7 @@ public class JdbcService {
                         } catch (final SQLException e) {
                             return null;
                         }
-                    })).filter(tn -> ("DeltaLake".equalsIgnoreCase(dataSource.driverId) ? tableName.equalsIgnoreCase(tn)
+                    })).filter(tn -> ("DeltaLake".equalsIgnoreCase(dataSource.getDriverId()) ? tableName.equalsIgnoreCase(tn)
                             : tableName.equals(tn))).isPresent()) {
                         return true;
                     }
@@ -133,67 +134,64 @@ public class JdbcService {
     }
 
     public JdbcDatasource createDataSource(final JdbcConnection connection) {
-        return new JdbcDatasource(connection, getDriver(connection), false, false);
+        return new JdbcDatasource(resolver, i18n, tokenClient, connection, getDriver(connection), false, false);
     }
 
     public JdbcDatasource createDataSource(final JdbcConnection connection, final boolean rewriteBatchedStatements) {
-        return new JdbcDatasource(connection, getDriver(connection), false, rewriteBatchedStatements);
+        return new JdbcDatasource(resolver, i18n, tokenClient, connection, getDriver(connection), false,
+                rewriteBatchedStatements);
     }
 
     public JdbcDatasource createDataSource(final JdbcConnection connection, boolean isAutoCommit,
             final boolean rewriteBatchedStatements) {
         final JdbcConfiguration.Driver driver = getDriver(connection);
-        return new JdbcDatasource(connection, driver, isAutoCommit, rewriteBatchedStatements);
+        return new JdbcDatasource(resolver, i18n, tokenClient, connection, driver, isAutoCommit, rewriteBatchedStatements);
     }
 
-    public class JdbcDatasource implements AutoCloseable {
+    public static class JdbcDatasource implements AutoCloseable {
 
         private final Resolver.ClassLoaderDescriptor classLoaderDescriptor;
 
         private HikariDataSource dataSource;
 
-        private String driverId;
+        @Getter
+        private final String driverId;
 
-        public JdbcDatasource(final JdbcConnection connection, final JdbcConfiguration.Driver driver, final boolean isAutoCommit,
+        public JdbcDatasource(final Resolver resolver, final I18nMessage i18n, final TokenClient tokenClient,
+                final JdbcConnection connection, final JdbcConfiguration.Driver driver, final boolean isAutoCommit,
                 final boolean rewriteBatchedStatements) {
+            this.driverId = driver.getId();
             final Thread thread = Thread.currentThread();
             final ClassLoader prev = thread.getContextClassLoader();
 
             classLoaderDescriptor = resolver.mapDescriptorToClassLoader(driver.getPaths());
-            String missingJars = driver.getPaths().stream().filter(p -> classLoaderDescriptor.resolvedDependencies().contains(p))
-                    .collect(joining("\n"));
             if (!classLoaderDescriptor.resolvedDependencies().containsAll(driver.getPaths())) {
-                throw new IllegalStateException(i18n.errorDriverLoad(driver.getId(), missingJars));
+                String missingJars = driver.getPaths().stream()
+                        .filter(p -> classLoaderDescriptor.resolvedDependencies().contains(p)).collect(joining("\n"));
+                throw new IllegalStateException(i18n.errorDriverLoad(driverId, missingJars));
             }
-
-            driverId = driver.getId();
 
             try {
                 thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
                 dataSource = new HikariDataSource();
-                if ("MSSQL_JTDS".equals(driver.getId())) {
+                if ("MSSQL_JTDS".equals(driverId)) {
                     dataSource.setConnectionTestQuery("SELECT 1");
                 }
-                if (SNOWFLAKE_DATABASE_NAME.equals(connection.getDbType())) {
-
-                    if (AuthenticationType.KEY_PAIR == connection.getAuthenticationType()) {
-                        dataSource.setUsername(connection.getUserId());
-                        dataSource.addDataSourceProperty("privateKey", PrivateKeyUtils.getPrivateKey(connection.getPrivateKey(),
-                                connection.getPrivateKeyPassword(), i18n));
-                    } else if (AuthenticationType.OAUTH == connection.getAuthenticationType()) {
-                        dataSource.addDataSourceProperty("authenticator", "oauth");
-                        dataSource.addDataSourceProperty("token", OAuth2Utils.getAccessToken(connection, tokenClient, i18n));
-                    } else {
-                        dataSource.setUsername(connection.getUserId());
-                        dataSource.setPassword(connection.getPassword());
-                    }
-                } else {
+                if (!SNOWFLAKE_DATABASE_NAME.equals(connection.getDbType())
+                        || AuthenticationType.BASIC == connection.getAuthenticationType()) {
                     dataSource.setUsername(connection.getUserId());
                     dataSource.setPassword(connection.getPassword());
+                } else if (AuthenticationType.KEY_PAIR == connection.getAuthenticationType()) {
+                    dataSource.setUsername(connection.getUserId());
+                    dataSource.addDataSourceProperty("privateKey",
+                            PrivateKeyUtils.getPrivateKey(connection.getPrivateKey(), connection.getPrivateKeyPassword(), i18n));
+                } else if (AuthenticationType.OAUTH == connection.getAuthenticationType()) {
+                    dataSource.addDataSourceProperty("authenticator", "oauth");
+                    dataSource.addDataSourceProperty("token", OAuth2Utils.getAccessToken(connection, tokenClient, i18n));
                 }
                 dataSource.setDriverClassName(driver.getClassName());
                 dataSource.setJdbcUrl(connection.getJdbcUrl());
-                if ("DeltaLake".equalsIgnoreCase(driver.getId())) {
+                if ("DeltaLake".equalsIgnoreCase(driverId)) {
                     // do nothing, DeltaLake default don't allow set auto commit to false
                 } else {
                     dataSource.setAutoCommit(isAutoCommit);
@@ -247,13 +245,13 @@ public class JdbcService {
             }
         }
 
-        private <T> T wrap(final ClassLoader classLoader, final Object delegate, final Class<T> api) {
+        private static <T> T wrap(final ClassLoader classLoader, final Object delegate, final Class<T> api) {
             return api.cast(
                     Proxy.newProxyInstance(classLoader, new Class<?>[] { api }, new ContextualDelegate(delegate, classLoader)));
         }
 
         @AllArgsConstructor
-        private class ContextualDelegate implements InvocationHandler {
+        private static class ContextualDelegate implements InvocationHandler {
 
             private final Object delegate;
 
