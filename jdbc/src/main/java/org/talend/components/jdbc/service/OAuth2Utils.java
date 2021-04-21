@@ -19,7 +19,7 @@ import java.util.Base64;
 import javax.json.JsonObject;
 import org.talend.components.jdbc.datastore.GrantType;
 import org.talend.components.jdbc.datastore.JdbcConnection;
-import org.talend.components.jdbc.exceptions.InvalidTokenRequestException;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.service.http.Response;
 
 public final class OAuth2Utils {
@@ -57,7 +57,7 @@ public final class OAuth2Utils {
 
     private static void checkResponse(Response<JsonObject> response, I18nMessage i18n) {
         of(response).filter(r -> r.status() != 200).map(r -> r.error(JsonObject.class)).map(OAuth2Utils::getErrorDescription)
-                .map(i18n::errorAccessTokenResponse).ifPresent(OAuth2Utils::throwInvalidTokenRequestException);
+                .map(i18n::errorAccessTokenResponse).ifPresent(OAuth2Utils::throwComponentException);
     }
 
     private static String getErrorDescription(JsonObject errorResponse) {
@@ -65,8 +65,8 @@ public final class OAuth2Utils {
                 : errorResponse.containsKey(ERROR_SUMMARY) ? errorResponse.getString(ERROR_SUMMARY) : "";
     }
 
-    private static void throwInvalidTokenRequestException(String errorDescription) {
-        throw new InvalidTokenRequestException(errorDescription);
+    private static void throwComponentException(String errorDescription) {
+        throw new ComponentException(errorDescription);
     }
 
     private static String getPayload(JdbcConnection connection) {

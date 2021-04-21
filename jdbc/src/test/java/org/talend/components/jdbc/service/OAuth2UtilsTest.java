@@ -21,7 +21,7 @@ import org.junit.jupiter.params.provider.CsvFileSource;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.talend.components.jdbc.datastore.GrantType;
 import org.talend.components.jdbc.datastore.JdbcConnection;
-import org.talend.components.jdbc.exceptions.InvalidTokenRequestException;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit5.WithComponents;
 
@@ -36,7 +36,7 @@ public class OAuth2UtilsTest {
     @ParameterizedTest
     @CsvFileSource(files = "src/test/resources/test-data-for-oauth-utils-test.csv")
     public void testFailedToGetAccessToken(ArgumentsAccessor arguments) {
-        Exception exception = assertThrows(InvalidTokenRequestException.class,
+        Exception exception = assertThrows(ComponentException.class,
                 () -> OAuth2Utils.getAccessToken(createJdbcConnectionProperties(arguments), tokenClientFake, i18n));
         assertEquals(arguments.getString(7), exception.getMessage());
     }
