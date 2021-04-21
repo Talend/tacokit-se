@@ -119,6 +119,8 @@
 
     <jersey.version>2.22.2</jersey.version>
 
+    <json-smart.version>2.4.2</json-smart.version>
+
     <talend_oss_snapshots>https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceSnapshot/
     </talend_oss_snapshots>
 
@@ -428,6 +430,11 @@
         <groupId>com.fasterxml.jackson.module</groupId>
         <artifactId>jackson-module-scala_2.11</artifactId>
         <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.minidev</groupId>
+        <artifactId>json-smart</artifactId>
+        <version>${json-smart.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
