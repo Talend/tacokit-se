@@ -59,8 +59,13 @@ class BlobNameBuilderTest {
     }
 
     private static Stream<Arguments> provideNames() {
-        return Stream.of(Arguments.of("Hello.csv", "^Hello_[0-9a-f\\-]{36}\\.csv$"),
-                Arguments.of("Hello._", "^Hello_[0-9a-f\\-]{36}\\._$"), Arguments.of("Hello.", "^Hello_[0-9a-f\\-]{36}\\.$"),
-                Arguments.of("Hello", "^Hello_[0-9a-f\\-]{36}$"));
+        return Stream.of( //
+                Arguments.of("Hello.csv", "^Hello_[0-9a-f\\-]{36}\\.csv$"), //
+                Arguments.of("Hello._", "^Hello_[0-9a-f\\-]{36}\\._$"),  //
+                Arguments.of("Hello.", "^Hello_[0-9a-f\\-]{36}\\.$"), //
+                Arguments.of("Hello", "^Hello_[0-9a-f\\-]{36}$"), //
+                Arguments.of(".gitignore", "^_[0-9a-f\\-]{36}\\.gitignore$"), //
+                Arguments.of(".", "^_[0-9a-f\\-]{36}\\.$")
+                );
     }
 }
