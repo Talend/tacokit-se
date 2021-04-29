@@ -123,6 +123,30 @@ class StorageImplTest {
         blobsName.stream().allMatch((String n) -> builder.isGenerated("blob", n));
     }
 
+    @Test
+    void findBlobsNameWithExtension() throws IOException {
+        final GSDataStore dataStore = buildDataStore();
+        final StorageImpl st = new StorageImpl(this.credentialService, dataStore.getJsonCredentials(), i18n);
+
+        final BlobNameBuilder builder = new BlobNameBuilder();
+        final String b1 = builder.generateName("blob.csv");
+        final String b2 = builder.generateName("blob.csv");
+        final String b3 = builder.generateName("blob.csv");
+        final String b4 = builder.generateName("blob.cs");
+        final String b5 = builder.generateName("blob");
+
+        this.storeContent("bucket", b1, "Hello");
+        this.storeContent("bucket", b2, "Bonjour");
+        this.storeContent("bucket", b3, "Pryvit");
+        this.storeContent("bucket", b4, "Wrong");
+        this.storeContent("bucket", b5, "Wrong2");
+
+        final List<String> blobsName = st.findBlobsName("bucket", "blob.csv") //
+                .collect(Collectors.toList());
+        Assertions.assertEquals(3, blobsName.size());
+        blobsName.stream().allMatch((String n) -> builder.isGenerated("blob", n));
+    }
+
     private String getContentFile(String relativePath) throws IOException {
         final URL urlJWT = Thread.currentThread().getContextClassLoader().getResource(relativePath);
 
