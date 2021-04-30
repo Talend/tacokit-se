@@ -84,7 +84,7 @@
 
     <locales.version>[1.21,)</locales.version>
 
-    <component-runtime.version>1.31.2</component-runtime.version>
+    <component-runtime.version>1.32.0</component-runtime.version>
     <slf4j.version>1.7.28</slf4j.version>
     <log4j-api.version>2.14.0</log4j-api.version>
     <beanutils.version>1.9.4</beanutils.version>
@@ -108,8 +108,7 @@
 
     <commons-csv.version>1.4</commons-csv.version>
     <commons-lang3.version>3.9</commons-lang3.version>
-    <httpclient.version>4.5.10</httpclient.version>
-    <httpclient.version>4.5.10</httpclient.version>
+    <httpclient.version>4.5.13</httpclient.version>
     <httpcore.version>4.4.12</httpcore.version>
     <compress.version>1.19</compress.version>
     <commons-codec.version>1.14</commons-codec.version>
@@ -118,6 +117,8 @@
     <jna.version>5.5.0</jna.version>
 
     <jersey.version>2.22.2</jersey.version>
+
+    <json-smart.version>2.4.2</json-smart.version>
 
     <talend_oss_snapshots>https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceSnapshot/
     </talend_oss_snapshots>
@@ -428,6 +429,11 @@
         <groupId>com.fasterxml.jackson.module</groupId>
         <artifactId>jackson-module-scala_2.11</artifactId>
         <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.minidev</groupId>
+        <artifactId>json-smart</artifactId>
+        <version>${json-smart.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

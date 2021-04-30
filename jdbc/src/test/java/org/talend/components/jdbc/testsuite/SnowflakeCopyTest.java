@@ -12,28 +12,28 @@
  */
 package org.talend.components.jdbc.testsuite;
 
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.talend.components.jdbc.service.SnowflakeCopyService;
-import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-import org.talend.sdk.component.junit.ServiceInjectionRule;
-import org.talend.sdk.component.junit.SimpleComponentRule;
-import org.talend.sdk.component.junit.environment.Environment;
-import org.talend.sdk.component.junit.environment.builtin.beam.DirectRunnerEnvironment;
-
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
-@Environment(DirectRunnerEnvironment.class)
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.talend.components.jdbc.service.SnowflakeCopyService;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+import org.talend.sdk.component.junit.ServiceInjectionRule;
+import org.talend.sdk.component.junit.SimpleComponentRule;
+import org.talend.sdk.component.junit5.WithComponents;
+
+@WithComponents("org.talend.components.jdbc")
 public class SnowflakeCopyTest {
 
     @ClassRule
@@ -42,8 +42,7 @@ public class SnowflakeCopyTest {
     @Rule
     public final ServiceInjectionRule injections = new ServiceInjectionRule(COMPONENT_FACTORY, this);
 
-    @Service
-    private RecordBuilderFactory recordBuilderFactory;
+    private RecordBuilderFactory recordBuilderFactory = COMPONENT_FACTORY.findService(RecordBuilderFactory.class);
 
     @Test
     public void createTmpDirTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, IOException {
@@ -73,7 +72,7 @@ public class SnowflakeCopyTest {
         Assertions.assertTrue(tableName.length() < 256);
     }
 
-    @org.junit.Test
+    @Test
     public void testSplitRecords() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         SnowflakeCopyService snowflakeCopyService = new SnowflakeCopyService();
         try {
@@ -82,8 +81,61 @@ public class SnowflakeCopyTest {
             Path path = (Path) createWorkDir.invoke(snowflakeCopyService);
             Method splitRecords = SnowflakeCopyService.class.getDeclaredMethod("splitRecords", Path.class, List.class);
             splitRecords.setAccessible(true);
-            List chunks = (List) splitRecords.invoke(snowflakeCopyService, path, createData(300000));
+            List<?> chunks = (List<?>) splitRecords.invoke(snowflakeCopyService, path, createData(300000));
             Assertions.assertEquals(2, chunks.size());
+        } finally {
+            snowflakeCopyService.cleanTmpFiles();
+        }
+    }
+
+    @Test
+    public void testGetColumnNamesList() throws Exception {
+        SnowflakeCopyService snowflakeCopyService = new SnowflakeCopyService();
+        try {
+            Method createWorkDir = SnowflakeCopyService.class.getDeclaredMethod("createWorkDir");
+            createWorkDir.setAccessible(true);
+            Path path = (Path) createWorkDir.invoke(snowflakeCopyService);
+            Method splitRecords = SnowflakeCopyService.class.getDeclaredMethod("splitRecords", Path.class, List.class);
+            splitRecords.setAccessible(true);
+            List<?> chunks = (List<?>) splitRecords.invoke(snowflakeCopyService, path, createData(100));
+
+            Method columnNames = SnowflakeCopyService.class.getDeclaredMethod("getColumnNamesList", List.class);
+            columnNames.setAccessible(true);
+
+            String columnNamesList = (String) columnNames.invoke(snowflakeCopyService, chunks);
+            String expectedString = "(\"id\",\"firstname\",\"lastname\",\"address\",\"enrolled\",\"zip\",\"state\")";
+            Assertions.assertEquals(expectedString, columnNamesList);
+
+            chunks = (List<?>) splitRecords.invoke(snowflakeCopyService, path,
+                    Arrays.asList(recordBuilderFactory.newRecordBuilder().withInt("id", 1).build()));
+            columnNamesList = (String) columnNames.invoke(snowflakeCopyService, chunks);
+            expectedString = "(\"id\")";
+            Assertions.assertEquals(expectedString, columnNamesList);
+
+            columnNamesList = (String) columnNames.invoke(snowflakeCopyService, (List<?>) null);
+            Assertions.assertEquals("", columnNamesList);
+        } finally {
+            snowflakeCopyService.cleanTmpFiles();
+        }
+    }
+
+    @Test
+    public void testJoinFileNamesString() throws Exception {
+        SnowflakeCopyService snowflakeCopyService = new SnowflakeCopyService();
+        try {
+            Method createWorkDir = SnowflakeCopyService.class.getDeclaredMethod("createWorkDir");
+            createWorkDir.setAccessible(true);
+            Path path = (Path) createWorkDir.invoke(snowflakeCopyService);
+            Method splitRecords = SnowflakeCopyService.class.getDeclaredMethod("splitRecords", Path.class, List.class);
+            splitRecords.setAccessible(true);
+            List<?> chunks = (List<?>) splitRecords.invoke(snowflakeCopyService, path, createData(300000));
+
+            Method joinFileNames = SnowflakeCopyService.class.getDeclaredMethod("joinFileNamesString", List.class);
+            joinFileNames.setAccessible(true);
+
+            String joinFileNamesString = (String) joinFileNames.invoke(snowflakeCopyService, chunks);
+            final Pattern pattern = Pattern.compile("\\(('[/\\\\A-Za-z_0-9.-]*.csv.gz')(,'[/\\\\A-Za-z_0-9.-]*.csv.gz')*\\)");
+            Assertions.assertTrue(pattern.matcher(joinFileNamesString).matches());
         } finally {
             snowflakeCopyService.cleanTmpFiles();
         }
