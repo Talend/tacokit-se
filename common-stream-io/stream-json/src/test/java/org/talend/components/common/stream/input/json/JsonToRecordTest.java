@@ -93,7 +93,7 @@ class JsonToRecordTest {
                 "{\"_id\": {\"$oid\": \"5e66158f6eddd6049f309ddb\"}, \"date\": {\"$date\": 1543622400000}, \"item\": \"Cake - Chocolate\", \"quantity\": 2.0, \"amount\": {\"$numberDecimal\": \"60\"}}");
         final Record record = toRecord.toRecord(jsonWithDollarChar);
         Assertions.assertNotNull(record);
-        Assertions.assertNotNull(record.getRecord("_id").getString("_oid"));
+        Assertions.assertNotNull(record.getRecord("_id").getString("oid"));
     }
 
     @Test
