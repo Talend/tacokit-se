@@ -85,13 +85,27 @@ public class StorageImpl implements StorageFacade {
 
     @Override
     public Stream<String> findBlobsName(final String bucket, final String blobStartName) {
-        final BlobListOption blobListOption = Storage.BlobListOption.prefix(blobStartName);
+        final BlobListOption blobListOption = Storage.BlobListOption.prefix(basename(blobStartName));
         final Page<Blob> blobPage = this.getStorage().list(bucket, blobListOption);
 
         return StreamSupport.stream(blobPage.iterateAll().spliterator(), false) //
                 .map(Blob::getName) //
                 .filter((String name) -> Objects.equals(blobStartName, name)
                         || this.nameBuilder.isGenerated(blobStartName, name));
+    }
+
+    /**
+     * Return name without extension if any.
+     * 
+     * @param name : name (xx; xx.csv)
+     * @return name without extension (xx).
+     */
+    private String basename(final String name) {
+        final int posSep = name.lastIndexOf('.');
+        if (posSep < 0) {
+            return name;
+        }
+        return name.substring(0, posSep);
     }
 
     @Override

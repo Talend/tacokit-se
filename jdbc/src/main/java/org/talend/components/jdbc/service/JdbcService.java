@@ -42,12 +42,12 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
 import org.talend.components.jdbc.configuration.JdbcConfiguration;
 import org.talend.components.jdbc.datastore.AuthenticationType;
 import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.output.platforms.PlatformFactory;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
@@ -57,6 +57,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import com.zaxxer.hikari.HikariDataSource;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -78,6 +79,9 @@ public class JdbcService {
     private I18nMessage i18n;
 
     @Service
+    private TokenClient tokenClient;
+
+    @Service
     private RecordBuilderFactory recordBuilderFactory;
 
     @Configuration("jdbc")
@@ -92,7 +96,6 @@ public class JdbcService {
     }
 
     /**
-     *
      * @param query the query to check
      * @return return false if the sql query is not a read only query, true otherwise
      */
@@ -120,7 +123,7 @@ public class JdbcService {
                         } catch (final SQLException e) {
                             return null;
                         }
-                    })).filter(tn -> ("DeltaLake".equalsIgnoreCase(dataSource.driverId) ? tableName.equalsIgnoreCase(tn)
+                    })).filter(tn -> ("DeltaLake".equalsIgnoreCase(dataSource.getDriverId()) ? tableName.equalsIgnoreCase(tn)
                             : tableName.equals(tn))).isPresent()) {
                         return true;
                     }
@@ -131,17 +134,18 @@ public class JdbcService {
     }
 
     public JdbcDatasource createDataSource(final JdbcConnection connection) {
-        return new JdbcDatasource(i18n, resolver, connection, getDriver(connection), false, false);
+        return new JdbcDatasource(resolver, i18n, tokenClient, connection, getDriver(connection), false, false);
     }
 
     public JdbcDatasource createDataSource(final JdbcConnection connection, final boolean rewriteBatchedStatements) {
-        return new JdbcDatasource(i18n, resolver, connection, getDriver(connection), false, rewriteBatchedStatements);
+        return new JdbcDatasource(resolver, i18n, tokenClient, connection, getDriver(connection), false,
+                rewriteBatchedStatements);
     }
 
     public JdbcDatasource createDataSource(final JdbcConnection connection, boolean isAutoCommit,
             final boolean rewriteBatchedStatements) {
         final JdbcConfiguration.Driver driver = getDriver(connection);
-        return new JdbcDatasource(i18n, resolver, connection, driver, isAutoCommit, rewriteBatchedStatements);
+        return new JdbcDatasource(resolver, i18n, tokenClient, connection, driver, isAutoCommit, rewriteBatchedStatements);
     }
 
     public static class JdbcDatasource implements AutoCloseable {
@@ -150,39 +154,44 @@ public class JdbcService {
 
         private HikariDataSource dataSource;
 
-        private String driverId;
+        @Getter
+        private final String driverId;
 
-        public JdbcDatasource(final I18nMessage i18nMessage, final Resolver resolver, final JdbcConnection connection,
-                final JdbcConfiguration.Driver driver, final boolean isAutoCommit, final boolean rewriteBatchedStatements) {
+        public JdbcDatasource(final Resolver resolver, final I18nMessage i18n, final TokenClient tokenClient,
+                final JdbcConnection connection, final JdbcConfiguration.Driver driver, final boolean isAutoCommit,
+                final boolean rewriteBatchedStatements) {
+            this.driverId = driver.getId();
             final Thread thread = Thread.currentThread();
             final ClassLoader prev = thread.getContextClassLoader();
 
             classLoaderDescriptor = resolver.mapDescriptorToClassLoader(driver.getPaths());
-            String missingJars = driver.getPaths().stream().filter(p -> classLoaderDescriptor.resolvedDependencies().contains(p))
-                    .collect(joining("\n"));
             if (!classLoaderDescriptor.resolvedDependencies().containsAll(driver.getPaths())) {
-                throw new IllegalStateException(i18nMessage.errorDriverLoad(driver.getId(), missingJars));
+                String missingJars = driver.getPaths().stream()
+                        .filter(p -> classLoaderDescriptor.resolvedDependencies().contains(p)).collect(joining("\n"));
+                throw new IllegalStateException(i18n.errorDriverLoad(driverId, missingJars));
             }
-
-            driverId = driver.getId();
 
             try {
                 thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
                 dataSource = new HikariDataSource();
-                if ("MSSQL_JTDS".equals(driver.getId())) {
+                if ("MSSQL_JTDS".equals(driverId)) {
                     dataSource.setConnectionTestQuery("SELECT 1");
                 }
-                dataSource.setUsername(connection.getUserId());
-                if (SNOWFLAKE_DATABASE_NAME.equals(connection.getDbType())
-                        && AuthenticationType.KEY_PAIR == connection.getAuthenticationType()) {
-                    dataSource.addDataSourceProperty("privateKey", PrivateKeyUtils.getPrivateKey(connection.getPrivateKey(),
-                            connection.getPrivateKeyPassword(), i18nMessage));
-                } else {
+                if (!SNOWFLAKE_DATABASE_NAME.equals(connection.getDbType())
+                        || AuthenticationType.BASIC == connection.getAuthenticationType()) {
+                    dataSource.setUsername(connection.getUserId());
                     dataSource.setPassword(connection.getPassword());
+                } else if (AuthenticationType.KEY_PAIR == connection.getAuthenticationType()) {
+                    dataSource.setUsername(connection.getUserId());
+                    dataSource.addDataSourceProperty("privateKey",
+                            PrivateKeyUtils.getPrivateKey(connection.getPrivateKey(), connection.getPrivateKeyPassword(), i18n));
+                } else if (AuthenticationType.OAUTH == connection.getAuthenticationType()) {
+                    dataSource.addDataSourceProperty("authenticator", "oauth");
+                    dataSource.addDataSourceProperty("token", OAuth2Utils.getAccessToken(connection, tokenClient, i18n));
                 }
                 dataSource.setDriverClassName(driver.getClassName());
                 dataSource.setJdbcUrl(connection.getJdbcUrl());
-                if ("DeltaLake".equalsIgnoreCase(driver.getId())) {
+                if ("DeltaLake".equalsIgnoreCase(driverId)) {
                     // do nothing, DeltaLake default don't allow set auto commit to false
                 } else {
                     dataSource.setAutoCommit(isAutoCommit);
@@ -190,7 +199,7 @@ public class JdbcService {
                 dataSource.setMaximumPoolSize(1);
                 dataSource.setConnectionTimeout(connection.getConnectionTimeOut() * 1000);
                 dataSource.setValidationTimeout(connection.getConnectionValidationTimeOut() * 1000);
-                PlatformFactory.get(connection, i18nMessage).addDataSourceProperties(dataSource);
+                PlatformFactory.get(connection, i18n).addDataSourceProperties(dataSource);
                 dataSource.addDataSourceProperty("rewriteBatchedStatements", String.valueOf(rewriteBatchedStatements));
                 // dataSource.addDataSourceProperty("cachePrepStmts", "true");
                 // dataSource.addDataSourceProperty("prepStmtCacheSize", "250");

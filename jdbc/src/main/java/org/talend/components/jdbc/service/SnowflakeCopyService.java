@@ -12,6 +12,10 @@
  */
 package org.talend.components.jdbc.service;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.joining;
+import static java.util.Optional.ofNullable;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Serializable;
@@ -27,7 +31,6 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -36,7 +39,6 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import org.apache.commons.codec.binary.Hex;
 import org.talend.components.jdbc.output.Reject;
@@ -52,9 +54,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SnowflakeCopyService implements Serializable {
 
-    private static final long maxChunk = 16 * 1024 * 1024; // 16MB
+    private static final long MAX_CHUNK = 16 * 1024 * 1024; // 16MB
 
     private static final String TIMESTAMP_FORMAT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+
+    private static final String COPY_INTO_QUERY = "COPY INTO %s%s FROM '@%s' FILES=%s "
+            + "FILE_FORMAT=(TYPE=CSV field_delimiter=',' COMPRESSION=GZIP field_optionally_enclosed_by='\"')"
+            + "PURGE=TRUE ON_ERROR='CONTINUE'";
 
     private final List<Path> tmpFiles = new ArrayList<>();
 
@@ -73,7 +79,7 @@ public class SnowflakeCopyService implements Serializable {
         final List<RecordChunk> chunks = splitRecords(createWorkDir(), records);
         final List<Reject> rejects = new ArrayList<>();
         final List<RecordChunk> copy = chunks.stream().parallel().map(chunk -> doPUT(fqStageName, connection, chunk, rejects))
-                .filter(Objects::nonNull).collect(Collectors.toList());
+                .filter(Objects::nonNull).collect(toList());
         rejects.addAll(toReject(chunks, doCopy(fqStageName, fqTableName, connection, copy)));
         return rejects;
     }
@@ -106,7 +112,7 @@ public class SnowflakeCopyService implements Serializable {
                         error.getError() + (error.getErrorColumnName() == null || error.getErrorColumnName().isEmpty() ? ""
                                 : ", columnName=" + error.getErrorColumnName()),
                         chunk.getRecords().get(error.getErrorLine() - 1))))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private RecordChunk doPUT(final String fqStageName, final Connection connection, final RecordChunk chunk,
@@ -129,45 +135,78 @@ public class SnowflakeCopyService implements Serializable {
     }
 
     private List<Reject> toReject(RecordChunk chunk, String error, final String state, final Integer code) {
-        return chunk.getRecords().stream().map(record -> new Reject(error, state, code, record)).collect(Collectors.toList());
+        return chunk.getRecords().stream().map(record -> new Reject(error, state, code, record)).collect(toList());
     }
 
     private List<CopyError> doCopy(final String fqStageName, final String fqTableName, final Connection connection,
             final List<RecordChunk> chunks) {
-        final List<CopyError> errors = new ArrayList<>();
-        try (final Statement statement = connection.createStatement()) {
-            try (final ResultSet result = statement
-                    .executeQuery("COPY INTO " + fqTableName + " from '@" + fqStageName + "'" + " FILES="
-                            + chunks.stream().map(chunk -> chunk.getChunk().getFileName()).map(name -> "'" + name + ".gz'")
-                                    .collect(Collectors.joining(",", "(", ")"))
-                            + " FILE_FORMAT=(TYPE=CSV field_delimiter=',' COMPRESSION=GZIP field_optionally_enclosed_by='\"')"
-                            + " PURGE=TRUE ON_ERROR='CONTINUE'")) {
-                while (result.next()) {
-                    final String status = result.getString("status");
-                    switch (status.toLowerCase(Locale.ROOT)) {
-                    case "load_failed":
-                    case "partially_loaded":
-                        final String file = result.getString("file");
-                        final String error = result.getString("first_error");
-                        final int errorLine = result.getInt("first_error_line");
-                        final int errorsSeen = result.getInt("errors_seen");
-                        final int errorLimit = result.getInt("error_limit");
-                        final int errorCharacter = result.getInt("first_error_character");
-                        final String errorColumnName = result.getString("first_error_column_name");
-                        final int rowsLoaded = result.getInt("rows_loaded");
-                        final int rowsParsed = result.getInt("rows_parsed");
-                        errors.add(new CopyError(file, errorsSeen, errorLimit, error, errorLine, errorCharacter, errorColumnName,
-                                rowsLoaded, rowsParsed));
-                        break;
-                    case "loaded":
-                        break;
-                    }
+        final String query = String.format(COPY_INTO_QUERY, fqTableName, getColumnNamesList(chunks), fqStageName,
+                joinFileNamesString(chunks));
+        try (final Statement statement = connection.createStatement(); final ResultSet result = statement.executeQuery(query)) {
+            final List<CopyError> errors = new ArrayList<>();
+            while (result.next()) {
+                final String status = result.getString("status");
+                switch (status.toLowerCase(Locale.ROOT)) {
+                case "load_failed":
+                case "partially_loaded":
+                    final String file = result.getString("file");
+                    final String error = result.getString("first_error");
+                    final int errorLine = result.getInt("first_error_line");
+                    final int errorsSeen = result.getInt("errors_seen");
+                    final int errorLimit = result.getInt("error_limit");
+                    final int errorCharacter = result.getInt("first_error_character");
+                    final String errorColumnName = result.getString("first_error_column_name");
+                    final int rowsLoaded = result.getInt("rows_loaded");
+                    final int rowsParsed = result.getInt("rows_parsed");
+                    errors.add(new CopyError(file, errorsSeen, errorLimit, error, errorLine, errorCharacter, errorColumnName,
+                            rowsLoaded, rowsParsed));
+                    break;
+                case "loaded":
+                    break;
                 }
             }
             return errors;
         } catch (final SQLException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    /**
+     * Retrieves a record schema columns from chunks. This column names are case sensitive due to the Snowflake quote identifier.
+     * </br>
+     * <ul>
+     * <li>incoming chunks list is empty - return <b>""</b></li>
+     * <li>incoming chunks contain record(-s) with single column <b>firstName</b> - return value <b>("firstName")</b></li>
+     * <li>incoming chunks contain record(-s) with multiple columns:
+     * <b>firstName</b>, <b>lastName</b>, <b>AGE</b> - return value <b>("firstName","lastName","AGE")</b></li>
+     * </ul>
+     *
+     * @param chunks
+     * @return column names joined as a String with comma as a separator
+     */
+    private String getColumnNamesList(List<RecordChunk> chunks) {
+        return ofNullable(chunks).filter(chunk -> !chunk.isEmpty()).flatMap(chunk -> ofNullable(chunk.get(0).getRecords()))
+                .filter(records -> !records.isEmpty()).flatMap(records -> ofNullable(records.get(0).getSchema().getEntries()))
+                .filter(schemaEntries -> !schemaEntries.isEmpty())
+                .map(schemaEntries -> schemaEntries.stream().map(Schema.Entry::getName).collect(joining("\",\"", "(\"", "\")")))
+                .orElse("");
+    }
+
+    /**
+     * Join file names from the chunks.
+     * </br>
+     * <ul>
+     * <li>single chunk with a path: <b>/tmp/part_...csv</b> - return value <b>("'/tmp/part_...csv.gz'")</b></li>
+     * <li>multiple chunks:
+     * <b>/tmp/part1_...csv</b>, <b>/tmp/part2_...csv</b>, <b>/tmp/part3_...csv</b> - return value
+     * <b>('/tmp/part1_...csv.gz','/tmp/part2_...csv.gz','/tmp/part3_...csv.gz')</b></li>
+     * </ul>
+     *
+     * @param chunks
+     * @return file names joined as a String with comma as a separator
+     */
+    private String joinFileNamesString(List<RecordChunk> chunks) {
+        return chunks.stream().map(chunk -> "'" + chunk.getChunk().getFileName() + ".gz'").collect(joining(",", "(", ")"));
     }
 
     @Data
@@ -197,9 +236,10 @@ public class SnowflakeCopyService implements Serializable {
         final AtomicInteger count = new AtomicInteger(0);
         final AtomicInteger recordCounter = new AtomicInteger(0);
         final Map<Integer, RecordChunk> chunks = new HashMap<>();
-        records.stream().map(record -> record.getSchema().getEntries().stream().map(entry -> format(record, entry))
-                .collect(Collectors.joining(","))).forEach(line -> {
-                    if (size.addAndGet(line.getBytes(StandardCharsets.UTF_8).length) > maxChunk) {
+        records.stream()
+                .map(record -> record.getSchema().getEntries().stream().map(entry -> format(record, entry)).collect(joining(",")))
+                .forEach(line -> {
+                    if (size.addAndGet(line.getBytes(StandardCharsets.UTF_8).length) > MAX_CHUNK) {
                         // this writer can be closed now. to early free of memory
                         chunks.get(count.getAndIncrement()).close();
                         size.set(line.getBytes(StandardCharsets.UTF_8).length);

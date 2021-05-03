@@ -12,10 +12,9 @@
  */
 package org.talend.components.jdbc.datastore;
 
-public enum AuthenticationType {
+public enum GrantType {
 
-    BASIC,
-    KEY_PAIR,
-    OAUTH
+    CLIENT_CREDENTIALS,
+    PASSWORD
 
 }

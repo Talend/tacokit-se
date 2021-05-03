@@ -1,0 +1,5 @@
+https://google.com,correct,correct,PASSWORD,correct,correct,correct,Cannot retrieve access token. Error description: The endpoint does not support the provided HTTP method.
+https://talend.com,incorrect,correct,PASSWORD,correct,correct,correct,Cannot retrieve access token. Error description: Invalid value for 'client_id' parameter.
+https://talend.com,correct,incorrect,PASSWORD,correct,correct,correct,Cannot retrieve access token. Error description: The client secret supplied for a confidential client is invalid.
+https://talend.com,correct,correct,PASSWORD,correct,correct,incorrect,Cannot retrieve access token. Error description: The credentials provided were invalid.
+https://talend.com,correct,correct,PASSWORD,incorrect,correct,correct,Cannot retrieve access token. Error description: One or more scopes are not configured for the authorization server resource.

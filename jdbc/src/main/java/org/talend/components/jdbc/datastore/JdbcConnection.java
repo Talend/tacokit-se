@@ -34,6 +34,7 @@ import java.io.Serializable;
 
 import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_HANDLERS_DB;
 import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_SUPPORTED_DB;
+import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.AND;
 import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.OR;
 
 @Data
@@ -41,29 +42,31 @@ import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Ope
 @ToString(exclude = { "password", "privateKey", "privateKeyPassword" })
 @GridLayout({ @GridLayout.Row({ "dbType", "handler" }), @GridLayout.Row("jdbcUrl"), @GridLayout.Row("authenticationType"),
         @GridLayout.Row("userId"), @GridLayout.Row("password"), @GridLayout.Row("privateKey"),
-        @GridLayout.Row("privateKeyPassword") })
+        @GridLayout.Row("privateKeyPassword"), @GridLayout.Row("oauthTokenEndpoint"), @GridLayout.Row("clientId"),
+        @GridLayout.Row("clientSecret"), @GridLayout.Row("grantType"), @GridLayout.Row("oauthUsername"),
+        @GridLayout.Row("oauthPassword"), @GridLayout.Row("scope") })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("connectionTimeOut"),
         @GridLayout.Row("connectionValidationTimeOut") })
 @DataStore("JdbcConnection")
 @Checkable(UIActionService.ACTION_BASIC_HEALTH_CHECK)
-@Documentation("A connection to a data base")
+@Documentation("A connection to a data base.")
 public class JdbcConnection implements Serializable {
 
     @Option
     @Required
-    @Documentation("Data base type from the supported data base list")
+    @Documentation("Data base type from the supported data base list.")
     @Proposable(ACTION_LIST_SUPPORTED_DB)
     private String dbType;
 
     @Option
     @ActiveIf(target = "dbType", value = { "Aurora", "SingleStore" })
-    @Documentation("Database handlers, this configuration is for cloud databases that support the use of other databases drivers")
+    @Documentation("Database handlers, this configuration is for cloud databases that support the use of other databases drivers.")
     @Suggestable(value = ACTION_LIST_HANDLERS_DB, parameters = { "dbType" })
     private String handler;
 
     @Option
     @Required
-    @Documentation("jdbc connection url")
+    @Documentation("jdbc connection url.")
     private String jdbcUrl;
 
     @Option
@@ -73,15 +76,16 @@ public class JdbcConnection implements Serializable {
     private AuthenticationType authenticationType;
 
     @Option
-    @Required
-    @Documentation("database user")
+    @ActiveIfs(value = { @ActiveIf(target = "dbType", value = "Snowflake", negate = true),
+            @ActiveIf(target = "authenticationType", value = "OAUTH", negate = true) }, operator = OR)
+    @Documentation("database user.")
     private String userId;
 
     @Option
-    @Credential
     @ActiveIfs(value = { @ActiveIf(target = "dbType", value = "Snowflake", negate = true),
-            @ActiveIf(target = "authenticationType", value = "KEY_PAIR", negate = true) }, operator = OR)
-    @Documentation("database password")
+            @ActiveIf(target = "authenticationType", value = "BASIC") }, operator = OR)
+    @Credential
+    @Documentation("database password.")
     private String password;
 
     @Option
@@ -97,6 +101,49 @@ public class JdbcConnection implements Serializable {
     @Credential
     @Documentation("Private key password.")
     private String privateKeyPassword;
+
+    @Option
+    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "OAUTH") })
+    @Documentation("Oauth token endpoint.")
+    private String oauthTokenEndpoint;
+
+    @Option
+    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "OAUTH") })
+    @Documentation("Client ID.")
+    private String clientId;
+
+    @Option
+    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "OAUTH") })
+    @Credential
+    @Documentation("Client secret.")
+    private String clientSecret;
+
+    @Option
+    @DefaultValue("CLIENT_CREDENTIALS")
+    @ActiveIfs(value = { @ActiveIf(target = "dbType", value = "Snowflake"),
+            @ActiveIf(target = "authenticationType", value = "OAUTH") }, operator = AND)
+    @Documentation("Grant type.")
+    private GrantType grantType;
+
+    @Option
+    @ActiveIfs(value = { @ActiveIf(target = "dbType", value = "Snowflake"),
+            @ActiveIf(target = "authenticationType", value = "OAUTH"),
+            @ActiveIf(target = "grantType", value = "PASSWORD") }, operator = AND)
+    @Documentation("OAuth username.")
+    private String oauthUsername;
+
+    @Option
+    @ActiveIfs(value = { @ActiveIf(target = "dbType", value = "Snowflake"),
+            @ActiveIf(target = "authenticationType", value = "OAUTH"),
+            @ActiveIf(target = "grantType", value = "PASSWORD") }, operator = AND)
+    @Credential
+    @Documentation("OAuth password.")
+    private String oauthPassword;
+
+    @Option
+    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "OAUTH") })
+    @Documentation("Scope.")
+    private String scope;
 
     @Min(0)
     @Option

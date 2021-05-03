@@ -10,12 +10,19 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.jdbc.datastore;
+package org.talend.components.jdbc.service;
 
-public enum AuthenticationType {
+import javax.json.JsonObject;
 
-    BASIC,
-    KEY_PAIR,
-    OAUTH
+import org.talend.sdk.component.api.service.http.Base;
+import org.talend.sdk.component.api.service.http.Header;
+import org.talend.sdk.component.api.service.http.HttpClient;
+import org.talend.sdk.component.api.service.http.Request;
+import org.talend.sdk.component.api.service.http.Response;
+
+public interface TokenClient extends HttpClient {
+
+    @Request(method = "POST")
+    Response<JsonObject> getAccessToken(@Base String base, @Header("Authorization") String authorization, String payload);
 
 }
