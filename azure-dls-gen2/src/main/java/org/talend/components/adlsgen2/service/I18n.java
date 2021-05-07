@@ -27,6 +27,8 @@ public interface I18n {
 
     String healthCheckActiveDirectory();
 
+    String healthCheckActiveDirectoryPermissions();
+
     String undefinedType(String typeName);
 
     String cannotOverwriteBlob(String blobName);

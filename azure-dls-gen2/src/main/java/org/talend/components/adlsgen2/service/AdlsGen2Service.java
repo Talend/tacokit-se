@@ -141,7 +141,7 @@ public class AdlsGen2Service {
             sb.append("No error code provided. HTTP status:" + status + ".");
         }
         log.error("[handleResponse] {}", sb);
-        return new AdlsGen2RuntimeException(sb.toString());
+        return new AdlsGen2RuntimeException(status, sb.toString());
     }
 
     public static Response handleResponse(Response response) {
