@@ -37,11 +37,11 @@
         -->
         <talend.component.studioHome />
 
-        <apache.poi.version>3.17</apache.poi.version>
+        <apache.poi.version>4.1.2</apache.poi.version>
         <jsoup.version>1.11.3</jsoup.version>
         <parquet.version>1.10.1</parquet.version>
         <hadoop.version>3.2.0</hadoop.version>
-        <excel.streamer.version>2.1.0</excel.streamer.version>
+        <excel.streamer.version>2.1.0-20201125</excel.streamer.version>
         <mockito.version>2.23.0</mockito.version>
     </properties>
 
@@ -85,7 +85,7 @@
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-scratchpad</artifactId>
-            <version>3.17</version>
+            <version>${apache.poi.version}</version>
         </dependency>
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
