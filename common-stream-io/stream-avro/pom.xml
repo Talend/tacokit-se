@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.talend.components</groupId>
         <artifactId>common-stream-io</artifactId>
-        <version>1.21.0-SNAPSHOT</version>
+        <version>1.22.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>stream-avro</artifactId>
@@ -28,14 +28,14 @@
         <dependency>
             <groupId>org.talend.components</groupId>
             <artifactId>stream-api</artifactId>
-            <version>1.21.0-SNAPSHOT</version>
+            <version>1.22.0-SNAPSHOT</version>
         </dependency>
 
         <!-- common -->
         <dependency>
             <groupId>org.talend.components</groupId>
             <artifactId>common</artifactId>
-            <version>1.21.0-SNAPSHOT</version>
+            <version>1.22.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>

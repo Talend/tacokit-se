@@ -18,7 +18,7 @@
   <parent>
     <groupId>org.talend.components</groupId>
     <artifactId>common-stream-io</artifactId>
-    <version>1.21.0-SNAPSHOT</version>
+    <version>1.22.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>stream-json</artifactId>
@@ -30,12 +30,12 @@
     <dependency>
       <groupId>org.talend.components</groupId>
       <artifactId>common</artifactId>
-      <version>1.21.0-SNAPSHOT</version>
+      <version>1.22.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.talend.components</groupId>
       <artifactId>stream-api</artifactId>
-      <version>1.21.0-SNAPSHOT</version>
+      <version>1.22.0-SNAPSHOT</version>
     </dependency>
     <!-- Testing -->
     <dependency>
@@ -55,12 +55,12 @@
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
-      <artifactId>spark-core_2.11</artifactId>
+      <artifactId>spark-core_2.12</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
-      <artifactId>spark-streaming_2.11</artifactId>
+      <artifactId>spark-streaming_2.12</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -75,7 +75,7 @@
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.module</groupId>
-      <artifactId>jackson-module-scala_2.11</artifactId>
+      <artifactId>jackson-module-scala_2.12</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
