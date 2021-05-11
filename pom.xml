@@ -141,6 +141,8 @@
     <zookeeper.version>3.4.14</zookeeper.version>
     <guava.version>30.0-jre</guava.version>
 
+    <hadoop.version>3.2.2</hadoop.version>
+
     <!-- code quality enforcer default values.
          run build w/ -Pcode-quality to have a full validation -->
     <!-- should enforcing rules fail? Not yet, but soon! -->
@@ -434,6 +436,11 @@
         <groupId>net.minidev</groupId>
         <artifactId>json-smart</artifactId>
         <version>${json-smart.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-client</artifactId>
+        <version>${hadoop.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
