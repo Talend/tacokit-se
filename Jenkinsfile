@@ -101,7 +101,7 @@ spec:
             }
             steps {
                 container('main') {
-                    EXTRA_BUILD_PARAMS = ''
+                    sh "export EXTRA_BUILD_PARAMS=''"
                 }
             }
         }
