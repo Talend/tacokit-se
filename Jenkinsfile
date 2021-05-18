@@ -72,6 +72,7 @@ spec:
         APP_ID = '579232'
         ARTIFACTORY_REGISTRY = "artifactory.datapwn.com"
         TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX="artifactory.datapwn.com/docker-io-remote/"
+        EXTRA_BUILD_PARAMS = ''
     }
 
     options {
