@@ -72,7 +72,6 @@ spec:
         APP_ID = '579232'
         ARTIFACTORY_REGISTRY = "artifactory.datapwn.com"
         TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX="artifactory.datapwn.com/docker-io-remote/"
-        EXTRA_BUILD_PARAMS = ''
     }
 
     options {
@@ -94,6 +93,18 @@ spec:
     }
 
     stages {
+        stage('Check build param') {
+            when { not { anyOf {
+                    branch 'master'
+                    expression { env.BRANCH_NAME.startsWith('maintenance/') }
+                }}
+            }
+            steps {
+                container('main') {
+                    EXTRA_BUILD_PARAMS = ''
+                }
+            }
+        }
         stage('Docker login') {
             steps {
                 container('main') {
