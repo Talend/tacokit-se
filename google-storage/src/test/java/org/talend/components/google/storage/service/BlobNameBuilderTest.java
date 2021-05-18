@@ -12,8 +12,15 @@
  */
 package org.talend.components.google.storage.service;
 
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class BlobNameBuilderTest {
 
@@ -37,5 +44,27 @@ class BlobNameBuilderTest {
                 builder.revert("Hello_1234567890ABCDEF1234567890ABCDEF1234"));
 
         Assertions.assertEquals("Hello", builder.revert(builder.generateName("Hello")));
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideNames")
+    void generateNameWithExtension(final String input, final String pattern) {
+        final BlobNameBuilder builder = new BlobNameBuilder();
+        final String generateName = builder.generateName(input);
+        Assertions.assertTrue(generateName.matches(pattern),
+                "Wrong generated name '" + generateName + "'" + " for '" + input + "'");
+        Assertions.assertTrue(builder.isGenerated(input, generateName));
+
+        Assertions.assertEquals(input, builder.revert(generateName));
+    }
+
+    private static Stream<Arguments> provideNames() {
+        return Stream.of( //
+                Arguments.of("Hello.csv", "^Hello_[0-9a-f\\-]{36}\\.csv$"), //
+                Arguments.of("Hello._", "^Hello_[0-9a-f\\-]{36}\\._$"), //
+                Arguments.of("Hello.", "^Hello_[0-9a-f\\-]{36}\\.$"), //
+                Arguments.of("Hello", "^Hello_[0-9a-f\\-]{36}$"), //
+                Arguments.of(".gitignore", "^_[0-9a-f\\-]{36}\\.gitignore$"), //
+                Arguments.of(".", "^_[0-9a-f\\-]{36}\\.$"));
     }
 }

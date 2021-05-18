@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.talend.components</groupId>
         <artifactId>connectors-se</artifactId>
-        <version>1.20.0-SNAPSHOT</version>
+        <version>1.22.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>connectors-test-bom</artifactId>
@@ -34,7 +34,7 @@
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-scala_2.11</artifactId>
+            <artifactId>jackson-module-scala_2.12</artifactId>
             <version>${jackson.version}</version>
             <scope>compile</scope>
             <exclusions>
@@ -46,8 +46,8 @@
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_2.11</artifactId>
-            <version>2.4.4</version>
+            <artifactId>spark-core_2.12</artifactId>
+            <version>${spark.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -70,12 +70,12 @@
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
-            <version>3.2.1</version>
+            <version>3.2.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-streaming_2.11</artifactId>
-            <version>2.4.4</version>
+            <artifactId>spark-streaming_2.12</artifactId>
+            <version>${spark.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
