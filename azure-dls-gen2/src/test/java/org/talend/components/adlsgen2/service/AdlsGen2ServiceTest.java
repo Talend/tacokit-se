@@ -86,7 +86,7 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
         Assertions.assertEquals(1, blobs.size());
 
         final BlobInformations informations = blobs.get(0);
-        Assertions.assertEquals(120, informations.getContentLength());
+        Assertions.assertEquals(120L, informations.getContentLength());
         Assertions.assertEquals("0x8D89D1980D8BD4B", informations.getEtag());
         Assertions.assertEquals(File.separatorChar + "paht1", informations.getDirectory());
         Assertions.assertEquals("file1.txt", informations.getFileName());
@@ -111,7 +111,7 @@ class AdlsGen2ServiceTest extends AdlsGen2TestBase {
         this.dataSet.setBlobPath("/paht1/file1.txt");
         final AdlsDatasetRuntimeInfo runtimeInfo = new AdlsDatasetRuntimeInfo(this.dataSet, new FakeActiveDirectoryService());
         final BlobInformations informations = service.getBlobInformations(runtimeInfo);
-        Assertions.assertEquals(120, informations.getContentLength());
+        Assertions.assertEquals(120L, informations.getContentLength());
         Assertions.assertEquals("0x8D89D1980D8BD4B", informations.getEtag());
         Assertions.assertEquals("file1.txt", informations.getFileName());
         Assertions.assertEquals("read", informations.getPermissions());
