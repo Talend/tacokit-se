@@ -18,6 +18,12 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sforce.soap.partner.DescribeSObjectResult;
+import com.sforce.soap.partner.Field;
+import com.sforce.soap.partner.PartnerConnection;
+import com.sforce.soap.partner.fault.ApiFault;
+import com.sforce.ws.ConnectionException;
+
 import org.talend.components.salesforce.configuration.InputModuleConfig;
 import org.talend.components.salesforce.dataset.ModuleDataSet;
 import org.talend.components.salesforce.service.Messages;
@@ -29,12 +35,6 @@ import org.talend.sdk.component.api.input.Emitter;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-
-import com.sforce.soap.partner.DescribeSObjectResult;
-import com.sforce.soap.partner.Field;
-import com.sforce.soap.partner.PartnerConnection;
-import com.sforce.soap.partner.fault.ApiFault;
-import com.sforce.ws.ConnectionException;
 
 import lombok.extern.slf4j.Slf4j;
 

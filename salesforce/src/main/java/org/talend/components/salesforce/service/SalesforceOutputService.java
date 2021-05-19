@@ -12,47 +12,30 @@
  */
 package org.talend.components.salesforce.service;
 
-import static org.talend.components.salesforce.configuration.OutputConfig.OutputAction.DELETE;
-import static org.talend.components.salesforce.configuration.OutputConfig.OutputAction.UPDATE;
-import static org.talend.components.salesforce.configuration.OutputConfig.OutputAction.UPSERT;
-
 import java.io.IOException;
 import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
-import com.sforce.soap.partner.Field;
-import com.sforce.soap.partner.FieldType;
-import com.sforce.soap.partner.PartnerConnection;
-import com.sforce.soap.partner.sobject.SObject;
-import com.sforce.ws.bind.CalendarCodec;
-import com.sforce.ws.bind.DateCodec;
-import com.sforce.ws.bind.XmlObject;
-import com.sforce.ws.types.Time;
-import com.sforce.ws.util.Base64;
+import com.sforce.soap.partner.IField;
 
-import org.apache.avro.util.Utf8;
-import org.talend.components.salesforce.commons.SalesforceRuntimeHelper;
 import org.talend.components.salesforce.configuration.OutputConfig;
 import org.talend.components.salesforce.configuration.OutputConfig.OutputAction;
 import org.talend.components.salesforce.service.operation.ConnectionFacade;
-import org.talend.components.salesforce.service.operation.ConnectionFacade.ConnectionImpl;
 import org.talend.components.salesforce.service.operation.Delete;
 import org.talend.components.salesforce.service.operation.Insert;
 import org.talend.components.salesforce.service.operation.RecordsOperation;
+import org.talend.components.salesforce.service.operation.Result;
 import org.talend.components.salesforce.service.operation.ThresholdOperation;
 import org.talend.components.salesforce.service.operation.Update;
 import org.talend.components.salesforce.service.operation.Upsert;
 import org.talend.components.salesforce.service.operation.converters.SObjectConverter;
 import org.talend.components.salesforce.service.operation.converters.SObjectConvertorForUpdate;
 import org.talend.components.salesforce.service.operation.converters.SObjectRelationShip;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -61,83 +44,85 @@ public class SalesforceOutputService implements Serializable {
 
     private static final String ID = "Id";
 
-    protected final int commitLevel;
-
-    private final Map<OutputConfig.OutputAction, ThresholdOperation> operations;
-
-    private final List<Record> successfulWrites = new ArrayList<>();
-
-    private final List<Record> rejectedWrites = new ArrayList<>();
-
-    private final List<String> nullValueFields = new ArrayList<>();
-
-    private final Messages messages;
+    private final ThresholdOperation operation;
 
     protected boolean exceptionForErrors;
-
-    private PartnerConnection connection;
 
     private OutputConfig.OutputAction outputAction;
 
     private String moduleName;
 
-    private boolean isBatchMode;
+    private Map<String, IField> fieldMap;
 
-    private int dataCount;
+    public SalesforceOutputService(final OutputConfig outputConfig, final ConnectionFacade cnx) {
 
-    private int successCount;
-
-    private int rejectCount;
-
-    private CalendarCodec calendarCodec = new CalendarCodec();
-
-    private DateCodec dateCodec = new DateCodec();
-
-    private Map<String, Field> fieldMap;
-
-    public SalesforceOutputService(OutputConfig outputConfig, PartnerConnection connection, Messages messages) {
-        this.connection = connection;
         this.outputAction = outputConfig.getOutputAction();
         this.moduleName = outputConfig.getModuleDataSet().getModuleName();
-        this.messages = messages;
-        this.isBatchMode = outputConfig.isBatchMode();
-        if (isBatchMode) {
+
+        final int commitLevel;
+        if (outputConfig.isBatchMode()) {
             commitLevel = outputConfig.getCommitLevel();
         } else {
             commitLevel = 1;
         }
         this.exceptionForErrors = outputConfig.isExceptionForErrors();
 
-        this.operations = new HashMap<>();
-        SObjectConverter converter = new SObjectConverter(() -> this.fieldMap, this.moduleName);
-        SObjectConvertorForUpdate updateConv = new SObjectConvertorForUpdate(() -> this.fieldMap,
-                getReferenceFieldsMap(),
-                this.moduleName,
-                outputConfig.getUpsertKeyColumn());
-        ConnectionFacade cnx = new ConnectionImpl(this.connection);
-        this.operations.put(UPDATE, buildThreshold(new Update(cnx, converter)));
-        this.operations.put(OutputAction.INSERT, buildThreshold(new Insert(cnx, converter)));
-        this.operations.put(UPSERT, buildThreshold(new Upsert(cnx, updateConv, outputConfig.getUpsertKeyColumn())));
-        this.operations.put(DELETE, buildThreshold(new Delete(cnx)));
+        final RecordsOperation recordsOperation = this.buildOperation(cnx, outputConfig);
+        this.operation = buildThreshold(commitLevel, recordsOperation);
     }
 
-    private ThresholdOperation buildThreshold(RecordsOperation operation) {
-        return new ThresholdOperation(operation, this.commitLevel);
+    private RecordsOperation buildOperation(final ConnectionFacade cnx, final OutputConfig cfg) {
+        final SObjectConverter converter = new SObjectConverter(() -> this.fieldMap, this.moduleName);
+        if (cfg.getOutputAction() == OutputAction.UPDATE) {
+            return new Update(cnx, converter);
+        }
+        if (cfg.getOutputAction() == OutputAction.INSERT) {
+            return new Insert(cnx, converter);
+        }
+        if (cfg.getOutputAction() == OutputAction.DELETE) {
+            return new Delete(cnx);
+        }
+        if (cfg.getOutputAction() == OutputAction.UPSERT) {
+            final SObjectConvertorForUpdate updateConv = new SObjectConvertorForUpdate(() -> this.fieldMap,
+                    getReferenceFieldsMap(), this.moduleName, cfg.getUpsertKeyColumn());
+            return new Upsert(cnx, updateConv, cfg.getUpsertKeyColumn());
+        }
+        throw new ComponentException("Unknow operation " + cfg.getOutputAction());
+    }
+
+    private ThresholdOperation buildThreshold(final int commitLevel, final RecordsOperation operation) {
+        return new ThresholdOperation(operation, commitLevel);
     }
 
     public void write(Record record) throws IOException {
-        dataCount++;
         if (record == null) {
             return;
         }
-        this.operations.get(this.outputAction).execute(record);
+        final List<Result> results = this.operation.execute(record);
+        if (results != null) {
+            this.handleResults(results);
+        }
+    }
+
+    private void handleResults(final List<Result> results) throws IOException {
+        final StringBuilder errors = new StringBuilder();
+        results.stream().filter((Result r) -> !r.isOK()).map(Result::getErrors).filter(Objects::nonNull)
+                .forEach((Iterable<String> errs) -> errs.forEach(errors::append));
+        if (errors.length() > 0) {
+            if (exceptionForErrors) {
+                throw new IOException(errors.toString());
+            } else {
+                // log.error("RowKey/RowNo:{}", changedItemKey);
+                log.error(errors.toString());
+            }
+        }
     }
 
     /**
      * Make sure all record submit before end
      */
     public void finish() throws IOException {
-        this.operations.get(this.outputAction).terminate();
+        this.operation.terminate();
     }
 
     private Map<String, SObjectRelationShip> getReferenceFieldsMap() {
@@ -165,12 +150,7 @@ public class SalesforceOutputService implements Serializable {
         return new HashMap<>();
     }
 
-    public void cleanWrites() {
-        successfulWrites.clear();
-        rejectedWrites.clear();
-    }
-
-    public void setFieldMap(Map<String, Field> fieldMap) {
+    public void setFieldMap(Map<String, IField> fieldMap) {
         this.fieldMap = fieldMap;
     }
 

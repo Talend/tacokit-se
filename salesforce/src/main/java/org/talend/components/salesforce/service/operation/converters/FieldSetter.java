@@ -1,10 +1,22 @@
+/*
+ * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.talend.components.salesforce.service.operation.converters;
 
 import java.math.BigDecimal;
 import java.util.Date;
 
-import com.sforce.soap.partner.Field;
 import com.sforce.soap.partner.FieldType;
+import com.sforce.soap.partner.IField;
 import com.sforce.ws.bind.CalendarCodec;
 import com.sforce.ws.bind.DateCodec;
 import com.sforce.ws.bind.XmlObject;
@@ -25,7 +37,7 @@ public class FieldSetter {
 
     private final XmlObject xmlObject;
 
-    public void addSObjectField(Field field, Object value) {
+    public void addSObjectField(IField field, Object value) {
         if (value == null || value.toString().isEmpty()) {
             return;
         }

@@ -1,3 +1,15 @@
+/*
+ * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.talend.components.salesforce.service.operation;
 
 import java.io.IOException;
@@ -5,9 +17,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.sforce.soap.partner.Error;
-import com.sforce.soap.partner.PartnerConnection;
-import com.sforce.soap.partner.UpsertResult;
+import com.sforce.soap.partner.IError;
+import com.sforce.soap.partner.IUpsertResult;
 import com.sforce.soap.partner.sobject.SObject;
 import com.sforce.ws.ConnectionException;
 
@@ -41,23 +52,21 @@ public class Upsert implements RecordsOperation {
         }
 
         try {
-            final UpsertResult[] saveResults = connection.upsert(upsertKeyColumn, upds);
+            final IUpsertResult[] saveResults = connection.upsert(upsertKeyColumn, upds);
             return Stream.of(saveResults) //
-                    .map(this::toResult)
-                    .collect(Collectors.toList());
+                    .map(this::toResult).collect(Collectors.toList());
         } catch (ConnectionException e) {
             throw new IOException(e);
         }
     }
 
-    private Result toResult(UpsertResult saveResult) {
+    private Result toResult(IUpsertResult saveResult) {
         if (saveResult.isSuccess()) {
             return Result.OK;
         }
-        final List<String> errors =
-                Stream.of(saveResult.getErrors()) //
-                        .map(Error::getMessage) //
-                        .collect(Collectors.toList());
+        final List<String> errors = Stream.of(saveResult.getErrors()) //
+                .map(IError::getMessage) //
+                .collect(Collectors.toList());
         return new Result(errors);
     }
 }

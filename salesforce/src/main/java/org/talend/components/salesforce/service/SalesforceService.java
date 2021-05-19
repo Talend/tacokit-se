@@ -16,7 +16,6 @@ import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -24,26 +23,29 @@ import java.util.TreeMap;
 
 import javax.xml.namespace.QName;
 
+import com.sforce.async.AsyncApiException;
+import com.sforce.async.BulkConnection;
+import com.sforce.soap.partner.DescribeSObjectResult;
+import com.sforce.soap.partner.Field;
+import com.sforce.soap.partner.FieldType;
+import com.sforce.soap.partner.IDescribeSObjectResult;
+import com.sforce.soap.partner.IField;
+import com.sforce.soap.partner.LoginResult;
+import com.sforce.soap.partner.PartnerConnection;
+import com.sforce.soap.partner.fault.ApiFault;
+import com.sforce.ws.ConnectionException;
+import com.sforce.ws.ConnectorConfig;
+import com.sforce.ws.SessionRenewer;
+
 import org.talend.components.salesforce.datastore.BasicDataStore;
+import org.talend.components.salesforce.service.operation.ConnectionFacade;
+import org.talend.components.salesforce.service.operation.ConnectionFacade.ConnectionImpl;
 import org.talend.components.salesforce.soql.FieldDescription;
 import org.talend.components.salesforce.soql.SoqlQuery;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-
-import com.sforce.async.AsyncApiException;
-import com.sforce.async.BulkConnection;
-import com.sforce.soap.partner.DescribeSObjectResult;
-import com.sforce.soap.partner.Field;
-import com.sforce.soap.partner.FieldType;
-import com.sforce.soap.partner.LoginResult;
-import com.sforce.soap.partner.PartnerConnection;
-import com.sforce.soap.partner.PicklistEntry;
-import com.sforce.soap.partner.fault.ApiFault;
-import com.sforce.ws.ConnectionException;
-import com.sforce.ws.ConnectorConfig;
-import com.sforce.ws.SessionRenewer;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -85,6 +87,12 @@ public class SalesforceService {
         }
         return columnNames;
 
+    }
+
+    public ConnectionFacade buildConnection(final BasicDataStore datastore, final LocalConfiguration localConfiguration)
+            throws ConnectionException {
+        final PartnerConnection connection = this.connect(datastore, localConfiguration);
+        return new ConnectionImpl(connection);
     }
 
     /**
@@ -240,14 +248,14 @@ public class SalesforceService {
         }
     }
 
-    public Schema guessSchema(List<String> fieldNames, Map<String, Field> fieldMap, final RecordBuilderFactory factory) {
+    public Schema guessSchema(List<String> fieldNames, Map<String, IField> fieldMap, final RecordBuilderFactory factory) {
         final Schema.Entry.Builder entryBuilder = factory.newEntryBuilder();
         final Schema.Builder schemaBuilder = factory.newSchemaBuilder(org.talend.sdk.component.api.record.Schema.Type.RECORD);
         if ((fieldNames == null || fieldNames.isEmpty()) || fieldMap == null || fieldMap.isEmpty()) {
             return schemaBuilder.build();
         } else {
             for (String fieldName : fieldNames) {
-                Field field = fieldMap.get(fieldName);
+                IField field = fieldMap.get(fieldName);
                 Schema.Type type = null;
                 boolean nillable = true;
                 if (field != null) {
@@ -289,10 +297,10 @@ public class SalesforceService {
     /**
      * Retrieve module field map, filed name with filed
      */
-    public Map<String, Field> getFieldMap(BasicDataStore dataStore, String moduleName,
+    public Map<String, IField> getFieldMap(BasicDataStore dataStore, String moduleName,
             final LocalConfiguration localConfiguration) {
         try {
-            PartnerConnection connection = connect(dataStore, localConfiguration);
+            final ConnectionFacade connection = this.buildConnection(dataStore, localConfiguration);
             return getFieldMap(connection, moduleName);
 
         } catch (ConnectionException e) {
@@ -300,11 +308,11 @@ public class SalesforceService {
         }
     }
 
-    public Map<String, Field> getFieldMap(PartnerConnection connection, String moduleName) {
+    public Map<String, IField> getFieldMap(final ConnectionFacade connection, String moduleName) {
         try {
-            DescribeSObjectResult module = connection.describeSObject(moduleName);
-            Map<String, Field> fieldMap = new TreeMap<>();
-            for (Field field : module.getFields()) {
+            IDescribeSObjectResult module = connection.describeSObject(moduleName);
+            Map<String, IField> fieldMap = new TreeMap<>();
+            for (IField field : module.getFields()) {
                 fieldMap.put(field.getName(), field);
             }
             return fieldMap;
@@ -320,10 +328,10 @@ public class SalesforceService {
     public List<String> getFieldNameList(BasicDataStore dataStore, String moduleName,
             final LocalConfiguration localConfiguration) {
         try {
-            PartnerConnection connection = connect(dataStore, localConfiguration);
-            DescribeSObjectResult module = connection.describeSObject(moduleName);
+            final ConnectionFacade connection = this.buildConnection(dataStore, localConfiguration);
+            final IDescribeSObjectResult module = connection.describeSObject(moduleName);
             List<String> fieldNameList = new ArrayList<>();
-            for (Field field : module.getFields()) {
+            for (IField field : module.getFields()) {
                 if (isSuppotedType(field)) {
                     fieldNameList.add(field.getName());
                 }
@@ -335,7 +343,7 @@ public class SalesforceService {
         }
     }
 
-    public boolean isSuppotedType(Field field) {
+    public boolean isSuppotedType(IField field) {
         // filter the invalid compound columns for salesforce bulk query api
         if (field == null || field.getType() == FieldType.address || // no address
                 field.getType() == FieldType.location) {

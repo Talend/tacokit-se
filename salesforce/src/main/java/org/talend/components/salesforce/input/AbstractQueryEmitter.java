@@ -20,6 +20,11 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.sforce.async.AsyncApiException;
+import com.sforce.async.BulkConnection;
+import com.sforce.soap.partner.IField;
+import com.sforce.ws.ConnectionException;
+
 import org.talend.components.salesforce.commons.BulkResultSet;
 import org.talend.components.salesforce.configuration.InputConfig;
 import org.talend.components.salesforce.service.BulkQueryService;
@@ -31,11 +36,6 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-
-import com.sforce.async.AsyncApiException;
-import com.sforce.async.BulkConnection;
-import com.sforce.soap.partner.Field;
-import com.sforce.ws.ConnectionException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -89,7 +89,7 @@ public abstract class AbstractQueryEmitter implements Serializable {
         try {
             if (!preBuildSchema) {
                 this.preBuildSchema = true;
-                Map<String, Field> fieldMap = service.getFieldMap(inputConfig.getDataSet().getDataStore(), getModuleName(),
+                Map<String, IField> fieldMap = service.getFieldMap(inputConfig.getDataSet().getDataStore(), getModuleName(),
                         localConfiguration);
                 bulkQueryService.setFieldMap(fieldMap);
                 Schema schema = service.guessSchema(getColumnNames(), fieldMap, recordBuilderFactory);

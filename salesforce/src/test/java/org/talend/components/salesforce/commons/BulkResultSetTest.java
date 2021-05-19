@@ -29,12 +29,12 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.csvreader.CsvReader;
+import com.csvreader.CsvWriter;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import com.csvreader.CsvReader;
-import com.csvreader.CsvWriter;
 
 /**
  *
