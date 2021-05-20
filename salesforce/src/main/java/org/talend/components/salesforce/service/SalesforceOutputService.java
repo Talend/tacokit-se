@@ -122,7 +122,10 @@ public class SalesforceOutputService implements Serializable {
      * Make sure all record submit before end
      */
     public void finish() throws IOException {
-        this.operation.terminate();
+        final List<Result> results = this.operation.terminate();
+        if (results != null) {
+            this.handleResults(results);
+        }
     }
 
     private Map<String, SObjectRelationShip> getReferenceFieldsMap() {
