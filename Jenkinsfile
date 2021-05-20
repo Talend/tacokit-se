@@ -72,6 +72,7 @@ spec:
         APP_ID = '579232'
         ARTIFACTORY_REGISTRY = "artifactory.datapwn.com"
         TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX="artifactory.datapwn.com/docker-io-remote/"
+        EXTRA_BUILD_PARAMS=""
     }
 
     options {
@@ -98,7 +99,6 @@ spec:
                 container('main') {
                     withCredentials([dockerCredentials]) {
                         sh '''#!/bin/bash
-                        export EXTRA_BUILD_PARAMS=${EXTRA_BUILD_PARAMS-""}
                         env|sort
                         docker version
                         echo $ARTIFACTORY_PASSWORD | docker login $ARTIFACTORY_REGISTRY -u $ARTIFACTORY_LOGIN --password-stdin
