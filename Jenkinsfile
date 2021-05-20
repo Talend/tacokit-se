@@ -93,23 +93,12 @@ spec:
     }
 
     stages {
-        stage('Check build param') {
-            when { not { anyOf {
-                    branch 'master'
-                    expression { env.BRANCH_NAME.startsWith('maintenance/') }
-                }}
-            }
-            steps {
-                container('main') {
-                    sh "export EXTRA_BUILD_PARAMS=''"
-                }
-            }
-        }
         stage('Docker login') {
             steps {
                 container('main') {
                     withCredentials([dockerCredentials]) {
                         sh '''#!/bin/bash
+                        export EXTRA_BUILD_PARAMS=${EXTRA_BUILD_PARAMS-""}
                         env|sort
                         docker version
                         echo $ARTIFACTORY_PASSWORD | docker login $ARTIFACTORY_REGISTRY -u $ARTIFACTORY_LOGIN --password-stdin
