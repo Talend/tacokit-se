@@ -34,6 +34,8 @@ def calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
 
 def podLabel = "connectors-se-${UUID.randomUUID().toString()}".take(53)
 
+def EXTRA_BUILD_PARAMS = ""
+
 pipeline {
     agent {
         kubernetes {
@@ -72,7 +74,6 @@ spec:
         APP_ID = '579232'
         ARTIFACTORY_REGISTRY = "artifactory.datapwn.com"
         TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX="artifactory.datapwn.com/docker-io-remote/"
-        EXTRA_BUILD_PARAMS=""
     }
 
     options {
