@@ -89,8 +89,8 @@ public class AdlsGen2Service {
     }
 
     @CreateConnection
-    public Object createConn(@Configuration("configuration") final AdlsGen2Connection connection){
-        AdlsDatastoreRuntimeInfo connectionRuntimeInfo = new AdlsDatastoreRuntimeInfo(connection, tokenProviderService);
+    public AdlsGen2Connection createConn(@Configuration("configuration") final AdlsGen2Connection connection) {
+        return connection;
     }
 
     private Map<String, String> prepareRequestHeaders(final Map<String, String> secretsMap, final AdlsGen2Connection connection,
