@@ -31,6 +31,8 @@ import com.microsoft.azure.storage.OperationContext;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import lombok.Getter;
 
+import javax.json.JsonBuilderFactory;
+
 @Service
 public class AzureBlobComponentServices {
 
@@ -44,6 +46,10 @@ public class AzureBlobComponentServices {
     @Getter
     @Service
     AzureComponentServices connectionService;
+
+    @Getter
+    @Service
+    private JsonBuilderFactory jsonBuilderFactory;
 
     @Service
     private MessageService i18nService;
