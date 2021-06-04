@@ -23,6 +23,7 @@
         <module>stream-avro</module>
         <module>stream-excel</module>
         <module>stream-rawtext</module>
+        <module>stream-parquet</module>
     </modules>
 
     <properties>
