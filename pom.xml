@@ -118,7 +118,7 @@
 
     <jersey.version>2.22.2</jersey.version>
 
-    <json-smart.version>2.4.2</json-smart.version>
+    <json-smart.version>2.4.7</json-smart.version>
 
     <talend_oss_snapshots>https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceSnapshot/
     </talend_oss_snapshots>
