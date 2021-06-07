@@ -39,5 +39,5 @@ public class BlobInformations {
 
     private String directory;
 
-    private Integer contentLength = 0;
+    private Long contentLength = 0L;
 }

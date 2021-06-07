@@ -289,7 +289,7 @@ public class AdlsGen2Service {
                 infos.setBlobPath(name);
                 infos.setDirectory(extractFolderPath(name));
                 infos.setEtag(f.asJsonObject().getString("etag"));
-                infos.setContentLength(Integer.parseInt(f.asJsonObject().getString("contentLength")));
+                infos.setContentLength(Long.parseLong(f.asJsonObject().getString("contentLength")));
                 infos.setLastModified(f.asJsonObject().getString("lastModified"));
                 if (f.asJsonObject().containsKey("owner")) {
                     infos.setOwner(f.asJsonObject().getString("owner"));
@@ -341,7 +341,7 @@ public class AdlsGen2Service {
                 infos.setFileName(fileName);
                 infos.setBlobPath(extractFolderPath(datasetRuntimeInfo.getDataSet().getBlobPath()));
                 infos.setEtag(f.asJsonObject().getString("etag"));
-                infos.setContentLength(Integer.parseInt(f.asJsonObject().getString("contentLength")));
+                infos.setContentLength(Long.parseLong(f.asJsonObject().getString("contentLength")));
                 infos.setLastModified(f.asJsonObject().getString("lastModified"));
                 if (f.asJsonObject().containsKey("owner")) {
                     infos.setOwner(f.asJsonObject().getString("owner"));

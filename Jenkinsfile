@@ -34,6 +34,8 @@ def calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
 
 def podLabel = "connectors-se-${UUID.randomUUID().toString()}".take(53)
 
+def EXTRA_BUILD_PARAMS = ""
+
 pipeline {
     agent {
         kubernetes {
@@ -89,6 +91,7 @@ spec:
                choices: [ 'STANDARD', 'PUSH_TO_XTM', 'DEPLOY_FROM_XTM', 'RELEASE' ],
                description: 'Kind of running : \nSTANDARD (default), normal building\n PUSH_TO_XTM : Export the project i18n resources to Xtm to be translated. This action can be performed from master or maintenance branches only. \nDEPLOY_FROM_XTM: Download and deploy i18n resources from Xtm to nexus for this branch.\nRELEASE : build release')
         booleanParam(name: 'FORCE_SONAR', defaultValue: false, description: 'Force Sonar analysis')
+        string(name: 'EXTRA_BUILD_PARAMS', defaultValue: "", description: 'Add some extra parameters to maven commands. Applies to all maven calls.')
     }
 
     stages {
@@ -97,6 +100,7 @@ spec:
                 container('main') {
                     withCredentials([dockerCredentials]) {
                         sh '''#!/bin/bash
+                        env|sort
                         docker version
                         echo $ARTIFACTORY_PASSWORD | docker login $ARTIFACTORY_REGISTRY -u $ARTIFACTORY_LOGIN --password-stdin
                         '''
@@ -115,7 +119,7 @@ spec:
                     // real task
                     withCredentials([nexusCredentials]) {
                         script {
-                            sh "mvn -U -B -s .jenkins/settings.xml clean install -PITs -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/ -e ${talendOssRepositoryArg}"
+                            sh "mvn ${EXTRA_BUILD_PARAMS} -B -s .jenkins/settings.xml clean install -PITs -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/ -e ${talendOssRepositoryArg}"
                         }
                     }
                 }
@@ -151,7 +155,7 @@ spec:
                             withCredentials([dockerCredentials]) {
                                 sh """
 			                     |cd ci_documentation
-			                     |mvn -U -B -s .jenkins/settings.xml clean install -DskipTests
+			                     |mvn ${EXTRA_BUILD_PARAMS} -B -s .jenkins/settings.xml clean install -DskipTests
 			                     |chmod +x .jenkins/generate-doc.sh && .jenkins/generate-doc.sh
 			                     |""".stripMargin()
                             }
@@ -175,7 +179,7 @@ spec:
                     }
                     steps {
                         container('main') {
-                            sh 'cd ci_site && mvn -U -B -s .jenkins/settings.xml clean site site:stage -Dmaven.test.failure.ignore=true'
+                            sh 'cd ci_site && mvn ${EXTRA_BUILD_PARAMS} -B -s .jenkins/settings.xml clean site site:stage -Dmaven.test.failure.ignore=true'
                         }
                     }
                     post {
@@ -197,7 +201,7 @@ spec:
                     steps {
                         container('main') {
                             withCredentials([nexusCredentials]) {
-                                sh "cd ci_nexus && mvn -U -B -s .jenkins/settings.xml clean deploy -e -Pdocker -DskipTests ${talendOssRepositoryArg}"
+                                sh "cd ci_nexus && mvn ${EXTRA_BUILD_PARAMS} -B -s .jenkins/settings.xml clean deploy -e -Pdocker -DskipTests ${talendOssRepositoryArg}"
                             }
                         }
                     }
@@ -216,7 +220,7 @@ spec:
                     steps {
                         container('main') {
                             withCredentials([sonarCredentials]) {
-                                sh "mvn -Dsonar.host.url=https://sonar-eks.datapwn.com -Dsonar.login='$SONAR_LOGIN' -Dsonar.password='$SONAR_PASSWORD' -Dsonar.branch.name=${env.BRANCH_NAME} -Dsonar.coverage.jacoco.xmlReportPaths='${LIST_FILE}' sonar:sonar -PITs -s .jenkins/settings.xml -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/"
+                                sh "mvn ${EXTRA_BUILD_PARAMS} -Dsonar.host.url=https://sonar-eks.datapwn.com -Dsonar.login='$SONAR_LOGIN' -Dsonar.password='$SONAR_PASSWORD' -Dsonar.branch.name=${env.BRANCH_NAME} -Dsonar.coverage.jacoco.xmlReportPaths='${LIST_FILE}' sonar:sonar -PITs -s .jenkins/settings.xml -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/"
                             }
                         }
                     }
@@ -241,7 +245,7 @@ spec:
                 container('main') {
                     withCredentials([nexusCredentials, string(credentialsId: 'xtm-token', variable: 'XTM_TOKEN')]) {
                         script {
-                            sh "mvn -e -B clean && mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-export"
+                            sh "mvn ${EXTRA_BUILD_PARAMS} -e -B clean && mvn ${EXTRA_BUILD_PARAMS} -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-export"
                         }
                     }
                 }

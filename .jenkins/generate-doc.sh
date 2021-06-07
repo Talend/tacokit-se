@@ -7,8 +7,8 @@ rm -Rf $OUTPUT_DIR
 mkdir -p $OUTPUT_DIR
 
 modules=$(grep '^[ \t]*<module>' pom.xml | sed 's/.*>\(.*\)<.*/\1/' | sort -u | grep -v common)
-mvn -Pdocumentation-html dependency:unpack@doc-html-theme
-mvn -Pdocumentation-html -T1C asciidoctor:process-asciidoc@html \
+mvn ${EXTRA_BUILD_PARAMS} -Pdocumentation-html dependency:unpack@doc-html-theme
+mvn ${EXTRA_BUILD_PARAMS} -Pdocumentation-html -T1C asciidoctor:process-asciidoc@html \
     $(echo $modules | sed 's/[^ ]* */-pl &/g')
 
 echo "<html><head><title>Documentations</title></head><body>" > $INDEX_OUTPUT

@@ -1,7 +1,7 @@
 #! /bin/bash
 
 echo "Packaging locales"
-mvn -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-deploy
+mvn  ${EXTRA_BUILD_PARAMS} -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-deploy
 if [[ ! $? -eq 0 ]]; then
   echo mvn error during xtm packaging
   exit 123
@@ -23,7 +23,7 @@ git push
 
 echo "Deploying locales"
 ls -al
-mvn -X -s ../../.jenkins/settings.xml clean deploy -DaltDeploymentRepository=talend_nexus_deployment::default::https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceRelease/
+mvn ${EXTRA_BUILD_PARAMS} -X -s ../../.jenkins/settings.xml clean deploy -DaltDeploymentRepository=talend_nexus_deployment::default::https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceRelease/
 if [[ ! $? -eq 0 ]]; then
   echo mvn error during xtm deploying
   exit 123
