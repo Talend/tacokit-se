@@ -12,8 +12,13 @@
  */
 package org.talend.components.azure.runtime.output;
 
-import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.blob.CloudBlob;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.UUID;
+
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonBuilderFactory;
+
 import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.common.service.AzureComponentServices;
 import org.talend.components.azure.output.BlobOutputConfiguration;
@@ -21,11 +26,8 @@ import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.components.common.stream.output.json.RecordToJson;
 import org.talend.sdk.component.api.record.Record;
 
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonBuilderFactory;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.UUID;
+import com.microsoft.azure.storage.StorageException;
+import com.microsoft.azure.storage.blob.CloudBlob;
 
 public class JsonBlobFileWriter extends BlobFileWriter {
 

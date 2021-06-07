@@ -12,7 +12,10 @@
  */
 package org.talend.components.azure.source;
 
-import com.microsoft.azure.storage.StorageException;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.List;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,12 +28,7 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.List;
+import com.microsoft.azure.storage.StorageException;
 
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
