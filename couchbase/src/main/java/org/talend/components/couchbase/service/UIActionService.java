@@ -12,28 +12,40 @@
  */
 package org.talend.components.couchbase.service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
+import org.talend.components.couchbase.configuration.ConnectionConfiguration;
+import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
+import org.talend.sdk.component.api.service.completion.SuggestionValues.Item;
 import org.talend.sdk.component.api.service.completion.Suggestions;
 
-public class UIActionService extends CouchbaseService {
+@Service
+public class UIActionService {
 
-    public static final String LOAD_AVAILABLE_TIMEOUTS = "loadAvailableTimeouts";
+    public static final String LOAD_PARAMETERS = "loadParameters";
 
-    @Suggestions(LOAD_AVAILABLE_TIMEOUTS)
-    public SuggestionValues suggestTimeoutValues() {
-        return new SuggestionValues(true, Arrays.asList( //
-                new SuggestionValues.Item("keyValueTimeout", "keyValueTimeout"), //
-                new SuggestionValues.Item("viewTimeout", "viewTimeout"), //
-                new SuggestionValues.Item("queryTimeout", "queryTimeout"), //
-                new SuggestionValues.Item("searchTimeout", "searchTimeout"), //
-                new SuggestionValues.Item("analyticsTimeout", "analyticsTimeout"), //
-                new SuggestionValues.Item("connectionTimeout", "connectionTimeout"), //
-                new SuggestionValues.Item("disconnectTimeout", "disconnectTimeout"), //
-                new SuggestionValues.Item("managementTimeout", "managementTimeout"), //
-                new SuggestionValues.Item("socketConnectTimeout", "socketConnectTimeout") //
-        ));
+    @Suggestions(LOAD_PARAMETERS)
+    public SuggestionValues loadParameters(ConnectionConfiguration conf) {
+        List<Item> list = new ArrayList<>();
+        list.add(new SuggestionValues.Item("01", "keyValueTimeout"));
+        list.add(new SuggestionValues.Item("02", "viewTimeout"));
+        return new SuggestionValues(true, list);
+        /*
+         * return new SuggestionValues(true, Arrays.asList( //
+         * new SuggestionValues.Item("01", "keyValueTimeout"), //
+         * new SuggestionValues.Item("02", "viewTimeout"), //
+         * new SuggestionValues.Item("03", "queryTimeout"), //
+         * new SuggestionValues.Item("04", "searchTimeout"), //
+         * new SuggestionValues.Item("05", "analyticsTimeout"), //
+         * new SuggestionValues.Item("06", "connectionTimeout"), //
+         * new SuggestionValues.Item("07", "disconnectTimeout"), //
+         * new SuggestionValues.Item("08", "managementTimeout"), //
+         * new SuggestionValues.Item("09", "socketConnectTimeout") //
+         * ));
+         */
     }
 
 }

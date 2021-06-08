@@ -36,9 +36,8 @@ import lombok.Data;
 
 @GridLayout(names = GridLayout.FormType.MAIN, value = { @GridLayout.Row({ "bootstrapNodes" }), @GridLayout.Row({ "username" }),
         @GridLayout.Row({ "password" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "connectTimeout" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "useConnectionParameters" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "connectionParametersList" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "connectTimeout" }),
+        @GridLayout.Row({ "useConnectionParameters" }), @GridLayout.Row({ "connectionParametersList" }) })
 
 @Documentation("Couchbase connection")
 public class CouchbaseDataStore implements Serializable {

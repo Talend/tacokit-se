@@ -25,14 +25,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@OptionsOrder({ "name", "value" })
+@OptionsOrder({ "parameterName", "parameterValue" })
 @NoArgsConstructor
 @AllArgsConstructor
 @Documentation("Connection parameters.")
 public class ConnectionConfiguration implements Serializable {
 
     @Option
-    @Suggestable(value = UIActionService.LOAD_AVAILABLE_TIMEOUTS)
+    @Suggestable(value = UIActionService.LOAD_PARAMETERS)
     @Documentation("Name of connection parameter.")
     private String parameterName;
 
