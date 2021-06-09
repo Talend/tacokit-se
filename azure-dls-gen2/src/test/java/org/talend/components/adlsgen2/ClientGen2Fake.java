@@ -19,8 +19,10 @@ import java.util.function.Supplier;
 
 import javax.json.JsonObject;
 
+import org.talend.components.adlsgen2.service.AdlsActiveDirectoryService;
 import org.talend.components.adlsgen2.service.AdlsGen2APIClient;
 import org.talend.components.adlsgen2.service.AdlsGen2Service;
+import org.talend.components.adlsgen2.service.UIActionService;
 import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.injector.Injector;
 import org.talend.sdk.component.container.Container;
@@ -30,14 +32,19 @@ import org.talend.sdk.component.runtime.manager.ComponentManager.AllServices;
 public class ClientGen2Fake implements AdlsGen2APIClient {
 
     public static void inject(final ComponentManager manager, final ClientGen2Fake client) {
+        inject(manager, AdlsGen2APIClient.class, AdlsGen2Service.class, client);
+    }
+
+    public static void inject(final ComponentManager manager, Class<?> serviceClazzForInjection, Class<?> serviceClassToInject,
+            final Object serviceObject) {
         final Container container = manager.findPlugin("classes").orElse(null);
 
         // final ClientGen2Fake client = new ClientGen2Fake(new ClientGen2Fake.FakeResponse<>(filesystems, 200));
         final AllServices allServices = container.get(AllServices.class);
-        allServices.getServices().put(AdlsGen2APIClient.class, client);
-        final AdlsGen2Service gen2Service = (AdlsGen2Service) allServices.getServices().get(AdlsGen2Service.class);
+        allServices.getServices().put(serviceClazzForInjection, serviceObject);
+        final Object service = allServices.getServices().get(serviceClassToInject);
         final Injector injector = Injector.class.cast(allServices.getServices().get(Injector.class));
-        injector.inject(gen2Service);
+        injector.inject(service);
     }
 
     private final Response<JsonObject> preparedResponse;

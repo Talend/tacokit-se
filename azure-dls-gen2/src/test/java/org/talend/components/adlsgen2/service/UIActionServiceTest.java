@@ -12,6 +12,8 @@
  */
 package org.talend.components.adlsgen2.service;
 
+import java.util.Collections;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -22,6 +24,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.adlsgen2.AdlsGen2TestBase;
 import org.talend.components.adlsgen2.ClientGen2Fake;
+import org.talend.components.adlsgen2.FakeActiveDirectoryService;
 import org.talend.components.adlsgen2.FakeResponse;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
@@ -70,6 +73,41 @@ class UIActionServiceTest extends AdlsGen2TestBase {
         connection.setAuthMethod(AuthMethod.SAS);
         final HealthCheckStatus status = this.uiActionService.validateConnection(connection);
         assertEquals(HealthCheckStatus.Status.OK, status.getStatus());
+    }
+
+    @Test
+    void testHealthCheckOKDespitePermissionIssueForAD() {
+        // override test connection with AD one
+        connection.setAuthMethod(AuthMethod.ActiveDirectory);
+
+        connection.setTenantId("fakeTenant");
+        connection.setClientId("fakeClient");
+        connection.setClientSecret("somePass");
+
+        final ComponentManager manager = componentsHandler.asManager();
+        FakeActiveDirectoryService fakeActiveDirectoryService = new FakeActiveDirectoryService();
+        ClientGen2Fake fake = new ClientGen2Fake(new FakeResponse<>(403, null, Collections.emptyMap(), null)); // auth permission
+                                                                                                               // mismatch
+        ClientGen2Fake.inject(manager, fake);
+        ClientGen2Fake.inject(manager, AdlsActiveDirectoryService.class, UIActionService.class, fakeActiveDirectoryService);
+
+        this.uiActionService = this.componentsHandler.findService(UIActionService.class);
+
+        final HealthCheckStatus status = this.uiActionService.validateConnection(connection);
+        assertEquals(HealthCheckStatus.Status.OK, status.getStatus());
+    }
+
+    @Test
+    void testHealthCheckKOForPermissionIssueForSAS() {
+
+        final ComponentManager manager = componentsHandler.asManager();
+        ClientGen2Fake fake = new ClientGen2Fake(new FakeResponse<>(403, null, null, null)); // auth permission mismatch
+        ClientGen2Fake.inject(manager, fake);
+
+        this.uiActionService = this.componentsHandler.findService(UIActionService.class);
+
+        final HealthCheckStatus status = this.uiActionService.validateConnection(connection);
+        assertEquals(HealthCheckStatus.Status.KO, status.getStatus());
     }
 
 }

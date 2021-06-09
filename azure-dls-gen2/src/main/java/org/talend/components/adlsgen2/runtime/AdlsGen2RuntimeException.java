@@ -12,10 +12,20 @@
  */
 package org.talend.components.adlsgen2.runtime;
 
+import lombok.Getter;
+
 public class AdlsGen2RuntimeException extends RuntimeException {
+
+    @Getter
+    private int errorCode;
 
     public AdlsGen2RuntimeException(String msg) {
         super(msg);
+    }
+
+    public AdlsGen2RuntimeException(int errorCode, String msg) {
+        this(msg);
+        this.errorCode = errorCode;
     }
 
     public AdlsGen2RuntimeException(String message, Throwable cause) {

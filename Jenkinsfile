@@ -34,6 +34,8 @@ def calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
 
 def podLabel = "connectors-se-${UUID.randomUUID().toString()}".take(53)
 
+def EXTRA_BUILD_PARAMS = ""
+
 pipeline {
     agent {
         kubernetes {
@@ -98,7 +100,6 @@ spec:
                 container('main') {
                     withCredentials([dockerCredentials]) {
                         sh '''#!/bin/bash
-                        export EXTRA_BUILD_PARAMS=${EXTRA_BUILD_PARAMS-""}
                         env|sort
                         docker version
                         echo $ARTIFACTORY_PASSWORD | docker login $ARTIFACTORY_REGISTRY -u $ARTIFACTORY_LOGIN --password-stdin

@@ -21,6 +21,7 @@ import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
 import org.talend.components.adlsgen2.datastore.Constants;
 import org.talend.components.adlsgen2.runtime.AdlsDatastoreRuntimeInfo;
+import org.talend.components.adlsgen2.runtime.AdlsGen2RuntimeException;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
@@ -62,6 +63,10 @@ public class UIActionService {
             } else if (connection.getAuthMethod() == AuthMethod.SharedKey) {
                 msg = i18n.healthCheckSharedKey();
             } else {
+                if (e instanceof AdlsGen2RuntimeException && ((AdlsGen2RuntimeException) e).getErrorCode() == 403) {
+                    // workaround to unlock using permission-limited active directory connections in studio
+                    return new HealthCheckStatus(OK, i18n.healthCheckActiveDirectoryPermissions());
+                }
                 msg = i18n.healthCheckActiveDirectory();
             }
             return new HealthCheckStatus(KO, i18n.healthCheckFailed(msg, e.getMessage()));
