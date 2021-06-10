@@ -14,9 +14,8 @@ package org.talend.components.couchbase.configuration;
 
 import java.io.Serializable;
 
-import org.talend.components.couchbase.service.UIActionService;
+import org.talend.components.couchbase.source.ConnectionParameters;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.ui.OptionsOrder;
 import org.talend.sdk.component.api.meta.Documentation;
 
@@ -32,9 +31,8 @@ import lombok.NoArgsConstructor;
 public class ConnectionConfiguration implements Serializable {
 
     @Option
-    @Suggestable(value = UIActionService.LOAD_PARAMETERS)
     @Documentation("Name of connection parameter.")
-    private String parameterName;
+    private ConnectionParameters parameterName;
 
     @Option
     @Documentation("Value of connection parameter.")

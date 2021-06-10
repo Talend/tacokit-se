@@ -35,9 +35,9 @@ import lombok.Data;
 @Checkable("healthCheck")
 
 @GridLayout(names = GridLayout.FormType.MAIN, value = { @GridLayout.Row({ "bootstrapNodes" }), @GridLayout.Row({ "username" }),
-        @GridLayout.Row({ "password" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "connectTimeout" }),
-        @GridLayout.Row({ "useConnectionParameters" }), @GridLayout.Row({ "connectionParametersList" }) })
+        @GridLayout.Row({ "password" }), @GridLayout.Row({ "useConnectionParameters" }),
+        @GridLayout.Row({ "connectionParametersList" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "connectTimeout" }) })
 
 @Documentation("Couchbase connection")
 public class CouchbaseDataStore implements Serializable {
@@ -59,12 +59,6 @@ public class CouchbaseDataStore implements Serializable {
     private String password;
 
     @Option
-    @Required
-    @Min(5)
-    @Documentation("Set the maximum number of seconds that a client will wait for opened a Bucket. Min value is 5 seconds.")
-    private int connectTimeout = 20; // seconds
-
-    @Option
     @Documentation("Define custom connection parameters.")
     private boolean useConnectionParameters = false;
 
@@ -72,4 +66,11 @@ public class CouchbaseDataStore implements Serializable {
     @Documentation("List of defined connection parameters.")
     @ActiveIf(target = "useConnectionParameters", value = "true")
     private List<ConnectionConfiguration> connectionParametersList;
+
+    @Option
+    @Required
+    @Min(5)
+    @Documentation("Set the maximum number of seconds that a client will wait for opened a Bucket. Min value is 5 seconds.")
+    private int connectTimeout = 20; // seconds
+
 }

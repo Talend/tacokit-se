@@ -29,18 +29,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.couchbase.client.core.CouchbaseException;
-import com.couchbase.client.java.Bucket;
-import com.couchbase.client.java.Cluster;
-import com.couchbase.client.java.CouchbaseCluster;
-import com.couchbase.client.java.document.json.JsonArray;
-import com.couchbase.client.java.document.json.JsonObject;
-import com.couchbase.client.java.env.CouchbaseEnvironment;
-import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
-import com.couchbase.client.java.error.InvalidPasswordException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.talend.components.couchbase.configuration.ConnectionConfiguration;
 import org.talend.components.couchbase.dataset.CouchbaseDataSet;
 import org.talend.components.couchbase.datastore.CouchbaseDataStore;
 import org.talend.components.couchbase.source.CouchbaseInput;
@@ -54,6 +45,17 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.api.service.schema.DiscoverSchema;
+
+import com.couchbase.client.core.CouchbaseException;
+import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.Cluster;
+import com.couchbase.client.java.CouchbaseCluster;
+import com.couchbase.client.java.document.json.JsonArray;
+import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.env.CouchbaseEnvironment;
+import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
+import com.couchbase.client.java.env.DefaultCouchbaseEnvironment.Builder;
+import com.couchbase.client.java.error.InvalidPasswordException;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -90,8 +92,47 @@ public class CouchbaseService {
         String[] urls = resolveAddresses(bootStrapNodes);
         try {
             ClusterHolder holder = clustersPool.computeIfAbsent(dataStore, ds -> {
-                CouchbaseEnvironment environment = new DefaultCouchbaseEnvironment.Builder().connectTimeout(connectTimeout)
-                        .build();
+                Builder evnBuilder = new DefaultCouchbaseEnvironment.Builder();
+                if (dataStore.isUseConnectionParameters()) {
+                    for (ConnectionConfiguration conf : dataStore.getConnectionParametersList()) {
+                        switch (conf.getParameterName()) {
+                        case CONNECTION_TIMEOUT:
+                            evnBuilder.connectTimeout(Long.parseLong(conf.getParameterValue()));
+                            break;
+                        case KEYVALUE_TIMEOUT:
+                            evnBuilder.kvTimeout(Long.parseLong(conf.getParameterValue()));
+                            break;
+                        case VIEW_TIMEOUT:
+                            evnBuilder.viewTimeout(Long.parseLong(conf.getParameterValue()));
+                            break;
+                        case QUERY_TIMEOUT:
+                            evnBuilder.queryTimeout(Long.parseLong(conf.getParameterValue()));
+                            break;
+                        case SEARCH_TIMEOUT:
+                            evnBuilder.searchTimeout(Long.parseLong(conf.getParameterValue()));
+                            break;
+                        case ANALYTICS_TIMEOUT:
+                            evnBuilder.analyticsTimeout(Long.parseLong(conf.getParameterValue()));
+                            break;
+                        case DISCONNECT_TIMEOUT:
+                            evnBuilder.disconnectTimeout(Long.parseLong(conf.getParameterValue()));
+                            break;
+                        case MANAGEMENT_TIMEOUT:
+                            evnBuilder.managementTimeout(Long.parseLong(conf.getParameterValue()));
+                            break;
+                        case SOCKETCONNECT_TIMEOUT:
+                            evnBuilder.socketConnectTimeout(Integer.parseInt(conf.getParameterValue()));
+                            break;
+
+                        default:
+                            throw new CouchbaseException("Unknown connection parameter!");
+                        }
+                    }
+                }
+                CouchbaseEnvironment environment = evnBuilder.build();
+                System.out.println(">>>>>> Connect timeout is " + environment.connectTimeout());
+                System.out.println(">>>>>> Query timeout is " + environment.queryTimeout());
+                System.out.println(">>>>>> View timeout is " + environment.viewTimeout());
                 Cluster cluster = CouchbaseCluster.create(environment, urls);
                 cluster.authenticate(username, password);
                 return new ClusterHolder(environment, cluster);
