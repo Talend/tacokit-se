@@ -51,7 +51,8 @@
         <module>google-storage</module>
         <module>migration-tester</module>
         <module>common-test</module>
-    </modules>
+      <module>stream-parquet</module>
+  </modules>
 
   <scm>
     <connection>scm:git:https://github.com/talend/connectors-se.git</connection>
