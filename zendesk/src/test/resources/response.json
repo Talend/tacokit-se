@@ -1,0 +1,187 @@
+{
+  "ticket": {
+    "url": "https://zhihu.zendesk.com/api/v2/tickets/23.json",
+    "id": 23,
+    "external_id": null,
+    "via": {
+      "channel": "api",
+      "source": {
+        "from": {},
+        "to": {},
+        "rel": null
+      }
+    },
+    "created_at": "2021-06-09T10:03:48Z",
+    "updated_at": "2021-06-09T10:03:48Z",
+    "type": null,
+    "subject": "This is a Test 3",
+    "raw_subject": "This is a Test 3",
+    "description": "dudulu",
+    "priority": null,
+    "status": "open",
+    "recipient": null,
+    "requester_id": 902315752386,
+    "submitter_id": 902315752386,
+    "assignee_id": 902315752386,
+    "organization_id": 900024862843,
+    "group_id": 900005908083,
+    "collaborator_ids": [],
+    "follower_ids": [],
+    "email_cc_ids": [],
+    "forum_topic_id": null,
+    "problem_id": null,
+    "has_incidents": false,
+    "is_public": true,
+    "due_at": null,
+    "tags": [],
+    "custom_fields": [],
+    "satisfaction_rating": null,
+    "sharing_agreement_ids": [],
+    "fields": [],
+    "followup_ids": [],
+    "ticket_form_id": 900001510083,
+    "brand_id": 900002333263,
+    "allow_channelback": false,
+    "allow_attachments": true
+  },
+  "audit": {
+    "id": 1047459047826,
+    "ticket_id": 23,
+    "created_at": "2021-06-09T10:03:48Z",
+    "author_id": 902315752386,
+    "metadata": {
+      "system": {
+        "client": "PostmanRuntime/7.28.0",
+        "ip_address": "60.247.114.146",
+        "location": "Beijing, BJ, China",
+        "latitude": 39.9288,
+        "longitude": 116.3889
+      },
+      "custom": {}
+    },
+    "events": [
+      {
+        "id": 1047459047846,
+        "type": "Comment",
+        "author_id": 902315752386,
+        "body": "dudulu",
+        "html_body": "<div class=\"zd-comment\" dir=\"auto\"><p dir=\"auto\">dudulu</p></div>",
+        "plain_body": "dudulu",
+        "public": true,
+        "attachments": [],
+        "audit_id": 1047459047826
+      },
+      {
+        "id": 1047459047866,
+        "type": "Create",
+        "value": "This is a Test 3",
+        "field_name": "subject"
+      },
+      {
+        "id": 1047459047886,
+        "type": "Create",
+        "value": "902315752386",
+        "field_name": "requester_id"
+      },
+      {
+        "id": 1047459047906,
+        "type": "Create",
+        "value": "open",
+        "field_name": "status"
+      },
+      {
+        "id": 1047459047926,
+        "type": "Create",
+        "value": null,
+        "field_name": "priority"
+      },
+      {
+        "id": 1047459047946,
+        "type": "Create",
+        "value": null,
+        "field_name": "type"
+      },
+      {
+        "id": 1047459047966,
+        "type": "Create",
+        "value": "902315752386",
+        "field_name": "assignee_id"
+      },
+      {
+        "id": 1047459047986,
+        "type": "Create",
+        "value": "900005908083",
+        "field_name": "group_id"
+      },
+      {
+        "id": 1047459048006,
+        "type": "Create",
+        "value": "900024862843",
+        "field_name": "organization_id"
+      },
+      {
+        "id": 1047459048026,
+        "type": "Create",
+        "value": "900002333263",
+        "field_name": "brand_id"
+      },
+      {
+        "id": 1047459048046,
+        "type": "Create",
+        "value": "900001510083",
+        "field_name": "ticket_form_id"
+      },
+      {
+        "id": 1047459048066,
+        "type": "Notification",
+        "via": {
+          "channel": "rule",
+          "source": {
+            "from": {
+              "deleted": false,
+              "title": "Notify all agents of received request",
+              "id": 900037645723
+            },
+            "rel": "trigger"
+          }
+        },
+        "subject": "[{{ticket.account}}] {{ticket.title}}",
+        "body": "A ticket (#{{ticket.id}}) by {{ticket.requester.name}} has been received. It is unassigned.\n\n{{ticket.comments_formatted}}",
+        "recipients": [
+          902315752386
+        ]
+      },
+      {
+        "id": 1047459048086,
+        "type": "Notification",
+        "via": {
+          "channel": "rule",
+          "source": {
+            "from": {
+              "deleted": false,
+              "title": "Notify requester of new proactive ticket",
+              "id": 900037645603
+            },
+            "rel": "trigger"
+          }
+        },
+        "subject": "{{ticket.title}}",
+        "body": "This ticket was created on your behalf.\n\n{{ticket.comments_formatted}}\n\nTo add additional comments, reply to this email.",
+        "recipients": [
+          902315752386
+        ]
+      }
+    ],
+    "via": {
+      "channel": "api",
+      "source": {
+        "from": {},
+        "to": {
+          "name": "Wang Wei",
+          "address": "z742948950@126.com"
+        },
+        "rel": null
+      }
+    }
+  }
+}

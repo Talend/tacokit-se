@@ -1,0 +1,22 @@
+{
+  "job_status": {
+    "id": "4aba648d81905e6492679833541685a7",
+    "url": "https://zhihu.zendesk.com/api/v2/job_statuses/4aba648d81905e6492679833541685a7.json",
+    "total": 2,
+    "progress": 2,
+    "status": "completed",
+    "message": "Completed at 2021-06-10 08:45:42 +0000",
+    "results": [
+      {
+        "index": 0,
+        "id": 28,
+        "account_id": 10990168
+      },
+      {
+        "index": 1,
+        "id": 29,
+        "account_id": 10990168
+      }
+    ]
+  }
+}

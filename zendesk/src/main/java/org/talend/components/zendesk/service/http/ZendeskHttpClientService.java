@@ -1,18 +1,38 @@
+/*
+ * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.talend.components.zendesk.service.http;
 
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import static java.lang.Thread.sleep;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+
+import javax.json.JsonBuilderFactory;
+import javax.json.JsonObject;
+import javax.json.JsonReaderFactory;
+
 import org.asynchttpclient.ListenableFuture;
 import org.talend.components.zendesk.common.ZendeskDataStore;
 import org.talend.components.zendesk.helpers.CommonHelper;
 import org.talend.components.zendesk.helpers.JsonHelper;
+import org.talend.components.zendesk.output.PagedList;
+import org.talend.components.zendesk.output.ZendeskOutputConfiguration;
 import org.talend.components.zendesk.service.zendeskclient.ZendeskClientService;
-import org.talend.components.zendesk.sources.Reject;
-import org.talend.components.zendesk.sources.delete.ZendeskDeleteConfiguration;
-import org.talend.components.zendesk.sources.get.InputIterator;
-import org.talend.components.zendesk.sources.get.ZendeskGetConfiguration;
-import org.talend.components.zendesk.sources.put.PagedList;
-import org.talend.sdk.component.api.processor.OutputEmitter;
+import org.talend.components.zendesk.source.InputIterator;
+import org.talend.components.zendesk.source.ZendeskInputMapperConfiguration;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.service.Service;
 import org.zendesk.client.v2.Zendesk;
 import org.zendesk.client.v2.model.JobStatus;
@@ -20,14 +40,7 @@ import org.zendesk.client.v2.model.Request;
 import org.zendesk.client.v2.model.Ticket;
 import org.zendesk.client.v2.model.User;
 
-import javax.json.JsonBuilderFactory;
-import javax.json.JsonObject;
-import javax.json.JsonReaderFactory;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-
-import static java.lang.Thread.sleep;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -68,9 +81,9 @@ public class ZendeskHttpClientService {
         return JsonHelper.toJsonObject(newItem, jsonReaderFactory);
     }
 
-    public InputIterator getTickets(ZendeskGetConfiguration configuration) {
+    public InputIterator getTickets(ZendeskInputMapperConfiguration configuration) {
         log.debug("get tickets");
-        Zendesk zendeskServiceClient = zendeskClientService.getZendeskClientWrapper(configuration.getDataSet().getDataStore());
+        Zendesk zendeskServiceClient = zendeskClientService.getZendeskClientWrapper(configuration.getDataset().getDataStore());
         Iterable<Ticket> data;
         if (configuration.isQueryStringEmpty()) {
             data = zendeskServiceClient.getTickets();
@@ -93,20 +106,18 @@ public class ZendeskHttpClientService {
         return JsonHelper.toJsonObject(newItem, jsonReaderFactory);
     }
 
-    public void putTickets(ZendeskDataStore dataStore, List<Ticket> tickets, OutputEmitter<JsonObject> success,
-            OutputEmitter<Reject> reject) {
+    public void putTickets(ZendeskDataStore dataStore, List<Ticket> tickets) {
         log.debug("put tickets");
         Zendesk zendeskServiceClient = zendeskClientService.getZendeskClientWrapper(dataStore);
 
         PagedList<Ticket> pagedList = new PagedList<>(tickets, MAX_ALLOWED_BATCH_SIZE);
         List<Ticket> listPage;
         while ((listPage = pagedList.getNextPage()) != null) {
-            putTicketsPage(zendeskServiceClient, listPage, success, reject);
+            putTicketsPage(zendeskServiceClient, listPage);
         }
     }
 
-    private void putTicketsPage(Zendesk zendeskServiceClient, List<Ticket> tickets, OutputEmitter<JsonObject> success,
-            OutputEmitter<Reject> reject) {
+    private void putTicketsPage(Zendesk zendeskServiceClient, List<Ticket> tickets) {
         List<Ticket> ticketsUpdate = new ArrayList<>();
         List<Ticket> ticketsCreate = new ArrayList<>();
         tickets.forEach(ticket -> {
@@ -116,66 +127,64 @@ public class ZendeskHttpClientService {
                 ticketsCreate.add(ticket);
             }
         });
-
-        ListenableFuture<JobStatus<Ticket>> updateFuture = ticketsUpdate.isEmpty() ? null
+        // removed JobStatus<Ticket>
+        ListenableFuture<JobStatus> updateFuture = ticketsUpdate.isEmpty() ? null
                 : zendeskServiceClient.updateTicketsAsync(ticketsUpdate);
-        ListenableFuture<JobStatus<Ticket>> createFuture = ticketsCreate.isEmpty() ? null
+        ListenableFuture<JobStatus> createFuture = ticketsCreate.isEmpty() ? null
                 : zendeskServiceClient.createTicketsAsync(ticketsCreate);
 
         try {
-            processJobStatusFuture(updateFuture, zendeskServiceClient, success, reject, ticketsUpdate);
-            processJobStatusFuture(createFuture, zendeskServiceClient, success, reject, ticketsCreate);
+            processJobStatusFuture(updateFuture, zendeskServiceClient, ticketsUpdate);
+            processJobStatusFuture(createFuture, zendeskServiceClient, ticketsCreate);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new ComponentException(e);
         }
     }
 
-    public void deleteTickets(ZendeskDeleteConfiguration configuration, List<Ticket> tickets, OutputEmitter<JsonObject> success,
-            OutputEmitter<Reject> reject) {
+    public void deleteTickets(ZendeskOutputConfiguration configuration, List<Ticket> tickets) {
         log.debug("delete tickets");
-        Zendesk zendeskServiceClient = zendeskClientService.getZendeskClientWrapper(configuration.getDataSet().getDataStore());
+        Zendesk zendeskServiceClient = zendeskClientService.getZendeskClientWrapper(configuration.getDataset().getDataStore());
         PagedList<Ticket> pagedList = new PagedList<>(tickets, MAX_ALLOWED_BATCH_SIZE);
         List<Ticket> listPage;
         while ((listPage = pagedList.getNextPage()) != null) {
-            deleteTicketsPage(zendeskServiceClient, listPage, success, reject);
+            deleteTicketsPage(zendeskServiceClient, listPage);
         }
     }
 
-    private void deleteTicketsPage(Zendesk zendeskServiceClient, List<Ticket> tickets, OutputEmitter<JsonObject> success,
-            OutputEmitter<Reject> reject) {
+    private void deleteTicketsPage(Zendesk zendeskServiceClient, List<Ticket> tickets) {
         if (tickets == null || tickets.isEmpty()) {
             return;
         }
 
-        Long firstId = tickets.get(0).getId();
+        Optional<Long> firstId = Optional.ofNullable(tickets.get(0).getId());
+
         Long[] idArray = tickets.stream().map(Request::getId).toArray(Long[]::new);
+
         try {
-            zendeskServiceClient.deleteTickets(firstId, CommonHelper.toPrimitives(idArray));
-            tickets.forEach(ticket -> {
-                JsonObject jsonObject = JsonHelper.toJsonObject(ticket, jsonReaderFactory);
-                success.emit(jsonObject);
-            });
+            if (!firstId.isPresent()) {
+                log.error("Field ID is missing for record {}", tickets.get(0));
+            } else {
+                zendeskServiceClient.deleteTickets(firstId.get(), CommonHelper.toPrimitives(idArray));
+            }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new ComponentException(e);
         }
     }
 
-    private void processJobStatusFuture(ListenableFuture<JobStatus<Ticket>> future, Zendesk zendeskServiceClient,
-            OutputEmitter<JsonObject> success, OutputEmitter<Reject> reject, List<Ticket> tickets)
+    private void processJobStatusFuture(ListenableFuture<JobStatus> future, Zendesk zendeskServiceClient, List<Ticket> tickets)
             throws ExecutionException, InterruptedException {
         if (future == null)
             return;
-        JobStatus<Ticket> jobStatus = future.get();
-        processJobStatus(jobStatus, zendeskServiceClient, success, reject, tickets);
+        JobStatus jobStatus = future.get();
+        processJobStatus(jobStatus, zendeskServiceClient, tickets);
     }
 
-    private void processJobStatus(JobStatus<Ticket> ticketJobStatus, Zendesk zendeskServiceClient,
-            OutputEmitter<JsonObject> success, OutputEmitter<Reject> reject, List<Ticket> tickets) throws InterruptedException {
+    private void processJobStatus(JobStatus ticketJobStatus, Zendesk zendeskServiceClient, List<Ticket> tickets)
+            throws InterruptedException {
         if (ticketJobStatus == null)
             return;
 
-        JobStatus<UpdateResult> jobStatus = new JobStatus<>();
-        jobStatus.setResultsClass(UpdateResult.class);
+        JobStatus jobStatus = new JobStatus();
         jobStatus.setId(ticketJobStatus.getId());
         jobStatus.setUrl(ticketJobStatus.getUrl());
         jobStatus.setStatus(ticketJobStatus.getStatus());
@@ -188,24 +197,11 @@ public class ZendeskHttpClientService {
         if (jobStatus.getStatus() == JobStatus.JobStatusEnum.completed) {
             jobStatus.getResults().forEach(updateResult -> {
                 log.info("updateResult was processed: " + updateResult.getId());
-                JsonObject jsonObject = jsonBuilderFactory.createObjectBuilder().add("id", updateResult.getId()).build();
-                success.emit(jsonObject);
             });
         } else {
-            throw new RuntimeException("Batch processing failed. " + jobStatus.getMessage() + ". Failed item: "
+            throw new ComponentException("Batch processing failed. " + jobStatus.getMessage() + ". Failed item: "
                     + tickets.get(ticketJobStatus.getProgress()));
         }
     }
 
-    @Data
-    public static class UpdateResult {
-
-        Long id;
-
-        String action;
-
-        Boolean success;
-
-        String status;
-    }
 }
