@@ -14,22 +14,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-        <!--
-        Set it to true if you want the documentation to be rendered as HTML and PDF
-
-        You can also use it on the command line: -Dtalend.documentation.htmlAndPdf=true
-        -->
         <talend.documentation.htmlAndPdf>false</talend.documentation.htmlAndPdf>
-
-        <!--
-        if you want to deploy into the studio you can use the related goal:
-
-        mvn package talend-component:deploy-in-studio -Dtalend.component.studioHome=/path/to/studio
-
-        TIP: it is recommended to set this property into your settings.xml in an active by default profile.
-        -->
-        <talend.component.studioHome/>
         <zendesk-client.version>0.14.1</zendesk-client.version>
         <netty.version>4.1.53.Final</netty.version>
     </properties>
@@ -39,10 +24,11 @@
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-bom</artifactId>
-                <version>4.1.53.Final</version>
+                <version>${netty.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
             <dependency>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
                 <artifactId>jackson-dataformat-yaml</artifactId>
@@ -57,6 +43,11 @@
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-ext</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
                 <version>${slf4j.version}</version>
             </dependency>
             <dependency>
@@ -75,11 +66,6 @@
                 <artifactId>json-schema-validator</artifactId>
                 <version>2.2.14</version>
             </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${slf4j.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
@@ -87,6 +73,24 @@
             <groupId>com.cloudbees.thirdparty</groupId>
             <artifactId>zendesk-java-client</artifactId>
             <version>${zendesk-client.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-transport-native-epoll</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-transport-native-kqueue</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport-native-epoll</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport-native-kqueue</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -120,17 +124,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-
-        </plugins>
-        <extensions>
-            <extension>
-                <groupId>org.talend.sdk.component</groupId>
-                <artifactId>talend-component-maven-plugin</artifactId>
-                <version>1.33.0</version>
-            </extension>
-        </extensions>
-    </build>
 </project>

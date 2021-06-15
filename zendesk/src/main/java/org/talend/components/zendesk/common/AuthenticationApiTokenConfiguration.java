@@ -31,7 +31,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode
 @GridLayout({ @GridLayout.Row({ "authenticationLogin" }), @GridLayout.Row({ "apiToken" }) })
 @Documentation("'API Token' authentication settings.")
-public class AuthenticationApiTokenConfiguration implements Serializable, AuthenticationConfiguration {
+public class AuthenticationApiTokenConfiguration implements Serializable {
 
     @Option
     @Documentation("Authentication login.")

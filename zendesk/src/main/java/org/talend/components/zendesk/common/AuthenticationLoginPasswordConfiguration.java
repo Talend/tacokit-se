@@ -32,7 +32,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode
 @GridLayout({ @GridLayout.Row({ "authenticationLogin" }), @GridLayout.Row({ "authenticationPassword" }) })
 @Documentation("'Login' authentication settings.")
-public class AuthenticationLoginPasswordConfiguration implements Serializable, AuthenticationConfiguration {
+public class AuthenticationLoginPasswordConfiguration implements Serializable {
 
     @Option
     @Documentation("Authentication login for 'Login' authentication.")

@@ -25,4 +25,6 @@ public interface Messages {
 
     String UnknownTypeException();
 
+    String ObjectProcessError();
+
 }

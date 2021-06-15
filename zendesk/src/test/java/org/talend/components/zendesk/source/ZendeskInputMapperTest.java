@@ -41,7 +41,6 @@ public class ZendeskInputMapperTest extends ZendeskTestBase {
         // Setup your component configuration for the test here
         final ZendeskInputMapperConfiguration configuration = new ZendeskInputMapperConfiguration();
         configuration.setDataset(dataset);
-        System.out.println(zendeskService.guessTableSchema(dataset));
 
         // We create the component mapper instance using the configuration filled above
         final Mapper mapper = COMPONENT_FACTORY.createMapper(ZendeskInputMapper.class, configuration);
@@ -59,7 +58,6 @@ public class ZendeskInputMapperTest extends ZendeskTestBase {
         final ZendeskInputMapperConfiguration configuration = new ZendeskInputMapperConfiguration();
         dataset.setSelectionType(SelectionType.REQUESTS);
         configuration.setDataset(dataset);
-        System.out.println(zendeskService.guessTableSchema(dataset));
 
         // We create the component mapper instance using the configuration filled above
         final Mapper mapper = COMPONENT_FACTORY.createMapper(ZendeskInputMapper.class, configuration);

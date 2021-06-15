@@ -17,6 +17,7 @@ import static org.talend.sdk.component.api.component.Icon.IconType.CUSTOM;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -102,13 +103,14 @@ public class ZendeskOutput implements Serializable {
             checkNullResult(newRecord);
         } catch (Exception e) {
             log.error(e.getMessage());
+            log.debug(Arrays.toString(e.getStackTrace()));
             log.error("Record rejected: {}", record.toString());
         }
     }
 
     private void checkNullResult(JsonObject newRecord) {
         if (newRecord == null) {
-            throw new ComponentException("Object processing error.");
+            throw new ComponentException(i18n.ObjectProcessError());
         }
     }
 

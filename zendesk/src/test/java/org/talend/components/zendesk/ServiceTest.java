@@ -12,7 +12,6 @@
  */
 package org.talend.components.zendesk;
 
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
@@ -21,11 +20,8 @@ import java.io.IOException;
 import java.net.URL;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
-import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.MediaType;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 

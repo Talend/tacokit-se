@@ -15,24 +15,17 @@ package org.talend.components.zendesk;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Properties;
 import java.util.UUID;
-
-import javax.json.JsonReaderFactory;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
-import org.junit.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.talend.components.zendesk.common.AuthenticationApiTokenConfiguration;
 import org.talend.components.zendesk.common.AuthenticationLoginPasswordConfiguration;
@@ -42,7 +35,6 @@ import org.talend.components.zendesk.messages.Messages;
 import org.talend.components.zendesk.service.ZendeskService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit.ServiceInjectionRule;
 import org.talend.sdk.component.junit.SimpleComponentRule;

@@ -12,7 +12,6 @@
  */
 package org.talend.components.zendesk.output;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
@@ -29,7 +28,7 @@ import org.talend.sdk.component.runtime.output.Processor;
 public class ZendeskOutputOutputTest extends ZendeskTestBase {
 
     @Test
-    public void map() throws IOException {
+    public void InputTest() {
         mockServer.when(request().withMethod("POST").withPath("/api/v2/tickets/*.json"))
                 .respond(response().withContentType(MediaType.APPLICATION_JSON).withBody("{}"));
 
@@ -53,7 +52,6 @@ public class ZendeskOutputOutputTest extends ZendeskTestBase {
 
         // Run the flow and get the outputs
         final SimpleComponentRule.Outputs outputs = COMPONENT_FACTORY.collect(processor, joinInputFactory);
-        System.out.println(outputs);
 
         mockServer.verify(request().withPath("/api/v2/tickets/1.json").withMethod("PUT"), VerificationTimes.exactly(1));
         mockServer.verify(request().withPath("/api/v2/tickets/2.json").withMethod("PUT"), VerificationTimes.exactly(1));
@@ -61,7 +59,7 @@ public class ZendeskOutputOutputTest extends ZendeskTestBase {
     }
 
     @Test
-    public void InsertBatch() throws IOException {
+    public void InsertBatchTest() throws IOException {
         mockServer.when(request().withMethod("PUT").withPath("/api/v2/tickets/update_many.json"))
                 .respond(response().withContentType(MediaType.APPLICATION_JSON).withStatusCode(200)
                         .withBody(getResourceString("/create_many.json")));
@@ -92,7 +90,6 @@ public class ZendeskOutputOutputTest extends ZendeskTestBase {
 
         // Run the flow and get the outputs
         final SimpleComponentRule.Outputs outputs = COMPONENT_FACTORY.collect(processor, joinInputFactory);
-        System.out.println(outputs);
 
         mockServer.verify(request().withPath("/api/v2/job_statuses/4aba648d81905e6492679833541685a7.json").withMethod("GET"),
                 VerificationTimes.exactly(1));
@@ -101,7 +98,7 @@ public class ZendeskOutputOutputTest extends ZendeskTestBase {
     }
 
     @Test
-    public void DeleteBatch() throws IOException {
+    public void DeleteBatchTest() {
         mockServer.when(request().withMethod("DELETE").withPath("/api/v2/tickets/destroy_many.json"))
                 .respond(response().withContentType(MediaType.APPLICATION_JSON).withBody("{}"));
 
