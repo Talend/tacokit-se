@@ -16,7 +16,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <talend.documentation.htmlAndPdf>false</talend.documentation.htmlAndPdf>
         <zendesk-client.version>0.14.1</zendesk-client.version>
-        <netty.version>4.1.53.Final</netty.version>
+        <netty.version>4.1.65.Final</netty.version>
     </properties>
 
     <dependencyManagement>

@@ -49,7 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Version(1) // default version is 1, if some configuration changes happen between 2 versions you can add a migrationHandler
 @Icon(value = CUSTOM, custom = "ZendeskOutput") // icon is located at src/main/resources/icons/ZendeskOutput.svg
-@Processor(name = "ZendeskOutput")
+@Processor(name = "Output")
 @Documentation("Data put processor.")
 public class ZendeskOutput implements Serializable {
 

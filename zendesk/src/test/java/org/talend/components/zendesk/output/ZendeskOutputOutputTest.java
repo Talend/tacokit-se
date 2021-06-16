@@ -32,25 +32,11 @@ public class ZendeskOutputOutputTest extends ZendeskTestBase {
         mockServer.when(request().withMethod("POST").withPath("/api/v2/tickets/*.json"))
                 .respond(response().withContentType(MediaType.APPLICATION_JSON).withBody("{}"));
 
-        // Output configuration
-        // Setup your component configuration for the test here
         final ZendeskOutputConfiguration configuration = new ZendeskOutputConfiguration();
         configuration.setDataset(dataset);
         configuration.setUseBatch(false);
-        /*
-         * .setDataset()
-         * .setConfiguration2()
-         */;
-
-        // We create the component processor instance using the configuration filled above
         final Processor processor = COMPONENT_FACTORY.createProcessor(ZendeskOutput.class, configuration);
-
-        // The join input factory construct inputs test data for every input branch you have defined for this component
-        // Make sure to fil in some test data for the branches you want to test
-        // You can also remove the branches that you don't need from the factory below
         final JoinInputFactory joinInputFactory = new JoinInputFactory().withInput("__default__", createData(2));
-
-        // Run the flow and get the outputs
         final SimpleComponentRule.Outputs outputs = COMPONENT_FACTORY.collect(processor, joinInputFactory);
 
         mockServer.verify(request().withPath("/api/v2/tickets/1.json").withMethod("PUT"), VerificationTimes.exactly(1));
@@ -70,25 +56,12 @@ public class ZendeskOutputOutputTest extends ZendeskTestBase {
                 .respond(response().withContentType(MediaType.APPLICATION_JSON).withStatusCode(200)
                         .withBody(getResourceString("/jobStatus.json")));
 
-        // Output configuration
-        // Setup your component configuration for the test here
         final ZendeskOutputConfiguration configuration = new ZendeskOutputConfiguration();
         configuration.setDataset(dataset);
         configuration.setUseBatch(true);
-        /*
-         * .setDataset()
-         * .setConfiguration2()
-         */;
-
-        // We create the component processor instance using the configuration filled above
         final Processor processor = COMPONENT_FACTORY.createProcessor(ZendeskOutput.class, configuration);
-
-        // The join input factory construct inputs test data for every input branch you have defined for this component
-        // Make sure to fil in some test data for the branches you want to test
-        // You can also remove the branches that you don't need from the factory below
         final JoinInputFactory joinInputFactory = new JoinInputFactory().withInput("__default__", createData(2));
 
-        // Run the flow and get the outputs
         final SimpleComponentRule.Outputs outputs = COMPONENT_FACTORY.collect(processor, joinInputFactory);
 
         mockServer.verify(request().withPath("/api/v2/job_statuses/4aba648d81905e6492679833541685a7.json").withMethod("GET"),
@@ -102,23 +75,12 @@ public class ZendeskOutputOutputTest extends ZendeskTestBase {
         mockServer.when(request().withMethod("DELETE").withPath("/api/v2/tickets/destroy_many.json"))
                 .respond(response().withContentType(MediaType.APPLICATION_JSON).withBody("{}"));
 
-        // Output configuration
-        // Setup your component configuration for the test here
         final ZendeskOutputConfiguration configuration = new ZendeskOutputConfiguration();
         configuration.setDataset(dataset);
         configuration.setDataAction(DataAction.DELETE);
         configuration.setUseBatch(false);
-        /*
-         * .setDataset()
-         * .setConfiguration2()
-         */;
-
-        // We create the component processor instance using the configuration filled above
         final Processor processor = COMPONENT_FACTORY.createProcessor(ZendeskOutput.class, configuration);
 
-        // The join input factory construct inputs test data for every input branch you have defined for this component
-        // Make sure to fil in some test data for the branches you want to test
-        // You can also remove the branches that you don't need from the factory below
         final JoinInputFactory joinInputFactory = new JoinInputFactory().withInput("__default__", createData(2));
 
         // Run the flow and get the outputs

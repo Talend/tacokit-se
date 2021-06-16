@@ -38,7 +38,7 @@ import org.talend.components.zendesk.service.ZendeskService;
 //
 @Version(1) // default version is 1, if some configuration changes happen between 2 versions you can add a migrationHandler
 @Icon(value = CUSTOM, custom = "ZendeskInput") // icon is located at src/main/resources/icons/ZendeskInput.svg
-@PartitionMapper(name = "ZendeskInput")
+@PartitionMapper(name = "Input")
 @Documentation("TODO fill the documentation for this mapper.")
 public class ZendeskInputMapper implements Serializable {
 
