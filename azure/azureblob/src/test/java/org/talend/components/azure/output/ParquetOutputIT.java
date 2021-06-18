@@ -12,14 +12,17 @@
  */
 package org.talend.components.azure.output;
 
+import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
+
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.microsoft.azure.storage.blob.CloudBlobContainer;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.talend.components.azure.BaseIT;
 import org.talend.components.azure.BlobTestUtils;
@@ -29,13 +32,10 @@ import org.talend.components.azure.datastore.AzureCloudConnection;
 import org.talend.components.azure.source.BlobInputProperties;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
-import org.talend.sdk.component.runtime.record.SchemaImpl;
-
-import com.microsoft.azure.storage.blob.CloudBlobContainer;
-import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.azure")
 class ParquetOutputIT extends BaseIT {
@@ -55,6 +55,9 @@ class ParquetOutputIT extends BaseIT {
     final ZonedDateTime testDateValue = ZonedDateTime.now();
 
     final byte[] bytes = new byte[] { 1, 2, 3 };
+
+    @Service
+    private RecordBuilderFactory factory;
 
     @BeforeEach
     public void initDataset() {
@@ -145,17 +148,17 @@ class ParquetOutputIT extends BaseIT {
     void testOutputNull() {
         final int recordSize = 1;
         final int schemaSize = 9;
-        Schema.Builder schemaBuilder = new SchemaImpl.BuilderImpl();
-        Schema schema = schemaBuilder.withType(Schema.Type.RECORD)
-                .withEntry(new SchemaImpl.EntryImpl("nullStringColumn", Schema.Type.STRING, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullStringColumn2", Schema.Type.STRING, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullIntColumn", Schema.Type.INT, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullLongColumn", Schema.Type.LONG, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullFloatColumn", Schema.Type.FLOAT, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullDoubleColumn", Schema.Type.DOUBLE, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullBooleanColumn", Schema.Type.BOOLEAN, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullByteArrayColumn", Schema.Type.BYTES, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullDateColumn", Schema.Type.DATETIME, true, null, null, null)).build();
+
+        Schema.Builder schemaBuilder = this.factory.newSchemaBuilder(Schema.Type.RECORD);
+        Schema schema = schemaBuilder.withEntry(this.buildEntry("nullStringColumn", Schema.Type.STRING))
+                .withEntry(this.buildEntry("nullStringColumn2", Schema.Type.STRING))
+                .withEntry(this.buildEntry("nullIntColumn", Schema.Type.INT))
+                .withEntry(this.buildEntry("nullLongColumn", Schema.Type.LONG))
+                .withEntry(this.buildEntry("nullFloatColumn", Schema.Type.FLOAT))
+                .withEntry(this.buildEntry("nullDoubleColumn", Schema.Type.DOUBLE))
+                .withEntry(this.buildEntry("nullBooleanColumn", Schema.Type.BOOLEAN))
+                .withEntry(this.buildEntry("nullByteArrayColumn", Schema.Type.BYTES))
+                .withEntry(this.buildEntry("nullDateColumn", Schema.Type.DATETIME)).build();
         Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder(schema)
                 .withString("nullStringColumn", null).build();
 
@@ -187,5 +190,9 @@ class ParquetOutputIT extends BaseIT {
         Assertions.assertNull(firstRecord.get(Boolean.class, "nullBooleanColumn"));
         Assertions.assertNull(firstRecord.get(byte[].class, "nullByteArrayColumn"));
         Assertions.assertNull(firstRecord.getDateTime("nullDateColumn"));
+    }
+
+    private Schema.Entry buildEntry(final String name, final Schema.Type type) {
+        return this.factory.newEntryBuilder().withType(type).withName(name).withNullable(true).build();
     }
 }

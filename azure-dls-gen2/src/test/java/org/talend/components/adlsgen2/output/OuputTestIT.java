@@ -12,6 +12,12 @@
  */
 package org.talend.components.adlsgen2.output;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,7 +28,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.talend.components.adlsgen2.AdlsGen2IntegrationTestBase;
-import org.talend.components.adlsgen2.AdlsGen2TestBase;
 import org.talend.components.adlsgen2.common.format.FileEncoding;
 import org.talend.components.adlsgen2.common.format.FileFormat;
 import org.talend.components.adlsgen2.common.format.avro.AvroConfiguration;
@@ -33,18 +38,12 @@ import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Type;
+import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
-import org.talend.sdk.component.runtime.record.SchemaImpl;
 
 import lombok.extern.slf4j.Slf4j;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @Slf4j
 @WithComponents("org.talend.components.adlsgen2")
@@ -53,6 +52,9 @@ public class OuputTestIT extends AdlsGen2IntegrationTestBase {
     CsvConfiguration csvConfig;
 
     AdlsGen2DataSet outDs;
+
+    @Service
+    private RecordBuilderFactory factory;
 
     @BeforeEach
     void setConfiguration() {
@@ -214,17 +216,16 @@ public class OuputTestIT extends AdlsGen2IntegrationTestBase {
         outputConfiguration.setBlobNameTemplate("avro-null-data-");
         String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
         final int schemaSize = 9;
-        Schema.Builder schemaBuilder = new SchemaImpl.BuilderImpl();
-        Schema schema = schemaBuilder.withType(Schema.Type.RECORD)
-                .withEntry(new SchemaImpl.EntryImpl("nullStringColumn", Schema.Type.STRING, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullStringColumn2", Schema.Type.STRING, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullIntColumn", Schema.Type.INT, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullLongColumn", Schema.Type.LONG, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullFloatColumn", Schema.Type.FLOAT, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullDoubleColumn", Schema.Type.DOUBLE, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullBooleanColumn", Schema.Type.BOOLEAN, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullByteArrayColumn", Schema.Type.BYTES, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullDateColumn", Schema.Type.DATETIME, true, null, null, null)).build();
+        final Schema.Builder schemaBuilder = this.factory.newSchemaBuilder(Schema.Type.RECORD);
+        final Schema schema = schemaBuilder.withEntry(this.buildEntry("nullStringColumn", Schema.Type.STRING))
+                .withEntry(this.buildEntry("nullStringColumn2", Schema.Type.STRING))
+                .withEntry(this.buildEntry("nullIntColumn", Schema.Type.INT))
+                .withEntry(this.buildEntry("nullLongColumn", Schema.Type.LONG))
+                .withEntry(this.buildEntry("nullFloatColumn", Schema.Type.FLOAT))
+                .withEntry(this.buildEntry("nullDoubleColumn", Schema.Type.DOUBLE))
+                .withEntry(this.buildEntry("nullBooleanColumn", Schema.Type.BOOLEAN))
+                .withEntry(this.buildEntry("nullByteArrayColumn", Schema.Type.BYTES))
+                .withEntry(this.buildEntry("nullDateColumn", Schema.Type.DATETIME)).build();
         Record testRecord = components.findService(RecordBuilderFactory.class).newRecordBuilder(schema)
                 .withString("nullStringColumn", null).build();
         List<Record> testRecords = Collections.singletonList(testRecord);
@@ -272,10 +273,9 @@ public class OuputTestIT extends AdlsGen2IntegrationTestBase {
         outputConfiguration.setBlobNameTemplate("avro-null-data-");
         String outConfig = configurationByExample().forInstance(outputConfiguration).configured().toQueryString();
         final int fieldSize = 2;
-        Schema.Builder schemaBuilder = new SchemaImpl.BuilderImpl();
-        Schema schema = schemaBuilder.withType(Schema.Type.RECORD)
-                .withEntry(new SchemaImpl.EntryImpl("stringColumn", Schema.Type.STRING, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("intColumn", Schema.Type.INT, true, null, null, null)).build();
+        Schema.Builder schemaBuilder = this.factory.newSchemaBuilder(Schema.Type.RECORD);
+        Schema schema = schemaBuilder.withEntry(this.buildEntry("stringColumn", Schema.Type.STRING))
+                .withEntry(this.buildEntry("intColumn", Schema.Type.INT)).build();
         List<Record> testRecords = new ArrayList<>();
         testRecords.add(components.findService(RecordBuilderFactory.class).newRecordBuilder(schema)
                 .withString("stringColumn", "a").build()); // stringColumn:a, intColumn:null
@@ -332,8 +332,8 @@ public class OuputTestIT extends AdlsGen2IntegrationTestBase {
         }
         //
         Schema schema = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD) //
-                .withEntry(new SchemaImpl.EntryImpl("id", Schema.Type.INT, true, null, null, null)) //
-                .withEntry(new SchemaImpl.EntryImpl("value", Type.STRING, true, null, null, null)) //
+                .withEntry(this.buildEntry("id", Schema.Type.INT)) //
+                .withEntry(this.buildEntry("value", Type.STRING)) //
                 .build();
         List<Record> testRecords = new ArrayList<>();
         testRecords.add(recordBuilderFactory.newRecordBuilder(schema) //
@@ -383,4 +383,7 @@ public class OuputTestIT extends AdlsGen2IntegrationTestBase {
         }
     }
 
+    private Schema.Entry buildEntry(final String name, final Schema.Type type) {
+        return this.factory.newEntryBuilder().withType(type).withName(name).withNullable(true).build();
+    }
 }
