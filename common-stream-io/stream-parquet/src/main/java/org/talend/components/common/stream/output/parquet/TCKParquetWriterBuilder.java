@@ -12,11 +12,11 @@ public class TCKParquetWriterBuilder extends ParquetWriter.Builder<Record, TCKPa
 
     private Schema schema;
 
-    private TCKParquetWriterBuilder(Path file) {
+    public TCKParquetWriterBuilder(Path file) {
         super(file);
     }
 
-    private TCKParquetWriterBuilder(OutputFile file) {
+    public TCKParquetWriterBuilder(OutputFile file) {
         super(file);
     }
 

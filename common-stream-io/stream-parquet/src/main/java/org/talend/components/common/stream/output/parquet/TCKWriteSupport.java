@@ -14,10 +14,11 @@ import org.talend.components.common.stream.output.parquet.converter.SchemaWriter
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Entry;
+import org.talend.sdk.component.api.record.Schema.Type;
 
 public class TCKWriteSupport extends WriteSupport<Record> {
 
-    private MessageType parquetType = null;
+    //private MessageType parquetType = null;
 
     private final Schema recordSchema;
 
@@ -30,7 +31,7 @@ public class TCKWriteSupport extends WriteSupport<Record> {
     @Override
     public WriteContext init(Configuration configuration) {
         final MessageType messageType = this.extractParquetType();
-        this.parquetType = messageType;
+       // this.parquetType = messageType;
         return new WriteContext(messageType, Collections.emptyMap());
     }
 
@@ -97,6 +98,28 @@ public class TCKWriteSupport extends WriteSupport<Record> {
         }
     }
 
+    private void writeValue(Schema schema, Object value) {
+        if (schema.getType() == Schema.Type.RECORD) {
+            if (value instanceof Record){
+                this.recordConsumer.startGroup();
+                writeEntries((Record) value);
+                this.recordConsumer.endGroup();
+            }
+        }
+        else if (schema.getType() == Schema.Type.ARRAY) {
+            if (value instanceof Collection) {
+                final Collection<?> elements = (Collection<?>) value;
+                final Schema elementSchema = schema.getElementSchema();
+                this.recordConsumer.startGroup();
+                elements.forEach((Object v) -> this.writeValue(elementSchema, v));
+                this.recordConsumer.endGroup();
+            }
+        }
+        else {
+            this.writePrimitive(schema.getType(), value);
+        }
+    }
+
     private void writePrimitive(final Schema.Type tckType, final Object value) {
 
         if (tckType == Schema.Type.INT && value instanceof Integer) {
@@ -107,6 +130,9 @@ public class TCKWriteSupport extends WriteSupport<Record> {
         }
         else if (tckType == Schema.Type.BOOLEAN && value instanceof Boolean) {
             this.recordConsumer.addBoolean((Boolean) value);
+        }
+        else if (tckType == Schema.Type.STRING && value instanceof String) {
+            this.recordConsumer.addBinary(Binary.fromCharSequence((String) value));
         }
         else if (tckType == Schema.Type.FLOAT && value instanceof Float) {
             this.recordConsumer.addFloat((Float) value);
@@ -125,11 +151,12 @@ public class TCKWriteSupport extends WriteSupport<Record> {
 
     private void writeArray(final Schema.Entry entry,
             final int index,
-            final List<?> values) {
+            final Collection<?> values) {
         this.recordConsumer.startField(entry.getOriginalFieldName(), index);
         this.recordConsumer.startGroup();
+        final Schema innerSchema = entry.getElementSchema();
 
-        if (entry.getElementSchema().getType() == Schema.Type.RECORD) {
+        if (innerSchema.getType() == Schema.Type.RECORD) {
             values.stream()
                     .filter(Record.class::isInstance)
                     .map(Record.class::cast)
@@ -139,13 +166,12 @@ public class TCKWriteSupport extends WriteSupport<Record> {
                         TCKWriteSupport.this.recordConsumer.endGroup();
                     });
         }
-        else if (entry.getElementSchema().getType() == Schema.Type.ARRAY) {
-
+        else if (innerSchema.getType() == Schema.Type.ARRAY) {
+            values.forEach((Object e) -> this.writeValue(innerSchema.getElementSchema(), e));
         }
         else {
             values.forEach((Object value) -> this.writePrimitive(entry.getType(), value));
         }
-
 
         this.recordConsumer.endGroup();
         this.recordConsumer.endField(entry.getOriginalFieldName(), index);
