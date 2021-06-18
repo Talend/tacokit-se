@@ -51,7 +51,6 @@
         <module>google-storage</module>
         <module>migration-tester</module>
         <module>common-test</module>
-      <module>stream-parquet</module>
   </modules>
 
   <scm>
