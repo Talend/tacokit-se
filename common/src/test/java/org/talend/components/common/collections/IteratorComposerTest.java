@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.StreamSupport;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -52,6 +53,23 @@ class IteratorComposerTest {
         this.checkNext(iterator, "see", i++);
         this.checkNext(iterator, "you", i++);
         this.checkNext(iterator, "later", i++);
+    }
+
+    @Test
+    public void filter() {
+        final List<String> strings = Arrays.asList("Hello", "all", "of", "you");
+        final Iterator<Integer> iterator = IteratorComposer.of(strings.iterator()) //
+                .filter((String s) -> s.length() > 2) //
+                .map(String::length) //
+                .build();//
+        int nbe = 0;
+        while (iterator.hasNext()) {
+            nbe++;
+            final Integer next = iterator.next();
+            Assertions.assertTrue(next.intValue() > 2);
+            Assertions.assertTrue(nbe <= 3);
+        }
+        Assertions.assertEquals(3, nbe);
     }
 
     @Test

@@ -50,6 +50,10 @@ public class MySQLPlatform extends Platform {
     public void addDataSourceProperties(HikariDataSource dataSource) {
         super.addDataSourceProperties(dataSource);
         dataSource.addDataSourceProperty("useCursorFetch", true);
+        String jdbcUrl = dataSource.getJdbcUrl();
+        if (jdbcUrl != null && !jdbcUrl.contains("enabledTLSProtocols=")) {
+            dataSource.addDataSourceProperty("enabledTLSProtocols", "TLSv1.2,TLSv1.1,TLSv1");
+        }
     }
 
     @Override
