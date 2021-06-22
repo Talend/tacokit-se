@@ -13,7 +13,6 @@
 package org.talend.components.azure.runtime.converters;
 
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.csv.CSVFormat;
