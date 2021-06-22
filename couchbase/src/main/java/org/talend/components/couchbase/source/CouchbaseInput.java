@@ -12,20 +12,17 @@
  */
 package org.talend.components.couchbase.source;
 
-import com.couchbase.client.java.Bucket;
-import com.couchbase.client.java.Cluster;
-import com.couchbase.client.java.document.json.JsonArray;
-import com.couchbase.client.java.document.json.JsonObject;
-import com.couchbase.client.java.error.TranscodingException;
-import com.couchbase.client.java.query.N1qlQuery;
-import com.couchbase.client.java.query.N1qlQueryResult;
-import com.couchbase.client.java.query.N1qlQueryRow;
-import com.couchbase.client.java.query.Select;
-import com.couchbase.client.java.query.Statement;
-import com.couchbase.client.java.query.consistency.ScanConsistency;
-import com.couchbase.client.java.query.dsl.Expression;
-import com.couchbase.client.java.query.dsl.path.AsPath;
-import lombok.extern.slf4j.Slf4j;
+import java.io.Serializable;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.couchbase.dataset.DocumentType;
@@ -40,15 +37,24 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.io.Serializable;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.Cluster;
+import com.couchbase.client.java.analytics.AnalyticsQuery;
+import com.couchbase.client.java.analytics.AnalyticsQueryResult;
+import com.couchbase.client.java.analytics.AnalyticsQueryRow;
+import com.couchbase.client.java.document.json.JsonArray;
+import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.error.TranscodingException;
+import com.couchbase.client.java.query.N1qlQuery;
+import com.couchbase.client.java.query.N1qlQueryResult;
+import com.couchbase.client.java.query.N1qlQueryRow;
+import com.couchbase.client.java.query.Select;
+import com.couchbase.client.java.query.Statement;
+import com.couchbase.client.java.query.consistency.ScanConsistency;
+import com.couchbase.client.java.query.dsl.Expression;
+import com.couchbase.client.java.query.dsl.path.AsPath;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Documentation("This component reads data from Couchbase.")
@@ -68,7 +74,9 @@ public class CouchbaseInput implements Serializable {
 
     private Set<String> columnsSet;
 
-    private Iterator<N1qlQueryRow> index;
+    private Iterator<N1qlQueryRow> n1ql_index = null;
+
+    private Iterator<AnalyticsQueryRow> analytics_index = null;
 
     private Bucket bucket;
 
@@ -90,79 +98,99 @@ public class CouchbaseInput implements Serializable {
 
         columnsSet = new HashSet<>();
 
-        N1qlQuery n1qlQuery;
-        switch (configuration.getSelectAction()) {
-        case ALL:
-            Statement statement;
-            AsPath asPath = Select.select("meta().id as " + Expression.i(META_ID_FIELD), "*").from(Expression.i(bucket.name()));
-            if (!configuration.getLimit().isEmpty()) {
-                statement = asPath.limit(Integer.parseInt(configuration.getLimit().trim()));
+        if (configuration.getSelectAction() == SelectAction.ANALYTICS) {
+            AnalyticsQuery analyticsQuery = AnalyticsQuery.simple(configuration.getQuery());
+            AnalyticsQueryResult queryResult = bucket.query(analyticsQuery);
+            if (queryResult.finalSuccess()) {
+                analytics_index = queryResult.rows();
             } else {
-                statement = asPath;
+                LOG.error(i18n.queryResultError());
+                throw new IllegalArgumentException(queryResult.errors().toString());
             }
-            n1qlQuery = N1qlQuery.simple(statement);
-            break;
-        case N1QL:
-            /*
-             * should contain "meta().id as `_meta_id_`" field for non-json (binary) documents
-             */
-            n1qlQuery = N1qlQuery.simple(configuration.getQuery());
-            break;
-        case ONE:
-            Statement pathToOneDocument = Select.select("meta().id as " + Expression.i(META_ID_FIELD), "*")
-                    .from(Expression.i(bucket.name())).useKeysValues(configuration.getDocumentId());
-            n1qlQuery = N1qlQuery.simple(pathToOneDocument);
-            break;
-        default:
-            throw new RuntimeException("Select action: '" + configuration.getSelectAction() + "' is unsupported");
+
+        } else {
+            N1qlQuery n1qlQuery;
+            switch (configuration.getSelectAction()) {
+            case ALL:
+                Statement statement;
+                AsPath asPath = Select.select("meta().id as " + Expression.i(META_ID_FIELD), "*")
+                        .from(Expression.i(bucket.name()));
+                if (!configuration.getLimit().isEmpty()) {
+                    statement = asPath.limit(Integer.parseInt(configuration.getLimit().trim()));
+                } else {
+                    statement = asPath;
+                }
+                n1qlQuery = N1qlQuery.simple(statement);
+                break;
+            case N1QL:
+                /*
+                 * should contain "meta().id as `_meta_id_`" field for non-json (binary) documents
+                 */
+                n1qlQuery = N1qlQuery.simple(configuration.getQuery());
+                break;
+            case ONE:
+                Statement pathToOneDocument = Select.select("meta().id as " + Expression.i(META_ID_FIELD), "*")
+                        .from(Expression.i(bucket.name())).useKeysValues(configuration.getDocumentId());
+                n1qlQuery = N1qlQuery.simple(pathToOneDocument);
+                break;
+            default:
+                throw new RuntimeException("Select action: '" + configuration.getSelectAction() + "' is unsupported");
+            }
+            n1qlQuery.params().consistency(ScanConsistency.REQUEST_PLUS);
+            N1qlQueryResult n1qlQueryRows = bucket.query(n1qlQuery);
+            if (n1qlQueryRows.finalSuccess()) {
+                n1ql_index = n1qlQueryRows.rows();
+            } else {
+                LOG.error(i18n.queryResultError());
+                throw new IllegalArgumentException(n1qlQueryRows.errors().toString());
+            }
         }
-        n1qlQuery.params().consistency(ScanConsistency.REQUEST_PLUS);
-        N1qlQueryResult n1qlQueryRows = bucket.query(n1qlQuery);
-        checkErrors(n1qlQueryRows);
-        index = n1qlQueryRows.rows();
     }
 
     @Producer
     public Record next() {
-        // loop to find first document with appropriate type (for non-json documents)
-        while (index.hasNext()) {
-            JsonObject jsonObject = index.next().value();
-
-            if (configuration.getDataSet().getDocumentType() == DocumentType.JSON) {
-                try {
+        if (analytics_index != null) {
+            while (analytics_index.hasNext()) {
+                JsonObject jsonObject = analytics_index.next().value();
+                if (configuration.getDataSet().getDocumentType() == DocumentType.JSON) {
                     return createJsonRecord(jsonObject);
-                } catch (ClassCastException e) {
-                    // document is a non-json, try to get next document
                 }
-            } else {
-                try {
-                    String id = jsonObject.getString(META_ID_FIELD);
-                    if (id == null) {
-                        LOG.error("Cannot find '_meta_id_' field. The query should contain 'meta().id as _meta_id_' field");
-                        return null;
+            }
+        } else {
+            // loop to find first document with appropriate type (for non-json documents)
+            while (n1ql_index.hasNext()) {
+                JsonObject jsonObject = n1ql_index.next().value();
+
+                if (configuration.getDataSet().getDocumentType() == DocumentType.JSON) {
+                    try {
+                        return createJsonRecord(jsonObject);
+                    } catch (ClassCastException e) {
+                        // document is a non-json, try to get next document
                     }
-                    DocumentParser documentParser = ParserFactory
-                            .createDocumentParser(configuration.getDataSet().getDocumentType(), builderFactory);
-                    return documentParser.parse(bucket, id);
-                } catch (TranscodingException e) {
-                    // document is not a non-json, try to get next document
+                } else {
+                    try {
+                        String id = jsonObject.getString(META_ID_FIELD);
+                        if (id == null) {
+                            LOG.error("Cannot find '_meta_id_' field. The query should contain 'meta().id as _meta_id_' field");
+                            return null;
+                        }
+                        DocumentParser documentParser = ParserFactory
+                                .createDocumentParser(configuration.getDataSet().getDocumentType(), builderFactory);
+                        return documentParser.parse(bucket, id);
+                    } catch (TranscodingException e) {
+                        // document is not a non-json, try to get next document
+                    }
                 }
             }
         }
         return null;
     }
 
-    private void checkErrors(N1qlQueryResult n1qlQueryRows) {
-        if (!n1qlQueryRows.errors().isEmpty()) {
-            LOG.error(i18n.queryResultError());
-            throw new IllegalArgumentException(n1qlQueryRows.errors().toString());
-        }
-    }
-
     private Record createJsonRecord(JsonObject jsonObject) {
         if (configuration.getSelectAction() == SelectAction.ALL || configuration.getSelectAction() == SelectAction.ONE) {
             // unwrap JSON (we use SELECT * to retrieve all values. Result will be wrapped with bucket name)
-            // couldn't use bucket_name.*, in this case big float numbers (e.g. 1E100) are converted into BigInteger with
+            // couldn't use bucket_name.*, in this case big float numbers (e.g. 1E100) are converted into BigInteger
+            // with
             // many zeros at the end and cannot be converted back into float
             try {
                 String id = jsonObject.getString(META_ID_FIELD);

@@ -12,8 +12,9 @@
  */
 package org.talend.components.couchbase.source;
 
+import java.io.Serializable;
+
 import org.talend.components.couchbase.dataset.CouchbaseDataSet;
-import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.DefaultValue;
@@ -22,8 +23,6 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.configuration.ui.widget.Code;
 import org.talend.sdk.component.api.configuration.ui.widget.TextArea;
 import org.talend.sdk.component.api.meta.Documentation;
-
-import java.io.Serializable;
 
 import lombok.Data;
 
@@ -50,7 +49,7 @@ public class CouchbaseInputConfiguration implements Serializable {
     @TextArea
     @Code("sql")
     @Documentation("The N1QL query.")
-    @ActiveIf(target = "selectAction", value = "N1QL")
+    @ActiveIf(target = "selectAction", value = { "N1QL", "ANALYTICS" })
     private String query;
 
     @Option
