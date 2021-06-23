@@ -135,7 +135,7 @@
     <xtm.api.url>https://www.xtm-cloud.com/rest-api</xtm.api.url>
 
     <!-- CVE fix -->
-    <netty-codec.version>4.1.59.Final</netty-codec.version>
+    <netty-codec.version>4.1.65.Final</netty-codec.version>
     <jetty.version>9.4.33.v20201020</jetty.version>
     <nimbus-jose-jwt.version>8.11</nimbus-jose-jwt.version>
     <zookeeper.version>3.4.14</zookeeper.version>
@@ -309,6 +309,11 @@
       <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-codec-http2</artifactId>
+        <version>${netty-codec.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-all</artifactId>
         <version>${netty-codec.version}</version>
       </dependency>
       <dependency>
