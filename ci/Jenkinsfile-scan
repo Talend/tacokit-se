@@ -21,15 +21,19 @@ spec:
             image: '${env.TSBI_IMAGE}'
             command: [cat]
             tty: true
-            volumeMounts: [{name: docker, mountPath: /var/run/docker.sock}, {name: m2main, mountPath: /root/.m2/repository}]
+            volumeMounts: [
+                {name: docker, mountPath: /var/run/docker.sock},
+                {name: efs-jenkins-connectors-se-m2, mountPath: /root/.m2/repository}
+            ]
             resources: {requests: {memory: 3G, cpu: '2'}, limits: {memory: 8G, cpu: '2'}}
     volumes:
         -
             name: docker
             hostPath: {path: /var/run/docker.sock}
         -
-            name: m2main
-            hostPath: { path: /tmp/jenkins/tdi/m2/ }
+            name: efs-jenkins-connectors-se-m2
+            persistentVolumeClaim: 
+                claimName: efs-jenkins-connectors-se-m2
     imagePullSecrets:
         - name: talend-registry
 """
