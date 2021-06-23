@@ -12,8 +12,11 @@
  */
 package org.talend.components.common.stream.input.parquet.converter;
 
+import java.util.List;
+
 import org.apache.parquet.schema.GroupType;
 import org.apache.parquet.schema.Type.Repetition;
+import org.talend.components.common.stream.format.parquet.Name;
 import org.talend.components.common.stream.input.parquet.converter.TCKPrimitiveTypes;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Type;
@@ -37,16 +40,19 @@ public class SchemaReader {
      * @return
      */
     private Schema.Entry extractTCKField(final org.apache.parquet.schema.Type parquetField) {
-        final Schema.Entry.Builder entryBuilder = this.factory.newEntryBuilder().withName(parquetField.getName());
-        if (parquetField.getRepetition() == Repetition.REPEATED) {
+        final Name name = Name.fromParquetName(parquetField.getName());
+        final Schema.Entry.Builder entryBuilder = this.factory.newEntryBuilder() //
+                .withName(name.getName()) //
+                .withRawName(name.getRawName());
+        if (parquetField.getRepetition() == Repetition.REPEATED || this.isArrayEncapsulated(parquetField)) {
             entryBuilder.withNullable(true);
             entryBuilder.withType(Schema.Type.ARRAY);
             if (parquetField.isPrimitive()) {
                 final Schema.Type tckType = TCKPrimitiveTypes.toTCKType(parquetField.asPrimitiveType());
                 entryBuilder.withElementSchema(this.factory.newSchemaBuilder(tckType).build());
             } else {
-                final Schema schema = this.extractRecordType(parquetField.asGroupType());
-                entryBuilder.withElementSchema(schema);
+                    final Schema schema = this.extractRecordType(parquetField.asGroupType());
+                    entryBuilder.withElementSchema(schema);
             }
         } else {
             if (parquetField.isPrimitive()) {
@@ -62,13 +68,39 @@ public class SchemaReader {
         return entryBuilder.build();
     }
 
-    private Schema extractRecordType(final GroupType gt) {
-        final Schema.Builder builder = this.factory.newSchemaBuilder(Type.RECORD);
+    private boolean isArrayEncapsulated(final org.apache.parquet.schema.Type parquetField) {
+        if (parquetField.isPrimitive()) {
+            return false;
+        }
 
-        gt.getFields().stream() //
+        final List<org.apache.parquet.schema.Type> fields = parquetField.asGroupType().getFields();
+        if (fields != null && fields.size() == 1) {
+            final org.apache.parquet.schema.Type elementType = fields.get(0);
+            if (!elementType.isPrimitive() && "list".equals(elementType.getName())) {
+                return elementType.getRepetition() == Repetition.REPEATED;
+            }
+        }
+        return false;
+    }
+
+    private Schema extractRecordType(final GroupType gt) {
+
+        final List<org.apache.parquet.schema.Type> fields = gt.getFields();
+        if (fields != null && fields.size() == 1) {
+            final org.apache.parquet.schema.Type listType = fields.get(0);
+            if (!listType.isPrimitive() && "list".equals(listType.getName())) {
+                final GroupType groupType = listType.asGroupType();
+                final org.apache.parquet.schema.Type elementType = groupType.getFields().get(0);
+                if (!elementType.isPrimitive()) {
+                    return this.extractRecordType(elementType.asGroupType());
+                }
+            }
+        }
+
+        final Schema.Builder builder = this.factory.newSchemaBuilder(Type.RECORD);
+        fields.stream() //
                 .map(this::extractTCKField) // get tck entry
                 .forEach(builder::withEntry); // into schema.
-
         return builder.build();
     }
 

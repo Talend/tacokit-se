@@ -21,8 +21,14 @@ import org.apache.parquet.io.api.Converter;
 import org.apache.parquet.io.api.GroupConverter;
 import org.apache.parquet.schema.GroupType;
 import org.apache.parquet.schema.Type;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class TCKArrayConverter extends GroupConverter {
 
     private final Consumer<Collection<Object>> arraySetter;
@@ -32,19 +38,34 @@ public class TCKArrayConverter extends GroupConverter {
     private List<Object> values = new ArrayList<>();
 
     public TCKArrayConverter(final Consumer<Collection<Object>> arraySetter, final RecordBuilderFactory factory,
-            final org.apache.parquet.schema.Type parquetType) {
+            final org.apache.parquet.schema.Type parquetType, final Schema tckType) {
 
         this.arraySetter = arraySetter;
         if (parquetType.isPrimitive()) {
             this.converter = new TCKPrimitiveConverter(this.values::add);
         } else {
             final GroupType groupType = parquetType.asGroupType();
-            final Type innerType = groupType.getType(0);
-            if (innerType.isPrimitive()) {
-                this.converter = new TCKPrimitiveConverter(this.values::add);
-            } else {
-                this.converter = new TCKRecordConverter(factory, this.values::add, innerType.asGroupType());
+            this.converter = new TCKRecordConverter(factory, this::addValue, groupType, tckType);
+        }
+    }
+
+    private void addValue(Object value) {
+        log.info("add value " + value);
+        boolean done = false;
+        if (value instanceof Record) {
+            final Record rec = (Record) value;
+            try {
+                final Record element = rec.getRecord("element");
+                if (element != null) {
+                    this.values.add(element);
+                }
+                done = true;
             }
+            catch (RuntimeException ex) {
+            }
+        }
+        if (!done) {
+            this.values.add(value);
         }
     }
 
@@ -55,11 +76,14 @@ public class TCKArrayConverter extends GroupConverter {
 
     @Override
     public void start() {
+        log.info("start");
     }
 
     @Override
     public void end() {
+        log.info("end, array size " + values.size());
         this.arraySetter.accept(this.values);
         this.values = new ArrayList<>();
     }
+
 }

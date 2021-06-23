@@ -4,17 +4,17 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.hadoop.api.WriteSupport;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.RecordConsumer;
 import org.apache.parquet.schema.MessageType;
+import org.talend.components.common.stream.format.parquet.Name;
 import org.talend.components.common.stream.output.parquet.converter.SchemaWriter;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.record.Schema.Entry;
-import org.talend.sdk.component.api.record.Schema.Type;
 
 public class TCKWriteSupport extends WriteSupport<Record> {
 
@@ -53,27 +53,28 @@ public class TCKWriteSupport extends WriteSupport<Record> {
             final Schema.Entry entry,
             final int index,
             final Record record) {
-        this.recordConsumer.startField(entry.getOriginalFieldName(), index);
+        final Name name = new Name(entry.getName(), entry.getRawName());
+        this.recordConsumer.startField(name.parquetName(), index);
         this.recordConsumer.startGroup();
 
         writeEntries(record);
 
         this.recordConsumer.endGroup();
-        this.recordConsumer.endField(entry.getOriginalFieldName(), index);
+        this.recordConsumer.endField(name.parquetName(), index);
     }
 
     private void writeEntries(final Record record) {
 
-        final List<Entry> entries = record.getSchema().getEntries();
+        final List<Schema.Entry> entries = record.getSchema().getEntries();
         IndexValue.from(entries).forEach(
-                (IndexValue<Entry> e) -> {
+                (IndexValue<Schema.Entry> e) -> {
 
                     final Object value;
                     if (e.getValue().getType() == Schema.Type.DATETIME) {
-                        value = record.getDateTime(e.getValue().getOriginalFieldName());
+                        value = record.getDateTime(e.getValue().getName());
                     }
                     else {
-                        value = record.get(Object.class, e.getValue().getOriginalFieldName());
+                        value = record.get(Object.class, e.getValue().getName());
                     }
                     if (value != null) {
                         this.writeField(e.getValue(), e.getIndex(), value);
@@ -89,16 +90,17 @@ public class TCKWriteSupport extends WriteSupport<Record> {
             this.writeRecord(entry, index, (Record) value);
         }
         else if (value instanceof Collection && entry.getType() == Schema.Type.ARRAY) {
-            this.writeArray(entry, index, (List<?>) value);
+            this.writeArray(entry, index, (Collection<?>) value);
         }
         else {
-            this.recordConsumer.startField(entry.getOriginalFieldName(), index);
+            final Name name = new Name(entry.getName(), entry.getRawName());
+            this.recordConsumer.startField(name.parquetName(), index);
             this.writePrimitive(entry.getType(), value);
-            this.recordConsumer.endField(entry.getOriginalFieldName(), index);
+            this.recordConsumer.endField(name.parquetName(), index);
         }
     }
 
-    private void writeValue(Schema schema, Object value) {
+    private void writeValue(Schema schema, Object value, int index) {
         if (schema.getType() == Schema.Type.RECORD) {
             if (value instanceof Record){
                 this.recordConsumer.startGroup();
@@ -110,9 +112,22 @@ public class TCKWriteSupport extends WriteSupport<Record> {
             if (value instanceof Collection) {
                 final Collection<?> elements = (Collection<?>) value;
                 final Schema elementSchema = schema.getElementSchema();
-                this.recordConsumer.startGroup();
-                elements.forEach((Object v) -> this.writeValue(elementSchema, v));
-                this.recordConsumer.endGroup();
+
+               // this.recordConsumer.startGroup();
+                elements.forEach((Object v) -> {
+                   /* if (schema.getType() == Type.RECORD) {
+                        this.recordConsumer.startField("list", index);
+                    }*/
+                 //   this.recordConsumer.startGroup();
+                  //  writeEntries((Record) v);
+                  //  this.recordConsumer.endGroup();
+                 //   this.writeValue(elementSchema, v, index);
+                    /*if (schema.getType() == Type.RECORD) {
+                        this.recordConsumer.endField("list", index);
+                    }*/
+                });
+             //   this.recordConsumer.endGroup();
+
             }
         }
         else {
@@ -152,29 +167,39 @@ public class TCKWriteSupport extends WriteSupport<Record> {
     private void writeArray(final Schema.Entry entry,
             final int index,
             final Collection<?> values) {
-        this.recordConsumer.startField(entry.getOriginalFieldName(), index);
-        this.recordConsumer.startGroup();
+        if (values == null || values.isEmpty()) {
+            return;
+        }
+        final Name name = new Name(entry.getName(), entry.getRawName());
+
+        this.recordConsumer.startField(name.parquetName(), index);
         final Schema innerSchema = entry.getElementSchema();
 
         if (innerSchema.getType() == Schema.Type.RECORD) {
+            this.recordConsumer.startGroup();
+            this.recordConsumer.startField("list", 0);
+            this.recordConsumer.startGroup();
+            this.recordConsumer.startField("element", 0);
             values.stream()
                     .filter(Record.class::isInstance)
                     .map(Record.class::cast)
                     .forEach((Record rec) -> {
                         TCKWriteSupport.this.recordConsumer.startGroup();
-                        this.writeEntries(rec);
+                        TCKWriteSupport.this.writeEntries(rec);
                         TCKWriteSupport.this.recordConsumer.endGroup();
                     });
+            this.recordConsumer.endField("element", 0);
+            this.recordConsumer.endGroup();
+            this.recordConsumer.endField("list", 0);
+            this.recordConsumer.endGroup();
         }
         else if (innerSchema.getType() == Schema.Type.ARRAY) {
-            values.forEach((Object e) -> this.writeValue(innerSchema.getElementSchema(), e));
+            values.forEach((Object e) -> this.writeValue(innerSchema.getElementSchema(), e, index));
         }
         else {
-            values.forEach((Object value) -> this.writePrimitive(entry.getType(), value));
+            values.forEach((Object value) -> this.writePrimitive(innerSchema.getType(), value));
         }
-
-        this.recordConsumer.endGroup();
-        this.recordConsumer.endField(entry.getOriginalFieldName(), index);
+        this.recordConsumer.endField(name.parquetName(), index);
     }
 
 

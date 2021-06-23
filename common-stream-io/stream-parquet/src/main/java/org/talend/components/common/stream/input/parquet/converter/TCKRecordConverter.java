@@ -34,17 +34,16 @@ public class TCKRecordConverter extends GroupConverter {
 
     private final Converter[] converters;
 
-    public TCKRecordConverter(RecordBuilderFactory factory, Consumer<Record> recordSetter, GroupType parquetType) {
+    public TCKRecordConverter(RecordBuilderFactory factory, Consumer<Record> recordSetter, GroupType parquetType, final Schema tckParentType) {
         this.factory = factory;
         this.recordSetter = recordSetter;
         this.converters = new Converter[parquetType.getFieldCount()];
         final SchemaReader reader = new SchemaReader(this.factory);
         this.schemaTCK = reader.convert(parquetType);
-
         for (int i = 0; i < parquetType.getFieldCount(); i++) {
             final Type fieldType = parquetType.getType(i);
-            final Converter converter = TCKConverter.buildConverter(fieldType, this.factory, this.schemaTCK,
-                    () -> this.recordBuilder);
+            final Converter converter = TCKConverter.buildConverter(fieldType, this.factory, this.schemaTCK, tckParentType,
+                    () -> this.recordBuilder, parquetType);
             this.converters[i] = converter;
         }
     }
@@ -61,6 +60,7 @@ public class TCKRecordConverter extends GroupConverter {
 
     @Override
     public void end() {
+
         for (Converter converter : this.converters) {
             if (converter instanceof TCKArrayPrimitiveConverter) {
                 ((TCKArrayPrimitiveConverter) converter).end();

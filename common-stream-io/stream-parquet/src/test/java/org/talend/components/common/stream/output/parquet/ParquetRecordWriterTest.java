@@ -3,20 +3,42 @@ package org.talend.components.common.stream.output.parquet;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.hadoop.ParquetWriter;
-import org.junit.jupiter.api.Test;
+import org.apache.parquet.hadoop.util.HadoopInputFile;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.slf4j.LoggerFactory;
+import org.talend.components.common.stream.input.parquet.ParquetRecordReader;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
+import lombok.RequiredArgsConstructor;
+
 class ParquetRecordWriterTest {
 
-    @Test
-    void write() throws IOException {
+    @BeforeAll
+    static void initLog() {
+        System.setProperty("org.slf4j.simpleLogger.log.org.talend.components", "debug");
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("provideRecords")
+    void write(final List<Record> records) throws IOException {
         final URL out = Thread.currentThread().getContextClassLoader().getResource("out");
         File fileOut = new File(out.getPath(), "fic1.parquet");
         if (fileOut.exists()) {
@@ -27,17 +49,152 @@ class ParquetRecordWriterTest {
 
 
         final RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");
+        final Schema schema = records.get(0).getSchema();
+        try (final ParquetWriter<Record> writer = builder.withSchema(schema).build()) {
+            for (Record rec : records) {
+                writer.write(rec);
+            }
+        }
 
-        final Schema.Entry f1 = factory.newEntryBuilder().withName("f1").withType(Schema.Type.STRING).build();
-        final Schema.Entry f2 = factory.newEntryBuilder().withName("f2").withType(Schema.Type.INT).build();
+        final ParquetRecordReader reader = new ParquetRecordReader(factory);
 
+        final HadoopInputFile inputFile = HadoopInputFile.fromPath(path, new org.apache.hadoop.conf.Configuration());
+        final Iterator<Record> recordIterator = reader.read(inputFile);
+        final Iterator<Record> inputRecordIterator = records.iterator();
+        while (recordIterator.hasNext()) {
+            Assertions.assertTrue(inputRecordIterator.hasNext());
+
+            final Record record = recordIterator.next();
+            Assertions.assertNotNull(record);
+
+            final Record refRecord = inputRecordIterator.next();
+            Assertions.assertEquals(refRecord.getSchema(), record.getSchema());
+            final Result areEquals = this.areEquals(record, refRecord, "");
+            Assertions.assertTrue(areEquals.ok, "Fields not equals " + areEquals.field + " ==> " + record);
+        }
+    }
+
+    private static Stream<Arguments> provideRecords() {
+        final RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");
+
+        final Schema.Entry f1 = factory.newEntryBuilder().withName("f1")/*.withRawName("raw")*/.withType(Schema.Type.STRING).withNullable(false).build();
+        final Schema.Entry f2 = factory.newEntryBuilder().withName("f2").withType(Schema.Type.INT).withNullable(false).build();
+
+        // simple
         final Schema schema = factory.newSchemaBuilder(Type.RECORD).withEntry(f1).withEntry(f2).build();
         final Record record1 = factory.newRecordBuilder(schema).withString(f1, "value1").withInt(f2, 11).build();
         final Record record2 = factory.newRecordBuilder(schema).withString(f1, "value2").withInt(f2, 21).build();
+        final List<Record> records = Arrays.asList(record1, record2);
 
-        final ParquetWriter<Record> writer = builder.withSchema(schema).build();
-        writer.write(record1);
-        writer.write(record2);
-        writer.close();
+        // sub object
+        final Schema.Entry fsub = factory.newEntryBuilder().withName("fsub") //
+                .withType(Schema.Type.RECORD)//.withRawName("rawname") //
+                .withElementSchema(schema)
+                .build();
+        final Schema schema1 = factory.newSchemaBuilder(Schema.Type.RECORD)
+                .withEntry(fsub)
+                .build();
+        final Record record3 = factory.newRecordBuilder(schema1).withRecord(fsub, record1).build();
+        final List<Record> recordsWithSub = Arrays.asList(record3);
+
+        // Array of privmitiv
+        final Schema.Entry farray = factory.newEntryBuilder().withName("farray") //
+            .withType(Schema.Type.ARRAY).withElementSchema(factory.newSchemaBuilder(Schema.Type.STRING).build())
+                .withNullable(true)
+                .build();
+        final Schema schema2 = factory.newSchemaBuilder(Schema.Type.RECORD)
+                .withEntry(farray)
+                .build();
+        final Record record4 = factory.newRecordBuilder(schema2).withArray(farray, Arrays.asList("a", "b", "c")).build();
+        final List<Record> recordsWithArray = Arrays.asList(record4);
+
+        // Array of records.
+        final Schema.Entry farrayRec = factory.newEntryBuilder().withName("farray") //
+                .withType(Schema.Type.ARRAY).withElementSchema(schema)
+                .withNullable(true)
+                .build();
+        final Schema schemaArray = factory.newSchemaBuilder(Schema.Type.RECORD)
+                .withEntry(farrayRec)
+                .build();
+        final Record record5 = factory.newRecordBuilder(schemaArray).withArray(farray, Arrays.asList(record1, record2)).build();
+        final List<Record> recordsWithArrayRec = Arrays.asList(record5);
+
+        return Stream.of(Arguments.of(records), // simple
+                Arguments.of(recordsWithSub), // with sub records
+                Arguments.of(recordsWithArray), // with primitiv array
+                Arguments.of(recordsWithArrayRec)); // with array of rec
+    }
+
+    @RequiredArgsConstructor
+    static class Result {
+
+        public final boolean ok;
+
+        public final String field;
+
+        public Result merge(Result other) {
+            if (this.ok) {
+                return other;
+            }
+            return this;
+        }
+
+        public static final Result OK = new Result(true, "");
+    }
+
+    private Result areEquals(final Record r1, final Record r2, String field) {
+        if (r1 == r2) {
+            return Result.OK;
+        }
+        if (r1 == null || r2 == null) {
+            return new Result(false, field);
+        }
+        if (!Objects.equals(r1.getSchema(), r2.getSchema())) {
+            return new Result(false, field);
+        }
+        return r1.getSchema().getEntries().stream() //
+                .map((Schema.Entry entry) -> {
+                    final Object o1 = r1.get(Object.class, entry.getName());
+                    final Object o2 = r2.get(Object.class, entry.getName());
+                    return this.areFieldEquals(o1, o2, field + "." + entry.getName());
+                }) //
+                .reduce(Result.OK, Result::merge);
+    }
+
+    private Result areFieldEquals(final Object o1, Object o2, String field) {
+
+        if (o1 == o2) {
+            return Result.OK;
+        }
+        if (o1 == null || o2 == null) {
+            return new Result(false, field);
+        }
+        if (o1 instanceof Record && o2 instanceof Record) {
+            return this.areEquals((Record) o1, (Record) o2, field);
+        }
+        if (o1 instanceof Collection && o2 instanceof Collection) {
+            final Collection<?> c1 = (Collection<?>) o1;
+            final Collection<?> c2 = (Collection<?>) o2;
+            if (c1.size() != c2.size()) {
+                return new Result(false, field + ".Size");
+            }
+            final Iterator<?> iterator1 = c1.iterator();
+            final Iterator<?> iterator2 = c2.iterator();
+            int index = 1;
+            while (iterator1.hasNext()) {
+                final Object item1 = iterator1.next();
+                final Object item2 = iterator2.next();
+                final Result result = this.areFieldEquals(item1, item2, field + "[" + index + "]");
+                if (!result.ok) {
+                    return result;
+                }
+                index++;
+            }
+            return Result.OK;
+        }
+        if (!Objects.equals(o1, o2)) {
+            return new Result(false, field);
+        }
+        return Result.OK;
     }
 }

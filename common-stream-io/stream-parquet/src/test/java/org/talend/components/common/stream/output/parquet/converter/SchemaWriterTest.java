@@ -28,7 +28,7 @@ class SchemaWriterTest {
         final MessageType messageType1 = schemaWriter.convert(schema1);
 
         Assertions.assertNotNull(messageType1);
-        final org.apache.parquet.schema.Type field1 = messageType1.getType("field1");
+        final org.apache.parquet.schema.Type field1 = messageType1.getType("!field1");
         Assertions.assertTrue(field1.isPrimitive());
         Assertions.assertEquals(Repetition.REQUIRED, field1.getRepetition());
         Assertions.assertEquals(PrimitiveTypeName.BINARY, field1.asPrimitiveType().getPrimitiveTypeName());
@@ -52,7 +52,7 @@ class SchemaWriterTest {
         final MessageType complexMsg = schemaWriter.convert(complexSchema);
         Assertions.assertNotNull(complexMsg);
 
-        final org.apache.parquet.schema.Type arrayInt = complexMsg.getType("multiArrayInt");
+        final org.apache.parquet.schema.Type arrayInt = complexMsg.getType("!multiArrayInt");
         Assertions.assertFalse(arrayInt.isPrimitive());
         final org.apache.parquet.schema.Type arrayType = arrayInt.asGroupType().getType(0);
         Assertions.assertNotNull(arrayType);
@@ -60,7 +60,7 @@ class SchemaWriterTest {
         Assertions.assertEquals(Repetition.REPEATED, arrayType.getRepetition());
         Assertions.assertEquals(PrimitiveTypeName.INT32, arrayType.asPrimitiveType().getPrimitiveTypeName());
 
-        final org.apache.parquet.schema.Type arrayRecords = complexMsg.getType("arrayOfRecord");
+        final org.apache.parquet.schema.Type arrayRecords = complexMsg.getType("!arrayOfRecord");
         Assertions.assertFalse(arrayRecords.isPrimitive());
     }
 

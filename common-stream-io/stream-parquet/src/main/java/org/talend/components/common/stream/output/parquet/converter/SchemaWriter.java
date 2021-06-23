@@ -1,10 +1,13 @@
 package org.talend.components.common.stream.output.parquet.converter;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.parquet.schema.ConversionPatterns;
 import org.apache.parquet.schema.GroupType;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
+import org.apache.parquet.schema.LogicalTypeAnnotation.ListLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.TimeUnit;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType;
@@ -13,6 +16,7 @@ import org.apache.parquet.schema.Type;
 import org.apache.parquet.schema.Type.Repetition;
 import org.apache.parquet.schema.Types;
 import org.apache.parquet.schema.Types.PrimitiveBuilder;
+import org.talend.components.common.stream.format.parquet.Name;
 import org.talend.components.common.stream.output.parquet.converter.ParquetPrimitiveTypes;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Entry;
@@ -21,7 +25,9 @@ public class SchemaWriter {
 
     public MessageType convert(final Schema tckSchema) {
         final List<org.apache.parquet.schema.Type> fields = this.extractTypes(tckSchema.getEntries());
-        return new MessageType("RECORD", fields);
+        MessageType mt = new MessageType("RECORD", fields);
+
+        return mt;
     }
 
     private List<org.apache.parquet.schema.Type> extractTypes(List<Entry> entries) {
@@ -32,6 +38,13 @@ public class SchemaWriter {
 
     private GroupType convert(Type.Repetition repetition, final String name, Schema schema) {
         final List<org.apache.parquet.schema.Type> fields = this.extractTypes(schema.getEntries());
+        /*if (repetition == Repetition.REPEATED) {
+            final GroupType subRecType = new GroupType(Repetition.REPEATED, "list", fields);
+            return  new GroupType(Repetition.OPTIONAL, name, subRecType);
+        }*/
+        /*if (repetition == Repetition.REPEATED) {
+            return ConversionPatterns.listOfElements(Repetition.REPEATED, name, fields);
+        }*/
         return new GroupType(repetition, name, fields);
     }
 
@@ -49,31 +62,35 @@ public class SchemaWriter {
     }
 
     private org.apache.parquet.schema.Type toParquetType(final Schema.Entry field) {
+        final Name fname = new Name(field.getName(), field.getRawName());
         if (field.getType() == Schema.Type.ARRAY) {
             final Schema elementSchema = field.getElementSchema();
             if (elementSchema.getType() == Schema.Type.RECORD) {
-                return this.convert(Repetition.REPEATED, field.getOriginalFieldName(), elementSchema);
+                final GroupType objectType = this.convert(Repetition.OPTIONAL, "element", elementSchema);
+               // final LogicalTypeAnnotation typeAnnotation = LogicalTypeAnnotation.listType();
+                final GroupType arrayGT = ConversionPatterns.listOfElements(Repetition.REPEATED, fname.parquetName(), objectType);
+                return arrayGT;
+                //return new GroupType(Repetition.OPTIONAL, fname.parquetName(), objectType);
             }
             else if (elementSchema.getType() == Schema.Type.ARRAY) {
                 final Schema subArray = elementSchema.getElementSchema();
                 final org.apache.parquet.schema.Type arrayType;
                 if (subArray.getType() == Schema.Type.ARRAY || subArray.getType() == Schema.Type.RECORD) {
-                    arrayType = this.convert(Repetition.REPEATED, "element", subArray);
+                    arrayType = this.convert(Repetition.REPEATED, "list", subArray);
                 }
                 else {
-                    arrayType = this.toPrimitive(Repetition.REPEATED, "element", subArray.getType());
+                    arrayType = this.toPrimitive(Repetition.REPEATED, "list", subArray.getType());
                 }
-                return new GroupType(Repetition.REPEATED, field.getName(), arrayType);
-
+                return new GroupType(/*this.getRepetition(field)*/Repetition.REPEATED, fname.parquetName(), arrayType);
             }
             else {
-                return this.toPrimitive(Repetition.REPEATED, field.getName(), elementSchema.getType());
+                return this.toPrimitive(Repetition.REPEATED, fname.parquetName(), elementSchema.getType());
             }
         }
         if (field.getType()  == Schema.Type.RECORD) {
-            return this.convert(this.getRepetition(field), field.getName(), field.getElementSchema());
+            return this.convert(this.getRepetition(field), fname.parquetName(), field.getElementSchema());
         }
-        return this.toPrimitive(this.getRepetition(field), field.getName(), field.getType());
+        return this.toPrimitive(this.getRepetition(field), fname.parquetName(), field.getType());
     }
 
     private Type.Repetition getRepetition(final Entry field) {

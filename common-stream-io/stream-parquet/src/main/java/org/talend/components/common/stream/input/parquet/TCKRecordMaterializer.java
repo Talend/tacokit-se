@@ -30,7 +30,7 @@ public class TCKRecordMaterializer extends RecordMaterializer<Record> {
     private TCKRecordConverter converter;
 
     public TCKRecordMaterializer(RecordBuilderFactory factory, MessageType parquetSchema) {
-        this.converter = new TCKRecordConverter(factory, this::setCurrentRecord, parquetSchema);
+        this.converter = new TCKRecordConverter(factory, this::setCurrentRecord, parquetSchema, null);
     }
 
     @Override
