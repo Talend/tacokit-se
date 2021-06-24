@@ -18,7 +18,7 @@
 
   <groupId>org.talend.components</groupId>
   <artifactId>connectors-se</artifactId>
-  <version>1.22.0-SNAPSHOT</version>
+  <version>1.23.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Connectors-se</name>
@@ -75,14 +75,14 @@
   </distributionManagement>
 
   <properties>
-    <connectors-test-bom.version>1.22.0-SNAPSHOT</connectors-test-bom.version>
-    <common.version>1.22.0-SNAPSHOT</common.version>
+    <connectors-test-bom.version>1.23.0-SNAPSHOT</connectors-test-bom.version>
+    <common.version>1.23.0-SNAPSHOT</common.version>
 
     <timestamp.year>${maven.build.timestamp}</timestamp.year>
     <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <locales.version>1.22.1</locales.version>
+    <locales.version>[1.23,)</locales.version>
 
     <component-runtime.version>1.33.1</component-runtime.version>
     <slf4j.version>1.7.28</slf4j.version>
@@ -135,7 +135,7 @@
     <xtm.api.url>https://www.xtm-cloud.com/rest-api</xtm.api.url>
 
     <!-- CVE fix -->
-    <netty-codec.version>4.1.59.Final</netty-codec.version>
+    <netty-codec.version>4.1.65.Final</netty-codec.version>
     <jetty.version>9.4.38.v20210224</jetty.version>
     <nimbus-jose-jwt.version>8.11</nimbus-jose-jwt.version>
     <zookeeper.version>3.4.14</zookeeper.version>
@@ -309,6 +309,11 @@
       <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-codec-http2</artifactId>
+        <version>${netty-codec.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-all</artifactId>
         <version>${netty-codec.version}</version>
       </dependency>
       <dependency>
@@ -706,6 +711,15 @@
             <goals>
               <goal>asciidoc</goal>
             </goals>
+            <configuration>
+              <locales>
+                <locale>root</locale>
+                <locale>en</locale>
+                <locale>fr</locale>
+                <locale>ja</locale>
+                <locale>de</locale>
+              </locales>
+            </configuration>
           </execution>
           <execution>
             <id>talend-component-icon-report</id>

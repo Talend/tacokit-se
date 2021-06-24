@@ -12,18 +12,19 @@
  */
 package org.talend.components.couchbase;
 
-import com.couchbase.client.java.document.json.JsonObject;
-import lombok.Data;
-import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-import org.talend.sdk.component.runtime.record.SchemaImpl;
-
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import com.couchbase.client.java.document.json.JsonObject;
+
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+
+import lombok.Data;
 
 @Data
 public class TestData {
@@ -79,8 +80,8 @@ public class TestData {
 
     public Record createRecord(RecordBuilderFactory recordBuilderFactory, String id) {
         final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
-        SchemaImpl arrayInnerSchema = new SchemaImpl();
-        arrayInnerSchema.setType(Schema.Type.STRING);
+        final Schema arrayInnerSchema = recordBuilderFactory.newSchemaBuilder(Schema.Type.STRING).build();
+
         return recordBuilderFactory.newRecordBuilder()
                 .withString(entryBuilder.withName("t_string").withType(Schema.Type.STRING).build(), id)
                 .withInt(entryBuilder.withName("t_int_min").withType(Schema.Type.INT).build(), getColIntMin())

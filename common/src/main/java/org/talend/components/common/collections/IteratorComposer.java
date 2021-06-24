@@ -15,6 +15,7 @@ package org.talend.components.common.collections;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Iterator composition.
@@ -88,6 +89,11 @@ public class IteratorComposer<T> {
     public <U> IteratorComposer<U> flatmapIterable(Function<T, Iterable<U>> mapFunction) {
         Function<T, Iterator<U>> iteratorFunction = this.convertFunction(mapFunction);
         return this.flatmap(iteratorFunction);
+    }
+
+    public IteratorComposer<T> filter(final Predicate<T> filter) {
+        final IteratorFilter<T> iteratorFilter = new IteratorFilter<>(this.iterator, filter);
+        return new IteratorComposer<>(iteratorFilter);
     }
 
     private <U1, U2> Function<U1, Iterator<U2>> convertFunction(Function<U1, Iterable<U2>> primaryFunction) {

@@ -12,6 +12,13 @@
  */
 package org.talend.components.adlsgen2.common.format.avro;
 
+import static java.util.stream.Collectors.toList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.InputStream;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -33,17 +40,11 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.record.Schema.Type;
+import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit5.WithComponents;
-import org.talend.sdk.component.runtime.record.SchemaImpl;
 
 import lombok.extern.slf4j.Slf4j;
-
-import static java.util.stream.Collectors.toList;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @WithComponents("org.talend.components.adlsgen2")
@@ -54,6 +55,9 @@ class AvroConverterTest extends AdlsGen2TestBase {
     private GenericRecord avro;
 
     private AvroConfiguration avroConfiguration;
+
+    @Service
+    private RecordBuilderFactory factory;
 
     @BeforeEach
     protected void setUp() throws Exception {
@@ -195,15 +199,15 @@ class AvroConverterTest extends AdlsGen2TestBase {
     // @Test
     void withAllowNullColumnSchema() {
         Schema schema = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD)
-                .withEntry(new SchemaImpl.EntryImpl("nullStringColumn", Schema.Type.STRING, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullStringColumn2", Schema.Type.STRING, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullIntColumn", Schema.Type.INT, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullLongColumn", Schema.Type.LONG, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullFloatColumn", Schema.Type.FLOAT, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullDoubleColumn", Schema.Type.DOUBLE, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullBooleanColumn", Schema.Type.BOOLEAN, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullByteArrayColumn", Schema.Type.BYTES, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullDateColumn", Schema.Type.DATETIME, true, null, null, null)).build();
+                .withEntry(this.buildEntry("nullStringColumn", Schema.Type.STRING))
+                .withEntry(this.buildEntry("nullStringColumn2", Schema.Type.STRING))
+                .withEntry(this.buildEntry("nullIntColumn", Schema.Type.INT))
+                .withEntry(this.buildEntry("nullLongColumn", Schema.Type.LONG))
+                .withEntry(this.buildEntry("nullFloatColumn", Schema.Type.FLOAT))
+                .withEntry(this.buildEntry("nullDoubleColumn", Schema.Type.DOUBLE))
+                .withEntry(this.buildEntry("nullBooleanColumn", Schema.Type.BOOLEAN))
+                .withEntry(this.buildEntry("nullByteArrayColumn", Schema.Type.BYTES))
+                .withEntry(this.buildEntry("nullDateColumn", Schema.Type.DATETIME)).build();
         Record testRecord = recordBuilderFactory.newRecordBuilder(schema).withString("nullStringColumn", "myString").build();
         System.out.println("schema: " + testRecord.getSchema());
         System.out.println("record: " + testRecord);
@@ -579,4 +583,7 @@ class AvroConverterTest extends AdlsGen2TestBase {
         assertEquals(LogicalTypes.timestampMillis().getName(), AvroConverter.AVRO_LOGICAL_TYPE_TIMESTAMP_MILLIS);
     }
 
+    private Schema.Entry buildEntry(final String name, final Schema.Type type) {
+        return this.factory.newEntryBuilder().withType(type).withName(name).withNullable(true).build();
+    }
 }
