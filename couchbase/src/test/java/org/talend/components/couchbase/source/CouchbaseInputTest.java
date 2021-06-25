@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 import com.couchbase.client.deps.io.netty.buffer.ByteBuf;
 import com.couchbase.client.deps.io.netty.buffer.Unpooled;
 import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.analytics.AnalyticsQuery;
+import com.couchbase.client.java.analytics.AnalyticsQueryResult;
 import com.couchbase.client.java.document.BinaryDocument;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.StringDocument;
@@ -145,6 +147,43 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         final List<Record> res = componentsHandler.getCollectedData(Record.class);
         assertNotNull(res);
 
+        assertEquals(2, res.size());
+        assertEquals(3, res.get(0).getSchema().getEntries().size());
+        assertEquals(3, res.get(1).getSchema().getEntries().size());
+    }
+
+    @Test
+    @DisplayName("Execution of Analytics query")
+    void analyticsQueryInputDBTest() throws InterruptedException {
+        log.info("Test start: analyticsQueryInputDBTest");
+        String idPrefix = "analyticsQueryInputDBTest";
+        insertTestDataToDB(idPrefix);
+        System.out.println(">>>>>> BEGIN");
+        // Thread.sleep(10000000);
+        CouchbaseInputConfiguration configurationWithAnalytics = getInputConfiguration();
+        configurationWithAnalytics.setSelectAction(SelectAction.ANALYTICS);
+        AnalyticsQuery analyticsQuery = AnalyticsQuery
+                .simple("CREATE BUCKET " + ANALYTICS_BUCKET + " WITH {\"name\":" + BUCKET_NAME + "\"}");
+        System.out.println(">>>>>> RUNNING QUERIES ");
+        Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
+        bucket.query(analyticsQuery);
+        System.out.println(">>>>>> FIRST STAGE OK");
+        analyticsQuery = AnalyticsQuery
+                .simple("CREATE DATASET " + ANALYTICS_DATASET + " ON " + ANALYTICS_BUCKET + " WHERE `t_string` LIKE \"id%\"");
+        bucket.query(analyticsQuery);
+        System.out.println(">>>>>> SECOND STAGE OK");
+        analyticsQuery = AnalyticsQuery.simple("CONNECT BUCKET " + ANALYTICS_BUCKET);
+        bucket.query(analyticsQuery);
+        System.out.println(">>>>>> THIRD STAGE OK");
+        configurationWithAnalytics.setQuery("SELECT * FROM " + ANALYTICS_DATASET + " ORDER BY name");
+        System.out.println(configurationWithAnalytics.getQuery());
+        System.out.println(">>>>>>>>>>>>> END");
+        executeJob(configurationWithAnalytics);
+        final List<Record> res = componentsHandler.getCollectedData(Record.class);
+        System.out.println(">>>>>>>>> RESULTS");
+        System.out.println(res);
+        System.out.println(">>>>>>>>> END OF RESULTS");
+        assertNotNull(res);
         assertEquals(2, res.size());
         assertEquals(3, res.get(0).getSchema().getEntries().size());
         assertEquals(3, res.get(1).getSchema().getEntries().size());

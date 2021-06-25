@@ -12,12 +12,10 @@
  */
 package org.talend.components.couchbase;
 
+import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.List;
-
-import com.couchbase.client.java.CouchbaseCluster;
-import com.couchbase.client.java.bucket.BucketType;
-import com.couchbase.client.java.cluster.DefaultBucketSettings;
 
 import org.talend.components.couchbase.datastore.CouchbaseDataStore;
 import org.talend.sdk.component.api.service.Service;
@@ -25,6 +23,10 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
 import org.testcontainers.couchbase.CouchbaseContainer;
+
+import com.couchbase.client.java.CouchbaseCluster;
+import com.couchbase.client.java.bucket.BucketType;
+import com.couchbase.client.java.cluster.DefaultBucketSettings;
 
 public abstract class CouchbaseUtilTest {
 
@@ -38,9 +40,14 @@ public abstract class CouchbaseUtilTest {
 
     private static final String CLUSTER_PASSWORD = "secret";
 
+    protected static final String ANALYTICS_BUCKET = "typesBucket";
+
+    protected static final String ANALYTICS_DATASET = "typesDataset";
+
     private static final int DEFAULT_TIMEOUT_IN_SEC = 40;
 
-    private static final List<String> ports = Arrays.asList("8091:8091", "8092:8092", "8093:8093", "8094:8094", "11210:11210");
+    private static final List<String> ports = Arrays.asList("8091:8091", "8092:8092", "8093:8093", "8094:8094", "8095:8095",
+            "11210:11210");
 
     private static final CouchbaseContainer COUCHBASE_CONTAINER;
 
@@ -55,7 +62,7 @@ public abstract class CouchbaseUtilTest {
     protected RecordBuilderFactory recordBuilderFactory;
 
     static {
-        COUCHBASE_CONTAINER = new CouchbaseContainer(
+        COUCHBASE_CONTAINER = new AnalyticsCouchbaseContainer(
                 System.getenv("TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX") + "couchbase/server:5.5.1")
                         .withClusterAdmin(CLUSTER_USERNAME, CLUSTER_PASSWORD)
                         .withNewBucket(DefaultBucketSettings.builder().enableFlush(true).name(BUCKET_NAME)
@@ -76,5 +83,19 @@ public abstract class CouchbaseUtilTest {
 
     protected String generateDocId(String prefix, int number) {
         return prefix + "_" + number;
+    }
+
+    private static class AnalyticsCouchbaseContainer extends CouchbaseContainer {
+
+        public AnalyticsCouchbaseContainer(String name) {
+            super(name);
+        }
+
+        public void callCouchbaseRestAPI(String url, String payload) throws IOException {
+            if (url.equals("/node/controller/setupServices")) {
+                payload += URLEncoder.encode("cbas,", "UTF-8");
+            }
+            super.callCouchbaseRestAPI(url, payload);
+        }
     }
 }
