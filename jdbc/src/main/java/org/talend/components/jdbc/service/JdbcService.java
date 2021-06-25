@@ -42,6 +42,8 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
+import com.zaxxer.hikari.HikariDataSource;
+
 import org.talend.components.jdbc.configuration.JdbcConfiguration;
 import org.talend.components.jdbc.datastore.AuthenticationType;
 import org.talend.components.jdbc.datastore.JdbcConnection;
@@ -53,8 +55,6 @@ import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.dependency.Resolver;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-
-import com.zaxxer.hikari.HikariDataSource;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -103,7 +103,7 @@ public class JdbcService {
         return query != null && !READ_ONLY_QUERY_PATTERN.matcher(query.trim()).matches();
     }
 
-    private JdbcConfiguration.Driver getDriver(final JdbcConnection dataStore) {
+    public JdbcConfiguration.Driver getDriver(final JdbcConnection dataStore) {
         return jdbcConfiguration.get().getDrivers().stream().filter(this::driverNotDisabled)
                 .filter(d -> d.getId()
                         .equals(ofNullable(dataStore.getHandler()).filter(h -> !h.isEmpty()).orElse(dataStore.getDbType())))
