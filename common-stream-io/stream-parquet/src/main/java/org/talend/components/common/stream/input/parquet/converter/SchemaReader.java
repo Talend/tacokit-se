@@ -15,11 +15,12 @@ package org.talend.components.common.stream.input.parquet.converter;
 import java.util.List;
 
 import org.apache.parquet.schema.GroupType;
+import org.apache.parquet.schema.PrimitiveType;
+import org.apache.parquet.schema.Type;
 import org.apache.parquet.schema.Type.Repetition;
+import org.talend.components.common.stream.format.parquet.Constants;
 import org.talend.components.common.stream.format.parquet.Name;
-import org.talend.components.common.stream.input.parquet.converter.TCKPrimitiveTypes;
 import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import lombok.RequiredArgsConstructor;
@@ -44,15 +45,24 @@ public class SchemaReader {
         final Schema.Entry.Builder entryBuilder = this.factory.newEntryBuilder() //
                 .withName(name.getName()) //
                 .withRawName(name.getRawName());
-        if (parquetField.getRepetition() == Repetition.REPEATED || this.isArrayEncapsulated(parquetField)) {
+        if (parquetField.isRepetition(Repetition.REPEATED) || this.isArrayEncapsulated(parquetField)) {
+            final Type innerArrayType = TCKConverter.innerArrayType(parquetField);
             entryBuilder.withNullable(true);
             entryBuilder.withType(Schema.Type.ARRAY);
-            if (parquetField.isPrimitive()) {
-                final Schema.Type tckType = TCKPrimitiveTypes.toTCKType(parquetField.asPrimitiveType());
-                entryBuilder.withElementSchema(this.factory.newSchemaBuilder(tckType).build());
-            } else {
+            if (innerArrayType == null) {
+                if (parquetField.isPrimitive()) {
+                    final Schema.Type tckType = TCKPrimitiveTypes.toTCKType(parquetField.asPrimitiveType());
+                    entryBuilder.withElementSchema(factory.newSchemaBuilder(tckType).build());
+                } else {
                     final Schema schema = this.extractRecordType(parquetField.asGroupType());
                     entryBuilder.withElementSchema(schema);
+                }
+            } else if (innerArrayType.isPrimitive()) {
+                final Schema.Type tckType = TCKPrimitiveTypes.toTCKType(innerArrayType.asPrimitiveType());
+                entryBuilder.withElementSchema(this.factory.newSchemaBuilder(tckType).build());
+            } else {
+                final Schema schema = this.extractRecordType(innerArrayType.asGroupType());
+                entryBuilder.withElementSchema(schema);
             }
         } else {
             if (parquetField.isPrimitive()) {
@@ -76,7 +86,7 @@ public class SchemaReader {
         final List<org.apache.parquet.schema.Type> fields = parquetField.asGroupType().getFields();
         if (fields != null && fields.size() == 1) {
             final org.apache.parquet.schema.Type elementType = fields.get(0);
-            if (!elementType.isPrimitive() && "list".equals(elementType.getName())) {
+            if (Constants.LIST_NAME.equals(elementType.getName())) {
                 return elementType.getRepetition() == Repetition.REPEATED;
             }
         }
@@ -88,20 +98,41 @@ public class SchemaReader {
         final List<org.apache.parquet.schema.Type> fields = gt.getFields();
         if (fields != null && fields.size() == 1) {
             final org.apache.parquet.schema.Type listType = fields.get(0);
-            if (!listType.isPrimitive() && "list".equals(listType.getName())) {
-                final GroupType groupType = listType.asGroupType();
-                final org.apache.parquet.schema.Type elementType = groupType.getFields().get(0);
-                if (!elementType.isPrimitive()) {
-                    return this.extractRecordType(elementType.asGroupType());
+            if (listType != null && Constants.LIST_NAME.equals(listType.getName()) && (!listType.isPrimitive())) {
+                final List<Type> listFields = listType.asGroupType().getFields();
+                if (listFields != null && listFields.size() == 1) {
+                    final org.apache.parquet.schema.Type elementType = listFields.get(0);
+                    if (elementType.isPrimitive()) {
+                        return extractArrayType(elementType.asPrimitiveType());
+                    }
+                    final GroupType groupType = elementType.asGroupType();
+                    final List<Type> groupTypeFields = groupType.getFields();
+                    if (groupTypeFields != null && groupTypeFields.size() == 1) {
+                        final org.apache.parquet.schema.Type innerType = groupTypeFields.get(0);
+                        if ((!innerType.isPrimitive()) && Constants.LIST_NAME.equals(listType.getName())) {
+                            final Schema sub = this.extractRecordType(innerType.asGroupType());
+                            return this.factory.newSchemaBuilder(Schema.Type.ARRAY).withElementSchema(sub).build();
+                        }
+                    }
+                    final Schema sub = this.extractRecordType(groupType);
+                    return this.factory.newSchemaBuilder(Schema.Type.ARRAY).withElementSchema(sub).build();
                 }
             }
         }
 
-        final Schema.Builder builder = this.factory.newSchemaBuilder(Type.RECORD);
-        fields.stream() //
-                .map(this::extractTCKField) // get tck entry
-                .forEach(builder::withEntry); // into schema.
+        final Schema.Builder builder = this.factory.newSchemaBuilder(Schema.Type.RECORD);
+        if (fields != null) {
+            fields.stream() //
+                    .map(this::extractTCKField) // get tck entry
+                    .forEach(builder::withEntry); // into schema.
+        }
         return builder.build();
+    }
+
+    private Schema extractArrayType(PrimitiveType parquetType) {
+        final Schema.Builder builder = this.factory.newSchemaBuilder(Schema.Type.ARRAY);
+        final Schema.Type tckType = TCKPrimitiveTypes.toTCKType(parquetType);
+        return builder.withElementSchema(this.factory.newSchemaBuilder(tckType).build()).build();
     }
 
 }

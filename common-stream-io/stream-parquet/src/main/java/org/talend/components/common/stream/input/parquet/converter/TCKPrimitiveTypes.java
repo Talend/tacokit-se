@@ -24,6 +24,9 @@ public class TCKPrimitiveTypes {
             return Schema.Type.INT;
         }
         if (pt.getPrimitiveTypeName() == PrimitiveTypeName.INT64) {
+            if (pt.getLogicalTypeAnnotation() instanceof LogicalTypeAnnotation.TimestampLogicalTypeAnnotation) {
+                return Schema.Type.DATETIME;
+            }
             return Schema.Type.LONG;
         }
         if (pt.getPrimitiveTypeName() == PrimitiveTypeName.BOOLEAN) {

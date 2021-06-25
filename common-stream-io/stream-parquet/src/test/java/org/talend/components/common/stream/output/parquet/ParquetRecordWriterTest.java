@@ -1,8 +1,24 @@
+/*
+ * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.talend.components.common.stream.output.parquet;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -18,10 +34,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.slf4j.LoggerFactory;
 import org.talend.components.common.stream.input.parquet.ParquetRecordReader;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
@@ -35,7 +51,6 @@ class ParquetRecordWriterTest {
         System.setProperty("org.slf4j.simpleLogger.log.org.talend.components", "debug");
     }
 
-
     @ParameterizedTest
     @MethodSource("provideRecords")
     void write(final List<Record> records) throws IOException {
@@ -46,7 +61,6 @@ class ParquetRecordWriterTest {
         }
         Path path = new Path(fileOut.getPath());
         final TCKParquetWriterBuilder builder = new TCKParquetWriterBuilder(path);
-
 
         final RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");
         final Schema schema = records.get(0).getSchema();
@@ -77,52 +91,79 @@ class ParquetRecordWriterTest {
     private static Stream<Arguments> provideRecords() {
         final RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");
 
-        final Schema.Entry f1 = factory.newEntryBuilder().withName("f1")/*.withRawName("raw")*/.withType(Schema.Type.STRING).withNullable(false).build();
+        final Schema.Entry f1 = factory.newEntryBuilder().withName("f1").withRawName("raw").withType(Schema.Type.STRING)
+                .withNullable(false).build();
         final Schema.Entry f2 = factory.newEntryBuilder().withName("f2").withType(Schema.Type.INT).withNullable(false).build();
+        final Schema.Entry f3 = factory.newEntryBuilder().withName("f3").withType(Schema.Type.BYTES).withNullable(true).build();
+        final Schema.Entry f4 = factory.newEntryBuilder().withName("f4").withType(Schema.Type.DOUBLE).withNullable(true).build();
+        final Schema.Entry f5 = factory.newEntryBuilder().withName("f5").withType(Type.DATETIME).withNullable(true).build();
 
         // simple
-        final Schema schema = factory.newSchemaBuilder(Type.RECORD).withEntry(f1).withEntry(f2).build();
+        final Schema schema = factory.newSchemaBuilder(Schema.Type.RECORD).withEntry(f1).withEntry(f2).withEntry(f3).withEntry(f4)
+                .withEntry(f5).build();
         final Record record1 = factory.newRecordBuilder(schema).withString(f1, "value1").withInt(f2, 11).build();
-        final Record record2 = factory.newRecordBuilder(schema).withString(f1, "value2").withInt(f2, 21).build();
+        final Record record2 = factory.newRecordBuilder(schema).withString(f1, "value2").withInt(f2, 21)
+                .withBytes(f3, "Hello".getBytes(StandardCharsets.UTF_8)).withDouble(f4, 0.23D)
+                .withDateTime(f5, ZonedDateTime.of(LocalDateTime.of(2021, 5, 12, 15, 0, 50), ZoneId.of("UTC"))).build();
         final List<Record> records = Arrays.asList(record1, record2);
 
         // sub object
         final Schema.Entry fsub = factory.newEntryBuilder().withName("fsub") //
-                .withType(Schema.Type.RECORD)//.withRawName("rawname") //
-                .withElementSchema(schema)
-                .build();
-        final Schema schema1 = factory.newSchemaBuilder(Schema.Type.RECORD)
-                .withEntry(fsub)
-                .build();
+                .withType(Schema.Type.RECORD).withRawName("rawname") //
+                .withElementSchema(schema).build();
+        final Schema schema1 = factory.newSchemaBuilder(Schema.Type.RECORD).withEntry(fsub).build();
         final Record record3 = factory.newRecordBuilder(schema1).withRecord(fsub, record1).build();
         final List<Record> recordsWithSub = Arrays.asList(record3);
 
         // Array of privmitiv
         final Schema.Entry farray = factory.newEntryBuilder().withName("farray") //
-            .withType(Schema.Type.ARRAY).withElementSchema(factory.newSchemaBuilder(Schema.Type.STRING).build())
-                .withNullable(true)
-                .build();
-        final Schema schema2 = factory.newSchemaBuilder(Schema.Type.RECORD)
-                .withEntry(farray)
-                .build();
+                .withType(Schema.Type.ARRAY).withElementSchema(factory.newSchemaBuilder(Schema.Type.STRING).build())
+                .withNullable(true).build();
+        final Schema schema2 = factory.newSchemaBuilder(Schema.Type.RECORD).withEntry(farray).build();
         final Record record4 = factory.newRecordBuilder(schema2).withArray(farray, Arrays.asList("a", "b", "c")).build();
         final List<Record> recordsWithArray = Arrays.asList(record4);
 
         // Array of records.
         final Schema.Entry farrayRec = factory.newEntryBuilder().withName("farray") //
-                .withType(Schema.Type.ARRAY).withElementSchema(schema)
-                .withNullable(true)
-                .build();
-        final Schema schemaArray = factory.newSchemaBuilder(Schema.Type.RECORD)
-                .withEntry(farrayRec)
-                .build();
+                .withType(Schema.Type.ARRAY).withElementSchema(schema).withNullable(true).build();
+        final Schema schemaArray = factory.newSchemaBuilder(Schema.Type.RECORD).withEntry(farrayRec).build();
         final Record record5 = factory.newRecordBuilder(schemaArray).withArray(farray, Arrays.asList(record1, record2)).build();
         final List<Record> recordsWithArrayRec = Arrays.asList(record5);
+
+        // More complex record.
+        final Entry e1 = factory.newEntryBuilder().withName("e1").withType(Schema.Type.RECORD).withElementSchema(schemaArray)
+                .build();
+        final Entry e2 = factory.newEntryBuilder().withName("e2").withType(Schema.Type.RECORD).withElementSchema(schema2).build();
+        final Entry e3 = factory.newEntryBuilder().withName("e3").withType(Schema.Type.RECORD).withElementSchema(schema).build();
+        final Schema schema3 = factory.newSchemaBuilder(Schema.Type.RECORD).withEntry(e1).withEntry(e2).withEntry(e3).build();
+        final Record complexeRecord = factory.newRecordBuilder(schema3).withRecord(e1, record5).withRecord(e2, record4)
+                .withRecord(e3, record1).build();
+
+        // Array of Array of primitiv
+        final Schema arrayOfInt = factory.newSchemaBuilder(Schema.Type.ARRAY)
+                .withElementSchema(factory.newSchemaBuilder(Schema.Type.STRING).build()).build();
+        final Entry arrayEntry = factory.newEntryBuilder().withName("array").withType(Schema.Type.ARRAY)
+                .withElementSchema(arrayOfInt).withNullable(true).build();
+        final Schema schema4 = factory.newSchemaBuilder(Schema.Type.RECORD).withEntry(arrayEntry).build();
+        Collection<Collection<String>> intValues = Arrays.asList(Arrays.asList("AAA", "BBB"), Arrays.asList("CCC", "4", "5"),
+                Arrays.asList("FFF"));
+        final Record recordWithArrayOfArray = factory.newRecordBuilder(schema4).withArray(arrayEntry, intValues).build();
+
+        // Array of array of record
+        final Schema arrayOfRecord = factory.newSchemaBuilder(Schema.Type.ARRAY).withElementSchema(schema).build();
+        final Entry arrayRecEntry = factory.newEntryBuilder().withName("array").withType(Schema.Type.ARRAY)
+                .withElementSchema(arrayOfRecord).withNullable(true).build();
+        final Schema schema5 = factory.newSchemaBuilder(Schema.Type.RECORD).withEntry(arrayRecEntry).build();
+        final Record recordWithRecordArrayArray = factory.newRecordBuilder(schema5)
+                .withArray(arrayRecEntry, Arrays.asList(Arrays.asList(record1), Arrays.asList(record2))).build();
 
         return Stream.of(Arguments.of(records), // simple
                 Arguments.of(recordsWithSub), // with sub records
                 Arguments.of(recordsWithArray), // with primitiv array
-                Arguments.of(recordsWithArrayRec)); // with array of rec
+                Arguments.of(recordsWithArrayRec), // with array of rec
+                Arguments.of(Arrays.asList(complexeRecord)), // higher complex record
+                Arguments.of(Arrays.asList(recordWithArrayOfArray)), // array of array of primitiv
+                Arguments.of(Arrays.asList(recordWithRecordArrayArray))); // array of array of record.
     }
 
     @RequiredArgsConstructor
@@ -189,6 +230,13 @@ class ParquetRecordWriterTest {
                     return result;
                 }
                 index++;
+            }
+            return Result.OK;
+        }
+        if (o1 instanceof byte[] && o2 instanceof byte[]) {
+            final boolean arrayEquals = Arrays.equals((byte[]) o1, (byte[]) o2);
+            if (!arrayEquals) {
+                return new Result(false, field + " (byte[])");
             }
             return Result.OK;
         }

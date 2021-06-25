@@ -12,11 +12,8 @@
  */
 package org.talend.components.common.stream.output.parquet.converter;
 
-import org.apache.parquet.schema.LogicalTypeAnnotation;
-import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
 import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.record.Schema.Type;
 
 public class ParquetPrimitiveTypes {
 

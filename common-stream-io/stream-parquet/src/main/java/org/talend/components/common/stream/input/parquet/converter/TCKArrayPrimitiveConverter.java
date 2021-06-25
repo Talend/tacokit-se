@@ -20,7 +20,9 @@ import java.util.function.Consumer;
 import org.talend.sdk.component.api.record.Schema;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class TCKArrayPrimitiveConverter extends TCKPrimitiveConverter {
 
     /**
@@ -41,6 +43,7 @@ public class TCKArrayPrimitiveConverter extends TCKPrimitiveConverter {
         }
 
         public void end() {
+            log.info("Call setter size : " + this.objects.size());
             this.arraySetter.accept(this.objects);
             this.objects = new ArrayList<>();
         }
@@ -54,6 +57,7 @@ public class TCKArrayPrimitiveConverter extends TCKPrimitiveConverter {
     }
 
     public void end() {
+        log.info("end");
         this.collectionSetter.end();
     }
 }

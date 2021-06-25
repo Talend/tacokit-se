@@ -22,6 +22,9 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class TCKRecordConverter extends GroupConverter {
 
     private final Consumer<Record> recordSetter;
@@ -34,7 +37,8 @@ public class TCKRecordConverter extends GroupConverter {
 
     private final Converter[] converters;
 
-    public TCKRecordConverter(RecordBuilderFactory factory, Consumer<Record> recordSetter, GroupType parquetType, final Schema tckParentType) {
+    public TCKRecordConverter(RecordBuilderFactory factory, Consumer<Record> recordSetter, GroupType parquetType,
+            final Schema tckParentType) {
         this.factory = factory;
         this.recordSetter = recordSetter;
         this.converters = new Converter[parquetType.getFieldCount()];
@@ -42,8 +46,8 @@ public class TCKRecordConverter extends GroupConverter {
         this.schemaTCK = reader.convert(parquetType);
         for (int i = 0; i < parquetType.getFieldCount(); i++) {
             final Type fieldType = parquetType.getType(i);
-            final Converter converter = TCKConverter.buildConverter(fieldType, this.factory, this.schemaTCK, tckParentType,
-                    () -> this.recordBuilder, parquetType);
+            final Converter converter = TCKConverter.buildConverter(fieldType, this.factory, this.schemaTCK,
+                    () -> this.recordBuilder);
             this.converters[i] = converter;
         }
     }
@@ -55,12 +59,13 @@ public class TCKRecordConverter extends GroupConverter {
 
     @Override
     public void start() {
+        log.info("start");
         this.recordBuilder = this.factory.newRecordBuilder(this.schemaTCK);
     }
 
     @Override
     public void end() {
-
+        log.info("end");
         for (Converter converter : this.converters) {
             if (converter instanceof TCKArrayPrimitiveConverter) {
                 ((TCKArrayPrimitiveConverter) converter).end();

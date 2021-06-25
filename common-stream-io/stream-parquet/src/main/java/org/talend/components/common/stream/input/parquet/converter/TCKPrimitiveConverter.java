@@ -36,7 +36,7 @@ public class TCKPrimitiveConverter extends PrimitiveConverter {
 
     @Override
     public void addBinary(Binary value) {
-        this.setValue(value);
+        this.setValue(value.toStringUsingUTF8());
     }
 
     @Override

@@ -21,11 +21,12 @@ import org.apache.parquet.io.api.Converter;
 import org.apache.parquet.io.api.GroupConverter;
 import org.apache.parquet.schema.GroupType;
 import org.apache.parquet.schema.Type;
+import org.talend.components.common.stream.format.parquet.Constants;
+import org.talend.components.common.stream.format.parquet.Name;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -42,31 +43,62 @@ public class TCKArrayConverter extends GroupConverter {
 
         this.arraySetter = arraySetter;
         if (parquetType.isPrimitive()) {
-            this.converter = new TCKPrimitiveConverter(this.values::add);
+            this.converter = new TCKPrimitiveConverter(this::addValue);
         } else {
             final GroupType groupType = parquetType.asGroupType();
-            this.converter = new TCKRecordConverter(factory, this::addValue, groupType, tckType);
+            final Type type = TCKConverter.innerArrayType(parquetType);
+            if (type != null) {
+                if (type.isPrimitive()) {
+                    final Collection<Object> subObject = new ArrayList<>();
+                    final TCKPrimitiveConverter primitiveConverter = new TCKPrimitiveConverter(subObject::add);
+
+                    // this.converter = new TCKNoActionConverter(new TCKArrayConverter(this::addValue, factory, type,
+                    // tckType.getElementSchema()));
+                    this.converter = new TCKEndActionConverter(new TCKEndActionConverter(primitiveConverter), () -> {
+                        ArrayList<Object> copy = new ArrayList<>(subObject.size());
+                        copy.addAll(subObject);
+                        TCKArrayConverter.this.addValue(copy);
+                        subObject.clear();
+                    });
+                } else {
+                    final Name name = Name.fromParquetName(type.getName());
+                    final Schema elementSchema = tckType.getElementSchema();
+                    final Schema.Entry.Builder fieldBuilder = factory.newEntryBuilder().withName(name.getName())
+                            .withNullable(true).withType(elementSchema.getType());
+                    if (elementSchema.getElementSchema() != null) {
+                        fieldBuilder.withElementSchema(elementSchema.getElementSchema());
+                    }
+                    if (elementSchema.getType() == Schema.Type.RECORD) {
+                        fieldBuilder.withElementSchema(elementSchema);
+                    }
+                    final Schema schema = factory.newSchemaBuilder(Schema.Type.RECORD).withEntry(fieldBuilder.build()).build();
+                    final Record.Builder subRecordBuilder[] = new Record.Builder[1];
+                    subRecordBuilder[0] = factory.newRecordBuilder(schema);
+
+                    final Collection<Object> elements = new ArrayList<>();
+                    final Converter buildConverter = TCKConverter.buildConverter(type, factory, schema,
+                            () -> subRecordBuilder[0]);
+                    final TCKEndActionConverter actionConverter = new TCKEndActionConverter(buildConverter, () -> {
+                        final Record record = subRecordBuilder[0].build();
+                        final Object value = record.get(Object.class, name.getName());
+                        elements.add(value);
+                        subRecordBuilder[0] = factory.newRecordBuilder(schema);
+                    });
+                    this.converter = new TCKEndActionConverter(actionConverter, () -> {
+                        ArrayList<Object> copy = new ArrayList<>(elements.size());
+                        copy.addAll(elements);
+                        TCKArrayConverter.this.addValue(copy);
+                        elements.clear();
+                    });
+                }
+            } else {
+                this.converter = new TCKRecordConverter(factory, this::addValue, groupType, tckType);
+            }
         }
     }
 
     private void addValue(Object value) {
-        log.info("add value " + value);
-        boolean done = false;
-        if (value instanceof Record) {
-            final Record rec = (Record) value;
-            try {
-                final Record element = rec.getRecord("element");
-                if (element != null) {
-                    this.values.add(element);
-                }
-                done = true;
-            }
-            catch (RuntimeException ex) {
-            }
-        }
-        if (!done) {
-            this.values.add(value);
-        }
+        this.values.add(value);
     }
 
     @Override
@@ -82,8 +114,10 @@ public class TCKArrayConverter extends GroupConverter {
     @Override
     public void end() {
         log.info("end, array size " + values.size());
-        this.arraySetter.accept(this.values);
-        this.values = new ArrayList<>();
+        ArrayList<Object> copy = new ArrayList<>(values.size());
+        copy.addAll(values);
+        this.arraySetter.accept(copy);
+        this.values.clear();
     }
 
 }
