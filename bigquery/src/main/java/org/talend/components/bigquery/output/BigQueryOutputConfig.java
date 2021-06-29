@@ -28,7 +28,7 @@ import java.io.Serializable;
 import static org.talend.sdk.component.api.component.Icon.IconType.BIGQUERY;
 
 @Data
-@Icon(value = Icon.IconType.CUSTOM, custom = "bigquery")
+@Icon(value = Icon.IconType.CUSTOM, custom = "bigquery-connector")
 @Documentation("Dataset of a BigQuery component.")
 @OptionsOrder({ "dataSet", "tableOperation" })
 public class BigQueryOutputConfig implements Serializable {

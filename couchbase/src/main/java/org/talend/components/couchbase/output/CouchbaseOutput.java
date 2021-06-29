@@ -51,7 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Version(1)
 @Slf4j
-@Icon(value = Icon.IconType.CUSTOM, custom = "couchbase-out")
+@Icon(value = Icon.IconType.CUSTOM, custom = "couchbase-output")
 @Processor(name = "Output")
 @Documentation("This component writes data to Couchbase")
 public class CouchbaseOutput implements Serializable {

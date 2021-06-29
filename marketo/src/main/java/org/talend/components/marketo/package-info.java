@@ -12,7 +12,7 @@
  *
  */
 @Components(family = "Marketo", categories = { "Business", "Cloud" })
-@Icon(value = IconType.CUSTOM, custom = "marketo")
+@Icon(value = IconType.CUSTOM, custom = "marketo-family")
 
 package org.talend.components.marketo;
 

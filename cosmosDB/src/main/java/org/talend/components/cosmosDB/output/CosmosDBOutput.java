@@ -44,7 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Version(2)
 @Slf4j
-@Icon(value = Icon.IconType.CUSTOM, custom = "CosmosDBOutput")
+@Icon(value = Icon.IconType.CUSTOM, custom = "CosmosDB-output")
 @Processor(name = "SQLAPIOutput")
 @Documentation("This component writes data to cosmosDB")
 public class CosmosDBOutput implements Serializable {

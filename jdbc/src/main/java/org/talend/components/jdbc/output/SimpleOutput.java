@@ -36,7 +36,7 @@ import java.util.Map;
 @Getter
 @Version(value = 2, migrationHandler = SimpleOutput.Migration.class)
 @Processor(name = "Output")
-@Icon(value = Icon.IconType.DATASTORE)
+@Icon(value = Icon.IconType.CUSTOM, custom = "datastore-connector")
 @Documentation("JDBC Output component")
 public class SimpleOutput extends Output implements Serializable {
 

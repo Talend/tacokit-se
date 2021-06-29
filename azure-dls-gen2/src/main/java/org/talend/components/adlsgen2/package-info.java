@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 @Components(family = "Azure", categories = "Cloud")
-@Icon(value = Icon.IconType.CUSTOM, custom = "AdlsGen2")
+@Icon(value = Icon.IconType.CUSTOM, custom = "AdlsGen2-family")
 package org.talend.components.adlsgen2;
 
 import org.talend.sdk.component.api.component.Components;

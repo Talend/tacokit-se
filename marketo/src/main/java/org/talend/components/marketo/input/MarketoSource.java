@@ -41,7 +41,7 @@ import static org.talend.components.marketo.MarketoApiConstants.ATTR_RESULT;
 
 @Slf4j
 @Version
-@Icon(value = Icon.IconType.CUSTOM, custom = "marketo-in")
+@Icon(value = Icon.IconType.CUSTOM, custom = "marketo-input")
 @Documentation("Marketo input component")
 public abstract class MarketoSource extends MarketoSourceOrProcessor {
 

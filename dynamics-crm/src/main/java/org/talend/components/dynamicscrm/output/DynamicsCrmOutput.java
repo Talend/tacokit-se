@@ -42,7 +42,7 @@ import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
 
 @Version(1)
-@Icon(value = IconType.CUSTOM, custom = "azure-dynamics")
+@Icon(value = IconType.CUSTOM, custom = "azure-dynamics-connector")
 @Processor(name = "AzureDynamics365Output")
 @Documentation("Azure Dynamics 365 output")
 public class DynamicsCrmOutput implements Serializable {

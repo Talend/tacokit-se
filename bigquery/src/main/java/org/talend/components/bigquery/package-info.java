@@ -1,4 +1,4 @@
-@Icon(value = Icon.IconType.CUSTOM, custom = "bigquery")
+@Icon(value = Icon.IconType.CUSTOM, custom = "bigquery-family")
 @Components(family = "BigQuery")
 package org.talend.components.bigquery;
 

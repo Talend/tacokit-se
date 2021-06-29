@@ -39,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Version
 @Slf4j
-@Icon(value = Icon.IconType.CUSTOM, custom = "cloudstorage")
+@Icon(value = Icon.IconType.CUSTOM, custom = "cloudstorage-connector")
 @Emitter(family = "GoogleStorage", name = "Input")
 @Documentation("This component read content file from google cloud storage.")
 @RequiredArgsConstructor

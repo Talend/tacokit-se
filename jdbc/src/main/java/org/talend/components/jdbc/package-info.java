@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 @Components(family = "Jdbc", categories = "Databases")
-@Icon(value = Icon.IconType.DATASTORE)
+@Icon(value = Icon.IconType.CUSTOM, custom = "datastore-family")
 package org.talend.components.jdbc;
 
 import org.talend.sdk.component.api.component.Components;

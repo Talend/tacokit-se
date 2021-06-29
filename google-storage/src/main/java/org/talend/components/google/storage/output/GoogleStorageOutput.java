@@ -45,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Version
-@Icon(value = IconType.CUSTOM, custom = "cloudstorage")
+@Icon(value = IconType.CUSTOM, custom = "cloudstorage-connector")
 @Processor(family = "GoogleStorage", name = "Output")
 @Documentation("Google storage output")
 @RequiredArgsConstructor
