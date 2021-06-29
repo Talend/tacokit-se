@@ -14,6 +14,7 @@ package org.talend.components.salesforce.service.operation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Result {
 
@@ -30,6 +31,10 @@ public class Result {
 
     public Iterable<String> getErrors() {
         return this.errors;
+    }
+
+    public String getErrorsString() {
+        return this.errors.stream().collect(Collectors.joining(", "));
     }
 
     public boolean isOK() {

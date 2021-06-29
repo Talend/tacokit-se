@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.sforce.soap.partner.IField;
 
@@ -105,15 +106,12 @@ public class SalesforceOutputService implements Serializable {
     }
 
     private void handleResults(final List<Result> results) throws IOException {
-        final StringBuilder errors = new StringBuilder();
-        results.stream().filter((Result r) -> !r.isOK()).map(Result::getErrors).filter(Objects::nonNull)
-                .forEach((Iterable<String> errs) -> errs.forEach(errors::append));
-        if (errors.length() > 0) {
+        final String errors = results.stream().filter((Result r) -> !r.isOK()).map(Result::getErrorsString)
+                .filter(Objects::nonNull).collect(Collectors.joining("; "));
+        if (errors != null && errors.length() > 0) {
+            log.error(errors);
             if (exceptionForErrors) {
-                throw new IOException(errors.toString());
-            } else {
-                // log.error("RowKey/RowNo:{}", changedItemKey);
-                log.error(errors.toString());
+                throw new IOException(errors);
             }
         }
     }
