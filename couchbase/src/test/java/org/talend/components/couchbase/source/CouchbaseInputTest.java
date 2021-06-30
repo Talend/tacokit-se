@@ -12,27 +12,15 @@
  */
 package org.talend.components.couchbase.source;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
-
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.couchbase.client.deps.io.netty.buffer.ByteBuf;
 import com.couchbase.client.deps.io.netty.buffer.Unpooled;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.analytics.AnalyticsQuery;
-import com.couchbase.client.java.analytics.AnalyticsQueryResult;
 import com.couchbase.client.java.document.BinaryDocument;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.StringDocument;
 import com.couchbase.client.java.document.json.JsonObject;
-
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,7 +33,14 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
-import lombok.extern.slf4j.Slf4j;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @Slf4j
 @WithComponents("org.talend.components.couchbase")
@@ -157,24 +152,10 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
     void analyticsQueryInputDBTest() throws InterruptedException {
         log.info("Test start: analyticsQueryInputDBTest");
         String idPrefix = "analyticsQueryInputDBTest";
-        insertTestDataToDB(idPrefix);
+        insertTestDataToDBAndPrepareAnalytics(idPrefix);
         System.out.println(">>>>>> BEGIN");
-        // Thread.sleep(10000000);
         CouchbaseInputConfiguration configurationWithAnalytics = getInputConfiguration();
         configurationWithAnalytics.setSelectAction(SelectAction.ANALYTICS);
-        AnalyticsQuery analyticsQuery = AnalyticsQuery
-                .simple("CREATE BUCKET " + ANALYTICS_BUCKET + " WITH {\"name\":" + BUCKET_NAME + "\"}");
-        System.out.println(">>>>>> RUNNING QUERIES ");
-        Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
-        bucket.query(analyticsQuery);
-        System.out.println(">>>>>> FIRST STAGE OK");
-        analyticsQuery = AnalyticsQuery
-                .simple("CREATE DATASET " + ANALYTICS_DATASET + " ON " + ANALYTICS_BUCKET + " WHERE `t_string` LIKE \"id%\"");
-        bucket.query(analyticsQuery);
-        System.out.println(">>>>>> SECOND STAGE OK");
-        analyticsQuery = AnalyticsQuery.simple("CONNECT BUCKET " + ANALYTICS_BUCKET);
-        bucket.query(analyticsQuery);
-        System.out.println(">>>>>> THIRD STAGE OK");
         configurationWithAnalytics.setQuery("SELECT * FROM " + ANALYTICS_DATASET + " ORDER BY name");
         System.out.println(configurationWithAnalytics.getQuery());
         System.out.println(">>>>>>>>>>>>> END");
@@ -185,8 +166,26 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         System.out.println(">>>>>>>>> END OF RESULTS");
         assertNotNull(res);
         assertEquals(2, res.size());
-        assertEquals(3, res.get(0).getSchema().getEntries().size());
-        assertEquals(3, res.get(1).getSchema().getEntries().size());
+    }
+
+    private void insertTestDataToDBAndPrepareAnalytics(String idPrefix) {
+        Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
+
+        List<JsonObject> jsonObjects = createJsonObjects();
+        for (int i = 0; i < 2; i++) {
+            bucket.insert(JsonDocument.create(generateDocId(idPrefix, i), jsonObjects.get(i)));
+        }
+
+        AnalyticsQuery analyticsQuery = AnalyticsQuery
+                .simple("CREATE BUCKET " + ANALYTICS_BUCKET + " WITH {\"name\":\"" + BUCKET_NAME + "\"}");
+        bucket.query(analyticsQuery);
+        analyticsQuery = AnalyticsQuery
+                .simple("CREATE DATASET " + ANALYTICS_DATASET + " ON " + ANALYTICS_BUCKET + " WHERE `t_string` LIKE \"id%\"");
+        bucket.query(analyticsQuery);
+        analyticsQuery = AnalyticsQuery.simple("CONNECT BUCKET " + ANALYTICS_BUCKET);
+        bucket.query(analyticsQuery);
+
+        bucket.close();
     }
 
     @Test
