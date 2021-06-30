@@ -110,6 +110,13 @@ spec:
                         '''
                     }
                 }
+                script {
+                    try {
+                        EXTRA_BUILD_PARAMS = params.EXTRA_BUILD_PARAMS
+                    } catch (error) {
+                        EXTRA_BUILD_PARAMS = ""
+                    }
+                }
             }
         }
         stage('Run maven') {
