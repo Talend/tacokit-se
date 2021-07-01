@@ -14,6 +14,9 @@ package org.talend.components.couchbase.source;
 
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
+import com.couchbase.client.java.analytics.AnalyticsQuery;
+import com.couchbase.client.java.analytics.AnalyticsQueryResult;
+import com.couchbase.client.java.analytics.AnalyticsQueryRow;
 import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.error.TranscodingException;
@@ -70,6 +73,8 @@ public class CouchbaseInput implements Serializable {
 
     private Iterator<N1qlQueryRow> index;
 
+    private Iterator<AnalyticsQueryRow> index_analytics;
+
     private Bucket bucket;
 
     public static final String META_ID_FIELD = "_meta_id_";
@@ -87,69 +92,98 @@ public class CouchbaseInput implements Serializable {
         Cluster cluster = service.openConnection(configuration.getDataSet().getDatastore());
         bucket = service.openBucket(cluster, configuration.getDataSet().getBucket());
         bucket.bucketManager().createN1qlPrimaryIndex(true, false);
+        int queryTimeout = configuration.getDataSet().getDatastore().getConnectTimeout(); // convert to sec
+        if (queryTimeout < 75)
+            queryTimeout = 75; // default is 75 second
 
         columnsSet = new HashSet<>();
 
-        N1qlQuery n1qlQuery;
-        switch (configuration.getSelectAction()) {
-        case ALL:
-            Statement statement;
-            AsPath asPath = Select.select("meta().id as " + Expression.i(META_ID_FIELD), "*").from(Expression.i(bucket.name()));
-            if (!configuration.getLimit().isEmpty()) {
-                statement = asPath.limit(Integer.parseInt(configuration.getLimit().trim()));
-            } else {
-                statement = asPath;
+        if (configuration.getSelectAction() == SelectAction.N1QL_ANALYTICS) {
+            AnalyticsQuery analyticsQuery = AnalyticsQuery.simple(configuration.getQuery());
+            // Test purpose:
+            AnalyticsQueryResult analyticsQueryRows = bucket.query(analyticsQuery, queryTimeout,
+                    java.util.concurrent.TimeUnit.SECONDS);
+            checkErrors(analyticsQueryRows);
+            index_analytics = analyticsQueryRows.rows(); // would be nice to have a parent object to avoid having 2 iterators.
+        } else {
+            N1qlQuery n1qlQuery;
+            switch (configuration.getSelectAction()) {
+            case ALL:
+                Statement statement;
+                AsPath asPath = Select.select("meta().id as " + Expression.i(META_ID_FIELD), "*")
+                        .from(Expression.i(bucket.name()));
+                if (!configuration.getLimit().isEmpty()) {
+                    statement = asPath.limit(Integer.parseInt(configuration.getLimit().trim()));
+                } else {
+                    statement = asPath;
+                }
+                n1qlQuery = N1qlQuery.simple(statement);
+                break;
+            case N1QL:
+                /*
+                 * should contain "meta().id as `_meta_id_`" field for non-json (binary) documents
+                 */
+                n1qlQuery = N1qlQuery.simple(configuration.getQuery());
+                break;
+            case ONE:
+                Statement pathToOneDocument = Select.select("meta().id as " + Expression.i(META_ID_FIELD), "*")
+                        .from(Expression.i(bucket.name())).useKeysValues(configuration.getDocumentId());
+                n1qlQuery = N1qlQuery.simple(pathToOneDocument);
+                break;
+            default:
+                throw new RuntimeException("Select action: '" + configuration.getSelectAction() + "' is unsupported");
             }
-            n1qlQuery = N1qlQuery.simple(statement);
-            break;
-        case N1QL:
-            /*
-             * should contain "meta().id as `_meta_id_`" field for non-json (binary) documents
-             */
-            n1qlQuery = N1qlQuery.simple(configuration.getQuery());
-            break;
-        case ONE:
-            Statement pathToOneDocument = Select.select("meta().id as " + Expression.i(META_ID_FIELD), "*")
-                    .from(Expression.i(bucket.name())).useKeysValues(configuration.getDocumentId());
-            n1qlQuery = N1qlQuery.simple(pathToOneDocument);
-            break;
-        default:
-            throw new RuntimeException("Select action: '" + configuration.getSelectAction() + "' is unsupported");
+            n1qlQuery.params().consistency(ScanConsistency.REQUEST_PLUS);
+            N1qlQueryResult n1qlQueryRows = bucket.query(n1qlQuery, queryTimeout, java.util.concurrent.TimeUnit.SECONDS);
+            checkErrors(n1qlQueryRows);
+            index = n1qlQueryRows.rows();
         }
-        n1qlQuery.params().consistency(ScanConsistency.REQUEST_PLUS);
-        N1qlQueryResult n1qlQueryRows = bucket.query(n1qlQuery);
-        checkErrors(n1qlQueryRows);
-        index = n1qlQueryRows.rows();
     }
 
     @Producer
     public Record next() {
-        // loop to find first document with appropriate type (for non-json documents)
-        while (index.hasNext()) {
-            JsonObject jsonObject = index.next().value();
-
-            if (configuration.getDataSet().getDocumentType() == DocumentType.JSON) {
-                try {
+        if (configuration.getSelectAction() == SelectAction.N1QL_ANALYTICS) { // this resulted in an NPE
+            while (index_analytics.hasNext()) {
+                JsonObject jsonObject = index_analytics.next().value();
+                if (configuration.getDataSet().getDocumentType() == DocumentType.JSON) {
                     return createJsonRecord(jsonObject);
-                } catch (ClassCastException e) {
-                    // document is a non-json, try to get next document
                 }
-            } else {
-                try {
-                    String id = jsonObject.getString(META_ID_FIELD);
-                    if (id == null) {
-                        LOG.error("Cannot find '_meta_id_' field. The query should contain 'meta().id as _meta_id_' field");
-                        return null;
+            }
+        } else {
+            // loop to find first document with appropriate type (for non-json documents)
+            while (index.hasNext()) {
+                JsonObject jsonObject = index.next().value();
+
+                if (configuration.getDataSet().getDocumentType() == DocumentType.JSON) {
+                    try {
+                        return createJsonRecord(jsonObject);
+                    } catch (ClassCastException e) {
+                        // document is a non-json, try to get next document
                     }
-                    DocumentParser documentParser = ParserFactory
-                            .createDocumentParser(configuration.getDataSet().getDocumentType(), builderFactory);
-                    return documentParser.parse(bucket, id);
-                } catch (TranscodingException e) {
-                    // document is not a non-json, try to get next document
+                } else {
+                    try {
+                        String id = jsonObject.getString(META_ID_FIELD);
+                        if (id == null) {
+                            LOG.error("Cannot find '_meta_id_' field. The query should contain 'meta().id as _meta_id_' field");
+                            return null;
+                        }
+                        DocumentParser documentParser = ParserFactory
+                                .createDocumentParser(configuration.getDataSet().getDocumentType(), builderFactory);
+                        return documentParser.parse(bucket, id);
+                    } catch (TranscodingException e) {
+                        // document is not a non-json, try to get next document
+                    }
                 }
             }
         }
         return null;
+    }
+
+    private void checkErrors(AnalyticsQueryResult analyticsQueryRows) {
+        if (!analyticsQueryRows.errors().isEmpty()) {
+            LOG.error(i18n.queryResultError());
+            throw new IllegalArgumentException(analyticsQueryRows.errors().toString());
+        }
     }
 
     private void checkErrors(N1qlQueryResult n1qlQueryRows) {

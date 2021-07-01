@@ -91,7 +91,7 @@ public class CouchbaseService {
         try {
             ClusterHolder holder = clustersPool.computeIfAbsent(dataStore, ds -> {
                 CouchbaseEnvironment environment = new DefaultCouchbaseEnvironment.Builder().connectTimeout(connectTimeout)
-                        .build();
+                        .autoreleaseAfter(connectTimeout).build();
                 Cluster cluster = CouchbaseCluster.create(environment, urls);
                 cluster.authenticate(username, password);
                 return new ClusterHolder(environment, cluster);
