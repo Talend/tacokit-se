@@ -16,6 +16,7 @@ import com.couchbase.client.deps.io.netty.buffer.ByteBuf;
 import com.couchbase.client.deps.io.netty.buffer.Unpooled;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.analytics.AnalyticsQuery;
+import com.couchbase.client.java.analytics.AnalyticsQueryResult;
 import com.couchbase.client.java.document.BinaryDocument;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.StringDocument;
@@ -149,21 +150,16 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
 
     @Test
     @DisplayName("Execution of Analytics query")
-    void analyticsQueryInputDBTest() throws InterruptedException {
+    void analyticsQueryInputDBTest() {
         log.info("Test start: analyticsQueryInputDBTest");
         String idPrefix = "analyticsQueryInputDBTest";
         insertTestDataToDBAndPrepareAnalytics(idPrefix);
-        System.out.println(">>>>>> BEGIN");
         CouchbaseInputConfiguration configurationWithAnalytics = getInputConfiguration();
         configurationWithAnalytics.setSelectAction(SelectAction.ANALYTICS);
-        configurationWithAnalytics.setQuery("SELECT * FROM " + ANALYTICS_DATASET + " ORDER BY name");
-        System.out.println(configurationWithAnalytics.getQuery());
-        System.out.println(">>>>>>>>>>>>> END");
+        configurationWithAnalytics
+                .setQuery("SELECT * FROM " + ANALYTICS_DATASET + " WHERE meta().id LIKE \"" + idPrefix + "%\" ORDER BY name");
         executeJob(configurationWithAnalytics);
         final List<Record> res = componentsHandler.getCollectedData(Record.class);
-        System.out.println(">>>>>>>>> RESULTS");
-        System.out.println(res);
-        System.out.println(">>>>>>>>> END OF RESULTS");
         assertNotNull(res);
         assertEquals(2, res.size());
     }
@@ -176,14 +172,23 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
             bucket.insert(JsonDocument.create(generateDocId(idPrefix, i), jsonObjects.get(i)));
         }
 
+        // Bucket needs some time to index newly created entries; analytics dataset will be based on those entries.
+        try {
+            Thread.sleep(4000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         AnalyticsQuery analyticsQuery = AnalyticsQuery
                 .simple("CREATE BUCKET " + ANALYTICS_BUCKET + " WITH {\"name\":\"" + BUCKET_NAME + "\"}");
-        bucket.query(analyticsQuery);
+        AnalyticsQueryResult result = bucket.query(analyticsQuery);
+        assertEquals("success", result.status());
         analyticsQuery = AnalyticsQuery
                 .simple("CREATE DATASET " + ANALYTICS_DATASET + " ON " + ANALYTICS_BUCKET + " WHERE `t_string` LIKE \"id%\"");
-        bucket.query(analyticsQuery);
+        result = bucket.query(analyticsQuery);
+        assertEquals("success", result.status());
         analyticsQuery = AnalyticsQuery.simple("CONNECT BUCKET " + ANALYTICS_BUCKET);
-        bucket.query(analyticsQuery);
+        result = bucket.query(analyticsQuery);
+        assertEquals("success", result.status());
 
         bucket.close();
     }
