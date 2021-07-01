@@ -31,6 +31,7 @@ import org.talend.components.couchbase.service.I18nMessage;
 import org.talend.components.couchbase.source.parsers.DocumentParser;
 import org.talend.components.couchbase.source.parsers.ParserFactory;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;
@@ -101,13 +102,8 @@ public class CouchbaseInput implements Serializable {
         if (configuration.getSelectAction() == SelectAction.ANALYTICS) {
             AnalyticsQuery analyticsQuery = AnalyticsQuery.simple(configuration.getQuery());
             AnalyticsQueryResult queryResult = bucket.query(analyticsQuery);
-            if (queryResult.finalSuccess()) {
-                analytics_index = queryResult.rows();
-            } else {
-                LOG.error(i18n.queryResultError());
-                throw new IllegalArgumentException(queryResult.errors().toString());
-            }
-
+            checkForErrors(queryResult.errors());
+            analytics_index = queryResult.rows();
         } else {
             N1qlQuery n1qlQuery;
             switch (configuration.getSelectAction()) {
@@ -134,16 +130,19 @@ public class CouchbaseInput implements Serializable {
                 n1qlQuery = N1qlQuery.simple(pathToOneDocument);
                 break;
             default:
-                throw new RuntimeException("Select action: '" + configuration.getSelectAction() + "' is unsupported");
+                throw new ComponentException("Select action: '" + configuration.getSelectAction() + "' is unsupported");
             }
             n1qlQuery.params().consistency(ScanConsistency.REQUEST_PLUS);
             N1qlQueryResult n1qlQueryRows = bucket.query(n1qlQuery);
-            if (n1qlQueryRows.finalSuccess()) {
-                n1ql_index = n1qlQueryRows.rows();
-            } else {
-                LOG.error(i18n.queryResultError());
-                throw new IllegalArgumentException(n1qlQueryRows.errors().toString());
-            }
+            checkForErrors(n1qlQueryRows.errors());
+            n1ql_index = n1qlQueryRows.rows();
+        }
+    }
+
+    private void checkForErrors(List<JsonObject> errors) {
+        if (!errors.isEmpty()) {
+            LOG.error(i18n.queryResultError(errors.toString()));
+            throw new ComponentException(errors.toString());
         }
     }
 
@@ -265,7 +264,7 @@ public class CouchbaseInput implements Serializable {
             recordBuilder.withDouble(entryBuilder.build(), (Double) value);
             break;
         case BYTES:
-            throw new IllegalArgumentException("BYTES is unsupported");
+            throw new ComponentException("BYTES is unsupported");
         case STRING:
             recordBuilder.withString(entryBuilder.build(), value.toString());
             break;

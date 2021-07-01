@@ -37,7 +37,7 @@ public interface I18nMessage {
 
     String cannotGuessWhenDataIsNull();
 
-    String queryResultError();
+    String queryResultError(String message);
 
     String cannotOpenBucket();
 

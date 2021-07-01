@@ -13,6 +13,7 @@
 package org.talend.components.couchbase.source.parsers;
 
 import org.talend.components.couchbase.dataset.DocumentType;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 public class ParserFactory {
@@ -27,6 +28,6 @@ public class ParserFactory {
         case STRING:
             return new StringParser(builderFactory);
         }
-        throw new UnsupportedOperationException("Parser factory. Unknown document type: " + documentType);
+        throw new ComponentException("Parser factory. Unknown document type: " + documentType);
     }
 }

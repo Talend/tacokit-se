@@ -27,6 +27,7 @@ import org.talend.components.couchbase.service.I18nMessage;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.processor.Input;
@@ -94,7 +95,7 @@ public class CouchbaseOutput implements Serializable {
                         .map(error -> String.format("[%d] %s", error.getInt("code"), error.getString("msg")))
                         .collect(Collectors.joining("\n"));
                 log.error("N1QL failed: {}.", errors);
-                throw new RuntimeException(errors);
+                throw new ComponentException(errors);
             }
         } else {
             if (configuration.isPartialUpdate()) {
@@ -162,7 +163,7 @@ public class CouchbaseOutput implements Serializable {
         case RECORD:
             return record.getRecord(entryName);
         default:
-            throw new IllegalArgumentException("Unknown Type " + entry.getType());
+            throw new ComponentException("Unknown Type " + entry.getType());
         }
     }
 

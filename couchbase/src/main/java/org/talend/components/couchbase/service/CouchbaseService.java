@@ -29,16 +29,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.couchbase.client.core.CouchbaseException;
-import com.couchbase.client.java.Bucket;
-import com.couchbase.client.java.Cluster;
-import com.couchbase.client.java.CouchbaseCluster;
-import com.couchbase.client.java.document.json.JsonArray;
-import com.couchbase.client.java.document.json.JsonObject;
-import com.couchbase.client.java.env.CouchbaseEnvironment;
-import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
-import com.couchbase.client.java.error.InvalidPasswordException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.couchbase.dataset.CouchbaseDataSet;
@@ -47,6 +37,7 @@ import org.talend.components.couchbase.source.CouchbaseInput;
 import org.talend.components.couchbase.source.CouchbaseInputConfiguration;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
@@ -54,6 +45,15 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.api.service.schema.DiscoverSchema;
+
+import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.Cluster;
+import com.couchbase.client.java.CouchbaseCluster;
+import com.couchbase.client.java.document.json.JsonArray;
+import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.env.CouchbaseEnvironment;
+import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
+import com.couchbase.client.java.error.InvalidPasswordException;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -103,7 +103,7 @@ public class CouchbaseService {
             return cluster;
         } catch (Exception e) {
             LOG.error(i18n.connectionKO());
-            throw new CouchbaseException(e);
+            throw new ComponentException(e);
         }
 
     }
@@ -148,7 +148,7 @@ public class CouchbaseService {
             bucket = cluster.openBucket(bucketName);
         } catch (Exception e) {
             LOG.error(i18n.cannotOpenBucket());
-            throw new CouchbaseException(e);
+            throw new ComponentException(e);
         }
         return bucket;
     }
@@ -229,7 +229,7 @@ public class CouchbaseService {
         Object firstValueInArray = jsonArray.get(0);
         Schema.Builder schemaBuilder = builderFactory.newSchemaBuilder(RECORD);
         if (firstValueInArray == null) {
-            throw new IllegalArgumentException("First value of Array is null. Can't define type of values in array");
+            throw new ComponentException("First value of Array is null. Can't define type of values in array");
         }
         Schema.Type type = defineValueType(firstValueInArray);
         schemaBuilder.withType(type);
@@ -257,7 +257,7 @@ public class CouchbaseService {
         } else if (value instanceof Long) {
             return LONG;
         } else if (value instanceof Byte[]) {
-            throw new IllegalArgumentException("BYTES is unsupported");
+            throw new ComponentException("BYTES is unsupported");
         } else if (value instanceof JsonArray) {
             return STRING;
         } else if (value instanceof JsonObject) {
