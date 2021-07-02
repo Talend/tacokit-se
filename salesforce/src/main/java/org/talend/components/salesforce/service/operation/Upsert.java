@@ -60,6 +60,11 @@ public class Upsert implements RecordsOperation {
         }
     }
 
+    @Override
+    public String name() {
+        return "upsert";
+    }
+
     private Result toResult(IUpsertResult saveResult) {
         if (saveResult.isSuccess()) {
             return Result.OK;

@@ -35,10 +35,16 @@ import org.talend.components.salesforce.configuration.OutputConfig.OutputAction;
 import org.talend.components.salesforce.dataset.ModuleDataSet;
 import org.talend.components.salesforce.service.operation.ConnectionFacade;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
+@WithComponents("org.talend.components.salesforce")
 class SalesforceOutputServiceTest {
+
+    @Service
+    private Messages messages;
 
     final List<SObject> objects = new ArrayList<>();
 
@@ -55,7 +61,7 @@ class SalesforceOutputServiceTest {
         cfg.setModuleDataSet(ds);
         ds.setModuleName("m1");
 
-        final SalesforceOutputService output = new SalesforceOutputService(cfg, cnx);
+        final SalesforceOutputService output = new SalesforceOutputService(cfg, cnx, messages);
         Map<String, IField> fieldMap = new HashMap<>();
 
         final Field f1 = new Field();

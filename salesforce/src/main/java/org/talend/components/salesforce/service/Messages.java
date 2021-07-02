@@ -24,4 +24,6 @@ public interface Messages {
     String healthCheckFailed(final String cause);
 
     String errorPasswordExpired();
+
+    String failedPipeline(final String operationName, final String errorData);
 }

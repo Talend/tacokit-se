@@ -51,6 +51,11 @@ public class Insert implements RecordsOperation {
         }
     }
 
+    @Override
+    public String name() {
+        return "insert";
+    }
+
     private Result toResult(ISaveResult saveResult) {
         if (saveResult.isSuccess()) {
             return Result.OK;

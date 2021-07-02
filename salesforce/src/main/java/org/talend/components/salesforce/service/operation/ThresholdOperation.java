@@ -45,4 +45,8 @@ public class ThresholdOperation {
         this.records.clear();
         return results;
     }
+
+    public String name() {
+        return this.operation.name();
+    }
 }

@@ -56,6 +56,11 @@ public class Update implements RecordsOperation {
         }
     }
 
+    @Override
+    public String name() {
+        return "update";
+    }
+
     private Result toResult(ISaveResult saveResult) {
         if (saveResult.isSuccess()) {
             return Result.OK;

@@ -69,7 +69,7 @@ public class SalesforceOutput implements Serializable {
             try {
                 final ConnectionFacade cnx = this.service.buildConnection(configuration.getModuleDataSet().getDataStore(),
                         localConfiguration);
-                outputService = new SalesforceOutputService(configuration, cnx);
+                outputService = new SalesforceOutputService(configuration, cnx, this.messages);
                 Map<String, IField> fieldMap = service.getFieldMap(cnx, configuration.getModuleDataSet().getModuleName());
                 outputService.setFieldMap(fieldMap);
             } catch (ConnectionException e) {

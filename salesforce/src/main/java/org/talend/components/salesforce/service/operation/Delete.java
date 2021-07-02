@@ -60,7 +60,11 @@ public class Delete implements RecordsOperation {
         } else {
             throw new RuntimeException("'Id' field not found!");
         }
+    }
 
+    @Override
+    public String name() {
+        return "delete";
     }
 
     private List<Result> doDelete(List<Record> records) throws IOException {

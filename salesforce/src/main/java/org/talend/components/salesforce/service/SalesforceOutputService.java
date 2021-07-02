@@ -49,15 +49,14 @@ public class SalesforceOutputService implements Serializable {
 
     protected boolean exceptionForErrors;
 
-    private OutputConfig.OutputAction outputAction;
-
     private String moduleName;
 
     private Map<String, IField> fieldMap;
 
-    public SalesforceOutputService(final OutputConfig outputConfig, final ConnectionFacade cnx) {
+    private Messages messages;
 
-        this.outputAction = outputConfig.getOutputAction();
+    public SalesforceOutputService(final OutputConfig outputConfig, final ConnectionFacade cnx, final Messages msg) {
+
         this.moduleName = outputConfig.getModuleDataSet().getModuleName();
 
         final int commitLevel;
@@ -70,6 +69,7 @@ public class SalesforceOutputService implements Serializable {
 
         final RecordsOperation recordsOperation = this.buildOperation(cnx, outputConfig);
         this.operation = buildThreshold(commitLevel, recordsOperation);
+        this.messages = msg;
     }
 
     private RecordsOperation buildOperation(final ConnectionFacade cnx, final OutputConfig cfg) {
@@ -109,9 +109,10 @@ public class SalesforceOutputService implements Serializable {
         final String errors = results.stream().filter((Result r) -> !r.isOK()).map(Result::getErrorsString)
                 .filter(Objects::nonNull).collect(Collectors.joining(", "));
         if (errors != null && errors.length() > 0) {
-            log.error(errors);
+            final String failedPipeline = this.messages.failedPipeline(this.operation.name(), errors);
+            log.error(failedPipeline);
             if (exceptionForErrors) {
-                throw new IOException(errors);
+                throw new IOException(failedPipeline);
             }
         }
     }
