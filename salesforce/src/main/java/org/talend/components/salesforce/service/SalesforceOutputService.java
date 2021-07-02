@@ -107,7 +107,7 @@ public class SalesforceOutputService implements Serializable {
 
     private void handleResults(final List<Result> results) throws IOException {
         final String errors = results.stream().filter((Result r) -> !r.isOK()).map(Result::getErrorsString)
-                .filter(Objects::nonNull).collect(Collectors.joining("; "));
+                .filter(Objects::nonNull).collect(Collectors.joining(", "));
         if (errors != null && errors.length() > 0) {
             log.error(errors);
             if (exceptionForErrors) {
