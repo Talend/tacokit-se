@@ -77,6 +77,8 @@ public abstract class BlobReader {
                 return new ParquetBlobReader(configuration, recordBuilderFactory, service, tokenProviderService);
             case JSON:
                 return new JsonBlobReader(configuration, recordBuilderFactory, jsonFactory, service, tokenProviderService);
+            case DELTA:
+                return new DeltaBlobReader(configuration, recordBuilderFactory, jsonFactory, service, tokenProviderService);
             default:
                 throw new IllegalArgumentException("Unsupported file format"); // shouldn't be here
             }
