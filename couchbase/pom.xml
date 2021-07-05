@@ -13,8 +13,8 @@
   <name>Components :: Couchbase</name>
 
   <properties>
-    <testcontainers.version>1.13.0</testcontainers.version>
-    <couchbase.client.version>2.7.13</couchbase.client.version>
+    <testcontainers.version>1.12.1</testcontainers.version>
+    <couchbase.client.version>2.7.9</couchbase.client.version>
   </properties>
 
   <dependencies>
