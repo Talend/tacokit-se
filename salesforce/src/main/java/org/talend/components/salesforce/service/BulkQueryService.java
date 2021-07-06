@@ -28,11 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.talend.components.salesforce.commons.BulkResultSet;
-import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-
 import com.sforce.async.AsyncApiException;
 import com.sforce.async.AsyncExceptionCode;
 import com.sforce.async.BatchInfo;
@@ -45,8 +40,13 @@ import com.sforce.async.JobInfo;
 import com.sforce.async.JobStateEnum;
 import com.sforce.async.OperationEnum;
 import com.sforce.async.QueryResultList;
-import com.sforce.soap.partner.Field;
+import com.sforce.soap.partner.IField;
 import com.sforce.ws.ConnectionException;
+
+import org.talend.components.salesforce.commons.BulkResultSet;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -80,7 +80,7 @@ public class BulkQueryService {
 
     private final BulkConnection bulkConnection;
 
-    private Map<String, Field> fieldMap;
+    private Map<String, IField> fieldMap;
 
     private List<BatchInfo> batchInfoList;
 
@@ -448,7 +448,7 @@ public class BulkQueryService {
         return recordBuilder.build();
     }
 
-    public void setFieldMap(Map<String, Field> fieldMap) {
+    public void setFieldMap(Map<String, IField> fieldMap) {
         this.fieldMap = fieldMap;
     }
 
@@ -461,7 +461,7 @@ public class BulkQueryService {
         }
         try {
             // Get field from module field mapping, if null means not a field of module
-            Field field = fieldMap.get(fieldName);
+            IField field = fieldMap.get(fieldName);
             if (field != null) {
                 switch (field.getType()) {
                 case _boolean:

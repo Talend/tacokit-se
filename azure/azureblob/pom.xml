@@ -118,6 +118,12 @@
             <artifactId>jsoup</artifactId>
             <version>${jsoup.version}</version>
         </dependency>
+        <!-- JSON format -->
+        <dependency>
+            <groupId>org.talend.components</groupId>
+            <artifactId>stream-json</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- Avro format -->
         <dependency>
             <groupId>org.apache.avro</groupId>

@@ -20,9 +20,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
+import com.sforce.ws.bind.CalendarCodec;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import com.sforce.ws.bind.CalendarCodec;
 
 /**
  *

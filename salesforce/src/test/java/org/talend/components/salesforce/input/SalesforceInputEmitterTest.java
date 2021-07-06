@@ -30,8 +30,8 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.beam.sdk.Pipeline;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -44,7 +44,6 @@ import org.talend.components.salesforce.configuration.OutputConfig;
 import org.talend.components.salesforce.dataset.ModuleDataSet;
 import org.talend.components.salesforce.dataset.SOQLQueryDataSet;
 import org.talend.components.salesforce.datastore.BasicDataStore;
-import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;

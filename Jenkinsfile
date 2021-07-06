@@ -50,15 +50,19 @@ spec:
             image: '${env.TSBI_IMAGE}'
             command: [cat]
             tty: true
-            volumeMounts: [{name: docker, mountPath: /var/run/docker.sock}, {name: m2main, mountPath: /root/.m2/repository}]
+            volumeMounts: [
+                {name: docker, mountPath: /var/run/docker.sock},
+                {name: efs-jenkins-connectors-se-m2, mountPath: /root/.m2/repository}
+            ]
             resources: {requests: {memory: 3G, cpu: '2'}, limits: {memory: 8G, cpu: '2'}}
     volumes:
         -
             name: docker
             hostPath: {path: /var/run/docker.sock}
         -
-            name: m2main
-            hostPath: { path: ${m2} }
+            name: efs-jenkins-connectors-se-m2
+            persistentVolumeClaim: 
+                claimName: efs-jenkins-connectors-se-m2
     imagePullSecrets:
         - name: talend-registry
 """
@@ -104,6 +108,13 @@ spec:
                         docker version
                         echo $ARTIFACTORY_PASSWORD | docker login $ARTIFACTORY_REGISTRY -u $ARTIFACTORY_LOGIN --password-stdin
                         '''
+                    }
+                }
+                script {
+                    try {
+                        EXTRA_BUILD_PARAMS = params.EXTRA_BUILD_PARAMS
+                    } catch (error) {
+                        EXTRA_BUILD_PARAMS = ""
                     }
                 }
             }

@@ -21,6 +21,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.sforce.soap.partner.DescribeGlobalSObjectResult;
+import com.sforce.soap.partner.PartnerConnection;
+import com.sforce.soap.partner.fault.ApiFault;
+import com.sforce.ws.ConnectionException;
+
 import org.talend.components.salesforce.datastore.BasicDataStore;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
@@ -29,11 +34,6 @@ import org.talend.sdk.component.api.service.completion.Suggestions;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
-
-import com.sforce.soap.partner.DescribeGlobalSObjectResult;
-import com.sforce.soap.partner.PartnerConnection;
-import com.sforce.soap.partner.fault.ApiFault;
-import com.sforce.ws.ConnectionException;
 
 import lombok.extern.slf4j.Slf4j;
 

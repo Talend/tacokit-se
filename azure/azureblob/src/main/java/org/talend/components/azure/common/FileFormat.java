@@ -16,5 +16,6 @@ public enum FileFormat {
     CSV,
     EXCEL,
     AVRO,
-    PARQUET
+    PARQUET,
+    JSON
 }

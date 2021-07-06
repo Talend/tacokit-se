@@ -28,10 +28,10 @@ import org.talend.components.azure.dataset.AzureBlobDataset;
 import org.talend.components.azure.source.BlobInputProperties;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
-import org.talend.sdk.component.runtime.record.SchemaImpl;
 
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlob;
@@ -56,6 +56,9 @@ class AvroOutputIT extends BaseIT {
     private final ZonedDateTime testDateValue = ZonedDateTime.now();
 
     private final byte[] bytes = new byte[] { 1, 2, 3 };
+
+    @Service
+    private RecordBuilderFactory factory;
 
     @BeforeEach
     void initDataset() {
@@ -147,17 +150,16 @@ class AvroOutputIT extends BaseIT {
     void testOutputNull() {
         final int recordSize = 1;
         final int schemaSize = 9;
-        Schema.Builder schemaBuilder = new SchemaImpl.BuilderImpl();
-        Schema schema = schemaBuilder.withType(Schema.Type.RECORD)
-                .withEntry(new SchemaImpl.EntryImpl("nullStringColumn", Schema.Type.STRING, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullStringColumn2", Schema.Type.STRING, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullIntColumn", Schema.Type.INT, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullLongColumn", Schema.Type.LONG, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullFloatColumn", Schema.Type.FLOAT, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullDoubleColumn", Schema.Type.DOUBLE, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullBooleanColumn", Schema.Type.BOOLEAN, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullByteArrayColumn", Schema.Type.BYTES, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("nullDateColumn", Schema.Type.DATETIME, true, null, null, null)).build();
+        final Schema.Builder schemaBuilder = this.factory.newSchemaBuilder(Schema.Type.RECORD);
+        final Schema schema = schemaBuilder.withEntry(this.buildEntry("nullStringColumn", Schema.Type.STRING))
+                .withEntry(this.buildEntry("nullStringColumn2", Schema.Type.STRING))
+                .withEntry(this.buildEntry("nullIntColumn", Schema.Type.INT))
+                .withEntry(this.buildEntry("nullLongColumn", Schema.Type.LONG))
+                .withEntry(this.buildEntry("nullFloatColumn", Schema.Type.FLOAT))
+                .withEntry(this.buildEntry("nullDoubleColumn", Schema.Type.DOUBLE))
+                .withEntry(this.buildEntry("nullBooleanColumn", Schema.Type.BOOLEAN))
+                .withEntry(this.buildEntry("nullByteArrayColumn", Schema.Type.BYTES))
+                .withEntry(this.buildEntry("nullDateColumn", Schema.Type.DATETIME)).build();
         Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder(schema)
                 .withString("nullStringColumn", null).build();
 
@@ -195,10 +197,9 @@ class AvroOutputIT extends BaseIT {
     void testSchemaIsNotMissingForNullsInFirstRecord() {
         final int recordSize = 2;
         final int fieldSize = 2;
-        Schema.Builder schemaBuilder = new SchemaImpl.BuilderImpl();
-        Schema schema = schemaBuilder.withType(Schema.Type.RECORD)
-                .withEntry(new SchemaImpl.EntryImpl("stringColumn", Schema.Type.STRING, true, null, null, null))
-                .withEntry(new SchemaImpl.EntryImpl("intColumn", Schema.Type.INT, true, null, null, null)).build();
+        final Schema.Builder schemaBuilder = this.factory.newSchemaBuilder(Schema.Type.RECORD);
+        final Schema schema = schemaBuilder.withEntry(this.buildEntry("stringColumn", Schema.Type.STRING))
+                .withEntry(this.buildEntry("intColumn", Schema.Type.INT)).build();
 
         List<Record> testRecords = new ArrayList<>();
         testRecords.add(componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder(schema)
@@ -251,5 +252,9 @@ class AvroOutputIT extends BaseIT {
         Iterator blobIterator = container.listBlobs("", false).iterator();
         Assertions.assertTrue(blobIterator.hasNext(), "No files were created in test container root directory");
         Assertions.assertTrue(blobIterator.next() instanceof CloudBlob, "Directory was created");
+    }
+
+    private Schema.Entry buildEntry(final String name, final Schema.Type type) {
+        return this.factory.newEntryBuilder().withType(type).withName(name).withNullable(true).build();
     }
 }

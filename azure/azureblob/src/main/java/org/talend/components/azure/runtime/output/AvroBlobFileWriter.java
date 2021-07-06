@@ -64,7 +64,6 @@ public class AvroBlobFileWriter extends BlobFileWriter {
         } catch (Exception e) {
             throw new BlobRuntimeException(e);
         }
-
     }
 
     @Override

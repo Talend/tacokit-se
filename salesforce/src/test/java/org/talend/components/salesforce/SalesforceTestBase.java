@@ -22,9 +22,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.talend.components.salesforce.configuration.InputModuleConfig;
+import org.talend.components.salesforce.configuration.OutputConfig;
 import org.talend.components.salesforce.dataset.ModuleDataSet;
 import org.talend.components.salesforce.datastore.BasicDataStore;
-import org.talend.components.salesforce.configuration.OutputConfig;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;

@@ -18,10 +18,14 @@ import java.util.Map;
 
 import javax.annotation.PreDestroy;
 
+import com.sforce.soap.partner.IField;
+import com.sforce.ws.ConnectionException;
+
 import org.talend.components.salesforce.configuration.OutputConfig;
 import org.talend.components.salesforce.service.Messages;
 import org.talend.components.salesforce.service.SalesforceOutputService;
 import org.talend.components.salesforce.service.SalesforceService;
+import org.talend.components.salesforce.service.operation.ConnectionFacade;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -31,10 +35,6 @@ import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
-
-import com.sforce.soap.partner.Field;
-import com.sforce.soap.partner.PartnerConnection;
-import com.sforce.ws.ConnectionException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -67,10 +67,10 @@ public class SalesforceOutput implements Serializable {
     public void onNext(@Input final Record record) throws IOException {
         if (outputService == null) {
             try {
-                final PartnerConnection connection = service.connect(configuration.getModuleDataSet().getDataStore(),
+                final ConnectionFacade cnx = this.service.buildConnection(configuration.getModuleDataSet().getDataStore(),
                         localConfiguration);
-                outputService = new SalesforceOutputService(configuration, connection, messages);
-                Map<String, Field> fieldMap = service.getFieldMap(connection, configuration.getModuleDataSet().getModuleName());
+                outputService = new SalesforceOutputService(configuration, cnx, this.messages);
+                Map<String, IField> fieldMap = service.getFieldMap(cnx, configuration.getModuleDataSet().getModuleName());
                 outputService.setFieldMap(fieldMap);
             } catch (ConnectionException e) {
                 throw service.handleConnectionException(e);

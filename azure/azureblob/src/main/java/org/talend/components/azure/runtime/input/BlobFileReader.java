@@ -114,6 +114,8 @@ public abstract class BlobFileReader {
                 }
             case PARQUET:
                 return new ParquetBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
+            case JSON:
+                return new JsonBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
             default:
                 throw new IllegalArgumentException("Unsupported file format"); // shouldn't be here
             }

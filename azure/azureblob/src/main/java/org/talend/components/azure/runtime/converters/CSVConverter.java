@@ -100,7 +100,7 @@ public class CSVConverter implements RecordConverter<CSVRecord> {
 
             String finalName = SchemaUtils.correct(fieldName, index++, existNames);
             existNames.add(finalName);
-            builder.withEntry(entryBuilder.withName(finalName).withType(Schema.Type.STRING).build());
+            builder.withEntry(entryBuilder.withName(finalName).withType(Schema.Type.STRING).withNullable(true).build());
         }
         return builder.build();
     }
@@ -111,9 +111,30 @@ public class CSVConverter implements RecordConverter<CSVRecord> {
             schema = inferSchema(value);
         }
 
+        if (value.size() < schema.getEntries().size()) {
+            return fillShortCSVRecordWithNulls(value);
+        } else {
+            return fillStandardCSVRecord(value);
+        }
+    }
+
+    private Record fillStandardCSVRecord(CSVRecord value) {
         Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder(schema);
         for (int i = 0; i < schema.getEntries().size(); i++) {
+
             recordBuilder.withString(schema.getEntries().get(i), value.get(i));
+        }
+        return recordBuilder.build();
+    }
+
+    private Record fillShortCSVRecordWithNulls(CSVRecord value) {
+        Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder(schema);
+        for (int i = 0; i < value.size(); i++) {
+            recordBuilder.withString(schema.getEntries().get(i), value.get(i));
+        }
+
+        for (int i = value.size(); i < schema.getEntries().size(); i++) {
+            recordBuilder.withString(schema.getEntries().get(i), null);
         }
         return recordBuilder.build();
     }

@@ -29,6 +29,8 @@ public class BlobFileWriterFactory {
             return new ExcelBlobFileWriter(config, connectionServices);
         case PARQUET:
             return new ParquetBlobFileWriter(config, connectionServices);
+        case JSON:
+            return new JsonBlobFileWriter(config, connectionServices);
         default:
             throw new IllegalArgumentException("Unsupported file format");
         }
