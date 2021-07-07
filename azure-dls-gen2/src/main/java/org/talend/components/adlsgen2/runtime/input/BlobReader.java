@@ -78,7 +78,7 @@ public abstract class BlobReader {
             case JSON:
                 return new JsonBlobReader(configuration, recordBuilderFactory, jsonFactory, service, tokenProviderService);
             case DELTA:
-                return new DeltaBlobReader(configuration, recordBuilderFactory, jsonFactory, service, tokenProviderService);
+                return new DeltaBlobReader(configuration, recordBuilderFactory, service, tokenProviderService);
             default:
                 throw new IllegalArgumentException("Unsupported file format"); // shouldn't be here
             }

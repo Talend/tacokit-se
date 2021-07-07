@@ -20,6 +20,7 @@ import java.io.Serializable;
 import org.talend.components.adlsgen2.common.format.FileFormat;
 import org.talend.components.adlsgen2.common.format.avro.AvroConfiguration;
 import org.talend.components.adlsgen2.common.format.csv.CsvConfiguration;
+import org.talend.components.adlsgen2.common.format.delta.DeltaConfiguration;
 import org.talend.components.adlsgen2.common.format.json.JsonConfiguration;
 import org.talend.components.adlsgen2.common.format.parquet.ParquetConfiguration;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
@@ -45,6 +46,7 @@ import lombok.Data;
         @GridLayout.Row("avroConfiguration"), //
         @GridLayout.Row("parquetConfiguration"), //
         @GridLayout.Row("jsonConfiguration"), //
+        @GridLayout.Row("deltaConfiguration") //
 })
 @GridLayout(names = ADVANCED, value = { @GridLayout.Row({ "connection" }) })
 @Documentation("ADLS DataSet")
@@ -89,5 +91,9 @@ public class AdlsGen2DataSet implements Serializable {
     @Option
     @ActiveIf(target = "format", value = "JSON_ENABLED")
     private JsonConfiguration jsonConfiguration;
+
+    @Option
+    @ActiveIf(target = "format", value = "DELTA_ENABLED")
+    private DeltaConfiguration deltaConfiguration;
 
 }

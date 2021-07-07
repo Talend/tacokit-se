@@ -12,15 +12,21 @@
  */
 package org.talend.components.adlsgen2.input;
 
+import java.io.IOException;
 import java.util.List;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.talend.components.adlsgen2.AdlsGen2IntegrationTestBase;
 import org.talend.components.adlsgen2.AdlsGen2TestBase;
+import org.talend.components.adlsgen2.common.format.FileFormat;
 import org.talend.components.adlsgen2.common.format.csv.CsvConfiguration;
 import org.talend.components.adlsgen2.common.format.csv.CsvFieldDelimiter;
 import org.talend.components.adlsgen2.common.format.csv.CsvRecordSeparator;
+import org.talend.components.adlsgen2.common.format.delta.DeltaConfiguration;
+import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
+import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit5.WithComponents;
@@ -32,6 +38,36 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 
 @WithComponents("org.talend.components.adlsgen2")
 class AdlsGen2InputTestIT extends AdlsGen2IntegrationTestBase {
+
+    @Test
+    void testDelta() throws IOException, ClassNotFoundException {
+        final AdlsGen2Connection connection = new AdlsGen2Connection();
+        connection.setAuthMethod(AuthMethod.SharedKey);
+        connection.setSharedKey("");
+        connection.setAccountName("");
+
+        final AdlsGen2DataSet dataset = new AdlsGen2DataSet();
+        dataset.setConnection(connection);
+        dataset.setFilesystem("csv");
+        dataset.setBlobPath("azuregen2tuj/deltadata");
+        dataset.setFormat(FileFormat.DELTA);
+        dataset.setDeltaConfiguration(new DeltaConfiguration());
+
+        InputConfiguration inputConfiguration = new InputConfiguration();
+        inputConfiguration.setDataSet(dataset);
+
+        final String config = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
+        Job.components().component("mycomponent", "Azure://AdlsGen2Input?" + config) //
+                .component("collector", "test://collector") //
+                .connections() //
+                .from("mycomponent") //
+                .to("collector") //
+                .build() //
+                .run();
+        final List<Record> records = components.getCollectedData(Record.class);
+        assertNotNull(records);
+        assertEquals(2, records.size());
+    }
 
     @ParameterizedTest
     @ValueSource(strings = { "SharedKey", "SAS" })
