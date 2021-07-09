@@ -10,12 +10,14 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.adlsgen2.common.format;
+package org.talend.components.adlsgen2.common.format.delta;
 
-public enum FileFormat {
-    CSV,
-    AVRO,
-    JSON,
-    PARQUET,
-    DELTA
+import lombok.Data;
+import org.talend.sdk.component.api.meta.Documentation;
+
+import java.io.Serializable;
+
+@Data
+@Documentation("Delta Configuration")
+public class DeltaConfiguration implements Serializable {
 }

@@ -32,6 +32,7 @@ import javax.json.JsonObject;
 import javax.json.JsonValue;
 
 import org.apache.commons.lang3.StringUtils;
+import org.talend.components.adlsgen2.common.format.FileFormat;
 import org.talend.components.adlsgen2.common.format.avro.AvroIterator;
 import org.talend.components.adlsgen2.common.format.csv.CsvIterator;
 import org.talend.components.adlsgen2.common.format.json.JsonIterator;
@@ -257,6 +258,16 @@ public class AdlsGen2Service {
     }
 
     public List<BlobInformations> getBlobs(final AdlsDatasetRuntimeInfo datasetRuntimeInfo) {
+        if (datasetRuntimeInfo.getDataSet().getFormat() == FileFormat.DELTA) {
+            // delta format is a "directory" contains parquet files and subdir with json and crc files, so no need to fetch all
+            // child paths.
+            List<BlobInformations> result = new ArrayList<>();
+            BlobInformations info = new BlobInformations();
+            info.setBlobPath(datasetRuntimeInfo.getDataSet().getBlobPath());
+            result.add(info);
+            return result;
+        }
+
         setDefaultRequestParameters(datasetRuntimeInfo.getConnection());
         String rcfmt = "%s/%s?directory=%s&resource=filesystem&recursive=false&maxResults=5000&timeout=%d";
         String url = getUrlStringWithoutPosition(datasetRuntimeInfo, rcfmt);

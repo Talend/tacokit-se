@@ -50,8 +50,8 @@ public class AdlsGen2IntegrationTestBase extends AdlsGen2TestBase {
         accountKey = mvnAccountSharedKey.getPassword();
         sas = mvnAccountSAS.getPassword();
 
-        Assume.assumeThat(accountName, Matchers.not("username"));
-        Assume.assumeThat(sas, Matchers.not("password"));
+        //Assume.assumeThat(accountName, Matchers.not("username"));
+        //Assume.assumeThat(sas, Matchers.not("password"));
 
         connection.setAccountName(accountName);
         connection.setSharedKey(accountKey);

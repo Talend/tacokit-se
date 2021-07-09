@@ -13,19 +13,27 @@
 package org.talend.components.adlsgen2.dataset;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.List;
 
+import io.delta.standalone.DeltaLog;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.talend.components.adlsgen2.common.format.FileFormat;
 import org.talend.components.adlsgen2.common.format.csv.CsvConfiguration;
+import org.talend.components.adlsgen2.common.format.delta.DeltaConfiguration;
 import org.talend.components.adlsgen2.common.format.parquet.ParquetConfiguration;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection.AuthMethod;
+import org.talend.components.adlsgen2.input.InputConfiguration;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.runtime.manager.chain.Job;
 
 class AdlsGen2DataSetTest {
 
@@ -57,4 +65,5 @@ class AdlsGen2DataSetTest {
         Assertions.assertEquals(dataset, dsCopy);
 
     }
+
 }
