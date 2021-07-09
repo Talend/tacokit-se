@@ -49,8 +49,7 @@ public class RestConfigurer implements Configurer {
         if (config.getDataset().isHasBody()) {
             if (config.getDataset().isHasHeaders()) {
                 final boolean contentTypeAlreadySet = config.headers().entrySet().stream()
-                        .filter(h -> ContentType.HEADER_KEY.toLowerCase().equals(h.getKey().toLowerCase())).findFirst()
-                        .orElse(null) != null;
+                        .filter(h -> ContentType.HEADER_KEY.equalsIgnoreCase(h.getKey())).findFirst().orElse(null) != null;
                 if (!contentTypeAlreadySet) {
                     final String value = config.getDataset().getBody().getType().getContentType();
                     log.info(i18n.addContentTypeHeader(ContentType.HEADER_KEY, value));
