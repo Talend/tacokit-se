@@ -48,6 +48,7 @@ import org.talend.components.adlsgen2.runtime.AdlsGen2RuntimeException;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.Configuration;
+import org.talend.sdk.component.api.service.connection.CreateConnection;
 import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
@@ -85,6 +86,11 @@ public class AdlsGen2Service {
 
     private void setDefaultRequestParameters(final AdlsGen2Connection connection) {
         client.base(connection.apiUrl());
+    }
+
+    @CreateConnection
+    public AdlsGen2Connection createConn(@Configuration("configuration") final AdlsGen2Connection connection) {
+        return connection;
     }
 
     private Map<String, String> prepareRequestHeaders(final Map<String, String> secretsMap, final AdlsGen2Connection connection,
