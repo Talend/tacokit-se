@@ -12,21 +12,20 @@
  */
 package org.talend.components.mongodb.service;
 
-import lombok.extern.slf4j.Slf4j;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+
 import org.bson.Document;
-import org.bson.codecs.ObjectIdCodec;
-import org.bson.codecs.ObjectIdGenerator;
 import org.bson.types.Code;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema.Entry;
 
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Transform record to document object.

@@ -13,7 +13,8 @@
 package org.talend.components.mongodb;
 
 public enum Mode {
-    TEXT, // store the whole document in one column of record as text when do read, retieve the whole document from the first
+    TEXT, // store the whole document in one column of record as text when do read, retieve the whole document from the
+          // first
           // column of record when do write
     // MAPPING, // support json path to read and write, TODO
     JSON, // json to record when do read, record to json when do write

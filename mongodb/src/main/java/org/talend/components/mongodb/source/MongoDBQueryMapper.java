@@ -12,28 +12,27 @@
  */
 package org.talend.components.mongodb.source;
 
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-import org.bson.Document;
-import org.talend.components.mongodb.dataset.BaseDataSet;
-import org.talend.components.mongodb.datastore.MongoDBDataStore;
-import org.talend.components.mongodb.service.I18nMessage;
-import org.talend.components.mongodb.service.MongoDBService;
-import org.talend.sdk.component.api.component.Icon;
-import org.talend.sdk.component.api.component.Version;
-import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.input.*;
-import org.talend.sdk.component.api.meta.Documentation;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+import static java.util.Collections.singletonList;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.singletonList;
+import org.talend.components.mongodb.service.I18nMessage;
+import org.talend.components.mongodb.service.MongoDBService;
+import org.talend.sdk.component.api.component.Icon;
+import org.talend.sdk.component.api.component.Version;
+import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.input.Assessor;
+import org.talend.sdk.component.api.input.Emitter;
+import org.talend.sdk.component.api.input.PartitionMapper;
+import org.talend.sdk.component.api.input.PartitionSize;
+import org.talend.sdk.component.api.input.Split;
+import org.talend.sdk.component.api.meta.Documentation;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 @Version(1)
 @Icon(value = Icon.IconType.CUSTOM, custom = "mongodb")
@@ -90,7 +89,7 @@ public class MongoDBQueryMapper implements Serializable {
                 return singletonList(this);
             }
 
-            return queries4Split.stream().map(query4Split -> cloneMapperAndSetSplitParameter4Reader(query4Split))
+            return queries4Split.stream().map(query -> cloneMapperAndSetSplitParameter4Reader(query4Split))
                     .collect(Collectors.toList());
         }
 

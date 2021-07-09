@@ -16,5 +16,8 @@ public enum WriteConcern {
     ACKNOWLEDGED,
     UNACKNOWLEDGED,
     JOURNALED,
-    REPLICA_ACKNOWLEDGED
+    MAJORITY,
+    W1,
+    W2,
+    W3
 }

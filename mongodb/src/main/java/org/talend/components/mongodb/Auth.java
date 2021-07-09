@@ -12,9 +12,8 @@
  */
 package org.talend.components.mongodb;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.io.Serializable;
+
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -22,7 +21,9 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
@@ -44,13 +45,13 @@ public class Auth implements Serializable {
 
     @Option
     @ActiveIf(target = "needAuth", value = "true")
-    @ActiveIf(target = "authMech", value = { "NEGOTIATE", "SCRAM_SHA_1_SASL" })
+    @ActiveIf(target = "authMech", value = { "NEGOTIATE", "SCRAM_SHA_1_SASL", "SCRAM_SHA_256" })
     @Documentation("Use auth database")
     private boolean useAuthDatabase;
 
     @Option
     @ActiveIf(target = "needAuth", value = "true")
-    @ActiveIf(target = "authMech", value = { "NEGOTIATE", "SCRAM_SHA_1_SASL" })
+    @ActiveIf(target = "authMech", value = { "NEGOTIATE", "SCRAM_SHA_1_SASL", "SCRAM_SHA_256" })
     @ActiveIf(target = "useAuthDatabase", value = "true")
     @Documentation("Auth database")
     private String authDatabase;

@@ -12,13 +12,10 @@
  */
 package org.talend.components.mongodb.source;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.MongoClient;
-import com.mongodb.client.AggregateIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
 import org.bson.BsonString;
@@ -30,12 +27,22 @@ import org.talend.components.mongodb.dataset.BaseDataSet;
 import org.talend.components.mongodb.datastore.MongoDBDataStore;
 import org.talend.components.mongodb.service.MongoDBService;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import com.mongodb.BasicDBObject;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class SplitUtil {
+
+    private SplitUtil() {
+        super();
+    }
 
     public static List<String> getQueries4Split(final BaseSourceConfiguration configuration, final MongoDBService service,
             final int splitCount) {
@@ -114,7 +121,7 @@ public class SplitUtil {
     }
 
     private static String filtersToJson(Bson filters) {
-        BsonDocument document = filters.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry());
+        BsonDocument document = filters.toBsonDocument(BsonDocument.class, MongoClientSettings.getDefaultCodecRegistry());
         return document.toJson(JsonWriterSettings.builder().outputMode(JsonMode.SHELL).build());
     }
 
@@ -125,20 +132,12 @@ public class SplitUtil {
         }
 
         // have set filter, then not split now, maybe should too?
-        if (query == null || query.trim().isEmpty() || "{}".equals(query)) {
-            return true;
-        }
-
-        return false;
+        return (query == null || query.trim().isEmpty() || "{}".equals(query));
     }
 
     public static boolean isSplit(Long limit) {
         // limit is passed by platform, so mean getSample here, so no split as we will set limit for query
-        if (limit != null && limit > 0) {
-            return false;
-        }
-
-        return true;
+        return !(limit != null && limit > 0);
     }
 
 }

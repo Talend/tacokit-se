@@ -12,11 +12,28 @@
  */
 package org.talend.components.mongodb.service;
 
-import com.mongodb.*;
-import com.mongodb.client.MongoDatabase;
-import lombok.extern.slf4j.Slf4j;
-import org.bson.*;
-import org.bson.codecs.BsonStringCodec;
+import static org.talend.sdk.component.api.record.Schema.Type.ARRAY;
+import static org.talend.sdk.component.api.record.Schema.Type.BOOLEAN;
+import static org.talend.sdk.component.api.record.Schema.Type.BYTES;
+import static org.talend.sdk.component.api.record.Schema.Type.DATETIME;
+import static org.talend.sdk.component.api.record.Schema.Type.DOUBLE;
+import static org.talend.sdk.component.api.record.Schema.Type.FLOAT;
+import static org.talend.sdk.component.api.record.Schema.Type.INT;
+import static org.talend.sdk.component.api.record.Schema.Type.LONG;
+import static org.talend.sdk.component.api.record.Schema.Type.RECORD;
+import static org.talend.sdk.component.api.record.Schema.Type.STRING;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.bson.BsonDocument;
+import org.bson.BsonInt32;
+import org.bson.BsonJavaScript;
+import org.bson.Document;
 import org.bson.json.JsonParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +43,8 @@ import org.talend.components.mongodb.ConnectionParameter;
 import org.talend.components.mongodb.PathMapping;
 import org.talend.components.mongodb.dataset.MongoDBReadDataSet;
 import org.talend.components.mongodb.datastore.MongoDBDataStore;
-import org.talend.components.mongodb.source.MongoDBReader;
 import org.talend.components.mongodb.source.MongoDBQuerySourceConfiguration;
+import org.talend.components.mongodb.source.MongoDBReader;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Record;
@@ -37,18 +54,23 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.mongodb.BasicDBObject;
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoCredential;
+import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoDatabase;
 
-import static org.talend.sdk.component.api.record.Schema.Type.*;
+import lombok.extern.slf4j.Slf4j;
 
 @Version(1)
 @Slf4j
 @Service
 public class MongoDBService {
 
-    private static final transient Logger LOG = LoggerFactory.getLogger(MongoDBService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MongoDBService.class);
 
     @Service
     private I18nMessage i18n;
@@ -57,34 +79,46 @@ public class MongoDBService {
     private RecordBuilderFactory builderFactory;
 
     public MongoClient createClient(MongoDBDataStore datastore) {
-        MongoCredential mc = getMongoCredential(datastore);
         try {
+            StringBuilder connectionStringBuilder = new StringBuilder().append("mongodb://");
+            MongoCredential mongoCredential = getMongoCredential(datastore);
+            if (mongoCredential != null) {
+                connectionStringBuilder.append(mongoCredential.getUserName()).append(":").append(mongoCredential.getPassword())
+                        .append("@");
+            }
+            List<ServerAddress> hosts = new ArrayList<>();
             switch (datastore.getAddressType()) {
             case STANDALONE:
-                ServerAddress address = new ServerAddress(datastore.getAddress().getHost(), datastore.getAddress().getPort());
-                if (mc != null) {
-                    return new MongoClient(address, mc, getOptions(datastore));
-                } else {
-                    return new MongoClient(address, getOptions(datastore));
-                }
+                hosts.add(new ServerAddress(datastore.getAddress().getHost(), datastore.getAddress().getPort()));
+                break;
             case REPLICA_SET:
-                // TODO check if it's right, not miss parameter like "replicaSet=myRepl"?
-                // https://docs.mongodb.com/manual/reference/connection-string/
-                if (mc != null) {
-                    return new MongoClient(getServerAddresses(datastore.getReplicaSetAddress()), mc, getOptions(datastore));
-                } else {
-                    return new MongoClient(getServerAddresses(datastore.getReplicaSetAddress()), getOptions(datastore));
+                for (Address address : datastore.getReplicaSetAddress()) {
+                    hosts.add(new ServerAddress(address.getHost(), address.getPort()));
                 }
-                /*
-                 * case SHARDED_CLUSTER:
-                 * if (mc != null) {
-                 * return new MongoClient(getServerAddresses(datastore.getShardedClusterAddress()), mc, getOptions(datastore));
-                 * } else {
-                 * return new MongoClient(getServerAddresses(datastore.getShardedClusterAddress()), getOptions(datastore));
-                 * }
-                 */
+                break;
+            /*
+             * case SHARDED_CLUSTER:
+             * for(Address address : datastore.getShardedClusterAddress()) {
+             * hosts.add(new ServerAddress(address.getHost(), address.getPort()));
+             * }
+             * break;
+             */
             }
-            return null;
+            for (int i = 0; i < hosts.size(); i++) {
+                connectionStringBuilder.append(hosts.get(i).getHost()).append(":");
+                connectionStringBuilder.append(hosts.get(i).getPort());
+                if (i != hosts.size() - 1) {
+                    connectionStringBuilder.append(",");
+                } else {
+                    connectionStringBuilder.append("/");
+                }
+            }
+            String connectionOptions = getOptions(datastore);
+            if (connectionOptions != null && !connectionOptions.isEmpty()) {
+                connectionStringBuilder.append("?").append(connectionOptions);
+            }
+
+            return MongoClients.create(new ConnectionString(connectionStringBuilder.toString()));
         } catch (Exception e) {
             // TODO use i18n
             LOG.error(e.getMessage(), e);
@@ -104,37 +138,30 @@ public class MongoDBService {
             return MongoCredential.createCredential(auth.getUsername(), authDatabase, auth.getPassword().toCharArray());
         /*
          * case PLAIN_SASL:
-         * return MongoCredential.createPlainCredential(auth.getUsername(), "$external", auth.getPassword().toCharArray());
+         * return MongoCredential.createPlainCredential(auth.getUsername(), "$external",
+         * auth.getPassword().toCharArray());
          */
         case SCRAM_SHA_1_SASL:
             return MongoCredential.createScramSha1Credential(auth.getUsername(), authDatabase, auth.getPassword().toCharArray());
+
+        case SCRAM_SHA_256:
+            return MongoCredential.createScramSha256Credential(auth.getUsername(), authDatabase,
+                    auth.getPassword().toCharArray());
+
         }
 
         return null;
     }
 
-    private List<ServerAddress> getServerAddresses(List<Address> addresses) {
-        List<ServerAddress> result = new ArrayList<>();
-        for (Address address : addresses) {
-            result.add(new ServerAddress(address.getHost(), address.getPort()));
-        }
-        return result;
-    }
-
     // https://docs.mongodb.com/manual/reference/connection-string/#connection-string-options
-    public MongoClientOptions getOptions(MongoDBDataStore datastore) {
-        StringBuilder uri = new StringBuilder("mongodb://noexist:27017/");// a fake uri, only work for get the options from key
-                                                                          // value string
-        boolean first = true;
+    public String getOptions(MongoDBDataStore datastore) {
+        StringBuilder options = new StringBuilder();
         for (ConnectionParameter parameter : datastore.getConnectionParameter()) {
-            if (first) {
-                uri.append('?');
-                first = false;
-            }
-            uri.append(parameter.getKey()).append('=').append(parameter.getValue()).append('&');
+            options.append(parameter.getKey()).append('=').append(parameter.getValue()).append('&');
         }
-        uri.deleteCharAt(uri.length() - 1);
-        MongoClientURI muri = new MongoClientURI(uri.toString());
+        if (options.length() > 0) {
+            options.deleteCharAt(options.length() - 1);
+        }
 
         // TODO call right set method by the list above
         // optionsBuilder.maxConnectionIdleTime(1000);
@@ -150,23 +177,20 @@ public class MongoDBService {
          * }
          * }
          */
-        return muri.getOptions();
+        return options.toString();
     }
 
     @HealthCheck("healthCheck")
     public HealthCheckStatus healthCheck(@Option("configuration.dataset.connection") final MongoDBDataStore datastore) {
         try (MongoClient client = createClient(datastore)) {
             String database = datastore.getDatabase();
-
             MongoDatabase md = client.getDatabase(database);
-            if (md == null) {// TODO remove it as seems never go in even no that database exists
-                return new HealthCheckStatus(HealthCheckStatus.Status.KO, "Can't find the database : " + database);
-            }
-
             Document document = getDatabaseStats(md);
-            // TODO use it later
-
-            return new HealthCheckStatus(HealthCheckStatus.Status.OK, "Connection OK");
+            if (database.equals(document.get("db"))) {
+                return new HealthCheckStatus(HealthCheckStatus.Status.OK, "Connection OK!");
+            } else {
+                return new HealthCheckStatus(HealthCheckStatus.Status.KO, "Database connection failed!");
+            }
         } catch (Exception exception) {
             String message = exception.getMessage();
             LOG.error(message, exception);
@@ -181,7 +205,7 @@ public class MongoDBService {
 
     public BsonDocument getBsonDocument(String bson) {
         try {
-            return Document.parse(bson).toBsonDocument(BasicDBObject.class, MongoClient.getDefaultCodecRegistry());
+            return Document.parse(bson).toBsonDocument(BasicDBObject.class, MongoClientSettings.getDefaultCodecRegistry());
         } catch (JsonParseException e) {
             Pattern pattern = Pattern.compile("^\\s*\\{\\s*\\$where\\s*:\\s*(function.+)\\}\\s*$", Pattern.DOTALL);
             Matcher matcher = pattern.matcher(bson);
@@ -222,7 +246,8 @@ public class MongoDBService {
         Set<String> elements = document.keySet();
         for (String element : elements) {
             // TODO make the column name in schema is valid without special char that make invalid to schema
-            // para1 : column name in schema, para2 : key in document of mongodb, para3 : path to locate parent node in document
+            // para1 : column name in schema, para2 : key in document of mongodb, para3 : path to locate parent node in
+            // document
             // of
             // mongodb
             // here we only iterate the root level, not go deep, keep it easy
@@ -234,7 +259,8 @@ public class MongoDBService {
     public Schema createSchema(Document document, List<PathMapping> pathMappings) {
         Schema.Builder schemaBuilder = builderFactory.newSchemaBuilder(RECORD);
 
-        if (pathMappings == null || pathMappings.isEmpty()) {// work for the next level element when RECORD, not necessary now,
+        if (pathMappings == null || pathMappings.isEmpty()) {// work for the next level element when RECORD, not
+                                                             // necessary now,
                                                              // but keep it
             pathMappings = guessPathMappingsFromDocument(document);
         }
@@ -270,7 +296,7 @@ public class MongoDBService {
         return schemaBuilder.build();
     }
 
-    // use column diretly if path don't exists or empty
+    // use column directly if path don't exists or empty
     // current implement logic copy from studio one, not sure is expected, TODO adjust it
     public Object getValueByPathFromDocument(Document document, String parentNodePath, String elementName) {
         if (document == null) {
@@ -286,7 +312,7 @@ public class MongoDBService {
             }
         } else {
             // use parent path to locate
-            String objNames[] = parentNodePath.split("\\.");
+            String[] objNames = parentNodePath.split("\\.");
             Document currentObj = document;
             for (int i = 0; i < objNames.length; i++) {
                 currentObj = (Document) currentObj.get(objNames[i]);

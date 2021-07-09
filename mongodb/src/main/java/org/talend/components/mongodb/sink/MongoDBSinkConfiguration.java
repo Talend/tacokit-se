@@ -21,7 +21,6 @@ import org.talend.components.mongodb.DataAction;
 import org.talend.components.mongodb.KeyMapping;
 import org.talend.components.mongodb.WriteConcern;
 import org.talend.components.mongodb.dataset.MongoDBReadAndWriteDataSet;
-import org.talend.components.mongodb.dataset.MongoDBReadDataSet;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;

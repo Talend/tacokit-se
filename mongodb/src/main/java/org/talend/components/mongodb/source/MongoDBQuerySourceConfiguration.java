@@ -12,19 +12,12 @@
  */
 package org.talend.components.mongodb.source;
 
-import org.talend.components.mongodb.ReadPreference;
-import org.talend.components.mongodb.SortBy;
 import org.talend.components.mongodb.dataset.MongoDBReadDataSet;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.meta.Documentation;
-
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
 
 import lombok.Data;
 

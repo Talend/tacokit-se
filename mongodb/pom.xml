@@ -13,7 +13,7 @@
   <name>Components :: MongoDB</name>
 
   <properties>
-    <mongodb.client.version>3.12.0</mongodb.client.version>
+    <mongodb.client.version>4.2.0</mongodb.client.version>
   </properties>
 
   <dependencies>
@@ -27,7 +27,17 @@
 
     <dependency>
       <groupId>org.mongodb</groupId>
-      <artifactId>mongo-java-driver</artifactId>
+      <artifactId>mongodb-driver-core</artifactId>
+      <version>${mongodb.client.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mongodb</groupId>
+      <artifactId>mongodb-driver-sync</artifactId>
+      <version>${mongodb.client.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mongodb</groupId>
+      <artifactId>bson</artifactId>
       <version>${mongodb.client.version}</version>
     </dependency>
 
@@ -40,14 +50,13 @@
     <dependency>
       <groupId>de.flapdoodle.embed</groupId>
       <artifactId>de.flapdoodle.embed.mongo</artifactId>
-      <version>2.2.0</version>
+      <version>3.0.0</version>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>de.flapdoodle.embed</groupId>
       <artifactId>de.flapdoodle.embed.process</artifactId>
-      <version>2.1.2</version>
+      <version>3.0.1</version>
       <scope>test</scope>
     </dependency>
 

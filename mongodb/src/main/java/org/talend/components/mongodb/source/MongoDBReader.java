@@ -12,11 +12,19 @@
  */
 package org.talend.components.mongodb.source;
 
-import com.mongodb.MongoClient;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import lombok.extern.slf4j.Slf4j;
+import java.io.Serializable;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+
 import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.codecs.DocumentCodec;
@@ -25,8 +33,6 @@ import org.bson.json.JsonWriterSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.common.stream.input.json.JsonToRecord;
-import org.talend.components.mongodb.AggregationStage;
-import org.talend.components.mongodb.PathMapping;
 import org.talend.components.mongodb.dataset.BaseDataSet;
 import org.talend.components.mongodb.dataset.MongoDBReadDataSet;
 import org.talend.components.mongodb.datastore.MongoDBDataStore;
@@ -36,26 +42,22 @@ import org.talend.components.mongodb.service.MongoDBService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
-import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import java.io.Serializable;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Documentation("This component reads data from MongoDB.")
 public class MongoDBReader implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private I18nMessage i18n;
 
@@ -183,10 +185,10 @@ public class MongoDBReader implements Serializable {
         // TODO bson can convert to json with loss data? check it
         String jsonContnt = document2Json(document);
         // can't use org.talend.components.common.stream.input.json.JsonRecordReader here, please see
-        // org.talend.components.common.stream.input.json.JsonRecordReaderTest that is not the result what we expect here
+        // org.talend.components.common.stream.input.json.JsonRecordReaderTest that is not the result what we expect
+        // here
         // here we expect one document, one record always
-        Record result = jsonToRecord.toRecord(getJsonObject(jsonContnt));
-        return result;
+        return jsonToRecord.toRecord(getJsonObject(jsonContnt));
     }
 
     private Record convertDocument2RecordDirectly(Document document) {
@@ -300,6 +302,7 @@ public class MongoDBReader implements Serializable {
             break;
         case BYTES:
             recordBuilder.withBytes(entryBuilder.build(), (byte[]) value);
+            break;
         case STRING:
             // toString is right for all type, like document? TODO
             recordBuilder.withString(entryBuilder.build(),

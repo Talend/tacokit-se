@@ -12,9 +12,12 @@
  */
 package org.talend.components.mongodb.datastore;
 
-import lombok.Data;
-import org.talend.components.mongodb.AddressType;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
+
 import org.talend.components.mongodb.Address;
+import org.talend.components.mongodb.AddressType;
 import org.talend.components.mongodb.Auth;
 import org.talend.components.mongodb.ConnectionParameter;
 import org.talend.sdk.component.api.component.Icon;
@@ -27,9 +30,7 @@ import org.talend.sdk.component.api.configuration.type.DataStore;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
+import lombok.Data;
 
 @Version(1)
 @Data

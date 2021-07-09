@@ -12,18 +12,19 @@
  */
 package org.talend.components.mongodb.sink;
 
-import com.mongodb.MongoClient;
-import com.mongodb.WriteConcern;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.*;
-import lombok.extern.slf4j.Slf4j;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.json.JsonObject;
+
 import org.bson.Document;
 import org.talend.components.common.stream.output.json.RecordToJson;
 import org.talend.components.mongodb.BulkWriteType;
 import org.talend.components.mongodb.KeyMapping;
 import org.talend.components.mongodb.Mode;
-import org.talend.components.mongodb.PathMapping;
 import org.talend.components.mongodb.dataset.MongoDBReadAndWriteDataSet;
 import org.talend.components.mongodb.datastore.MongoDBDataStore;
 import org.talend.components.mongodb.service.I18nMessage;
@@ -33,18 +34,26 @@ import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
-import org.talend.sdk.component.api.processor.*;
+import org.talend.sdk.component.api.processor.AfterGroup;
+import org.talend.sdk.component.api.processor.BeforeGroup;
+import org.talend.sdk.component.api.processor.ElementListener;
+import org.talend.sdk.component.api.processor.Input;
+import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.json.JsonObject;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import com.mongodb.WriteConcern;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.InsertOneModel;
+import com.mongodb.client.model.UpdateManyModel;
+import com.mongodb.client.model.UpdateOneModel;
+import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.WriteModel;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Version(1)
 @Slf4j
@@ -52,6 +61,8 @@ import java.util.Map;
 @Processor(name = "Sink")
 @Documentation("This component writes data to MongoDB")
 public class MongoDBProcessor implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private I18nMessage i18n;
 
@@ -96,8 +107,17 @@ public class MongoDBProcessor implements Serializable {
             case JOURNALED:
                 database = database.withWriteConcern(WriteConcern.JOURNALED);
                 break;
-            case REPLICA_ACKNOWLEDGED:
-                database = database.withWriteConcern(WriteConcern.REPLICA_ACKNOWLEDGED);
+            case MAJORITY:
+                database = database.withWriteConcern(WriteConcern.MAJORITY);
+                break;
+            case W1:
+                database = database.withWriteConcern(WriteConcern.W1);
+                break;
+            case W2:
+                database = database.withWriteConcern(WriteConcern.W2);
+                break;
+            case W3:
+                database = database.withWriteConcern(WriteConcern.W3);
                 break;
             }
         }
@@ -115,8 +135,17 @@ public class MongoDBProcessor implements Serializable {
             case JOURNALED:
                 collection = collection.withWriteConcern(WriteConcern.JOURNALED);
                 break;
-            case REPLICA_ACKNOWLEDGED:
-                collection = collection.withWriteConcern(WriteConcern.REPLICA_ACKNOWLEDGED);
+            case MAJORITY:
+                collection = collection.withWriteConcern(WriteConcern.MAJORITY);
+                break;
+            case W1:
+                collection = collection.withWriteConcern(WriteConcern.W1);
+                break;
+            case W2:
+                collection = collection.withWriteConcern(WriteConcern.W2);
+                break;
+            case W3:
+                collection = collection.withWriteConcern(WriteConcern.W3);
                 break;
             }
         }
@@ -157,7 +186,7 @@ public class MongoDBProcessor implements Serializable {
             if (parentNodePath == null || "".equals(parentNodePath)) {
                 document.put(curentName, value);
             } else {
-                String objNames[] = parentNodePath.split("\\.");
+                String[] objNames = parentNodePath.split("\\.");
                 Document lastNode = getParentNode(parentNodePath, objNames.length - 1);
                 lastNode.put(curentName, value);
                 Document parentNode = null;
@@ -183,7 +212,7 @@ public class MongoDBProcessor implements Serializable {
             if (parentNodePath == null || "".equals(parentNodePath)) {
                 return document;
             } else {
-                String objNames[] = parentNodePath.split("\\.");
+                String[] objNames = parentNodePath.split("\\.");
                 for (int i = 0; i <= index; i++) {
                     parentNode = (Document) parentNode.get(objNames[i]);
                     if (parentNode == null) {
@@ -356,7 +385,7 @@ public class MongoDBProcessor implements Serializable {
         switch (configuration.getDataAction()) {
         case INSERT:
             if (configuration.isBulkWrite()) {
-                writeModels.add(new InsertOneModel(document));
+                writeModels.add(new InsertOneModel<>(document));
             } else {
                 collection.insertOne(document);
             }
@@ -364,11 +393,11 @@ public class MongoDBProcessor implements Serializable {
         case SET:
             if (configuration.isBulkWrite()) {
                 if (configuration.isUpdateAllDocuments()) {
-                    writeModels.add(new UpdateManyModel<Document>(
+                    writeModels.add(new UpdateManyModel<>(
                             getKeysQueryDocumentAndRemoveKeysFromSourceDocument(configuration.getKeyMappings(), record, document),
                             new Document("$set", document)));
                 } else {
-                    writeModels.add(new UpdateOneModel<Document>(
+                    writeModels.add(new UpdateOneModel<>(
                             getKeysQueryDocumentAndRemoveKeysFromSourceDocument(configuration.getKeyMappings(), record, document),
                             new Document("$set", document)));
                 }
@@ -385,20 +414,23 @@ public class MongoDBProcessor implements Serializable {
             }
             break;
         case UPSERT_WITH_SET:
-            // though mongodb support to set "_id" key self, not auto-generate, but when do upsert with "_id" or other key, it
+            // though mongodb support to set "_id" key self, not auto-generate, but when do upsert with "_id" or other
+            // key, it
             // mean if not match, should do insert,
-            // but mongo here will throw : Performing an update on the path '_id' would modify the immutable field '_id', i think
+            // but mongo here will throw : Performing an update on the path '_id' would modify the immutable field
+            // '_id', i think
             // it's a limit of mongodb as i did't change the value of "_id"
-            // why update can works, upsert not work? As not match, should insert, i can't just remove "_id" column to make it
+            // why update can works, upsert not work? As not match, should insert, i can't just remove "_id" column to
+            // make it
             // right, as that is not expected as lose "_id", and auto-generated when insert.
             // TODO show a more clear exception here
             if (configuration.isBulkWrite()) {
                 if (configuration.isUpdateAllDocuments()) {
-                    writeModels.add(new UpdateManyModel<Document>(
+                    writeModels.add(new UpdateManyModel<>(
                             getKeysQueryDocumentAndRemoveKeysFromSourceDocument(configuration.getKeyMappings(), record, document),
                             new Document("$set", document), new UpdateOptions().upsert(true)));
                 } else {
-                    writeModels.add(new UpdateOneModel<Document>(
+                    writeModels.add(new UpdateOneModel<>(
                             getKeysQueryDocumentAndRemoveKeysFromSourceDocument(configuration.getKeyMappings(), record, document),
                             new Document("$set", document), new UpdateOptions().upsert(true)));
                 }

@@ -12,21 +12,18 @@
  */
 package org.talend.components.mongodb.dataset;
 
-import lombok.Data;
-import org.talend.components.mongodb.*;
+import org.talend.components.mongodb.Mode;
 import org.talend.components.mongodb.datastore.MongoDBDataStore;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataSet;
-import org.talend.sdk.component.api.configuration.ui.widget.Code;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.widget.Code;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import java.util.Collections;
-import java.util.List;
+import lombok.Data;
 
 @Version(1)
 @Data

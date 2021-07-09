@@ -12,7 +12,12 @@
  */
 package org.talend.components.mongodb.service;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.bson.Document;
 import org.bson.types.Code;
 import org.bson.types.Decimal128;
@@ -23,11 +28,7 @@ import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Translate mongodb document object to record.
@@ -202,8 +203,7 @@ public class DocumentToRecord {
         final String comment = entry.getComment();
 
         if (comment != null && comment.contains(DocumentToRecord.TYPE_SPLIT_CHARS)) {
-            String origin_name = comment.substring(0, comment.lastIndexOf(DocumentToRecord.TYPE_SPLIT_CHARS));
-            return origin_name;
+            return comment.substring(0, comment.lastIndexOf(DocumentToRecord.TYPE_SPLIT_CHARS));
         }
 
         return comment;
@@ -214,72 +214,95 @@ public class DocumentToRecord {
             return;
         }
         switch (entry.getType()) {
-        case RECORD: {
-            final Document subDocument = document.get(getElementName(entry), Document.class);
-            final Record record = convertDocumentToRecord(entry.getElementSchema(), subDocument);
-            builder.withRecord(entry, record);
+        case RECORD:
+            buildWithRecord(entry, builder, document);
             break;
-        }
         case ARRAY:
-            final List<?> objects = convertArray(entry.getElementSchema(), (List) document.get(getElementName(entry)));
-            if (objects != null) {
-                builder.withArray(entry, objects);
-            }
+            buildWithArray(entry, builder, document);
             break;
-        case STRING: {
-            // TODO check if is right here as this is also do process for null as all null value is mapped to String type, as
-            // value may be null here
-            Object value = document.get(getElementName(entry));
-            if (isNull(value)) {
-                builder.withString(entry, (String) value);
-            } else if (value instanceof ObjectId) {
-                builder.withString(entry, ObjectId.class.cast(value).toString());
-            } else if (value instanceof Code) {
-                builder.withString(entry, Code.class.cast(value).getCode());
-            } else {
-                builder.withString(entry, value.toString());
-            }
+        case STRING:
+            buildWithString(entry, builder, document);
+            break;
+        case INT:
+            buildWithInt(entry, builder, document);
+            break;
+        case LONG:
+            buildWithLong(entry, builder, document);
+            break;
+        case FLOAT:
+        case DOUBLE:
+            buildWithDouble(entry, builder, document);
+            break;
+        case BOOLEAN:
+            buildWithBoolean(entry, builder, document);
+            break;
+        case BYTES:
+            buildWithBytes(entry, builder, document);
+            break;
+        case DATETIME:
+            buildWithDatetime(entry, builder, document);
+            break;
+        }
+    }
 
-            break;
+    private void buildWithDatetime(Entry entry, Record.Builder builder, Document document) {
+        Date value = document.getDate(getElementName(entry));
+        builder.withDateTime(entry, value);
+    }
+
+    private void buildWithBytes(Entry entry, Record.Builder builder, Document document) {
+        String value = document.getString(getElementName(entry));
+        // TODO use default encoding? not UTF8
+        builder.withBytes(entry, value.getBytes());
+    }
+
+    private void buildWithBoolean(Entry entry, Record.Builder builder, Document document) {
+        Boolean value = document.getBoolean(getElementName(entry));
+        builder.withBoolean(entry, value);
+    }
+
+    private void buildWithDouble(Entry entry, Record.Builder builder, Document document) {
+        Double value = document.getDouble(getElementName(entry));
+        builder.withDouble(entry, value);
+    }
+
+    private void buildWithLong(Entry entry, Record.Builder builder, Document document) {
+        Long value = document.getLong(getElementName(entry));
+        builder.withLong(entry, value);
+    }
+
+    private void buildWithInt(Entry entry, Record.Builder builder, Document document) {
+        Integer value = document.getInteger(getElementName(entry));
+        builder.withInt(entry, value);
+    }
+
+    private void buildWithString(Entry entry, Record.Builder builder, Document document) {
+        // TODO check if is right here as this is also do process for null as all null value is mapped to String
+        // type, as
+        // value may be null here
+        Object value = document.get(getElementName(entry));
+        if (isNull(value)) {
+            builder.withString(entry, (String) value);
+        } else if (value instanceof ObjectId) {
+            builder.withString(entry, ObjectId.class.cast(value).toString());
+        } else if (value instanceof Code) {
+            builder.withString(entry, Code.class.cast(value).getCode());
+        } else {
+            builder.withString(entry, value.toString());
         }
-        case INT: {
-            Integer value = document.getInteger(getElementName(entry));
-            builder.withInt(entry, value);
-            break;
+    }
+
+    private void buildWithArray(Entry entry, Record.Builder builder, Document document) {
+        final List<?> objects = convertArray(entry.getElementSchema(), (List) document.get(getElementName(entry)));
+        if (objects != null) {
+            builder.withArray(entry, objects);
         }
-        case LONG: {
-            Long value = document.getLong(getElementName(entry));
-            builder.withLong(entry, value);
-            break;
-        }
-        case FLOAT: {
-            // Mongo DB document don't have float type, so all double type, TODO check
-            Double value = document.getDouble(getElementName(entry));
-            builder.withDouble(entry, value);
-            break;
-        }
-        case DOUBLE: {
-            Double value = document.getDouble(getElementName(entry));
-            builder.withDouble(entry, value);
-            break;
-        }
-        case BOOLEAN: {
-            Boolean value = document.getBoolean(getElementName(entry));
-            builder.withBoolean(entry, value);
-            break;
-        }
-        case BYTES: {
-            String value = document.getString(getElementName(entry));
-            // TODO use default encoding? not UTF8
-            builder.withBytes(entry, value.getBytes());
-            break;
-        }
-        case DATETIME: {
-            Date value = document.getDate(getElementName(entry));
-            builder.withDateTime(entry, value);
-            break;
-        }
-        }
+    }
+
+    private void buildWithRecord(Entry entry, Record.Builder builder, Document document) {
+        final Document subDocument = document.get(getElementName(entry), Document.class);
+        final Record record = convertDocumentToRecord(entry.getElementSchema(), subDocument);
+        builder.withRecord(entry, record);
     }
 
     /**
@@ -309,7 +332,8 @@ public class DocumentToRecord {
             }
             break;
         case STRING:
-            // TODO : check if right here : do process for null as all null value is mapped to String type, this is for the case :
+            // TODO : check if right here : do process for null as all null value is mapped to String type, this is for
+            // the case :
             // {array: []} or {array: [null]}
             if (array.isEmpty()) {
                 // maybe need clone?

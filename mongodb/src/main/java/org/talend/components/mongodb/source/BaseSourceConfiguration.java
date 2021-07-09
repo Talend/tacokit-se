@@ -12,10 +12,9 @@
  */
 package org.talend.components.mongodb.source;
 
-import org.talend.components.mongodb.dataset.BaseDataSet;
-import org.talend.components.mongodb.datastore.MongoDBDataStore;
-
 import java.io.Serializable;
+
+import org.talend.components.mongodb.dataset.BaseDataSet;
 
 public interface BaseSourceConfiguration extends Serializable {
 

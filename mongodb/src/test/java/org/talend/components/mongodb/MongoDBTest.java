@@ -12,30 +12,24 @@
  */
 package org.talend.components.mongodb;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.*;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
-import lombok.extern.slf4j.Slf4j;
-import org.bson.BsonDocument;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.net.ServerSocket;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
 import org.bson.Document;
-import org.bson.codecs.BigDecimalCodec;
-import org.bson.codecs.DocumentCodec;
-import org.bson.json.JsonMode;
-import org.bson.json.JsonWriterSettings;
-import org.bson.types.ObjectId;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.junit.rules.TemporaryFolder;
 import org.talend.components.common.stream.output.json.RecordToJson;
 import org.talend.components.mongodb.dataset.MongoDBReadAndWriteDataSet;
 import org.talend.components.mongodb.dataset.MongoDBReadDataSet;
@@ -58,19 +52,31 @@ import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
-import javax.json.JsonObject;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.net.ServerSocket;
-import java.nio.file.Path;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoClientSettings.Builder;
+import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.connection.ClusterSettings;
+
+import de.flapdoodle.embed.mongo.MongodExecutable;
+import de.flapdoodle.embed.mongo.MongodProcess;
+import de.flapdoodle.embed.mongo.MongodStarter;
+import de.flapdoodle.embed.mongo.config.MongoCmdOptions;
+import de.flapdoodle.embed.mongo.config.MongodConfig;
+import de.flapdoodle.embed.mongo.config.Net;
+import de.flapdoodle.embed.mongo.config.Storage;
+import de.flapdoodle.embed.mongo.distribution.Version;
+import de.flapdoodle.embed.process.runtime.Network;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @WithComponents("org.talend.components.mongodb")
 @DisplayName("testing of MongoDB connector")
-public class MongoDBTest {
+class MongoDBTest {
 
     @Injected
     private BaseComponentsHandler componentsHandler;
@@ -101,14 +107,18 @@ public class MongoDBTest {
     public static void beforeClass(@TempDir Path tempDir) throws Exception {
         port = getAvailableLocalPort();
         log.info("Starting MongoDB on port {}", port);
-        IMongodConfig mongodConfig = new MongodConfigBuilder().version(Version.Main.PRODUCTION).configServer(false)
+        MongodConfig mongodConfig = MongodConfig.builder().version(Version.Main.PRODUCTION).isConfigServer(false)
                 .replication(new Storage(tempDir.toFile().getPath(), null, 0))
-                .net(new Net("localhost", port, Network.localhostIsIPv6())).cmdOptions(new MongoCmdOptionsBuilder().syncDelay(10)
-                        .useNoPrealloc(true).useSmallFiles(true).useNoJournal(true).verbose(false).build())
+                .net(new Net("localhost", port, Network.localhostIsIPv6())).cmdOptions(MongoCmdOptions.builder().syncDelay(10)
+                        .useNoPrealloc(true).useSmallFiles(true).useNoJournal(true).isVerbose(false).build())
                 .build();
         mongodExecutable = MongodStarter.getDefaultInstance().prepare(mongodConfig);
         mongodProcess = mongodExecutable.start();
-        client = new MongoClient("localhost", port);
+        ClusterSettings.Builder clusterSettingsBuilder = ClusterSettings.builder();
+        clusterSettingsBuilder.hosts(Arrays.asList(new ServerAddress("localhost", port)));
+        Builder clientSettingsBuilder = MongoClientSettings.builder()
+                .applyToClusterSettings(builder -> builder.applySettings(clusterSettingsBuilder.build()));
+        client = MongoClients.create(clientSettingsBuilder.build());
 
         MongoDatabase database = client.getDatabase(DATABASE);
 
@@ -368,18 +378,28 @@ public class MongoDBTest {
     }
 
     @Test
-    void testGetOptions() {
+    void testGetAndSetOptions() {
         MongoDBDataStore datastore = new MongoDBDataStore();
         List<ConnectionParameter> cp = Arrays.asList(new ConnectionParameter("connectTimeoutMS", "300000"),
                 new ConnectionParameter("appName", "myapp"));
         datastore.setConnectionParameter(cp);
-        MongoClientOptions options = mongoDBService.getOptions(datastore);
-        Assertions.assertEquals(300000, options.getConnectTimeout());
-        Assertions.assertEquals("myapp", options.getApplicationName());
+        String options = mongoDBService.getOptions(datastore);
+        StringBuilder connectionStringBuilder = new StringBuilder().append("mongodb://");
+        connectionStringBuilder.append("localhost").append(":").append(port).append("/");
+        connectionStringBuilder.append("?").append(options);
+        ConnectionString connectionString = new ConnectionString(connectionStringBuilder.toString());
+
+        Assertions.assertEquals(300000, connectionString.getConnectTimeout());
+        Assertions.assertEquals("myapp", connectionString.getApplicationName());
 
         datastore.setConnectionParameter(Collections.emptyList());
         options = mongoDBService.getOptions(datastore);
-        Assertions.assertNull(options.getApplicationName());
+        connectionStringBuilder = new StringBuilder().append("mongodb://");
+        connectionStringBuilder.append("localhost").append(":").append(port).append("/");
+        connectionStringBuilder.append("?").append(options);
+        connectionString = new ConnectionString(connectionStringBuilder.toString());
+
+        Assertions.assertNull(connectionString.getApplicationName());
     }
 
     private void executeSourceTestJob(BaseSourceConfiguration configuration) {
@@ -610,6 +630,9 @@ public class MongoDBTest {
 
         componentsHandler.setInputData(getTestData4TextMode(getTestData()));
         executeSinkTestJob(config);
+        List<Record> res = getRecords(dataset);
+        Assertions.assertEquals(10, res.size());
+
     }
 
     @Test
@@ -625,6 +648,8 @@ public class MongoDBTest {
 
         componentsHandler.setInputData(getTestData4TextMode(getUpdateData()));
         executeSinkTestJob(config);
+        List<Record> res = getRecords(dataset);
+        Assertions.assertEquals(10, res.size());
     }
 
     @Test
@@ -640,19 +665,19 @@ public class MongoDBTest {
 
         componentsHandler.setInputData(getTestData4TextMode(getUpsertData()));
         executeSinkTestJob(config);
+        List<Record> res = getRecords(dataset);
+        Assertions.assertEquals(20, res.size());
     }
 
     @Test
     void testSinkTextModeWithWrongInput() {
+        MongoDBReadAndWriteDataSet dataset = getMongoDBReadAndWriteDataSet("sinktextwronginput");
+        dataset.setMode(Mode.TEXT);
+        MongoDBSinkConfiguration config = new MongoDBSinkConfiguration();
+        config.setDataset(dataset);
+        componentsHandler.setInputData(getTestData());
+
         Assertions.assertThrows(RuntimeException.class, () -> {
-            MongoDBReadAndWriteDataSet dataset = getMongoDBReadAndWriteDataSet("sinktextwronginput");
-
-            dataset.setMode(Mode.TEXT);
-
-            MongoDBSinkConfiguration config = new MongoDBSinkConfiguration();
-            config.setDataset(dataset);
-
-            componentsHandler.setInputData(getTestData());
             executeSinkTestJob(config);
         });
     }
@@ -796,7 +821,8 @@ public class MongoDBTest {
         MongoDBReadDataSet dataset = getMongoDBDataSet("basic");
         final List<Record> res = getRecords(dataset);
 
-        // the json string should be readable, no too much convert as not only for mongodb, the sink also for other target type
+        // the json string should be readable, no too much convert as not only for mongodb, the sink also for other
+        // target type
         // like database
         Record record = res.get(0);
 
@@ -819,7 +845,8 @@ public class MongoDBTest {
         MongoDBSinkConfiguration sink_config = new MongoDBSinkConfiguration();
         sink_config.setDataset(sink_dataset);
 
-        // the json string should be readable, no too much convert as not only for mongodb, the sink also for other target type
+        // the json string should be readable, no too much convert as not only for mongodb, the sink also for other
+        // target type
         // like database
         executeSourceAndSinkTestJob(source_config, sink_config);
 

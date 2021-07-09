@@ -12,12 +12,10 @@
  */
 package org.talend.components.mongodb.dataset;
 
-import org.talend.components.mongodb.Mode;
-import org.talend.components.mongodb.PathMapping;
-import org.talend.components.mongodb.datastore.MongoDBDataStore;
-
 import java.io.Serializable;
-import java.util.List;
+
+import org.talend.components.mongodb.Mode;
+import org.talend.components.mongodb.datastore.MongoDBDataStore;
 
 public interface BaseDataSet extends Serializable {
 
