@@ -1,0 +1,11 @@
+{
+  "job_status": {
+    "id": "4aba648d81905e6492679833541685a7",
+    "url": "https://zhihu.zendesk.com/api/v2/job_statuses/4aba648d81905e6492679833541685a7.json",
+    "total": null,
+    "progress": null,
+    "status": "queued",
+    "message": null,
+    "results": null
+  }
+}
