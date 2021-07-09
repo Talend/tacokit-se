@@ -28,7 +28,7 @@ def escapedBranch = branchName.toLowerCase().replaceAll("/", "_")
 def deploymentSuffix = (env.BRANCH_NAME == "master" || env.BRANCH_NAME.startsWith("maintenance/")) ? "${PRODUCTION_DEPLOYMENT_REPOSITORY}" : ("dev_branch_snapshots/branch_${escapedBranch}")
 
 def m2 = "/tmp/jenkins/tdi/m2/${deploymentSuffix}"
-def talendOssRepositoryArg = (env.BRANCH_NAME == "master" || env.BRANCH_NAME.startsWith("maintenance/")) ? "" : ("-Dtalend_oss_snapshots=https://nexus-smart-branch.datapwn.com/nexus/content/repositories/${deploymentSuffix}")
+def talendOssRepositoryArg = (env.BRANCH_NAME == "master" || env.BRANCH_NAME.startsWith("maintenance/")) ? "" : ("-Dtalend_oss_snapshots=https://artifacts-zl.talend.com:8443/nexus/content/repositories/${deploymentSuffix}")
 
 def calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
 
