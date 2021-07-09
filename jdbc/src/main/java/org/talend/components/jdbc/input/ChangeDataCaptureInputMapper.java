@@ -27,7 +27,7 @@ import java.util.List;
 import static java.util.Collections.singletonList;
 
 @Version
-@Icon(value = Icon.IconType.DATASTORE)
+@Icon(value = Icon.IconType.CUSTOM, custom = "datastore-connector")
 @Documentation("JDBC input using stream table name")
 @PartitionMapper(name = "StreamTableNameInput", infinite = true)
 public class ChangeDataCaptureInputMapper implements Serializable {

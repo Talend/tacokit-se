@@ -30,7 +30,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;
 
 @Version(1)
-@Icon(value = Icon.IconType.CUSTOM, custom = "talend-rest")
+@Icon(value = Icon.IconType.CUSTOM, custom = "rest-connector")
 @Emitter(name = "Input")
 @Documentation("Http REST Input component")
 @Pollable(name = "Polling", resumeMethod = "resume")

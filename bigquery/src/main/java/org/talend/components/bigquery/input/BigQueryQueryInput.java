@@ -34,7 +34,7 @@ import java.util.Date;
 import java.util.Iterator;
 
 @Version(1)
-@Icon(value = Icon.IconType.CUSTOM, custom = "bigquery")
+@Icon(value = Icon.IconType.CUSTOM, custom = "bigquery-connector")
 @Emitter(name = "BigQueryQueryInput")
 @Documentation("This component reads a query from BigQuery.")
 @Slf4j
