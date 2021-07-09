@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-@Components(family = "Azure", categories = "Cloud")
+@Components(family = "AzureDLSGen2", categories = "Cloud")
 @Icon(value = Icon.IconType.CUSTOM, custom = "AdlsGen2")
 package org.talend.components.adlsgen2;
 
