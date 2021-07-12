@@ -37,7 +37,7 @@ class DefaultRecordReaderTest {
 
         final LineSplitter splitter = (String line) -> Stream.of(line.substring(0, 3), //
                 line.substring(3, 6), //
-                line.substring(6)) //
+                line.substring(6, 8)) //
                 .collect(Collectors.toList());
 
         testContent(sourceURL.getPath(), splitter, config.getLineSeparator());
