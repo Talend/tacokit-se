@@ -226,7 +226,7 @@ public class RestService {
     public void checkBaseURL(final String base) {
         if (!ValidateSites.isValidSite(base)) {
             throw new RuntimeException(
-                    i18n.notValidAddress(ValidateSites.CAN_ACCESS_LOCAL, ValidateSites.ENABLE_MULTICAST_ACCESS));
+                    i18n.notValidAddress(ValidateSites.CAN_ACCESS_LOCAL, ValidateSites.ENABLE_MULTICAST_ACCESS, ValidateSites.ENABLE_NON_SECURED_ACCESS));
         }
     }
 

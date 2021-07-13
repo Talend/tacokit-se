@@ -63,6 +63,6 @@ public interface I18n {
 
     String formatJSON();
 
-    String notValidAddress(boolean canAccessLocal, boolean disableMulticast);
+    String notValidAddress(boolean canAccessLocal, boolean disableMulticast, boolean enableNonSecuredAccess);
 
 }

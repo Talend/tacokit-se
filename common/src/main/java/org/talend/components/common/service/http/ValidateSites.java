@@ -18,6 +18,7 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,6 +32,10 @@ public class ValidateSites {
             .valueOf(System.getProperty("connectors.enable_multicast_network_access",
                     System.getenv().getOrDefault("CONNECTORS_ENABLE_MULTICAST_NETWORK_ACCESS", "true")));
 
+    public final static boolean ENABLE_NON_SECURED_ACCESS = Boolean
+            .valueOf(System.getProperty("connectors.enable_multicast_network_access",
+                    System.getenv().getOrDefault("CONNECTORS_ENABLE_NON_SECURED_ACCESS", "true")));
+
     private final static List<String> ADDITIONAL_LOCAL_HOSTS = Arrays.asList(new String[] { "224.0.0." // local multicast : from
             // 224.0.0.0 to 224.0.0.255
     });
@@ -39,9 +44,12 @@ public class ValidateSites {
     }
 
     public static boolean isValidSite(final String base) {
-        return isValidSite(base, CAN_ACCESS_LOCAL, ENABLE_MULTICAST_ACCESS);
+        return isValidSite(base, CAN_ACCESS_LOCAL, ENABLE_MULTICAST_ACCESS, ENABLE_NON_SECURED_ACCESS);
     }
 
+    public static boolean isValidSite(final String surl, final boolean can_access_local, final boolean enable_multicast_access) {
+        return isValidSite(surl, can_access_local, enable_multicast_access, ENABLE_NON_SECURED_ACCESS);
+    }
     /**
      * This method returns if the given url is valid depending of paremeter.
      * We can make local sites and multicast class of addresses invalid.
@@ -51,24 +59,29 @@ public class ValidateSites {
      * @param enable_multicast_access
      * @return
      */
-    public static boolean isValidSite(final String surl, final boolean can_access_local, final boolean enable_multicast_access) {
+    public static boolean isValidSite(final String surl, final boolean can_access_local, final boolean enable_multicast_access, final boolean enable_non_secured_access) {
         try {
             final URL url = new URL(surl);
             final String host = url.getHost();
             final InetAddress inetAddress = InetAddress.getByName(host);
 
-            if (!enable_multicast_access && inetAddress.isMulticastAddress()) {
-                // Multicast addresses are forbidden
-                return false;
-            }
+            // Check for multicats
+            boolean isValid =  enable_multicast_access || !(inetAddress.isMulticastAddress());
 
-            if (can_access_local) {
-                // we can access local sites
-                return true;
-            }
+            // Check for local access
+            isValid = isValid
+                    &&  (can_access_local
+                        ||  (!inetAddress.isSiteLocalAddress()
+                            && !inetAddress.isLoopbackAddress()
+                            && !ADDITIONAL_LOCAL_HOSTS.stream().filter(h -> host.contains(h)).findFirst().isPresent()));
 
-            return !inetAddress.isSiteLocalAddress() && !inetAddress.isLoopbackAddress()
-                    && !ADDITIONAL_LOCAL_HOSTS.stream().filter(h -> host.contains(h)).findFirst().isPresent();
+            // Check for secured access
+            isValid = isValid
+                    && (enable_non_secured_access
+                        || "HTTPS".equals(url.getProtocol().toUpperCase(Locale.ENGLISH)));
+
+            return isValid;
+
         } catch (MalformedURLException e) {
             log.error(e.getMessage(), e);
             return false;
